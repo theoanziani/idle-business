@@ -758,6 +758,50 @@ html,body{overflow-anchor:none}
 .met-log .d{font-weight:800;color:var(--ink-3);margin-right:8px;font-variant-numeric:tabular-nums}
 .bh-ren{border:0;background:rgba(255,255,255,.22);color:inherit;border-radius:8px;width:28px;height:28px;font-size:15px;line-height:1;cursor:pointer;vertical-align:2px;margin-left:4px}
 
+/* ---------- Football ---------- */
+.ft-nav{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.ft-nav .seg{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:100%;align-self:flex-start}
+.ft-nav .seg::-webkit-scrollbar{display:none}
+.ft-nav .seg button{min-height:40px;white-space:nowrap;flex:none}
+.ft-st{margin:2px 0 12px}
+.ft td{padding:4px 6px}
+.ft th{padding:6px}
+.ft .pos-c{width:26px;color:var(--ink-3);font-weight:800}
+.ft tr td:first-child{border-left:4px solid transparent}
+.ft tr.z-up td:first-child,.ft tr.z-po td:first-child{border-left-color:var(--green)}
+.ft tr.z-top td:first-child{border-left-color:var(--lime)}
+.ft tr.z-down td:first-child{border-left-color:var(--red)}
+.ft tr.fav td{background:var(--blue-soft)}
+.fc-n{display:flex;align-items:center;gap:8px;border:0;background:none;padding:6px 0;min-height:44px;color:var(--ink);font:inherit;font-weight:700;text-align:left;min-width:0;cursor:pointer}
+.fc-n span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc-n .crest{flex:none}
+.ft-leg{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:12px;color:var(--ink-3);font-weight:700}
+.ft-leg span{display:inline-flex;align-items:center;gap:5px}
+.ft-leg i{width:10px;height:10px;border-radius:3px;background:var(--green)}
+.ft-leg .z-down i{background:var(--red)}
+.fm-r{display:grid;grid-template-columns:minmax(0,1fr) 54px minmax(0,1fr);align-items:center;gap:6px;border-bottom:1px solid var(--line)}
+.fm-r:last-child{border-bottom:0}
+.fm-r .h{justify-content:flex-end;flex-direction:row-reverse;text-align:right}
+.fm-r .w span{color:var(--ink)}
+.fm-r .fc-n:not(.w) span{color:var(--ink-2);font-weight:600}
+.fm-r .sc{text-align:center;font:800 16px var(--f-display);white-space:nowrap}
+.fm-r .sc.vs{color:var(--ink-3)}
+.fm-p{font-size:12px;color:var(--ink-3);text-align:center;margin:-4px 0 4px}
+.card .tag{margin-top:10px}
+.card .tag:first-child{margin-top:0}
+.ft-champ{display:flex;align-items:center;gap:12px;padding:6px 0}
+.ft-champ small{display:block;font-size:12px;color:var(--ink-3);font-weight:700}
+.ft-champ b{font:800 18px var(--f-display)}
+.ft-pal{display:flex;align-items:center;gap:10px}
+.ft-pal>span{width:84px;flex:none;color:var(--ink-3);font-weight:700;font-size:13px}
+.fc-hero{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.fc-hero b{display:block;font:800 21px/1.15 var(--f-display)}
+.fc-hero small{color:var(--ink-3);font-weight:700}
+.ft-form{display:flex;gap:6px}
+.ft-form i{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:13px;color:#fff;background:var(--ink-3)}
+.ft-form i.w{background:var(--good-sh)}
+.ft-form i.l{background:var(--bad-sh)}
+
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -4178,6 +4222,873 @@ function importSave(txt){
 }
 
 /* ============================================================
+   FOOTBALL : données des championnats (saison 2026-2027)
+   Noms de clubs volontairement modifiés de quelques lettres ; la ville reste exacte.
+   Blasons dessinés par le jeu (forme et motifs originaux), seules les couleurs
+   rappellent le club. Force (note) calée sur la hiérarchie réelle.
+   Format d'une ligne : Nom|Ville|couleur 1|couleur 2|note|capacité du stade
+   ============================================================ */
+const FOOT_NAT = {
+  fr:{in:'en France', n:'France',      conf:'eu', cal:[8,5],  city:'paris'},
+  es:{in:'en Espagne', n:'Espagne',     conf:'eu', cal:[8,5],  city:'barcelone'},
+  hr:{in:'en Croatie', n:'Croatie',     conf:'eu', cal:[7,5],  city:'zagreb'},
+  us:{in:'aux États-Unis', n:'États-Unis',  conf:'na', cal:[2,12], city:'miami', closed:true},
+  br:{in:'au Brésil', n:'Brésil',      conf:'sa', cal:[1,12], city:'rio'},
+  cn:{in:'en Chine', n:'Chine',       conf:'as', cal:[3,11], city:'pekin'}
+};
+/* niveaux : n = nom fictif, up/down = places de montée / descente */
+const FOOT_LEAGUES = [
+  {id:'fr1',nat:'fr',lvl:1,n:'Première Ligue',      down:2},
+  {id:'fr2',nat:'fr',lvl:2,n:'Deuxième Ligue',      up:2, down:2},
+  {id:'fr3',nat:'fr',lvl:3,n:'Troisième Ligue',     up:2},
+  {id:'es1',nat:'es',lvl:1,n:'Primera Liga',        down:3},
+  {id:'es2',nat:'es',lvl:2,n:'Segunda Liga',        up:3, down:4},
+  {id:'es3',nat:'es',lvl:3,n:'Tercera Liga',        up:4, groups:2},
+  {id:'hr1',nat:'hr',lvl:1,n:'Prva Liga',           down:1},
+  {id:'hr2',nat:'hr',lvl:2,n:'Druga Liga',          up:1, down:1},
+  {id:'hr3',nat:'hr',lvl:3,n:'Treća Liga',          up:1},
+  {id:'us1',nat:'us',lvl:1,n:'Ligue majeure',       groups:2},
+  {id:'us2',nat:'us',lvl:2,n:'Championnat national',groups:2},
+  {id:'us3',nat:'us',lvl:3,n:'Ligue régionale'},
+  {id:'br1',nat:'br',lvl:1,n:'Série A',             down:4},
+  {id:'br2',nat:'br',lvl:2,n:'Série B',             up:4, down:4},
+  {id:'br3',nat:'br',lvl:3,n:'Série C',             up:4},
+  {id:'cn1',nat:'cn',lvl:1,n:'Super Ligue',         down:2},
+  {id:'cn2',nat:'cn',lvl:2,n:'Première Ligue',      up:2, down:2},
+  {id:'cn3',nat:'cn',lvl:3,n:'Deuxième Ligue',      up:2, groups:2}
+];
+const FOOT_RAW = {
+fr1:`Paris Saint-Germont|Paris|004170|DA291C|88|47926
+Olympico de Marseille|Marseille|2FAEE0|FFFFFF|80|67394
+AC Monaco|Monaco|E51B22|FFFFFF|79|18523
+LOSK Lille|Lille|E01E13|1B2A55|79|50186
+Olympico Lyonnais|Lyon|FFFFFF|1B3C8C|78|59186
+RS Lens|Lens|FFD100|E30613|77|37705
+RS Strasbourg Alsace|Strasbourg|009FE3|FFFFFF|74|29230
+OGS Nice|Nice|E2001A|111111|73|35624
+Stade Rennois|Rennes|E13327|111111|73|29778
+Toulouse AC|Toulouse|5B2D8E|FFFFFF|70|33150
+Stade Brestais 29|Brest|E30613|FFFFFF|70|15931
+Paris AC|Paris|1A2B4C|FFFFFF|68|20000
+AC Lorient|Lorient|F28C00|111111|66|18890
+Le Havre FC|Le Havre|5CBFEB|003865|65|25178
+AS Auxerre|Auxerre|FFFFFF|0050A0|65|21379
+Angers SCA|Angers|111111|FFFFFF|65|18752
+Le Mans AC|Le Mans|E30613|F7D117|62|25000
+ESTAK Troyes|Troyes|0055A4|FFFFFF|62|20400`,
+fr2:`AC Nantes|Nantes|FCD405|008A3A|64|35322
+AC Metz|Metz|8B1538|FFFFFF|63|28786
+US Saint-Étienne|Saint-Étienne|009639|FFFFFF|63|41965
+Stade du Reims|Reims|E30613|FFFFFF|62|21029
+Montpellier HSK|Montpellier|F28C00|1B2A55|61|32900
+AC Annecy|Annecy|E30613|FFFFFF|57|15660
+Clermont Fut 63|Clermont-Ferrand|E30613|004B9B|57|11980
+En Avent Guingamp|Guingamp|E30613|111111|57|18378
+USD Dunkerque|Dunkerque|0055A4|FFFFFF|56|4933
+Red Stars FC|Saint-Ouen|00843D|FFFFFF|56|10000
+AC Sochaux-Montbéliard|Montbéliard|FCD405|003F87|56|20005
+DFKO Dijon|Dijon|E30613|FFFFFF|55|15995
+Grenoble Fut 38|Grenoble|0055A4|FFFFFF|55|20068
+US Nancy Lorraine|Nancy|E30613|FFFFFF|55|20087
+Stade Lavalois|Laval|F28C00|111111|54|18607
+Pau AC|Pau|FCD405|003865|54|4031
+Rodez AV|Rodez|E30613|FCD405|54|5955
+AS Boulogne|Boulogne-sur-Mer|E30613|111111|53|9534`,
+fr3:`SN Caen|Caen|003F87|E30613|53|21500
+SK Bastia|Bastia|003F87|FFFFFF|53|16078
+Amiens SK|Amiens|FFFFFF|111111|52|12097
+AC Rouen 1899|Rouen|E30613|FFFFFF|48|8000
+AS Quevilly-Rouen|Le Petit-Quevilly|FCD405|E30613|48|12018
+Valenciennes AC|Valenciennes|E30613|FFFFFF|48|25172
+US Cannes|Cannes|E30613|FFFFFF|47|14000
+FBPB 01|Bourg-en-Bresse|E30613|FFFFFF|47|11400
+AS Orléans|Orléans|E30613|FFFFFF|47|7533
+AC Fleury 91|Fleury-Mérogis|E30613|111111|46|2500
+Paris 13 Atletica|Paris|E30613|FCD405|46|7000
+AS Concarneau|Concarneau|E30613|003F87|46|6000
+AC Versailles 78|Versailles|003F87|FCD405|46|7000
+AC Villefranche Beaujolais|Villefranche-sur-Saône|003F87|E30613|45|3000
+Le Puy Fut 43|Le Puy-en-Velay|111111|FFFFFF|45|5000
+SC Aubagne Air Belle|Aubagne|003F87|FFFFFF|45|3000
+US Thionville Lusitanes|Thionville|E30613|009639|44|4000
+La Roche VC|La Roche-sur-Yon|FCD405|003F87|44|5000`,
+es1:`Reale Madrid|Madrid|FFFFFF|FEBE10|91|83186
+CF Barcelona|Barcelone|A50044|004D98|92|62652
+Atlética Madrid|Madrid|CB3524|FFFFFF|86|70692
+Villarreal FC|Villarreal|FFE667|005187|81|23008
+Athletix Bilbao|Bilbao|EE2523|FFFFFF|80|53289
+Reale Betos|Séville|00954C|FFFFFF|79|70000
+Reale Sociedat|Saint-Sébastien|0067B1|FFFFFF|78|39313
+Celto Vigo|Vigo|8AC3EE|FFFFFF|76|24870
+Sevilla AC|Séville|FFFFFF|D81E05|75|43883
+Valencia FC|Valence|FFFFFF|111111|74|49430
+Osasona|Pampelune|D91A21|0A346F|73|23576
+Rayo Vallecaño|Madrid|FFFFFF|E53027|73|14708
+RCD Espanyal|Barcelone|007FC8|FFFFFF|72|37776
+Getafe FC|Getafe|005999|FFFFFF|72|16500
+Deportiva Alavés|Vitoria-Gasteiz|0761AF|FFFFFF|70|19840
+Elche FC|Elche|FFFFFF|05642C|70|31388
+Deportiva La Coruña|La Corogne|0057B8|FFFFFF|70|32660
+Levanto UD|Valence|B4053F|004D98|69|26354
+Málaga FC|Málaga|00A1E4|FFFFFF|68|30044
+Rasing Santander|Santander|FFFFFF|00A650|68|22308`,
+es2:`Girona AC|Gérone|E30613|FFFFFF|68|14624
+RDC Mallorca|Palma|E30613|111111|67|23142
+Reale Oviedo|Oviedo|003F87|FFFFFF|65|30500
+AD Las Palmas|Las Palmas|FCD405|003F87|64|32392
+AD Almería|Almería|E30613|FFFFFF|63|15000
+AD Leganés|Leganés|003F87|FFFFFF|63|14422
+Granada FC|Grenade|E30613|FFFFFF|62|19189
+Reale Valladolid|Valladolid|5B2D8E|FFFFFF|62|27618
+Cádiz FC|Cadix|FCD405|003F87|61|20724
+Reale Sportin Gijón|Gijón|E30613|FFFFFF|61|29371
+Albacete Balompia|Albacete|FFFFFF|E30613|60|17524
+AD Castellón|Castellón|111111|FFFFFF|60|15500
+CD Eibar|Eibar|003F87|A50044|60|8164
+AC Andorra|Andorre|003F87|FCD405|59|5108
+Burgos FC|Burgos|FFFFFF|111111|59|12194
+Córdoba FC|Cordoue|00843D|FFFFFF|59|20989
+AD Tenerife|Santa Cruz de Tenerife|FFFFFF|003F87|57|22824
+AC Ceuta|Ceuta|FFFFFF|111111|55|6500
+Celto Fortuna|Vigo|8AC3EE|FFFFFF|54|24870
+CD Eldensa|Elda|003F87|E30613|54|5776
+CF Sabadell|Sabadell|003F87|FFFFFF|54|11908
+Reale Sociedat B|Saint-Sébastien|0067B1|FFFFFF|52|4000`,
+es3:`Arenas Klub|Getxo|E30613|111111|45|2000
+Reale Avilés Industrial|Avilés|FFFFFF|003F87|47|5400
+Barakaldo FC|Barakaldo|FCD405|111111|47|7960
+Bilbao Athletix|Bilbao|EE2523|FFFFFF|49|3250
+CP Cacereña|Cáceres|00843D|FFFFFF|46|7000
+Coria FC|Coria|003F87|FFFFFF|43|3000
+Cultura Leonesa|León|FFFFFF|111111|52|13346
+Deportiva Fabril|La Corogne|0057B8|FFFFFF|46|1000
+FC Extremadura|Almendralejo|00843D|FFFFFF|45|11580
+AD Logroñés|Logroño|E30613|FFFFFF|48|16000
+AD Lugo|Lugo|E30613|FFFFFF|49|7114
+AC Mérida|Mérida|111111|FFFFFF|46|14600
+AD Mirandés|Miranda de Ebro|E30613|111111|53|5759
+AD Ourense|Ourense|E30613|FFFFFF|45|5000
+SD Ponferradino|Ponferrada|003F87|FFFFFF|50|8400
+Pontevedra FC|Pontevedra|E30613|111111|47|10500
+Rasing Ferrol|Ferrol|00843D|FFFFFF|50|8000
+Reale Unión|Irun|FFFFFF|111111|46|5000
+Unionistes de Salamanca|Salamanque|FFFFFF|111111|47|4000
+Zamora FC|Zamora|E30613|FFFFFF|47|7813
+;
+Águilas AC|Águilas|E30613|FFFFFF|45|4000
+AC Alcorcón|Alcorcón|FCD405|003F87|49|5100
+Algeciras FC|Algésiras|E30613|FFFFFF|48|7000
+Antequera FC|Antequera|00843D|FFFFFF|46|6000
+Atlética Madrileño|Madrid|CB3524|FFFFFF|50|6000
+AC Cartagena|Carthagène|111111|FFFFFF|52|15105
+CE Europe|Barcelone|FFFFFF|003F87|45|4000
+Gimnàstik de Tarragona|Tarragone|E30613|111111|50|14591
+Hércules FC|Alicante|003F87|FFFFFF|50|29500
+AD Huesca|Huesca|003F87|A50044|53|9100
+AD Ibiza|Ibiza|003F87|FFFFFF|49|4500
+Reale Jaén|Jaén|FFFFFF|A50044|46|12000
+Juventad Torremolinos|Torremolinos|003F87|FFFFFF|45|3000
+Reale Murcia|Murcie|E30613|FFFFFF|51|31179
+Rayu Majadahonda|Majadahonda|E30613|FFFFFF|45|3500
+Reale Madrid Castilla|Madrid|FFFFFF|FEBE10|51|6000
+UE Sant Andrea|Barcelone|FCD405|E30613|46|6500
+AD Teruel|Teruel|E30613|FFFFFF|45|5000
+Villarreal FC B|Villarreal|FFE667|005187|48|5000
+Reale Zaragoza|Saragosse|FFFFFF|003F87|54|20000`,
+hr1:`GNK Dynamo Zagreb|Zagreb|0057A8|FFFFFF|75|35123
+HNK Hajduc Split|Split|FFFFFF|0057A8|70|33987
+HSK Rijeka|Rijeka|FFFFFF|0057A8|66|8279
+FK Varaždin|Varaždin|003F87|FFFFFF|62|8818
+FK Osijek|Osijek|003F87|FFFFFF|62|13005
+NK Lokomotiv|Zagreb|003F87|FFFFFF|60|35123
+NK Istria 1961|Pula|FCD405|00843D|59|8923
+HNK Goriça|Velika Gorica|E30613|FFFFFF|58|5000
+NK Slaven Belupa|Koprivnica|FFFFFF|003F87|58|3134
+NK Rudež|Zagreb|FCD405|111111|53|2000`,
+hr2:`HNC Vukovar 1991|Vukovar|0057A8|FFFFFF|50|3000
+HNK Cibalija|Vinkovci|003F87|FFFFFF|49|9958
+FK Sesvete|Sesvete|FCD405|003F87|48|2000
+FK Dugopolje|Dugopolje|E30613|FFFFFF|46|2000
+FK Dubrava|Zagreb|003F87|FFFFFF|46|2000
+NK BSC Bijelo Brdo|Bijelo Brdo|FFFFFF|00843D|46|1500
+HNK Orient 1919|Rijeka|E30613|FFFFFF|45|3000
+HNK Segeste|Sisak|FFFFFF|E30613|45|6000
+FK Karlovac 1919|Karlovac|FFFFFF|E30613|44|5000
+FK Opatija|Opatija|E30613|FFFFFF|44|2000
+FK Hrvace|Hrvace|003F87|FFFFFF|43|1500
+NK Kroatia Zmijavci|Zmijavci|E30613|FFFFFF|43|1500`,
+hr3:`HNK Šibenic|Šibenik|E30613|FFFFFF|42|8000
+FK Jarun|Zagreb|003F87|FFFFFF|41|2000
+FK Zadar|Zadar|003F87|FFFFFF|40|5860
+FK Solin|Solin|003F87|FFFFFF|39|2000
+NK Intra Zaprešić|Zaprešić|FCD405|003F87|39|4528
+NK Međimurja|Čakovec|E30613|111111|39|8000
+NK Zrinsky Jurjevac|Jurjevac|00843D|FFFFFF|38|1500
+NK Kustošia|Zagreb|E30613|FFFFFF|38|2550
+NK Marsonija|Slavonski Brod|003F87|FCD405|38|10000
+NK Jadran LB|Ploče|003F87|FFFFFF|37|2000
+FK Belišće|Belišće|E30613|FFFFFF|37|4000
+NK Junac Sinj|Sinj|E30613|FFFFFF|37|3000
+NK Mladost Ždralovo|Bjelovar|00843D|FFFFFF|36|1500
+FK Bjelovar|Bjelovar|E30613|FFFFFF|36|5000
+NK Uskoc|Klis|FFFFFF|003F87|36|1500
+FK Novigrad|Novigrad|003F87|FFFFFF|35|1500`,
+us1:`Intra Miami CF|Miami|F7B5CD|231F20|72|26700
+Nashville FC|Nashville|ECE83A|1F1646|70|30000
+Chicago Fyre FC|Chicago|AF2626|0A174A|67|24955
+SC Cincinnati|Cincinnati|F05323|263B80|67|26000
+New England Revolutions|Foxborough|0A2240|CE0E2D|66|20000
+Charlotte SC|Charlotte|1A85C8|111111|66|38000
+New York City SC|New York|6CACE4|041E42|65|28743
+New York Rad Bulls|New York|ED1E36|23326A|64|25000
+Orlando City FC|Orlando|633492|FDE192|63|25500
+Toronto SC|Toronto|B81137|455560|63|28351
+D.C. Unity|Washington|111111|EF3E42|63|20000
+Philadelphia Unio|Philadelphie|071B2C|B19B69|63|18500
+Atlanta Unitas FC|Atlanta|80000A|111111|62|42500
+FC Montréal|Montréal|111111|0033A1|61|19619
+Columbus Krew|Columbus|FEDD00|111111|61|20011
+;
+Vancouver Whitecap FC|Vancouver|00245E|9DC2EA|70|22120
+Los Angeles SC|Los Angeles|111111|C39E6D|69|22000
+Houston Dinamo FC|Houston|FF6B00|101820|68|22039
+San Jose Earthquake|San José|0067B1|111111|66|18000
+SC Dallas|Dallas|E81F3E|2A4076|66|20500
+St. Louis City FC|Saint-Louis|DD004C|0A1E2C|66|22423
+San Diego SC|San Diego|0B1D36|E0C068|66|35000
+Colorado Rapid|Denver|960A2C|9CC2EA|65|18061
+Seattle Sounder FC|Seattle|5D9741|005595|65|37722
+Minnesota Unitas FC|Saint Paul|8CD2F4|231F20|64|19400
+Reale Salt Lake|Salt Lake City|B30838|013A81|64|20213
+Portland Timber|Portland|00482B|D69A00|64|25218
+LA Galaxie|Los Angeles|00245D|FFD200|64|27000
+Austin SC|Austin|00B140|111111|63|20738
+Sportin Kansas City|Kansas City|93B1D7|002F65|60|18467`,
+us2:`Tampa Bay Rowdys|Tampa|FDD100|00703C|57|7227
+Charleston Batterie|Charleston|FDD100|111111|56|5000
+Louisville City SC|Louisville|5B2D8E|FDD100|57|15304
+Detroit City SC|Detroit|7A1F2B|C6A96C|55|7933
+Pittsburgh Riverhound SC|Pittsburgh|111111|FDD100|54|5000
+Hartford Athletik|Hartford|00843D|003F87|53|5500
+Indy Elevens|Indianapolis|002F65|E30613|53|10524
+Rhode Island SC|Providence|002F65|FDD100|53|10500
+Miami SC|Miami|003F87|FFFFFF|51|25000
+Loudoun Unitas FC|Leesburg|E30613|111111|50|5000
+Birmingham Legio FC|Birmingham|111111|E30613|50|47000
+Brooklyn SC|New York|111111|FFFFFF|50|7000
+Sportin Club Jacksonville|Jacksonville|003F87|FDD100|48|12000
+;
+El Paso Locomotiv FC|El Paso|002F65|E57200|56|9500
+New Mexico Unitas|Albuquerque|FDD100|111111|55|13500
+Orange County FC|Irvine|F28C00|111111|55|5000
+SC Tulsa|Tulsa|002F65|E57200|55|7833
+San Antonio SC|San Antonio|111111|C8102E|55|8296
+Colorado Springs Switchback FC|Colorado Springs|002F65|E57200|54|8000
+Sacramento Republik FC|Sacramento|A50034|FDD100|54|11569
+Lexington FC|Lexington|00843D|FDD100|53|7500
+Las Vegas Light FC|Las Vegas|111111|E5007E|52|9334
+Phoenix Risen FC|Phoenix|E57200|111111|52|10000
+Oakland Root SC|Oakland|111111|FDD100|52|15000
+Monterey Bay SC|Seaside|002F65|E30613|48|6000`,
+us3:`Charlotte Independance|Charlotte|002F65|E30613|47|5000
+Unio Omaha|Omaha|FDD100|111111|47|6000
+Forward Madison SC|Madison|E5007E|111111|46|5000
+Athletik Club Boise|Boise|00843D|FFFFFF|45|5000
+One Knoxville FC|Knoxville|E57200|002F65|45|6000
+Chattanooga Red Wolf SC|Chattanooga|A50034|111111|44|5500
+Spokane Velocità FC|Spokane|5B2D8E|111111|44|5000
+Fort Wayne SC|Fort Wayne|002F65|E30613|43|5000
+AV Alto FC|Lancaster|E57200|111111|42|5000
+Corpus Christi SC|Corpus Christi|003F87|FDD100|42|5000
+SC Naples|Naples|003F87|FFFFFF|41|5000
+Sarasota Paradis|Sarasota|00A3E0|FDD100|41|5000
+Portland Heart of Pine|Portland|00843D|111111|41|6000
+New York Kosmos|Paterson|00843D|FFFFFF|41|8000
+Westchester FC|Mount Vernon|002F65|FDD100|40|5000
+Greenville Triomph SC|Greenville|002F65|00A3E0|40|5000
+Richmond Kicker|Richmond|E30613|FDD100|40|6000`,
+br1:`SE Palmeiros|São Paulo|006437|FFFFFF|80|43713
+CR Flamenco|Rio de Janeiro|C52613|111111|80|78838
+Fluminensa FC|Rio de Janeiro|870A28|00613C|74|78838
+Cruzeira EC|Belo Horizonte|003F87|FFFFFF|74|66658
+São Paulo SC|São Paulo|FFFFFF|E30613|73|66671
+Atlética Mineiro|Belo Horizonte|111111|FFFFFF|73|44892
+Botafoga FR|Rio de Janeiro|111111|FFFFFF|73|44661
+EC Bahja|Salvador|003F87|E30613|72|50052
+SC Corinthian|São Paulo|FFFFFF|111111|72|47252
+Athletiko Paranaense|Curitiba|C8102E|111111|71|42372
+Red Bragantina|Bragança Paulista|FFFFFF|E30613|71|12000
+SC Intercional|Porto Alegre|E30613|FFFFFF|71|49055
+Grêmia FBPA|Porto Alegre|0D80BF|111111|70|60540
+Santos SC|Santos|FFFFFF|111111|69|16068
+Coritiba SC|Curitiba|00544D|FFFFFF|68|40502
+CR Vasco de Gama|Rio de Janeiro|111111|FFFFFF|68|24584
+EC Vitórya|Salvador|E30613|111111|66|30793
+Mirassol SC|Mirassol|FDD100|00843D|66|14534
+Clube do Rema|Belém|002F65|FFFFFF|63|13792
+Chapecoensa|Chapecó|00843D|FFFFFF|61|20089`,
+br2:`Fortaleza SC|Fortaleza|003F87|E30613|63|57876
+EC Juventuda|Caxias do Sul|00843D|FFFFFF|60|19924
+Sporte Recife|Recife|E30613|111111|60|32983
+Criciúma SC|Criciúma|FDD100|111111|59|19225
+Grêmia Novorizontino|Novo Horizonte|FDD100|111111|59|16000
+Vila Nova SC|Goiânia|E30613|FFFFFF|58|6500
+Atlética Goianiense|Goiânia|E30613|111111|58|12500
+Ceará FC|Fortaleza|111111|FFFFFF|58|57876
+CRV|Maceió|E30613|FFFFFF|57|17126
+Goiás SC|Goiânia|00843D|FFFFFF|57|14450
+Cuiabá SC|Cuiabá|00843D|FDD100|57|44000
+Operária Ferroviário|Ponta Grossa|111111|FFFFFF|55|10632
+Clube Náutica|Recife|E30613|FFFFFF|55|22856
+Amérika Mineiro|Belo Horizonte|00843D|111111|55|23018
+Athletik Club|São João del-Rei|111111|FFFFFF|54|6000
+São Bernardo SC|São Bernardo do Campo|FDD100|111111|54|15159
+Avaí SC|Florianópolis|003F87|FFFFFF|54|17826
+Botafoga-SP|Ribeirão Preto|E30613|111111|53|29292
+Londrina SC|Londrina|00A3E0|FFFFFF|51|31000
+Ponta Preta|Campinas|111111|FFFFFF|50|19728`,
+br3:`Paysando SC|Belém|00A3E0|FFFFFF|51|16200
+Guarany FC|Campinas|00843D|FFFFFF|50|29130
+Amazonas SC|Manaus|FDD100|111111|49|44000
+Brusque SC|Brusque|E30613|FDD100|49|5000
+Santa Kruz FC|Recife|E30613|111111|49|60044
+Botafoga-PB|João Pessoa|111111|FFFFFF|48|19000
+Ferroviária SC|Araraquara|8B1538|FFFFFF|48|20000
+Figueirensa FC|Florianópolis|111111|FFFFFF|48|19584
+Ituano SC|Itu|E30613|111111|48|18560
+SEC Caxias|Caxias do Sul|8B1538|FFFFFF|47|22132
+Intra de Limeira|Limeira|111111|FFFFFF|47|18000
+Volta Redonda SC|Volta Redonda|FDD100|111111|47|18230
+AD Confiansa|Aracaju|003F87|FFFFFF|46|15575
+Maringá SC|Maringá|111111|FFFFFF|46|20000
+Anápolis SC|Anápolis|E30613|FFFFFF|45|10000
+Barra SC|Itajaí|E30613|FFFFFF|45|5000
+Floresta SC|Fortaleza|00843D|FFFFFF|45|5000
+AO Itabaiano|Itabaiana|E30613|003F87|45|8000
+Ypiranga SC|Erechim|00843D|FDD100|45|8000
+Maranhão SC|São Luís|E30613|003F87|44|40000`,
+cn1:`Chengdu Rongchen|Chengdu|E30613|FFFFFF|64|50695
+Shanghai Ports|Shanghai|E30613|FFFFFF|63|37000
+Shanghai Shenhwa|Shanghai|003F87|FFFFFF|62|72436
+Shandong Taishang|Jinan|F28C00|FFFFFF|62|56808
+Beijing Guoen|Pékin|00843D|FFFFFF|61|68000
+Zhejiang SC|Hangzhou|00843D|FFFFFF|59|51971
+Chongqing Tongliang Lung|Chongqing|003F87|FDD100|58|60295
+Dalian Yingbao|Dalian|003F87|FFFFFF|57|63671
+Yunnan Yukung|Yuxi|003F87|FDD100|57|30300
+Qingdao West Coasts|Qingdao|003F87|FFFFFF|56|27000
+Shenzhen Pengcity|Shenzhen|E30613|111111|56|45000
+Henan SC|Zhengzhou|E30613|FDD100|56|29860
+Liaoning Tiren|Shenyang|003F87|FFFFFF|55|40000
+Qingdao Hainio|Qingdao|E30613|FFFFFF|54|50000
+Wuhan Three Town|Wuhan|00A3E0|FFFFFF|53|56000
+Tianjin Jinmen Tigers|Tianjin|003F87|E30613|51|36390`,
+cn2:`Guangdong GZ-Powers|Canton|E30613|FDD100|52|30000
+Shenzhen Junior|Shenzhen|00A3E0|FFFFFF|51|20000
+Guangxi Hengcheng|Nanning|003F87|FFFFFF|50|60000
+Nantong Zhiyung|Nantong|003F87|FFFFFF|50|30000
+Yanbian Longdin|Yanji|E30613|FFFFFF|49|30000
+Changchun Yatei|Changchun|E30613|FFFFFF|48|25000
+Shaanxi Unio|Xi'an|E30613|FFFFFF|48|50000
+Ningbo SC|Ningbo|003F87|FDD100|47|30000
+Shijiazhuang Gongfo|Shijiazhuang|003F87|FFFFFF|47|30000
+Dalian Kun City|Dalian|003F87|FFFFFF|46|30000
+Suzhou Dongwo|Suzhou|E30613|FFFFFF|46|45000
+Wuxi Wugou|Wuxi|00843D|FFFFFF|46|30000
+Jiangxi Dingnan Unity|Dingnan|00843D|FFFFFF|45|15000
+Meizhou Haka|Meizhou|E30613|FFFFFF|45|27000
+Nanjing Citi|Nankin|003F87|FFFFFF|45|60000
+Foshan Nanshe|Foshan|003F87|FDD100|43|20000`,
+cn3:`Shandong Taishang B|Jinan|F28C00|FFFFFF|40|10000
+Shanghai Ports B|Shanghai|E30613|FFFFFF|40|10000
+Qingdao Red Lion|Qingdao|E30613|111111|39|10000
+Shanxi Chongde Ronghei|Taiyuan|003F87|FFFFFF|38|20000
+Nantong Haimen Kodion|Nantong|00843D|FFFFFF|38|10000
+Beijing ITC|Pékin|00843D|111111|38|10000
+Dalian Kewai|Dalian|003F87|FFFFFF|37|10000
+Tai'an Tiankwang|Tai'an|111111|FCD405|37|10000
+Shanghai Seconds|Shanghai|5B2D8E|FFFFFF|37|10000
+Dalian Yingbao B|Dalian|003F87|FFFFFF|36|5000
+Lanzhou Longyuan Athletik|Lanzhou|E30613|FFFFFF|36|20000
+Changchun Xidou|Changchun|003F87|FCD405|36|10000
+;
+Chengdu Rongchen B|Chengdu|E30613|FFFFFF|39|10000
+Wenzhou SC|Wenzhou|003F87|FFFFFF|39|15000
+Shenzhen 2028 SC|Shenzhen|00A3E0|111111|38|10000
+Hangzhou Linping Wuyua|Hangzhou|00843D|FFFFFF|38|10000
+Hubei Istars|Wuhan|E30613|FFFFFF|38|10000
+Guizhou Guiyang Athletik|Guiyang|003F87|FCD405|37|20000
+Jiangxi Lushang|Ruichang|00843D|FFFFFF|37|10000
+Xiamen Feilou|Xiamen|003F87|FFFFFF|37|10000
+Ganzhou Ruishe|Ganzhou|E30613|FFFFFF|37|10000
+Guangdong Mingto|Canton|E30613|FCD405|36|10000
+Guangzhou Dandelions|Canton|FCD405|00843D|36|10000
+Wuhan Three Town B|Wuhan|00A3E0|FFFFFF|35|5000`
+};
+/* Clubs étrangers non jouables (coupes internationales). Format : Nom|Ville|pays|c1|c2|note */
+const FOOT_FOREIGN_RAW = `Arsenol|Londres|Angleterre|EF0107|FFFFFF|90
+Manchester Citi|Manchester|Angleterre|6CABDD|1C2C5B|89
+Liverpoul|Liverpool|Angleterre|C8102E|FFFFFF|89
+Chelsee|Londres|Angleterre|034694|FFFFFF|86
+Newcastle Unitad|Newcastle|Angleterre|241F20|FFFFFF|82
+Aston Vila|Birmingham|Angleterre|670E36|95BFE5|82
+Manchester Unitad|Manchester|Angleterre|DA291C|111111|81
+Tottenham Hotspurs|Londres|Angleterre|FFFFFF|132257|81
+Nottingham Forrest|Nottingham|Angleterre|DD0000|FFFFFF|79
+Brighton Albian|Brighton|Angleterre|0057B8|FFFFFF|78
+Crystal Palais|Londres|Angleterre|1B458F|C4122E|78
+Internaziona Milano|Milan|Italie|0068A8|111111|87
+SSC Napoly|Naples|Italie|12A0D7|FFFFFF|85
+AC Milano|Milan|Italie|FB090B|111111|83
+Juventas|Turin|Italie|111111|FFFFFF|83
+Atalante|Bergame|Italie|1E71B8|111111|81
+AS Romana|Rome|Italie|8E1F2F|F0BC42|80
+SS Lazia|Rome|Italie|87D8F7|FFFFFF|78
+Como 1908|Côme|Italie|003F87|FFFFFF|78
+Bologna SC|Bologne|Italie|1A2F48|A21C26|78
+ACF Fiorentino|Florence|Italie|482E92|FFFFFF|78
+FC Beyern München|Munich|Allemagne|DC052D|FFFFFF|91
+Borussia Dortmond|Dortmund|Allemagne|FDE100|111111|84
+Bayer 05 Leverkusen|Leverkusen|Allemagne|E32221|111111|84
+RS Leipzig|Leipzig|Allemagne|DD0741|FFFFFF|81
+Eintrakt Frankfurt|Francfort|Allemagne|E1000F|111111|79
+VfL Stuttgart|Stuttgart|Allemagne|E32219|FFFFFF|79
+SK Freiburg|Fribourg-en-Brisgau|Allemagne|E30613|111111|77
+Borussio Mönchengladbach|Mönchengladbach|Allemagne|111111|FFFFFF|76
+Sportin CP|Lisbonne|Portugal|008057|FFFFFF|82
+SL Benfika|Lisbonne|Portugal|E83030|FFFFFF|81
+AC Porto|Porto|Portugal|003F87|FFFFFF|81
+SK Braga|Braga|Portugal|E30613|FFFFFF|76
+Vitórya Guimarães|Guimarães|Portugal|FFFFFF|111111|72
+PSW Eindhoven|Eindhoven|Pays-Bas|E30613|FFFFFF|78
+AFC Ajaks|Amsterdam|Pays-Bas|D2122E|FFFFFF|77
+Feyenoorde|Rotterdam|Pays-Bas|E30613|FFFFFF|77
+AS Alkmaar|Alkmaar|Pays-Bas|E30613|FFFFFF|74
+Club Brügge|Bruges|Belgique|0070C0|111111|76
+Royal Unio Saint-Gilloise|Bruxelles|Belgique|FDD100|003F87|74
+KRS Genk|Genk|Belgique|003F87|FFFFFF|73
+RSC Anderlechte|Bruxelles|Belgique|4E2582|FFFFFF|72
+Galatasaraï|Istanbul|Turquie|A90432|FDB912|79
+Fenerbahça|Istanbul|Turquie|00205B|FFED00|77
+Beşiktaz|Istanbul|Turquie|111111|FFFFFF|74
+Trabzonspur|Trabzon|Turquie|8B1538|00A3E0|71
+Celtik|Glasgow|Écosse|018749|FFFFFF|74
+Rangerz|Glasgow|Écosse|1B458F|FFFFFF|72
+RS Salzburg|Salzbourg|Autriche|E30613|FFFFFF|73
+SK Sturme Graz|Graz|Autriche|111111|FFFFFF|70
+BSC Young Boy|Berne|Suisse|FDD100|111111|70
+FC Basel 1894|Bâle|Suisse|E30613|003F87|70
+SK Slavie Praha|Prague|Tchéquie|E30613|FFFFFF|72
+AC Sparte Praha|Prague|Tchéquie|8B1538|FFFFFF|71
+Olympiakos|Le Pirée|Grèce|E30613|FFFFFF|74
+PAOC|Thessalonique|Grèce|111111|FFFFFF|72
+AEC Athens|Athènes|Grèce|FDD100|111111|71
+Panathinaikas|Athènes|Grèce|00843D|FFFFFF|70
+Crvena Zvesda|Belgrade|Serbie|E30613|FFFFFF|72
+Partizane|Belgrade|Serbie|111111|FFFFFF|68
+Shaktar Donetsk|Donetsk|Ukraine|F28C00|111111|72
+Dynamo Kyev|Kyiv|Ukraine|FFFFFF|003F87|70
+AC København|Copenhague|Danemark|FFFFFF|003F87|71
+Bodø/Glimp|Bodø|Norvège|FDD100|111111|74
+Legio Warszawa|Varsovie|Pologne|00843D|FFFFFF|69
+Malmö SF|Malmö|Suède|87CEEB|FFFFFF|69
+Ferencváras|Budapest|Hongrie|00843D|FFFFFF|69
+Karabağ|Bakou|Azerbaïdjan|111111|FFFFFF|68
+FCSV|Bucarest|Roumanie|E30613|003F87|66
+Makkabi Tel-Aviv|Tel-Aviv|Israël|FDD100|003F87|66
+ŠK Slovann Bratislava|Bratislava|Slovaquie|87CEEB|FFFFFF|66
+River Plata|Buenos Aires|Argentine|FFFFFF|E30613|76
+Boca Junior|Buenos Aires|Argentine|003F87|FDD100|75
+Racing Clube|Avellaneda|Argentine|75AADB|FFFFFF|73
+Estudiante LP|La Plata|Argentine|E30613|FFFFFF|71
+Vélez Sarsfeld|Buenos Aires|Argentine|FFFFFF|003F87|70
+Independienta|Avellaneda|Argentine|E30613|FFFFFF|69
+Taller Córdoba|Córdoba|Argentine|003F87|FFFFFF|69
+Rosario Centrale|Rosario|Argentine|FDD100|003F87|69
+Argentinos Junior|Buenos Aires|Argentine|E30613|FFFFFF|68
+San Lorenso|Buenos Aires|Argentine|003F87|E30613|67
+Newell's Old Boy|Rosario|Argentine|E30613|111111|66
+Peñarole|Montevideo|Uruguay|FDD100|111111|68
+Club Nacionale|Montevideo|Uruguay|FFFFFF|003F87|68
+Atlético Nacionale|Medellín|Colombie|00843D|FFFFFF|68
+Millonario|Bogota|Colombie|003F87|FFFFFF|66
+Junior SC|Barranquilla|Colombie|E30613|FFFFFF|66
+Deporte Tolima|Ibagué|Colombie|8B1538|FDD100|64
+Colo-Kolo|Santiago|Chili|FFFFFF|111111|67
+Universidat de Chile|Santiago|Chili|003F87|E30613|66
+Olimpya|Asuncion|Paraguay|FFFFFF|111111|66
+Cerro Porteña|Asuncion|Paraguay|003F87|E30613|66
+Club Libertat|Asuncion|Paraguay|111111|FFFFFF|66
+LDV Quito|Quito|Équateur|FFFFFF|003F87|70
+Independiente del Vale|Sangolquí|Équateur|111111|003F87|70
+Barcelone SC|Guayaquil|Équateur|FDD100|111111|66
+Universitaria|Lima|Pérou|FDF5E6|8B1538|64
+Alianzza Lima|Lima|Pérou|003F87|FFFFFF|63
+Sporting Cristale|Lima|Pérou|87CEEB|FFFFFF|63
+Club Bolivare|La Paz|Bolivie|87CEEB|FFFFFF|63
+The Strongests|La Paz|Bolivie|FDD100|111111|61
+Deportivo Táchyra|San Cristóbal|Venezuela|FDD100|111111|58
+Club Amérika|Mexico|Mexique|FDD100|003F87|72
+FC Monterrey|Monterrey|Mexique|003F87|FFFFFF|72
+Tigre UANL|Monterrey|Mexique|FDD100|003F87|72
+Cruz Azzul|Mexico|Mexique|003F87|FFFFFF|71
+Deportiva Toluca|Toluca|Mexique|E30613|FFFFFF|71
+Chivaz Guadalajara|Guadalajara|Mexique|E30613|FFFFFF|69
+FC Pachuca|Pachuca|Mexique|003F87|FFFFFF|69
+Puma UNAM|Mexico|Mexique|003F87|C9A227|67
+LD Alajuelensa|Alajuela|Costa Rica|E30613|111111|61
+Deportivo Saprisa|San José|Costa Rica|5B2D8E|FFFFFF|60
+CD Olimpya|Tegucigalpa|Honduras|FFFFFF|003F87|57
+Comunicacione|Guatemala|Guatemala|FFFFFF|111111|55
+Al-Hilel|Riyad|Arabie saoudite|003F87|FFFFFF|79
+Al-Nassar|Riyad|Arabie saoudite|FDD100|003F87|78
+Al-Ittihed|Djeddah|Arabie saoudite|FDD100|111111|77
+Al-Ahlee|Djeddah|Arabie saoudite|00843D|FFFFFF|77
+Al-Qadisia|Khobar|Arabie saoudite|E30613|FDD100|72
+Visel Kobe|Kobe|Japon|8B1538|111111|70
+Sanfreche Hiroshima|Hiroshima|Japon|5B2D8E|FFFFFF|69
+Kashima Antler|Kashima|Japon|8B1538|003F87|68
+Kawasaki Frontal|Kawasaki|Japon|00A3E0|111111|68
+Yokohama F. Marino|Yokohama|Japon|003F87|FFFFFF|68
+Urawa Red Diamond|Saitama|Japon|E30613|111111|68
+Ulsan HB|Ulsan|Corée du Sud|003F87|FDD100|68
+Jeonbuk Hyundai Motors|Jeonju|Corée du Sud|00843D|111111|68
+Pohang Steeler|Pohang|Corée du Sud|E30613|111111|66
+Gwangju FC|Gwangju|Corée du Sud|FDD100|E30613|64
+Al-Sad|Doha|Qatar|FFFFFF|111111|68
+Al-Duhayl|Doha|Qatar|E30613|FFFFFF|66
+Al-Ayn|Al-Aïn|Émirats arabes unis|5B2D8E|FFFFFF|67
+Shabab Al-Ahly|Dubaï|Émirats arabes unis|E30613|111111|67
+Perspolis|Téhéran|Iran|E30613|FFFFFF|64
+Esteghlel|Téhéran|Iran|003F87|FFFFFF|64
+Buriram Unitad|Buriram|Thaïlande|003F87|FDD100|63
+Melbourne Citi|Melbourne|Australie|87CEEB|FFFFFF|62
+Sydney SC|Sydney|Australie|87CEEB|003F87|61
+Pakhtakorr|Tachkent|Ouzbékistan|00843D|FFFFFF|60
+Al-Ahlay|Le Caire|Égypte|E30613|FFFFFF|72
+Pyramid FC|Le Caire|Égypte|003F87|FFFFFF|68
+Mamelodi Sundown|Pretoria|Afrique du Sud|FDD100|003F87|68
+Widad Casablanca|Casablanca|Maroc|E30613|FFFFFF|66
+Espérence de Tunis|Tunis|Tunisie|E30613|FDD100|66
+Auckland Citi|Auckland|Nouvelle-Zélande|87CEEB|FFFFFF|50`;
+/* pays étrangers -> confédération */
+const FOOT_FCONF = {'Angleterre':'eu','Italie':'eu','Allemagne':'eu','Portugal':'eu','Pays-Bas':'eu','Belgique':'eu','Turquie':'eu','Écosse':'eu','Autriche':'eu','Suisse':'eu','Tchéquie':'eu','Grèce':'eu','Serbie':'eu','Ukraine':'eu','Danemark':'eu','Norvège':'eu','Pologne':'eu','Suède':'eu','Hongrie':'eu','Azerbaïdjan':'eu','Roumanie':'eu','Israël':'eu','Slovaquie':'eu',
+  'Argentine':'sa','Uruguay':'sa','Colombie':'sa','Chili':'sa','Paraguay':'sa','Équateur':'sa','Pérou':'sa','Bolivie':'sa','Venezuela':'sa',
+  'Mexique':'na','Costa Rica':'na','Honduras':'na','Guatemala':'na',
+  'Arabie saoudite':'as','Japon':'as','Corée du Sud':'as','Qatar':'as','Émirats arabes unis':'as','Iran':'as','Thaïlande':'as','Australie':'as','Ouzbékistan':'as',
+  'Égypte':'af','Afrique du Sud':'af','Maroc':'af','Tunisie':'af','Nouvelle-Zélande':'oc'};
+/* compétitions internationales (noms fictifs) */
+const FOOT_COMPS = [
+  {id:'eu1',conf:'eu',n:'Coupe d’Europe des champions',size:36},
+  {id:'eu2',conf:'eu',n:'Coupe d’Europe',size:36},
+  {id:'sa1',conf:'sa',n:'Coupe des Libertés',size:32},
+  {id:'na1',conf:'na',n:'Coupe des champions d’Amérique du Nord',size:16},
+  {id:'as1',conf:'as',n:'Coupe d’Asie des clubs',size:24},
+  {id:'w1', conf:'w', n:'Coupe intercontinentale',size:6}
+];
+
+/* ---------- Construction des tables ---------- */
+const FOOT = {clubs:[], byLeague:{}, foreign:[]};
+(function(){
+  let id=0;
+  FOOT_LEAGUES.forEach(L=>{
+    const groups=FOOT_RAW[L.id].split('\n;\n');
+    FOOT.byLeague[L.id]=[];
+    groups.forEach((g,gi)=>g.trim().split('\n').forEach(line=>{
+      const [n,city,c1,c2,r,cap]=line.split('|');
+      const c={id:++id, n, city, nat:L.nat, lg:L.id, grp:gi, c1:'#'+c1, c2:'#'+c2, r:+r, cap:+cap||5000};
+      FOOT.clubs.push(c); FOOT.byLeague[L.id].push(c);
+    }));
+  });
+  FOOT_FOREIGN_RAW.split('\n').forEach(line=>{
+    const [n,city,nat,c1,c2,r]=line.split('|');
+    FOOT.foreign.push({id:++id, n, city, nat, conf:FOOT_FCONF[nat]||'eu', c1:'#'+c1, c2:'#'+c2, r:+r, foreign:true});
+  });
+})();
+function footClub(id){ return FOOT.clubs.find(c=>c.id===id) || FOOT.foreign.find(c=>c.id===id); }
+
+/* ---------- Blasons : dessin original, couleurs du club ---------- */
+function footHash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+function footInitials(n){
+  const skip=/^(de|du|del|da|do|la|le|les|des|of|the|y|e|et|and|\d+)$/i;
+  const w=n.replace(/[^\p{L}\d\s'-]/gu,' ').split(/[\s-]+/).filter(x=>x&&!skip.test(x));
+  return w.slice(0,3).map(x=>x[0]).join('').toUpperCase();
+}
+function footCrest(c, size){
+  size=size||40; const h=footHash(c.n), shape=h%5, pat=(h>>3)%6, c1=c.c1, c2=c.c2;
+  const light=x=>{ const v=parseInt(x.slice(1),16); return ((v>>16)*299+((v>>8)&255)*587+(v&255)*114)/1000>150; };
+  const ink=light(c1)? (light(c2)? '#1a1a1a' : c2) : (light(c2)? c2 : '#ffffff');
+  const paths=[
+    'M20 2 L36 7 V20 C36 30 28 36 20 39 C12 36 4 30 4 20 V7 Z',
+    'M5 3 H35 V22 C35 32 27 37 20 39 C13 37 5 32 5 22 Z',
+    'M20 1 L37 10 L33 32 L20 39 L7 32 L3 10 Z',
+    'M20 2 A18 18 0 1 1 19.99 2 Z',
+    'M6 2 H34 L36 8 V24 C36 33 28 38 20 39 C12 38 4 33 4 24 V8 Z'
+  ];
+  const clip='cl'+h.toString(36);
+  const pats=[
+    '',
+    `<rect x="0" y="0" width="20" height="40" fill="${c2}"/>`,
+    `<rect x="0" y="16" width="40" height="9" fill="${c2}"/>`,
+    `<rect x="9" y="0" width="5" height="40" fill="${c2}"/><rect x="20" y="0" width="5" height="40" fill="${c2}"/><rect x="31" y="0" width="5" height="40" fill="${c2}"/>`,
+    `<path d="M0 0 L40 40 V28 L12 0 Z" fill="${c2}"/>`,
+    `<path d="M0 22 L20 12 L40 22 V40 H0 Z" fill="${c2}"/>`
+  ];
+  const ini=footInitials(c.n);
+  return `<svg class="crest" viewBox="0 0 40 40" width="${size}" height="${size}" aria-hidden="true"><defs><clipPath id="${clip}"><path d="${paths[shape]}"/></clipPath></defs>`+
+    `<g clip-path="url(#${clip})"><rect width="40" height="40" fill="${c1}"/>${pats[pat]}</g>`+
+    `<path d="${paths[shape]}" fill="none" stroke="${light(c1)&&light(c2)?'#999':c2}" stroke-width="2"/>`+
+    (pat===2? '' : `<circle cx="20" cy="20" r="9.5" fill="${c1}" stroke="${c2}" stroke-width="1.5"/>`)+
+    `<text x="20" y="${pat===2?23.5:24}" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="${ini.length>2?8:ini.length>1?10:12}" fill="${pat===2? (light(c2)?'#1a1a1a':'#fff') : ink}">${ini}</text></svg>`;
+}
+
+/* ============================================================
+   FOOTBALL : saisons, calendriers, classements, coupes nationales
+   Les championnats tournent en arrière-plan dès le début de la partie.
+   Calendrier du jeu : 12 mois de 30 jours, le jour 1 est le 1er janvier 2026.
+   État : S.foot (créé au premier besoin). Les matchs (calendrier des rencontres)
+   sont recalculés à partir de l'ordre des clubs : seul le résultat est sauvegardé.
+   ============================================================ */
+const FOOT_Y0 = 2026;
+const FOOT_MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+/* fenêtres de saison par pays : début et fin (mois, jour), trêve d'hiver, nombre de matchs aller-retour */
+const FOOT_CAL = {
+  fr:{s:[8,15], e:[5,24], br:[[12,22],[1,3]]},
+  es:{s:[8,15], e:[5,30], br:[[12,23],[1,2]]},
+  hr:{s:[7,20], e:[5,24], br:[[12,15],[2,1]]},
+  us:{s:[8,1],  e:[5,10], br:[[12,15],[2,15]]},
+  br:{s:[2,1],  e:[12,5]},
+  cn:{s:[3,1],  e:[11,5]}
+};
+const FOOT_CYCLES = {hr1:4, hr2:3};          /* la Croatie joue 4 fois et 3 fois contre chaque adversaire */
+const FOOT_PO = {us1:4, us2:4, us3:4};       /* séries éliminatoires aux États-Unis (qualifiés par groupe) */
+
+/* ---------- Dates ---------- */
+const footDoy = (m,d) => (m-1)*30+(d-1);
+function footDay(y,m,d){ return (y-FOOT_Y0)*360+footDoy(m,d)+1; }          /* numéro de jour du jeu */
+function footDate(day){ const z=day-1, y=FOOT_Y0+Math.floor(z/360), doy=((z%360)+360)%360; return {y, m:Math.floor(doy/30)+1, d:doy%30+1}; }
+function footDateLabel(day,o){ const t=footDate(day); return (o&&o.wd? D.DAYS[wdOf(day)].toLowerCase()+' ' : '')+(t.d===1?'1er':t.d)+' '+FOOT_MONTHS[t.m-1]+(o&&o.noY?'':' '+t.y); }
+function footSeasonLabel(nat,y){ const c=FOOT_CAL[nat]; return c.e[0]<c.s[0]? y+'-'+(y+1) : String(y); }
+
+/* ---------- Hasard propre au football (ne perturbe pas le reste du jeu) ---------- */
+function frnd(){ const F=S.foot; F.rs=(F.rs+0x6D2B79F5)|0; let t=F.rs; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }
+function fpois(l){ const L=Math.exp(-l); let k=0, p=1; do{ k++; p*=frnd(); }while(p>L && k<12); return k-1; }
+function fshuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(frnd()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+/* ---------- Initialisation ---------- */
+function footInit(){
+  if(S.foot && S.foot.v===1) return S.foot;
+  S.foot={v:1, rs:(S.rs^0x5f3759df)|0, r:{}, nat:{}, lg:{}, cup:{}, hist:{}, cupHist:{}, fav:null};
+  FOOT.clubs.forEach(c=>{ S.foot.r[c.id]=c.r; });
+  FOOT_LEAGUES.forEach(L=>{
+    const g=[]; FOOT.byLeague[L.id].forEach(c=>{ (g[c.grp]=g[c.grp]||[]).push(c.id); });
+    S.foot.lg[L.id]={grp:g.map(x=>fshuffle(x.slice())), rd:0, dates:[], tab:{}, last:null, form:{}, po:null, done:true};
+  });
+  Object.keys(FOOT_NAT).forEach(n=>footPlan(n, S.day));
+  return S.foot;
+}
+const footR = id => (S.foot && S.foot.r[id]) || (footClub(id)||{}).r || 50;
+
+/* Prépare la prochaine saison d'un pays à partir du jour donné */
+function footPlan(nat, fromDay){
+  const c=FOOT_CAL[nat], t=footDate(fromDay);
+  let y=t.y, start=footDay(y,c.s[0],c.s[1]);
+  const endOf = yy => footDay(c.e[0]<c.s[0]? yy+1 : yy, c.e[0], c.e[1]);
+  /* saison déjà commencée : on la joue si assez de dates restent, sinon on attend la suivante */
+  if(fromDay>start){ const end=endOf(y); if(end-fromDay>=150) start=fromDay+2; else { y++; start=footDay(y,c.s[0],c.s[1]); } }
+  else if(start-fromDay>360){ y--; start=footDay(y,c.s[0],c.s[1]); }
+  S.foot.nat[nat]={y, start, end:endOf(y), on:false, done:false};
+}
+function footInBreak(nat,day){
+  const b=FOOT_CAL[nat].br; if(!b) return false;
+  const doy=(day-1)%360, a=footDoy(b[0][0],b[0][1]), z=footDoy(b[1][0],b[1][1]);
+  return a<=z? (doy>=a&&doy<=z) : (doy>=a||doy<=z);
+}
+/* dates de match : samedis répartis sur la fenêtre, mercredis en renfort si besoin */
+function footDates(nat,start,end,R,avoid){
+  const sat=[], wed=[];
+  for(let d=start; d<=end; d++){ if(footInBreak(nat,d)) continue; const w=wdOf(d); if(w===5) sat.push(d); else if(w===2 && !(avoid&&avoid.has(d))) wed.push(d); }
+  const pick=(arr,k)=>{ if(k<=0) return []; if(k>=arr.length) return arr.slice(); const o=[]; for(let i=0;i<k;i++) o.push(arr[Math.round(i*(arr.length-1)/Math.max(1,k-1))]); return [...new Set(o)]; };
+  let out=pick(sat,R);
+  if(out.length<R) out=out.concat(pick(wed,R-out.length));
+  return out.sort((a,b)=>a-b).slice(0,R);
+}
+/* calendrier des rencontres : méthode du cercle, aller et retour alternés */
+const FOOT_FIX={};
+function footFixtures(ids,cycles){
+  const key=ids.join(',')+'/'+cycles; if(FOOT_FIX[key]) return FOOT_FIX[key];
+  const a=ids.slice(); if(a.length%2) a.push(0);
+  const n=a.length, base=[];
+  for(let r=0;r<n-1;r++){
+    const rd=[]; for(let i=0;i<n/2;i++){ const h=a[i], w=a[n-1-i]; if(h&&w) rd.push(r%2? [w,h] : [h,w]); }
+    base.push(rd); a.splice(1,0,a.pop());
+  }
+  const out=[]; for(let c=0;c<cycles;c++) base.forEach(rd=>out.push(c%2? rd.map(([h,w])=>[w,h]) : rd));
+  return FOOT_FIX[key]=out;
+}
+const footCycles = id => FOOT_CYCLES[id]||2;
+function footRounds(lid){ const L=S.foot.lg[lid]; return Math.max(...L.grp.map(g=>footFixtures(g,footCycles(lid)).length)); }
+
+/* ---------- Démarrage d'une saison ---------- */
+function footStartSeason(nat){
+  const N=S.foot.nat[nat]; N.on=true; N.done=false;
+  const cupDates=footCupPlan(nat);
+  FOOT_LEAGUES.filter(L=>L.nat===nat).forEach(L=>{
+    const lg=S.foot.lg[L.id];
+    lg.grp=lg.grp.map(g=>fshuffle(g.slice()));
+    lg.rd=0; lg.tab={}; lg.form={}; lg.last=null; lg.po=null; lg.done=false;
+    lg.grp.flat().forEach(id=>{ lg.tab[id]=[0,0,0,0,0,0,0]; lg.form[id]=''; });
+    const endReg = FOOT_PO[L.id]? N.end-24 : N.end;
+    lg.dates=footDates(nat,N.start,endReg,footRounds(L.id),cupDates);
+  });
+  log('info','Football : la saison '+footSeasonLabel(nat,N.y)+' commence '+FOOT_NAT[nat].in+'.','news');
+}
+
+/* ---------- Résultat d'un match ---------- */
+function footPlay(h,a,neutral){
+  const rh=footR(h), ra=footR(a), k=1/27, adv=neutral?0:.15;
+  const gh=fpois(1.30*Math.exp(k*(rh-ra)+adv)), ga=fpois(1.10*Math.exp(k*(ra-rh)-(neutral?0:.04)));
+  return [gh,ga];
+}
+function footRecord(lg,h,a,gh,ga){
+  const T=lg.tab, th=T[h], ta=T[a]; if(!th||!ta) return;
+  th[0]++; ta[0]++; th[4]+=gh; th[5]+=ga; ta[4]+=ga; ta[5]+=gh;
+  const f=(id,r)=>{ lg.form[id]=((lg.form[id]||'')+r).slice(-5); };
+  if(gh>ga){ th[1]++; ta[3]++; th[6]+=3; f(h,'V'); f(a,'D'); }
+  else if(gh<ga){ ta[1]++; th[3]++; ta[6]+=3; f(a,'V'); f(h,'D'); }
+  else { th[2]++; ta[2]++; th[6]++; ta[6]++; f(h,'N'); f(a,'N'); }
+}
+/* classement d'un groupe : points, différence, buts marqués */
+function footTable(lid,gi){
+  const lg=S.foot.lg[lid], ids=lg.grp[gi||0]||[];
+  return ids.map(id=>({id, t:lg.tab[id]||[0,0,0,0,0,0,0]})).sort((x,y)=>(y.t[6]-x.t[6])||((y.t[4]-y.t[5])-(x.t[4]-x.t[5]))||(y.t[4]-x.t[4])||(footR(y.id)-footR(x.id)));
+}
+
+/* ---------- Journées de championnat ---------- */
+function footLeagueDay(lid,day){
+  const lg=S.foot.lg[lid]; if(lg.done) return;
+  if(lg.rd<lg.dates.length && lg.dates[lg.rd]===day){
+    const res=[];
+    lg.grp.forEach((g,gi)=>{ const fx=footFixtures(g,footCycles(lid))[lg.rd]; if(!fx) return;
+      fx.forEach(([h,a])=>{ const [gh,ga]=footPlay(h,a); footRecord(lg,h,a,gh,ga); res.push([h,a,gh,ga,gi]); }); });
+    lg.last={rd:lg.rd+1, day, res}; lg.rd++;
+    if(lg.rd>=lg.dates.length){ if(FOOT_PO[lid]) footPoStart(lid,day); else lg.done=true; }
+    footNotifyFav(lid,res);
+    return;
+  }
+  if(lg.po && lg.po.dates[lg.po.ri]===day) footPoDay(lid,day);
+}
+/* séries éliminatoires (États-Unis) : quarts de conférence, finales de conférence, finale */
+function footPoStart(lid,day){
+  const lg=S.foot.lg[lid], n=FOOT_PO[lid], seeds=lg.grp.map((g,gi)=>footTable(lid,gi).slice(0,n).map(x=>x.id));
+  const ties=[]; seeds.forEach(s=>{ for(let i=0;i<s.length/2;i++) ties.push([s[i],s[s.length-1-i]]); });
+  const dates=[]; let d=day+3; while(dates.length<4){ if(wdOf(d)===5) dates.push(d); d++; }
+  lg.po={ri:0, dates, ties, last:null, champ:null};
+}
+function footKO(h,a){ let [gh,ga]=footPlay(h,a); let pen=null; if(gh===ga){ const p=.5+(footR(h)-footR(a))/200; pen=frnd()<p? h : a; } return {h,a,gh,ga,pen,w: gh>ga?h : ga>gh? a : pen}; }
+function footPoDay(lid,day){
+  const lg=S.foot.lg[lid], P=lg.po, res=P.ties.map(([h,a])=>footKO(h,a)); P.last=res; P.ri++;
+  const win=res.map(r=>r.w);
+  if(win.length===1){ P.champ=win[0]; P.ties=[]; lg.done=true; return; }
+  const nx=[]; for(let i=0;i<win.length;i+=2) nx.push(footR(win[i])>=footR(win[i+1])? [win[i],win[i+1]] : [win[i+1],win[i]]);
+  P.ties=nx;
+}
+
+/* ---------- Coupe nationale ---------- */
+function footCupPlan(nat){
+  const N=S.foot.nat[nat], ids=[]; FOOT_LEAGUES.filter(L=>L.nat===nat).forEach(L=>S.foot.lg[L.id].grp.forEach(g=>g.forEach(id=>ids.push(id))));
+  let P=1; while(P<ids.length) P*=2;
+  const R=Math.log2(P), wed=[]; for(let d=N.start+21; d<=N.end-10; d++){ if(wdOf(d)===2 && !footInBreak(nat,d)) wed.push(d); }
+  const dates=[]; for(let i=0;i<R;i++) dates.push(wed[Math.round(i*(wed.length-1)/Math.max(1,R-1))]);
+  const lvl=id=>FOOT_LEAGUES.find(L=>L.id===footLgOf(id)).lvl;
+  const order=ids.slice().sort((a,b)=>(lvl(a)-lvl(b))||(footR(b)-footR(a)));
+  const byes=P-ids.length, first=order.slice(byes);           /* les meilleurs entrent au 2e tour */
+  S.foot.cup[nat]={ri:0, dates, P, R, byes:order.slice(0,byes), alive:fshuffle(first.slice()), last:null, champ:null};
+  return new Set(dates);
+}
+function footLgOf(id){ const F=S.foot; for(const k in F.lg){ if(F.lg[k].grp.some(g=>g.includes(id))) return k; } return (footClub(id)||{}).lg; }
+function footCupRoundName(C,i){ const left=C.P/Math.pow(2,i); return left===2?'Finale':left===4?'Demi-finales':left===8?'Quarts de finale':left===16?'Huitièmes de finale':(i+1)+'e tour'; }
+function footCupDay(nat,day){
+  const C=S.foot.cup[nat]; if(!C||C.champ||C.dates[C.ri]!==day) return;
+  let pool=C.alive; if(C.ri===1 && C.byes.length){ pool=fshuffle(pool.concat(C.byes)); C.byes=[]; }
+  const lvl=id=>FOOT_LEAGUES.find(L=>L.id===footLgOf(id)).lvl, res=[];
+  for(let i=0;i+1<pool.length;i+=2){ let h=pool[i], a=pool[i+1]; if(lvl(a)>lvl(h)) [h,a]=[a,h]; res.push(footKO(h,a)); }
+  C.last={name:footCupRoundName(C,C.ri), day, res}; C.ri++;
+  C.alive=fshuffle(res.map(r=>r.w));
+  if(C.alive.length===1){ C.champ=C.alive[0]; (S.foot.cupHist[nat]=S.foot.cupHist[nat]||[]).unshift({y:S.foot.nat[nat].y, champ:C.champ}); }
+  else if(C.ri===1 && C.byes.length) { /* le tour suivant accueille les exemptés */ }
+  if(S.foot.fav && res.some(r=>r.h===S.foot.fav||r.a===S.foot.fav)){ const r=res.find(r=>r.h===S.foot.fav||r.a===S.foot.fav); log(r.w===S.foot.fav?'good':'info','Coupe : '+footScore(r)+'.','news'); }
+}
+
+/* ---------- Fin de saison : palmarès, montées, descentes, évolution des clubs ---------- */
+function footEndSeason(nat){
+  const N=S.foot.nat[nat], Ls=FOOT_LEAGUES.filter(L=>L.nat===nat).sort((a,b)=>a.lvl-b.lvl);
+  const moves=[];  /* [id, de, vers] */
+  Ls.forEach(L=>{
+    const lg=S.foot.lg[L.id], tabs=lg.grp.map((g,gi)=>footTable(L.id,gi));
+    const champ= lg.po&&lg.po.champ ? lg.po.champ : tabs[0][0].id;
+    lg.prev={y:N.y, tabs:tabs.map(tt=>tt.map(x=>[x.id].concat(x.t))), po:lg.po&&lg.po.champ? lg.po.champ : null};
+    (S.foot.hist[L.id]=S.foot.hist[L.id]||[]).unshift({y:N.y, champ, first:tabs.map(t=>t[0].id)});
+    if(S.foot.hist[L.id].length>30) S.foot.hist[L.id].pop();
+    const below=Ls.find(x=>x.lvl===L.lvl+1), above=Ls.find(x=>x.lvl===L.lvl-1);
+    if(L.down && below && !FOOT_NAT[nat].closed){ const all=footTable(L.id,0); all.slice(-L.down).forEach(x=>moves.push([x.id,L.id,below.id])); }
+    if(L.up && above && !FOOT_NAT[nat].closed){
+      if(lg.grp.length>1){ const per=Math.ceil(L.up/lg.grp.length); tabs.forEach(t=>t.slice(0,per).forEach(x=>moves.push([x.id,L.id,above.id]))); }
+      else tabs[0].slice(0,L.up).forEach(x=>moves.push([x.id,L.id,above.id]));
+    }
+    /* évolution des notes : progression ou recul selon la saison, retour vers la moyenne */
+    const ids=lg.grp.flat(), mean=ids.reduce((s,id)=>s+footR(id),0)/ids.length;
+    tabs.forEach(t=>t.forEach((x,i)=>{ const q=t.length>1? 1-2*i/(t.length-1) : 0; S.foot.r[x.id]=Math.round(clamp(footR(x.id)+q*1.2+(frnd()-.5)*2.2+(mean-footR(x.id))*.06,30,95)*10)/10; }));
+  });
+  moves.forEach(([id,from,to])=>{
+    const f=S.foot.lg[from], t=S.foot.lg[to];
+    f.grp.forEach(g=>{ const i=g.indexOf(id); if(i>=0) g.splice(i,1); });
+    let gi=0; t.grp.forEach((g,i)=>{ if(g.length<t.grp[gi].length) gi=i; }); t.grp[gi].push(id);
+    const up=FOOT_LEAGUES.find(L=>L.id===to).lvl<FOOT_LEAGUES.find(L=>L.id===from).lvl;
+    S.foot.r[id]=Math.round(clamp(footR(id)+(up?1.5:-1.5),30,95)*10)/10;
+  });
+  N.on=false; N.done=true; N.moves=moves;
+  const top=FOOT_LEAGUES.find(L=>L.nat===nat&&L.lvl===1), ch=S.foot.hist[top.id][0].champ;
+  log('good','Football : '+footName(ch)+' remporte le titre en '+top.n+' ('+FOOT_NAT[nat].n+', '+footSeasonLabel(nat,N.y)+').','news');
+  footPlan(nat, N.end+1);
+}
+
+/* ---------- Pas quotidien ---------- */
+function footStep(day){
+  footInit();
+  Object.keys(FOOT_NAT).forEach(nat=>{
+    const N=S.foot.nat[nat];
+    if(!N.on && !N.done && day>=N.start) footStartSeason(nat);
+    if(!N.on) return;
+    FOOT_LEAGUES.forEach(L=>{ if(L.nat===nat) footLeagueDay(L.id,day); });
+    footCupDay(nat,day);
+    const all=FOOT_LEAGUES.filter(L=>L.nat===nat).every(L=>S.foot.lg[L.id].done), C=S.foot.cup[nat];
+    if(all && (!C||C.champ||C.ri>=C.dates.length) && day>=Math.min(N.end, day)) footEndSeason(nat);
+  });
+}
+{ const _nd=nextDay; nextDay=function(){ const d=S.day, ok=_nd(); if(ok){ try{ footStep(d); }catch(e){ console.error(e); } } return ok; }; }
+
+/* ---------- Aides d'affichage ---------- */
+function footName(id){ const c=footClub(id); return c? c.n : '?'; }
+function footScore(r){ const h=r.h??r[0], a=r.a??r[1], gh=r.gh??r[2], ga=r.ga??r[3]; return footName(h)+' '+gh+'-'+ga+' '+footName(a)+(r.pen? ' (t.a.b., '+footName(r.pen)+')' : ''); }
+function footNotifyFav(lid,res){
+  const f=S.foot.fav; if(!f) return; const r=res.find(x=>x[0]===f||x[1]===f); if(!r) return;
+  const win=(r[0]===f&&r[2]>r[3])||(r[1]===f&&r[3]>r[2]);
+  log(win?'good':'info','Football : '+footScore(r)+'.','news');
+}
+/* position et zone d'un club dans son championnat */
+function footZone(lid,gi,pos,n){
+  const L=FOOT_LEAGUES.find(x=>x.id===lid), nat=FOOT_NAT[L.nat], ng=S.foot.lg[lid].grp.length;
+  if(FOOT_PO[lid] && pos<FOOT_PO[lid]) return 'po';
+  if(!nat.closed){
+    if(L.up && pos<Math.ceil(L.up/ng)) return 'up';
+    if(L.down && ng===1 && pos>=n-L.down) return 'down';
+  }
+  if(L.lvl===1 && pos===0) return 'top';
+  return '';
+}
+
+/* ============================================================
    SAUVEGARDES : 5 emplacements sur l'appareil.
    IndexedDB (partie compressée en gzip, métadonnées à part pour lister vite),
    repli sur localStorage si IndexedDB est indisponible.
@@ -6965,6 +7876,127 @@ function metCard(b){
   }
   return _mc3();
 }; }
+
+/* ============================================================
+   FOOTBALL : écran des championnats (menu Plus > Football)
+   Classements, journées, coupe nationale, palmarès, fiche d'un club.
+   ============================================================ */
+ICON.foot='<circle cx="12" cy="12" r="9"/><path d="M12 7.5l4 2.9-1.5 4.7h-5L8 10.4zM12 3v4.5M16 10.4l4.3-1.4M14.5 15.1l2.7 3.7M9.5 15.1l-2.7 3.7M8 10.4L3.7 9"/>';
+MENU.splice(MENU.findIndex(x=>x[0]==='guide'),0,['foot','Football','']);
+MGROUPS.splice(MGROUPS.findIndex(g=>g[0]==='Aide'),0,['Sport',['foot']]);
+MDESC.foot='Championnats, coupes, clubs';
+
+const FOOT_CUPN = {fr:'Coupe nationale', es:'Copa nacional', hr:'Kup nacional', us:'Coupe ouverte', br:'Copa nacional', cn:'Coupe de Chine'};
+function footUi(){
+  ui.fn=ui.fn&&FOOT_NAT[ui.fn]? ui.fn : 'fr';
+  const ls=FOOT_LEAGUES.filter(L=>L.nat===ui.fn);
+  if(!ui.fl||!ls.some(L=>L.id===ui.fl)) ui.fl=ls[0].id;
+  const g=S.foot.lg[ui.fl].grp.length; if(!(ui.fg>=0&&ui.fg<g)) ui.fg=0;
+  return {ls, L:FOOT_LEAGUES.find(x=>x.id===ui.fl)};
+}
+const fcrest = (id,s) => { const c=footClub(id); return c? footCrest(c,s||26) : ''; };
+const fclubBtn = (id,cls) => '<button class="fc-n '+(cls||'')+'" data-a="fclub" data-i="'+id+'">'+fcrest(id,24)+'<span>'+esc(footName(id))+'</span></button>';
+
+function footStatus(nat,lid){
+  const N=S.foot.nat[nat], lg=S.foot.lg[lid], sl=footSeasonLabel(nat,N.y);
+  if(!N.on) return N.done? 'Intersaison. La saison '+footSeasonLabel(nat,N.y+1)+' commence le '+footDateLabel(S.foot.nat[nat].start)+'.' : 'Saison '+sl+' : début le '+footDateLabel(N.start)+'.';
+  if(lg.po && !lg.done) return 'Saison '+sl+' : séries éliminatoires.';
+  if(lg.done) return 'Saison '+sl+' : championnat terminé.';
+  const nx=lg.dates[lg.rd];
+  return 'Saison '+sl+' · journée '+lg.rd+' sur '+lg.dates.length+(nx? ' · prochaine le '+footDateLabel(nx,{wd:1,noY:1}) : '')+'.';
+}
+function footTableHtml(lid,gi){
+  const lg=S.foot.lg[lid], N=S.foot.nat[FOOT_LEAGUES.find(x=>x.id===lid).nat];
+  let rows;
+  if(!N.on && lg.prev && lg.prev.tabs[gi]) rows=lg.prev.tabs[gi].map(r=>({id:r[0],t:r.slice(1),old:1}));
+  else rows=footTable(lid,gi);
+  const n=rows.length, fav=S.foot.fav;
+  return '<div class="tw"><table class="tbl ft"><thead><tr><th class="r">#</th><th>Club</th><th class="r">J</th><th class="r">Diff.</th><th class="r">Pts</th></tr></thead><tbody>'+
+    rows.map((x,i)=>{ const z=rows[0].old? '' : footZone(lid,gi,i,n), t=x.t, d=t[4]-t[5];
+      return '<tr class="'+(z?'z-'+z:'')+(x.id===fav?' fav':'')+'"><td class="r num pos-c">'+(i+1)+'</td><td>'+fclubBtn(x.id)+'</td><td class="r num">'+t[0]+'</td><td class="r num">'+(d>0?'+':'')+d+'</td><td class="r num"><b>'+t[6]+'</b></td></tr>'; }).join('')+
+    '</tbody></table></div>'+
+    (rows[0]&&rows[0].old? '<div class="sub" style="margin-top:6px">Classement final de la saison '+footSeasonLabel(FOOT_LEAGUES.find(x=>x.id===lid).nat,lg.prev.y)+'.</div>' : footLegend(lid));
+}
+function footLegend(lid){
+  const L=FOOT_LEAGUES.find(x=>x.id===lid), nat=FOOT_NAT[L.nat], it=[];
+  if(FOOT_PO[lid]) it.push(['po','Qualifié pour les séries']);
+  if(!nat.closed&&L.up) it.push(['up','Montée']);
+  if(!nat.closed&&L.down) it.push(['down','Descente']);
+  return it.length? '<div class="ft-leg">'+it.map(([k,t])=>'<span class="z-'+k+'"><i></i>'+t+'</span>').join('')+'</div>' : '';
+}
+const fres = r => { const h=r.h??r[0], a=r.a??r[1], gh=r.gh??r[2], ga=r.ga??r[3];
+  return '<div class="fm-r">'+fclubBtn(h,'h'+(gh>ga||r.w===h&&r.pen?' w':''))+'<b class="sc num">'+gh+' - '+ga+'</b>'+fclubBtn(a,'a'+(ga>gh||r.w===a&&r.pen?' w':''))+'</div>'+(r.pen?'<div class="fm-p">Tirs au but : '+esc(footName(r.pen))+'</div>':''); };
+const ffix = (h,a) => '<div class="fm-r">'+fclubBtn(h,'h')+'<b class="sc vs">-</b>'+fclubBtn(a,'a')+'</div>';
+
+function vFoot(){
+  footInit(); const {ls,L}=footUi(), lg=S.foot.lg[L.id], N=S.foot.nat[ui.fn];
+  let h=head('Football');
+  h+='<div class="ft-nav"><div class="seg">'+Object.keys(FOOT_NAT).map(k=>'<button class="'+(k===ui.fn?'on':'')+'" data-a="fnat" data-i="'+k+'">'+FOOT_NAT[k].n+'</button>').join('')+'</div>'+
+     '<div class="seg">'+ls.map(x=>'<button class="'+(x.id===L.id?'on':'')+'" data-a="flg" data-i="'+x.id+'">'+esc(x.n)+'</button>').join('')+'</div>'+
+     (lg.grp.length>1? '<div class="seg">'+lg.grp.map((g,i)=>'<button class="'+(i===ui.fg?'on':'')+'" data-a="fgrp" data-i="'+i+'">'+(ui.fn==='us'&&L.lvl<3? (i?'Conférence Ouest':'Conférence Est') : 'Groupe '+(i+1))+'</button>').join('')+'</div>' : '')+'</div>';
+  h+='<div class="sub ft-st">'+footStatus(ui.fn,L.id)+'</div>';
+  h+=card(esc(L.n)+(lg.grp.length>1? ' · '+(ui.fn==='us'&&L.lvl<3? (ui.fg?'Ouest':'Est') : 'groupe '+(ui.fg+1)) : ''), footTableHtml(L.id,ui.fg));
+  /* séries éliminatoires */
+  if(lg.po){
+    const P=lg.po; let b='';
+    if(P.last) b+='<div class="tag">Derniers résultats</div>'+P.last.map(fres).join('');
+    if(P.ties.length) b+='<div class="tag">Prochain tour · '+footDateLabel(P.dates[P.ri],{wd:1,noY:1})+'</div>'+P.ties.map(([x,y])=>ffix(x,y)).join('');
+    if(P.champ) b+='<div class="ft-champ">'+fcrest(P.champ,40)+'<div><small>Champion</small><b>'+esc(footName(P.champ))+'</b></div></div>';
+    h+=card('Séries éliminatoires',b);
+  }
+  /* journée */
+  if(N.on && !lg.done){
+    let b='';
+    const last=lg.last&&lg.last.res.filter(r=>r[4]===ui.fg);
+    if(last&&last.length) b+='<div class="tag">Journée '+lg.last.rd+' · '+footDateLabel(lg.last.day,{wd:1,noY:1})+'</div>'+last.map(fres).join('');
+    const fx=lg.rd<lg.dates.length? footFixtures(lg.grp[ui.fg],footCycles(L.id))[lg.rd] : null;
+    if(fx&&fx.length) b+='<div class="tag">Journée '+(lg.rd+1)+' · '+footDateLabel(lg.dates[lg.rd],{wd:1,noY:1})+'</div>'+fx.map(([x,y])=>ffix(x,y)).join('');
+    if(b) h+=card('Matchs',b);
+  }
+  /* coupe */
+  const C=S.foot.cup[ui.fn];
+  if(C){
+    let b='';
+    if(C.champ) b+='<div class="ft-champ">'+fcrest(C.champ,40)+'<div><small>Vainqueur '+footSeasonLabel(ui.fn,N.y)+'</small><b>'+esc(footName(C.champ))+'</b></div></div>';
+    else if(C.dates[C.ri]) b+='<div class="sub">'+footCupRoundName(C,C.ri)+' le '+footDateLabel(C.dates[C.ri],{wd:1})+'. '+(C.alive.length+C.byes.length)+' clubs encore en course.</div>';
+    if(C.last){ const mine=C.last.res.filter(r=>r.h===S.foot.fav||r.a===S.foot.fav), show=(mine.length?mine:[]).concat(C.last.res.filter(r=>!mine.includes(r))).slice(0, C.last.res.length<=8? 8 : 6);
+      b+='<div class="tag">'+C.last.name+' · '+footDateLabel(C.last.day,{wd:1,noY:1})+'</div>'+show.map(fres).join('')+(C.last.res.length>show.length? '<div class="sub">et '+(C.last.res.length-show.length)+' autres matchs.</div>' : ''); }
+    h+=card(FOOT_CUPN[ui.fn],b||'<div class="sub">La coupe commence avec la saison.</div>');
+  }
+  /* palmarès */
+  const H=(S.foot.hist[L.id]||[]).slice(0,5), CH=(S.foot.cupHist[ui.fn]||[]).slice(0,5);
+  if(H.length||CH.length){
+    h+=card('Palmarès',(H.length? '<div class="tag">'+esc(L.n)+'</div>'+H.map(x=>'<div class="ft-pal"><span>'+footSeasonLabel(ui.fn,x.y)+'</span>'+fclubBtn(x.champ)+'</div>').join('') : '')+
+      (CH.length? '<div class="tag">'+FOOT_CUPN[ui.fn]+'</div>'+CH.map(x=>'<div class="ft-pal"><span>'+footSeasonLabel(ui.fn,x.y)+'</span>'+fclubBtn(x.champ)+'</div>').join('') : ''));
+  }
+  return h;
+}
+VIEWS.foot=vFoot;
+ACT.fnat=el=>{ ui.fn=el.dataset.i; ui.fl=null; ui.fg=0; render(); };
+ACT.flg=el=>{ ui.fl=el.dataset.i; ui.fg=0; render(); };
+ACT.fgrp=el=>{ ui.fg=+el.dataset.i; render(); };
+ACT.fclub=el=>{ footInit(); ui.modal={type:'fclub',id:+el.dataset.i,prev:ui.modal&&ui.modal.type!=='fclub'?ui.modal:null}; render(); };
+ACT.ffav=el=>{ const id=+el.dataset.i; S.foot.fav= S.foot.fav===id? null : id; render(); toast(S.foot.fav? 'Vous suivez '+footName(id)+' : ses résultats arrivent dans le journal.' : 'Vous ne suivez plus ce club.'); };
+ACT.fgo=el=>{ const id=+el.dataset.i, lid=footLgOf(id); if(!lid) return; const L=FOOT_LEAGUES.find(x=>x.id===lid); ui.fn=L.nat; ui.fl=lid; ui.fg=Math.max(0,S.foot.lg[lid].grp.findIndex(g=>g.includes(id))); ui.modal=null; ui.tab='foot'; render(); };
+
+function footClubBody(id){
+  const c=footClub(id), lid=footLgOf(id);
+  if(c.foreign) return '<div class="fc-hero">'+footCrest(c,64)+'<div><b>'+esc(c.n)+'</b><small>'+esc(c.city)+' · '+esc(c.nat)+'</small></div></div><div class="sub">Club étranger, présent dans les coupes internationales.</div>';
+  const L=FOOT_LEAGUES.find(x=>x.id===lid), lg=S.foot.lg[lid], gi=Math.max(0,lg.grp.findIndex(g=>g.includes(id)));
+  const tab=footTable(lid,gi), pos=tab.findIndex(x=>x.id===id), t=lg.tab[id]||[0,0,0,0,0,0,0], f=(lg.form[id]||'').split('').filter(Boolean);
+  let nx=''; if(S.foot.nat[L.nat].on && lg.rd<lg.dates.length){ const m=(footFixtures(lg.grp[gi],footCycles(lid))[lg.rd]||[]).find(p=>p.includes(id)); if(m) nx='<div class="tag">Prochain match · '+footDateLabel(lg.dates[lg.rd],{wd:1,noY:1})+'</div>'+ffix(m[0],m[1]); }
+  const r=Math.round(footR(id));
+  return '<div class="fc-hero">'+footCrest(c,64)+'<div><b>'+esc(c.n)+'</b><small>'+esc(c.city)+' · '+esc(FOOT_NAT[c.nat].n)+'</small></div></div>'+
+    '<div class="met-k"><div><span>Championnat</span><b>'+esc(L.n)+'</b><small>Division '+L.lvl+'</small></div>'+
+    '<div><span>Classement</span><b class="num">'+(t[0]? (pos+1)+(pos?'e':'er') : '-')+'</b><small>'+t[6]+' points en '+t[0]+' matchs</small></div>'+
+    '<div><span>Force</span><b class="num">'+r+' / 100</b><small>'+(r>=85?'Grand d’Europe':r>=75?'Haut de tableau':r>=62?'Solide':r>=50?'Modeste':'Petit club')+'</small></div>'+
+    '<div><span>Stade</span><b class="num">'+fmtN(c.cap,0)+'</b><small>places</small></div></div>'+
+    (f.length? '<div class="tag">Forme</div><div class="ft-form">'+f.map(x=>'<i class="'+(x==='V'?'w':x==='D'?'l':'d')+'">'+x+'</i>').join('')+'</div>' : '')+
+    nx+
+    '<div class="row" style="margin-top:12px">'+btn(S.foot.fav===id?'Ne plus suivre':'Suivre ce club','ffav',{i:id,c:S.foot.fav===id?'ghost':'pri'})+btn('Voir le classement','fgo',{i:id,c:'ghost'})+'</div>'+
+    '<div class="sub" style="margin-top:8px">Le rachat d’un club arrivera dans une prochaine mise à jour.</div>';
+}
+{ const _mcF=modalContent; modalContent=function(){ const m=ui.modal; if(m&&m.type==='fclub'){ footInit(); if(!footClub(m.id)){ ui.modal=null; return _mcF(); } return {title:'Club',sm:true,body:footClubBody(m.id)}; } return _mcF(); }; }
 
 
 </script>
