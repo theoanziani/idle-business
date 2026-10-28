@@ -739,6 +739,7 @@ button.fgrey{cursor:default}
 .perf-lite #nav.glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--card) 95%,transparent)}
 .perf-lite .ts-logo,.perf-lite .ts-ib{-webkit-backdrop-filter:none;backdrop-filter:none;background:color-mix(in srgb,var(--card) 90%,transparent)}
 .ib-upd{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:60;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);color:var(--ink);border-radius:18px;padding:10px 10px 10px 16px;box-shadow:0 4px 0 var(--sh),0 12px 30px -10px rgba(6,20,40,.4);font-weight:800;font-size:14px;max-width:520px;margin:0 auto;animation:rise .4s ease both}
+html,body{overflow-anchor:none}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -6557,6 +6558,24 @@ function artWatch(){
 
 { const _r5=render; render=function(){ const pool=artCollect(); _r5(); try{ artHydrate(pool); artWatch(); }catch(e){ console.error(e); } }; }
 document.addEventListener('visibilitychange',()=>{ document.querySelectorAll('.cban[data-art]').forEach(d=>{ const s=d.firstElementChild; if(!s||!s.pauseAnimations) return; try{ document.hidden? s.pauseAnimations() : artApply(d); }catch(e){} }); });
+
+/* ---------- Un clic ne déplace pas la page ----------
+   Les animations d'entrée (cartes qui montent de 14 px) ne se rejouent que lors d'un
+   vrai changement d'onglet, plus à chaque rafraîchissement. Les positions de défilement
+   (page, écran titre, fenêtre ouverte) sont remises exactement après tous les traitements. */
+{ const _r6=render; render=function(){
+  const v=document.getElementById('view'); if(v) v.classList.remove('enter');
+  const nav=document.getElementById('nav'); if(nav) nav.classList.remove('navchg');
+  const y=window.scrollY;
+  const ts=document.querySelector('.ts'), tsy=ts? ts.scrollTop : 0;
+  const mk=ui.modal? ui.modal.type+':'+(ui.modal.id===undefined?'':ui.modal.id)+':'+(ui.modal.slot||'') : null;
+  const ov=document.querySelector('#modal-root .ov'), ovy=ov? ov.scrollTop : 0;
+  _r6();
+  if(window.scrollY!==y) window.scrollTo(0,y);
+  const ts2=document.querySelector('.ts'); if(ts&&ts2) ts2.scrollTop=tsy;
+  const mk2=ui.modal? ui.modal.type+':'+(ui.modal.id===undefined?'':ui.modal.id)+':'+(ui.modal.slot||'') : null;
+  const ov2=document.querySelector('#modal-root .ov'); if(ov&&ov2&&mk===mk2) ov2.scrollTop=ovy;
+}; }
 
 
 </script>
