@@ -877,6 +877,45 @@ html,body{overflow-anchor:none}
 .fi-tie{border-bottom:1px solid var(--line);padding-bottom:4px}
 .fi-tie .fm-r{border-bottom:0}
 
+/* ---------- Refonte des sociétés : maîtrise, délégation, parc (ui_park.js) ---------- */
+.mx-l{display:flex;flex-direction:column;gap:6px}
+.mx-l>div{display:flex;gap:10px;align-items:flex-start;opacity:.55}
+.mx-l>div.on{opacity:1}
+.mx-l span{flex:none;width:24px;height:24px;border-radius:50%;background:var(--paper-2);display:grid;place-items:center;font-weight:800;font-size:12px}
+.mx-l .on span{background:var(--green);color:#fff}
+.mx-l b{display:block;font-size:13.5px}
+.mx-l small{display:block;font-size:12px;color:var(--ink-3);line-height:1.3}
+.met-plan{display:flex;flex-direction:column;gap:10px}
+.pk-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pk-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;background:#7fbf6a;border-radius:16px;padding:6px;position:relative}
+.pk-grid::after{content:'';position:absolute;left:50%;top:6px;bottom:6px;width:2px;margin-left:-1px;background:rgba(255,255,255,.5);pointer-events:none}
+.pk-grid::before{content:'';position:absolute;top:50%;left:6px;right:6px;height:2px;margin-top:-1px;background:rgba(255,255,255,.5);pointer-events:none}
+.pk-c{aspect-ratio:1;min-height:44px;border:0;border-radius:10px;background:color-mix(in srgb,var(--zc,#e9f2df) 55%,#fff);color:#1d2b3a;display:grid;place-items:center;cursor:pointer;padding:0;position:relative;box-shadow:inset 0 -3px 0 rgba(0,0,0,.08)}
+.pk-c.lock{background:rgba(255,255,255,.22);box-shadow:none;background-image:repeating-linear-gradient(45deg,transparent 0 6px,rgba(255,255,255,.25) 6px 8px)}
+.pk-c.k-ride{background:color-mix(in srgb,var(--zc,#f6d37a) 80%,#fff)}
+.pk-c.k-food{background:#ffe2b8}
+.pk-c.k-shop{background:#e5dbff}
+.pk-c.k-deco{background:#d3f0c2}
+.pk-c.down::after{content:'';position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px #fff}
+.pk-c.sel{outline:3px solid var(--blue);outline-offset:1px}
+.pk-plus{font:800 18px var(--f-display);opacity:.45}
+.pk-zones{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;font-weight:700;color:var(--ink-3)}
+.pk-zones span{display:inline-flex;align-items:center;gap:5px}
+.pk-zones i{width:10px;height:10px;border-radius:3px;background:var(--zc,var(--line))}
+.pk-pan{display:flex;flex-direction:column;gap:8px;background:var(--paper);border-radius:14px;padding:12px}
+.pk-th .seg{flex-wrap:wrap;margin:4px 0}
+.pk-it{display:flex;gap:10px;align-items:center}
+.pk-list{display:flex;flex-direction:column;gap:6px}
+.pk-o{display:flex;align-items:center;gap:10px;min-height:48px;border:1px solid var(--btn-line);background:var(--card);color:var(--ink);border-radius:12px;padding:6px 10px;text-align:left;font:inherit;cursor:pointer}
+.pk-o.match{border-color:var(--green)}
+.pk-o:disabled{opacity:.45;cursor:default}
+.pk-o span{flex:1;min-width:0}
+.pk-o b{display:block;font-size:13.5px}
+.pk-o small{display:block;font-size:11.5px;color:var(--ink-3)}
+.pk-o em{font-style:normal;font-weight:800;font-size:13px;white-space:nowrap}
+.pk-th .seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-self:stretch}
+.pk-th .seg button{white-space:normal;line-height:1.2;min-height:44px}
+
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -7000,6 +7039,298 @@ function dsDaily(day){
 { const _fd=fcDaily; fcDaily=function(day){ _fd(day); try{ dsDaily(day); }catch(e){ console.error(e); } }; }
 
 /* ============================================================
+   REFONTE DES SOCIÉTÉS : socle commun
+   - Activités retirées (cybersécurité, supermarché, agence immobilière, fast-food) et
+     fusionnées (start-up SaaS + IA = start-up tech ; composants + smartphones = électronique).
+   - Activités « cœur » (MET[def].core) : leur propre fonctionnement remplace le prix et
+     le marketing génériques.
+   - Délégation au directeur du site (b.boss) : « Je gère », « Assisté », « Délégation totale »
+     (MET[def].auto(b, mode, qualité, budget)).
+   - Paliers de maîtrise (b.mx) : 5 paliers par activité, qui débloquent des options (MET[def].ranks).
+   ============================================================ */
+/* Retirées : les entreprises existantes sont rachetées à leur valeur.
+   Fusionnées : plus de nouvelles créations ; les entreprises existantes continuent
+   telles quelles jusqu'à la refonte de l'activité qui les absorbe. */
+const BIZ_GONE = ['cyber','super','agency','fastfood'];
+const BIZ_MERGED = {ai:'saas', phones:'electronics'};
+D.biz.saas.n='Start-up tech'; D.biz.saas.sub='Logiciel, puis intelligence artificielle';
+D.biz.electronics.n='Électronique'; D.biz.electronics.sub='Composants, puis smartphones';
+BIZ_GONE.concat(Object.keys(BIZ_MERGED)).forEach(k=>{ if(D.biz[k]) D.biz[k].retired=true; });
+D.bizOrder=D.bizOrder.filter(k=>!D.biz[k].retired);
+function bizMigrateRetired(s){
+  if(!s||!Array.isArray(s.biz)) return;
+  s.biz.forEach(b=>{ if(BIZ_GONE.includes(b.def)&&!b.retiredFrom){ b.retiredFrom=b.def;
+    s.journal=s.journal||[]; s.journal.push({d:s.day,s:'warn',k:'own',m:'« '+b.name+' » ('+D.biz[b.def].n+') : cette activité disparaît du jeu. L’entreprise est rachetée à sa valeur.'}); } });
+}
+{ const _mig=migrateState; migrateState=function(s){ const r=_mig(s); try{ bizMigrateRetired(r); }catch(e){ console.error(e); } return r; }; }
+function bizRetireStep(){
+  S.biz.slice().forEach(b=>{ if(!BIZ_GONE.includes(b.def)) return;
+    const v=b.status==='active'? Math.max(bizValue(b),bizDef(b).cost*.8) : Math.max(b.inv$||0,bizDef(b).cost*.8);
+    closeBiz(b,v,'un repreneur'); });
+}
+
+/* ---------- Activités « cœur » : pas de prix ni de marketing génériques ---------- */
+const metCore = b => !!(metOf(b) && metOf(b).core);
+{ const _pb=processBiz; processBiz=function(b){ if(metCore(b)){ if(b.status==='active') metState(b); b.price=1; b.mkt=0; } return _pb(b); }; }
+
+/* ---------- Paliers de maîtrise ---------- */
+const MX_STEPS=[0,25,80,180,340,600];
+function mxRank(b){ const x=b.mx||0; let r=0; MX_STEPS.forEach((v,i)=>{ if(x>=v) r=i; }); return r; }
+function mxNext(b){ const r=mxRank(b); return r>=5? null : MX_STEPS[r+1]; }
+function mxDaily(b){
+  if(b.status!=='active'||!metOf(b)) return;
+  const R0=metR0(b)||1, net=b.last? b.last.net : 0, r0=mxRank(b);
+  b.mx=(b.mx||0)+clamp(.35+net/R0*.6,0,1.6);
+  const r1=mxRank(b), m=metOf(b);
+  if(r1>r0 && m.ranks && m.ranks[r1-1]){ metLog(b,'palier de maîtrise '+r1+' atteint : '+m.ranks[r1-1].n+'. '+m.ranks[r1-1].d,'good'); }
+}
+const mxHas = (b,r) => mxRank(b)>=r;
+
+/* ---------- Délégation au directeur du site ---------- */
+const DL_MODES = {me:{n:'Je gère', d:'Le directeur conseille, vous décidez.'}, assist:{n:'Assisté', d:'Il gère le quotidien (entretien, réglages, prix selon la saison). Les investissements restent à vous.'}, full:{n:'Délégation totale', d:'Il gère tout et investit une part des bénéfices dans l’activité.'}};
+const DL_BUD = [.1,.25,.5];
+function dlMode(b){ return (b.boss && b.dl) || 'me'; }
+function dlQuality(b){ return b.boss? clamp(bossAvg(b.boss)/10,.2,1) : 0; }
+function setDelegation(b,mode,bud){
+  if(mode!==undefined){ if(!DL_MODES[mode]) return err('Mode inconnu.'); if(mode!=='me'&&!b.boss) return err('Recrutez d’abord un directeur du site.'); b.dl=mode; }
+  if(bud!==undefined) b.dlb=clamp(+bud|0,0,2);
+  return ok(mode? 'Délégation : '+DL_MODES[b.dl||'me'].n.toLowerCase()+'.' : 'Budget mis à jour.');
+}
+/* budget d'investissement du directeur : part des bénéfices des 30 derniers jours */
+function dlBudget(b){ const h=b.hist.slice(-30), s=h.reduce((a,x)=>a+x,0); return Math.max(0,s)*DL_BUD[b.dlb||0]; }
+function dlSpend(b,cost,label){ b.dls=b.dls||{m:-1,v:0}; const mo=Math.floor((S.day-1)/30); if(b.dls.m!==mo){ b.dls={m:mo,v:0}; }
+  if(b.dls.v+cost>dlBudget(b)) return false; if(!metBuy(b,cost,label)) return false; b.dls.v+=cost; return true; }
+function dlDaily(b){
+  const m=metOf(b); if(!m||!m.auto||b.status!=='active') return;
+  const mode=dlMode(b); if(mode==='me') return;
+  try{ m.auto(b,mode,dlQuality(b)); }catch(e){ console.error(e); }
+}
+{ const _ns=nextDay; nextDay=function(){ const ok=_ns(); if(ok){ try{ bizRetireStep(); S.biz.forEach(b=>{ mxDaily(b); dlDaily(b); }); }catch(e){ console.error(e); } } return ok; }; }
+
+/* ============================================================
+   PARC D'ATTRACTIONS : gestion sur un plan
+   Plan de 6 x 4 cases en 4 zones de 3 x 2. Chaque zone a un thème.
+   On y place des attractions, des restaurants, des boutiques et des décors.
+   - Attractivité : somme des attractions, bonus de thème et de décor voisin.
+   - Capacité : débit des attractions ouvertes, heures d'ouverture (nocturnes).
+     Trop de visiteurs pour la capacité : l'attente monte et les visiteurs repartent.
+   - Dépense par visiteur : billet + restaurants et boutiques (mieux placés près des manèges).
+   - Météo : la pluie vide le parc, sauf les attractions couvertes ; le soleil remplit les attractions aquatiques.
+   État b.m (v:2) : cells[24], zones[4] {own, th}, tk (billet), fp, noc, ev, maint, wait, vis, spend.
+   ============================================================ */
+const PK_W=6, PK_H=4;
+const PK_TH = {
+  contes:{n:'Royaume des contes', tag:'fam', c:'#f0a6c8'},
+  aventure:{n:'Terre d’aventure', tag:'eau', c:'#7cc6c0'},
+  frisson:{n:'Frontière du frisson', tag:'fri', c:'#f2a65a'},
+  espace:{n:'Base spatiale', tag:'cou', c:'#9aa8e8'}
+};
+const PK_TAG = {fam:'Familiale', eau:'Aquatique', fri:'Sensations', cou:'Couverte'};
+/* c : coût en part du prix du parc ; ap : attractivité ; cap : visiteurs / heure ; sp : dépense par visiteur ; rk : palier de maîtrise requis */
+const PK_IT = [
+  {id:'carrousel', n:'Carrousel', k:'ride', tg:'fam', c:.05, ap:.06, cap:500, rk:0},
+  {id:'tasses', n:'Tasses tournantes', k:'ride', tg:'fam', c:.07, ap:.07, cap:450, rk:0},
+  {id:'fantome', n:'Train fantôme', k:'ride', tg:'cou', c:.12, ap:.10, cap:650, rk:0},
+  {id:'riviere', n:'Rivière sauvage', k:'ride', tg:'eau', c:.20, ap:.14, cap:900, rk:0},
+  {id:'roue', n:'Grande roue', k:'ride', tg:'fam', c:.22, ap:.12, cap:800, rk:0},
+  {id:'grand8', n:'Grand huit', k:'ride', tg:'fri', c:.30, ap:.20, cap:1000, rk:0},
+  {id:'chute', n:'Tour de chute libre', k:'ride', tg:'fri', c:.30, ap:.18, cap:700, rk:1},
+  {id:'spectacle', n:'Théâtre des spectacles', k:'ride', tg:'cou', c:.25, ap:.17, cap:1500, rk:2},
+  {id:'looping', n:'Montagnes russes à looping', k:'ride', tg:'fri', c:.55, ap:.36, cap:1200, rk:3},
+  {id:'buches', n:'Bûches du grand plongeon', k:'ride', tg:'eau', c:.45, ap:.29, cap:1100, rk:3},
+  {id:'simu', n:'Simulateur 4D', k:'ride', tg:'cou', c:.50, ap:.31, cap:900, rk:4},
+  {id:'mega', n:'Méga coaster', k:'ride', tg:'fri', c:1.4, ap:.80, cap:1600, rk:5},
+  {id:'kiosque', n:'Kiosque à gourmandises', k:'food', c:.03, sp:1.5, rk:0},
+  {id:'resto', n:'Restaurant', k:'food', c:.08, sp:3.5, rk:0},
+  {id:'restoth', n:'Restaurant à thème', k:'food', c:.18, sp:6, rk:3},
+  {id:'souvenirs', n:'Boutique de souvenirs', k:'shop', c:.04, sp:2, rk:0},
+  {id:'photo', n:'Stand photo', k:'shop', c:.03, sp:1.2, rk:0},
+  {id:'bazar', n:'Grande boutique', k:'shop', c:.15, sp:4, rk:4},
+  {id:'jardin', n:'Jardin fleuri', k:'deco', c:.015, rk:0},
+  {id:'fontaine', n:'Fontaine', k:'deco', c:.03, rk:0},
+  {id:'decor', n:'Décor de la zone', k:'deco', c:.05, rk:2}
+];
+const PK_EL=1.6;
+const PK_K = {ride:'Attractions', food:'Restauration', shop:'Boutiques', deco:'Décors'};
+const PK_ZCOST=[0,.35,.7,1.2], PK_ZRANK=[0,0,2,4];
+const pkIt = id => PK_IT.find(x=>x.id===id);
+const pkZone = i => ((i/PK_W|0)>=2?2:0)+((i%PK_W)>=3?1:0);
+function pkAdj(i){ const x=i%PK_W, y=i/PK_W|0, o=[]; if(x>0) o.push(i-1); if(x<PK_W-1) o.push(i+1); if(y>0) o.push(i-PK_W); if(y<PK_H-1) o.push(i+PK_W); return o; }
+const PK_MAINT=[['Économe','Peu cher, mais pannes fréquentes et risque d’accident',.004,.014],['Normal','Équilibré',.009,.006],['Renforcé','Cher, presque aucune panne',.018,.0015]];
+/* fenêtres des événements (jour de l'année, 0 = 1er janvier) */
+const PK_EV = [{n:'Halloween',a:270,z:299},{n:'Noël',a:330,z:359}];
+const pkEvNow = () => PK_EV.find(e=>metDoy()>=e.a&&metDoy()<=e.z)||null;
+
+function pkFix(b){
+  const m=b.m; if(!m||m.v===2) return;
+  const old=Array.isArray(m.rides)? m.rides : ['carrousel','grand8'];
+  const cells=new Array(PK_W*PK_H).fill(null), zones=[{own:1,th:null},{own:0,th:null},{own:0,th:null},{own:0,th:null}];
+  const slots=[0,1,2,6,7,8,3,4,5,9,10,11];
+  old.forEach((id,k)=>{ const i=slots[k]; if(i===undefined||!pkIt(id)) return; cells[i]={t:id}; zones[pkZone(i)].own=1; });
+  b.m={v:2, cells, zones, tk:Math.round(38*(b.price||1)), fp:0, noc:0, ev:0, maint:m.maint===undefined?1:m.maint, wait:m.wait||20, vis:0, spend:0, log:m.log||[]};
+  b.price=1; b.mkt=0;
+}
+function pkInit(b){ const cells=new Array(PK_W*PK_H).fill(null); cells[1]={t:'carrousel'}; cells[7]={t:'grand8'}; cells[8]={t:'kiosque'};
+  return {v:2, cells, zones:[{own:1,th:null},{own:0,th:null},{own:0,th:null},{own:0,th:null}], tk:38, fp:0, noc:0, ev:0, maint:1, wait:20, vis:0, spend:0, log:[]}; }
+const pkUp = (b,i) => { const c=b.m.cells[i]; return c && !(c.d>S.day); };
+/* calcul du parc (sans hasard) */
+function pkCalc(b){
+  const m=b.m, wx=metWeather(b.city); let A=0, apC=0, apE=0, cap=0, fs=0, ss=0, nR=0, nF=0, nS=0, tags={};
+  m.cells.forEach((c,i)=>{ if(!c) return; const it=pkIt(c.t); if(!it) return;
+    const z=m.zones[pkZone(i)], th=z.th&&PK_TH[z.th], nb=pkAdj(i).map(j=>m.cells[j]&&pkIt(m.cells[j].t)).filter(Boolean);
+    if(it.k==='ride'){ nR++; if(!pkUp(b,i)) return;
+      let f=1; if(th&&th.tag===it.tg) f+=.25; nb.forEach(x=>{ if(x.id==='jardin') f+=.06; else if(x.id==='fontaine') f+=.10; });
+      if(th&&m.cells.some((y,j)=>y&&y.t==='decor'&&pkZone(j)===pkZone(i))) f+=.12;
+      const a=it.ap*f; A+=a; if(it.tg==='cou') apC+=a; if(it.tg==='eau') apE+=a; cap+=it.cap; tags[it.tg]=1; }
+    else if(it.k==='food'||it.k==='shop'){ let f=nb.some(x=>x.k==='ride')? 1.25 : 1; if(it.id==='photo'&&nb.some(x=>x.tg==='fri')) f*=1.6; if(it.k==='shop'&&(i/PK_W|0)===PK_H-1) f*=1.15;
+      if(it.k==='food'){ nF++; fs+=it.sp*f; } else { nS++; ss+=it.sp*f; } }
+  });
+  A*= 1+.04*Object.keys(tags).length;
+  fs=9*(1-Math.exp(-fs/9)); ss=8*(1-Math.exp(-ss/8));
+  const share=A? apC/A : 0, eau=A? apE/A : 0;
+  const wxF= wx==='pluie'? .5+.5*share : wx==='soleil'? 1.08*(1+.25*eau) : 1;
+  const hi=metSeason(.3)>1.1, ev=m.ev&&pkEvNow();
+  const hours=10+(m.noc?3:0);
+  const elast=Math.pow(38/m.tk,PK_EL);
+  const demand=(1+Math.pow(A,.95))*Math.pow(metSeason(.3),1.2)*wxF*elast*(m.noc?(hi?1.15:1.04):1)*(ev?1.35:1);
+  const capU=cap/1200*(hours/10)*Math.sqrt(b.lvl||1);
+  return {A, cap, capU, fs, ss, nR, nF, nS, wx, wxF, hours, elast, demand, ev, hi, share};
+}
+/* débit converti en visiteurs par jour (attente d'environ 25 minutes) */
+function pkCapDay(b,cap){ const m=b.m; return cap/1200*((10+(m&&m.noc?3:0))/10)*Math.sqrt(b.lvl||1)*metR0(b)/38; }
+function pkFixed(b){ const m=b.m, R0=metR0(b); let n=0, o=0; m.cells.forEach(c=>{ const it=c&&pkIt(c.t); if(!it) return; if(it.k==='ride') n+=it.c<.2?.6:it.c<.5?1:1.8; else if(it.k!=='deco') o++; });
+  return R0*(PK_MAINT[m.maint][2]*n+.004*o+(m.noc?.05:0)+(m.ev&&pkEvNow()?.08:0)); }
+MET.park = {
+  fam:'resto', core:true,
+  init: pkInit,
+  fix: pkFix,
+  ranks:[
+    {n:'Coupe-file', d:'Vendez des billets coupe-file et la tour de chute libre est disponible.'},
+    {n:'Nocturnes et décors', d:'Ouvertures en soirée, décors de zone, théâtre des spectacles et troisième zone.'},
+    {n:'Grands manèges', d:'Looping, bûches du grand plongeon et restaurant à thème.'},
+    {n:'Événements', d:'Halloween et Noël, simulateur 4D, grande boutique et quatrième zone.'},
+    {n:'Parc de légende', d:'Le méga coaster, l’attraction phare qui attire tout le pays.'}
+  ],
+  mods(b){ pkFix(b); const m=b.m, p=pkCalc(b);
+    const qF= m.wait>40? Math.pow(40/m.wait,.6) : 1;
+    const fpRev= m.fp? .12*6 : 0;
+    const spend=p.fs+p.ss+fpRev;
+    return { vol:p.demand*qF, price:(m.tk+spend)/38, cogs:1+(.35*p.fs+.45*p.ss)/(.4*38), fixed:pkFixed(b) };
+  },
+  daily(b,ctx){ pkFix(b); const m=b.m;
+    m.cells.forEach(c=>{ if(c&&c.d&&c.d<=S.day) delete c.d; });
+    const pB=PK_MAINT[m.maint][3];
+    m.cells.forEach(c=>{ const it=c&&pkIt(c.t); if(!it||it.k!=='ride'||c.d) return; if(rnd()<pB){ const n=rint(2,5); c.d=S.day+n; metLog(b,'panne sur « '+it.n+' » : fermée '+n+' jours.','warn'); } });
+    if(ctx.open&&m.maint===0&&rnd()<.0012){ b.closedUntil=S.day+4; S.rep=clamp(S.rep-3,0,100); metLog(b,'accident sur une attraction mal entretenue : parc fermé 4 jours, enquête en cours.','bad'); }
+    const p=pkCalc(b), sp=p.fs+p.ss+(m.fp?.72:0);
+    m.spend=sp;
+    m.vis= b.last&&b.last.open? b.last.rev/Math.max(1,m.tk+sp) : 0;
+    const vU= m.vis*38/Math.max(1,metR0(b));
+    m.wait= p.capU>0? clamp(25*Math.pow(vU/p.capU,1.5)*(m.fp?1.1:1),3,150) : 0;
+    const e=pkEvNow(); if(m.ev&&e&&metDoy()===e.a) metLog(b,'l’événement '+e.n+' commence : décors, spectacles et visiteurs en plus.','good');
+  },
+  kpis(b){ pkFix(b); const m=b.m, p=pkCalc(b), down=m.cells.filter(c=>c&&c.d).length;
+    return [['Visiteurs / jour', m.vis? fmtN(Math.round(m.vis)) : '—', 'Billet '+eur(m.tk,0)+', dépense '+eur(m.spend||p.fs+p.ss,0)],
+            ['Attente moyenne', Math.round(m.wait)+' min', m.wait>40?'Les visiteurs repartent : ajoutez du débit':m.wait<12?'Le parc a de la marge':'Supportable'],
+            ['Météo du jour', MET_WXN[p.wx], p.wx==='pluie'?'Seules les attractions couvertes tournent bien':metSeasonName()+(p.ev?' · '+p.ev.n:'')],
+            ['Attractions en service', (p.nR-down)+' / '+p.nR, 'Capacité : '+fmtN(Math.round(pkCapDay(b,p.cap)))+' visiteurs / jour']];
+  },
+  ctl(b){ pkFix(b); const m=b.m, out=[];
+    out.push({k:'seg', act:'maint', label:'Entretien des attractions', val:m.maint, opts:PK_MAINT.map((x,i)=>[i,x[0]]), sub:PK_MAINT[m.maint][1]+'.'});
+    out.push({k:'seg', act:'tk', label:'Prix du billet : '+eur(m.tk,0), val:'x', opts:[[-5,'−5 €'],[-1,'−1 €'],[1,'+1 €'],[5,'+5 €']], sub:'Un billet cher fait fuir une partie des visiteurs, mais réduit l’attente.'});
+    if(mxHas(b,1)) out.push({k:'tog', act:'fp', label:'Coupe-file', val:m.fp, sub:'Environ 12 % des visiteurs paient 6 € de plus. L’attente des autres augmente un peu.'});
+    if(mxHas(b,2)) out.push({k:'tog', act:'noc', label:'Nocturnes', val:m.noc, sub:'Trois heures de plus chaque soir : débit et fréquentation en hausse, surtout l’été. Coût : '+eur(metR0(b)*.05,0)+' / jour.'});
+    if(mxHas(b,4)) out.push({k:'tog', act:'ev', label:'Événements de saison', val:m.ev, sub:'Halloween (octobre) et Noël (décembre) : +35 % de visiteurs pendant l’événement. Coût : '+eur(metR0(b)*.08,0)+' / jour pendant l’événement.'});
+    return out;
+  },
+  acts:{
+    maint:(b,v)=>{ b.m.maint=clamp(v|0,0,2); return ok('Entretien : '+PK_MAINT[b.m.maint][0].toLowerCase()+'.'); },
+    tk:(b,v)=>{ b.m.tk=clamp(b.m.tk+(+v||0),15,90); return ok('Billet à '+eur(b.m.tk,0)+'.'); },
+    fp:(b,v)=>{ if(!mxHas(b,1)) return err('Palier de maîtrise 1 requis.'); b.m.fp=+v?1:0; return ok(''); },
+    noc:(b,v)=>{ if(!mxHas(b,2)) return err('Palier de maîtrise 2 requis.'); b.m.noc=+v?1:0; return ok(''); },
+    ev:(b,v)=>{ if(!mxHas(b,4)) return err('Palier de maîtrise 4 requis.'); b.m.ev=+v?1:0; return ok(''); },
+    place:(b,arg)=>pkPlace(b,arg,false),
+    rm:(b,i)=>pkRemove(b,+i),
+    zone:(b,z)=>pkBuyZone(b,+z,false),
+    theme:(b,arg)=>pkTheme(b,arg,false)
+  },
+  auto: pkAuto
+};
+function pkItemCost(b,it){ return bizDef(b).cost*it.c; }
+function pkPlace(b,arg,auto){
+  const [si,id]=String(arg).split(':'), i=+si, it=pkIt(id), m=b.m;
+  if(!it||!(i>=0&&i<PK_W*PK_H)) return err('Case ou élément inconnu.');
+  if(!m.zones[pkZone(i)].own) return err('Achetez d’abord cette zone.');
+  if(m.cells[i]) return err('Case déjà occupée.');
+  if(!mxHas(b,it.rk)) return err('Palier de maîtrise '+it.rk+' requis.');
+  if(it.id==='decor'&&!m.zones[pkZone(i)].th) return err('Choisissez d’abord un thème pour la zone.');
+  if(it.id==='decor'&&m.cells.some((c,j)=>c&&c.t==='decor'&&pkZone(j)===pkZone(i))) return err('Cette zone a déjà son décor.');
+  if(it.id==='mega'&&m.cells.some(c=>c&&c.t==='mega')) return err('Un seul méga coaster par parc.');
+  const c=pkItemCost(b,it), lbl='Parc : « '+it.n+' »';
+  if(!(auto? dlSpend(b,c,lbl) : metBuy(b,c,lbl))) return err('Trésorerie insuffisante : '+eur(c,0)+' requis.');
+  m.cells[i]={t:id}; metLog(b,(auto?'le directeur fait construire':'nouveau')+' : « '+it.n+' ».','good');
+  return ok('« '+it.n+' » construit.');
+}
+function pkRemove(b,i){
+  const m=b.m, c=m.cells[i], it=c&&pkIt(c.t); if(!it) return err('Case vide.');
+  const back=pkItemCost(b,it)*.25; m.cells[i]=null; payCap('b:'+b.id,'Parc : démontage de « '+it.n+' »',back); b.inv$=Math.max(0,(b.inv$||0)-pkItemCost(b,it));
+  return ok('« '+it.n+' » démonté, '+eur(back,0)+' récupérés.');
+}
+function pkBuyZone(b,z,auto){
+  const m=b.m; if(!(z>=1&&z<=3)) return err('Zone inconnue.'); if(m.zones[z].own) return err('Zone déjà achetée.');
+  if(!mxHas(b,PK_ZRANK[z])) return err('Palier de maîtrise '+PK_ZRANK[z]+' requis.');
+  const c=bizDef(b).cost*PK_ZCOST[z], lbl='Parc : terrain de la zone '+(z+1);
+  if(!(auto? dlSpend(b,c,lbl) : metBuy(b,c,lbl))) return err('Trésorerie insuffisante : '+eur(c,0)+' requis.');
+  m.zones[z].own=1; metLog(b,'nouvelle zone ouverte (zone '+(z+1)+').','good'); return ok('Zone '+(z+1)+' achetée.');
+}
+function pkTheme(b,arg,auto){
+  const [sz,th]=String(arg).split(':'), z=+sz, m=b.m; if(!m.zones[z]||!m.zones[z].own) return err('Zone non achetée.'); if(!PK_TH[th]) return err('Thème inconnu.');
+  if(m.zones[z].th===th) return ok('');
+  if(m.zones[z].th){ const c=bizDef(b).cost*.05; if(!(auto? dlSpend(b,c,'Parc : nouveau thème') : metBuy(b,c,'Parc : nouveau thème'))) return err('Changer de thème coûte '+eur(c,0)+'.'); }
+  m.zones[z].th=th; return ok('Zone '+(z+1)+' : '+PK_TH[th].n+'.');
+}
+/* billet le plus rentable, d'après la fréquentation actuelle (utilisé par le directeur) */
+function pkBestTk(b){
+  const m=b.m, p=pkCalc(b), sp=p.fs+p.ss, cv=.4*38+.35*p.fs+.45*p.ss, R0=metR0(b)||1;
+  const v0=Math.max(m.vis,R0/38*.5), vU0=v0*38/R0; let best=m.tk, bv=-Infinity;
+  for(let t=20;t<=90;t+=1){ const f=Math.pow(m.tk/t,PK_EL), vU=vU0*f, w=p.capU>0? 25*Math.pow(vU/p.capU,1.5)*(m.fp?1.1:1) : 99, q=w>40? Math.pow(40/w,.6) : 1;
+    const val=v0*f*q*(t+sp-cv); if(val>bv){ bv=val; best=t; } }
+  return best;
+}
+/* ---------- Le directeur du site aux commandes ---------- */
+function pkAuto(b,mode,q){
+  pkFix(b); const m=b.m, p=pkCalc(b);
+  /* quotidien */
+  if(S.day%3===0){
+    const t=pkBestTk(b)+Math.round((1-q)*6*(rnd()-.5)); m.tk=clamp(m.tk+clamp(t-m.tk,-3,3),15,90);
+    m.maint= p.nR>=6&&q>.5? 2 : 1;
+    if(mxHas(b,1)) m.fp= m.wait>25?1:0;
+    if(mxHas(b,2)) m.noc= p.hi?1:0;
+    if(mxHas(b,4)) m.ev=1;
+  }
+  if(mode!=='full'||S.day%7!==0) return;
+  /* thème des zones : selon les attractions déjà en place */
+  m.zones.forEach((z,k)=>{ if(!z.own||z.th) return; const cnt={}; m.cells.forEach((c,i)=>{ const it=c&&pkIt(c.t); if(it&&it.k==='ride'&&pkZone(i)===k) cnt[it.tg]=(cnt[it.tg]||0)+1; });
+    const best=Object.keys(cnt).sort((a,c)=>cnt[c]-cnt[a])[0]; const th=best&&Object.keys(PK_TH).find(t=>PK_TH[t].tag===best); if(th) z.th=th; });
+  const free=[]; m.cells.forEach((c,i)=>{ if(!c&&m.zones[pkZone(i)].own) free.push(i); });
+  if(!free.length){ const z=m.zones.findIndex((x,k)=>!x.own&&mxHas(b,PK_ZRANK[k])); if(z>0){ const r=pkBuyZone(b,z,true); if(r.ok) return; } return; }
+  const avail=PK_IT.filter(it=>mxHas(b,it.rk)&&!(it.id==='mega'&&m.cells.some(c=>c&&c.t==='mega'))&&it.id!=='decor');
+  const nOther=p.nF+p.nS;
+  let it=null;
+  if(m.wait>35) it=avail.filter(x=>x.k==='ride').sort((a,c)=>c.cap/c.c-a.cap/a.c).find(x=>pkItemCost(b,x)<=dlBudget(b));
+  else if(nOther<p.nR*.6){ const k= p.nF<=p.nS? 'food' : 'shop'; it=avail.filter(x=>x.k===k).sort((a,c)=>c.sp-a.sp).find(x=>pkItemCost(b,x)<=dlBudget(b)); }
+  else it=avail.filter(x=>x.k==='ride').sort((a,c)=>c.ap-a.ap).find(x=>pkItemCost(b,x)<=dlBudget(b));
+  if(!it) return;
+  /* emplacement : un bon directeur choisit la meilleure case */
+  const score=i=>{ const z=m.zones[pkZone(i)], th=z.th&&PK_TH[z.th], nb=pkAdj(i).map(j=>m.cells[j]&&pkIt(m.cells[j].t)).filter(Boolean);
+    if(it.k==='ride') return (th&&th.tag===it.tg?3:0)+nb.filter(x=>x.k==='deco').length;
+    return nb.filter(x=>x.k==='ride').length*2+(it.k==='shop'&&(i/PK_W|0)===PK_H-1?1:0); };
+  const cell= rnd()<(1-q)*.5? pick(free) : free.slice().sort((a,c)=>score(c)-score(a))[0];
+  pkPlace(b,cell+':'+it.id,true);
+}
+{ const _ms=metState; metState=function(b){ const st=_ms(b); const m=metOf(b); if(st&&m&&m.fix){ m.fix(b); return b.m; } return st; }; }
+
+/* ============================================================
    SAUVEGARDES : 5 emplacements sur l'appareil.
    IndexedDB (partie compressée en gzip, métadonnées à part pour lister vite),
    repli sur localStorage si IndexedDB est indisponible.
@@ -10341,6 +10672,115 @@ function fcTabDs(O){
 }
 ACT.dshire=()=>after(dsHire());
 ACT.dsset=el=>after(dsSet(el.dataset.i,el.dataset.v));
+
+/* ============================================================
+   REFONTE DES SOCIÉTÉS : interface
+   - Fiche d'une activité « cœur » : prix et marketing génériques masqués.
+   - Bloc « Délégation » et « Maîtrise » dans le pilotage du métier.
+   - Parc d'attractions : plan interactif.
+   ============================================================ */
+{ const _mb=modalBiz; modalBiz=function(b){
+  const r=_mb(b); if(!r||!r.body||!metCore(b)) return r;
+  r.body=r.body.replace(/<div class="stack"><label for="sl-price">[\s\S]*?<\/div>/,'<div class="stack"><b>Prix et communication</b><div class="sub">Gérés dans le pilotage du métier, plus haut.</div></div>')
+    .replace(/<div class="stack"><b>Marketing<\/b><div class="seg">[\s\S]*?<\/div><div class="sub">[\s\S]*?<\/div><\/div>/,'');
+  return r;
+}; }
+/* blocs ajoutés au pilotage du métier */
+function mxHtml(b){
+  const m=metOf(b); if(!m||!m.ranks) return '';
+  const r=mxRank(b), nx=mxNext(b), lo=MX_STEPS[r], x=b.mx||0;
+  return '<div class="met-c"><div class="row sp"><b>Maîtrise : palier '+r+' sur 5</b>'+(nx? '<span class="sub">'+Math.round((x-lo)/(nx-lo)*100)+' %</span>' : pill('Maximum','good'))+'</div>'+
+    (nx? bar((x-lo)/(nx-lo),'g') : '')+
+    '<div class="mx-l">'+m.ranks.map((k,i)=>'<div class="'+(i<r?'on':'')+'"><span>'+(i+1)+'</span><div><b>'+esc(k.n)+'</b><small>'+esc(k.d)+'</small></div></div>').join('')+'</div>'+
+    '<div class="sub">La maîtrise progresse chaque jour d’activité, plus vite quand l’entreprise est rentable.</div></div>';
+}
+function dlHtml(b){
+  const m=metOf(b); if(!m||!m.auto) return '';
+  const md=dlMode(b), x=b.boss;
+  return '<div class="met-c"><b>Délégation au directeur du site</b>'+
+    (x? '<div class="sub">'+esc(x.name)+' · compétence moyenne '+bossAvg(x).toFixed(1)+' / 10. Un meilleur directeur prend de meilleures décisions.</div>' : '<div class="sub">Aucun directeur : recrutez-en un dans la section « Directeur de site » de cette fiche.</div>')+
+    '<div class="seg">'+Object.keys(DL_MODES).map(k=>'<button class="'+(md===k?'on':'')+'" data-a="dlset" data-i="'+b.id+'" data-v="'+k+'"'+(k!=='me'&&!x?' disabled':'')+'>'+DL_MODES[k].n+'</button>').join('')+'</div>'+
+    '<div class="sub">'+DL_MODES[md].d+'</div>'+
+    (md==='full'? '<div class="row"><span class="sub">Investissement</span><div class="seg">'+['10 %','25 %','50 %'].map((n,k)=>'<button class="'+((b.dlb||0)===k?'on':'')+'" data-a="dlbud" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div></div><div class="sub">Part des bénéfices des 30 derniers jours qu’il peut dépenser chaque mois : '+eur(dlBudget(b),0)+' en ce moment.</div>' : '')+
+    '</div>';
+}
+ACT.dlset=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b) after(setDelegation(b,el.dataset.v)); };
+ACT.dlbud=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b) after(setDelegation(b,undefined,+el.dataset.v)); };
+{ const _mc=metCard; metCard=function(b){
+  let h=_mc(b); if(!h) return h; const m=metOf(b);
+  const extra=(m.html? m.html(b) : ''), tail=dlHtml(b)+mxHtml(b);
+  if(extra) h=h.replace('<div class="met-cs">','<div class="met-plan">'+extra+'</div><div class="met-cs">');
+  if(tail) h=h.replace(/<div class="met-cs">([\s\S]*?)<\/div>(<div class="met-log">|<\/section>)/,(s0,a,c)=>'<div class="met-cs">'+a+tail+'</div>'+c);
+  return h;
+}; }
+
+/* ---------- Plan du parc ---------- */
+const PK_ICO = {
+  carrousel:'<path d="M4 9 12 4l8 5z"/><path d="M6 9v9M12 9v9M18 9v9M4 19h16"/>',
+  tasses:'<path d="M5 10h9v4a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M14 11h2a2 2 0 0 1 0 4h-2"/>',
+  fantome:'<path d="M6 20V11a6 6 0 0 1 12 0v9l-2-2-2 2-2-2-2 2-2-2z"/><circle cx="10" cy="11" r=".8"/><circle cx="14" cy="11" r=".8"/>',
+  riviere:'<path d="M3 9c3-2 6 2 9 0s6-2 9 0M3 14c3-2 6 2 9 0s6-2 9 0M3 19c3-2 6 2 9 0s6-2 9 0"/>',
+  roue:'<circle cx="12" cy="10" r="7"/><path d="M12 3v14M5 10h14M7 5l10 10M17 5 7 15M8 21l4-4 4 4"/>',
+  grand8:'<path d="M2 19c3 0 3-12 6-12s3 8 6 8 3-10 8-10"/><path d="M2 21h20"/>',
+  chute:'<path d="M10 21V3h4v18M7 21h10"/><path d="M8 12h8"/>',
+  spectacle:'<path d="M3 5h18v3c-2 0-3 2-3 4v8H6v-8c0-2-1-4-3-4z"/><path d="M9 20v-5h6v5"/>',
+  looping:'<path d="M2 20c4 0 5-4 7-8a4 4 0 1 1 6 0c2 4 3 8 7 8"/>',
+  buches:'<path d="M3 16c3-2 6 2 9 0s6-2 9 0M7 13l3-8 3 3 4-3"/><path d="M5 20h14"/>',
+  simu:'<rect x="4" y="5" width="16" height="11" rx="2"/><path d="M8 20h8M12 16v4"/><circle cx="12" cy="10.5" r="2.5"/>',
+  mega:'<path d="M2 20c2-14 6-16 8-16s3 10 5 10 3-6 7-6"/><path d="M2 22h20M6 22V12M10 22V5M15 22v-8"/>',
+  kiosque:'<path d="M5 9h14l-2-4H7zM6 9v11h12V9"/><path d="M10 20v-5h4v5"/>',
+  resto:'<path d="M7 3v8a2 2 0 0 0 2 2v8M7 3v5M9 3v5M11 3v5M17 3c-2 2-2 6 0 8v10"/>',
+  restoth:'<path d="M4 20h16M6 20v-9h12v9M4 11 12 5l8 6"/><path d="M10 20v-4h4v4"/>',
+  souvenirs:'<path d="M6 8h12l-1 12H7z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
+  photo:'<rect x="3" y="7" width="18" height="12" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 7l2-3h4l2 3"/>',
+  bazar:'<path d="M3 10h18M4 10l2-5h12l2 5M5 10v10h14V10"/><path d="M9 20v-5h6v5"/>',
+  jardin:'<path d="M12 21v-7"/><circle cx="12" cy="9" r="4"/><circle cx="6" cy="15" r="2.5"/><circle cx="18" cy="15" r="2.5"/>',
+  fontaine:'<path d="M5 17h14l-2 4H7zM12 17V8M12 8c-3 0-5 2-5 5M12 8c3 0 5 2 5 5M12 4v4"/>',
+  decor:'<path d="M5 21V9l4-5 4 5v12M13 21v-8l3-3 3 3v8M3 21h18"/>'
+};
+function pkIco(id,sz){ return '<svg viewBox="0 0 24 24" width="'+(sz||24)+'" height="'+(sz||24)+'" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(PK_ICO[id]||'')+'</svg>'; }
+function pkSel(b){ return ui.pk&&ui.pk.b===b.id? ui.pk.c : -1; }
+MET.park.html=function(b){
+  const m=b.m, sel=pkSel(b), d=bizDef(b);
+  let h='<div class="pk-head"><b>Plan du parc</b><span class="sub">Touchez une case pour construire</span></div><div class="pk-grid">';
+  m.cells.forEach((c,i)=>{ const z=m.zones[pkZone(i)], th=z.th&&PK_TH[z.th], it=c&&pkIt(c.t);
+    const cls='pk-c'+(z.own?'':' lock')+(it?' k-'+it.k:'')+(c&&c.d?' down':'')+(i===sel?' sel':'');
+    const lab= it? it.n : z.own? 'Case libre' : 'Zone '+(pkZone(i)+1)+' à acheter';
+    h+='<button class="'+cls+'" data-a="pksel" data-i="'+b.id+'" data-v="'+i+'" aria-label="'+esc(lab)+'"'+(th?' style="--zc:'+th.c+'"':'')+'>'+(it? pkIco(it.id,22) : z.own? '<span class="pk-plus">+</span>' : '')+'</button>'; });
+  h+='</div><div class="pk-zones">'+m.zones.map((z,k)=>'<span'+(z.th?' style="--zc:'+PK_TH[z.th].c+'"':'')+'><i></i>Zone '+(k+1)+' : '+(z.own? (z.th? esc(PK_TH[z.th].n) : 'sans thème') : 'à acheter')+'</span>').join('')+'</div>';
+  if(sel>=0) h+=pkPanel(b,sel);
+  return h;
+};
+function pkPanel(b,i){
+  const m=b.m, zk=pkZone(i), z=m.zones[zk], c=m.cells[i], it=c&&pkIt(c.t), can=x=>availFor(cityOf(b).ccy)>=x;
+  const B=(lab,act,arg,o)=>'<button class="btn '+((o&&o.c)||'sm')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'" data-j="'+esc(arg)+'"'+(o&&o.dis?' disabled':'')+'>'+lab+'</button>';
+  let h='<div class="pk-pan"><div class="row sp"><b>Zone '+(zk+1)+(z.th?' · '+esc(PK_TH[z.th].n):'')+'</b><button class="btn sm ghost" data-a="pksel" data-i="'+b.id+'" data-v="-1">Fermer</button></div>';
+  if(!z.own){
+    const cost=bizDef(b).cost*PK_ZCOST[zk], rk=PK_ZRANK[zk];
+    h+='<div class="sub">Agrandissez le parc : six cases de plus pour de nouvelles attractions.'+(mxHas(b,rk)?'':' Palier de maîtrise '+rk+' requis.')+'</div><div>'+B('Acheter le terrain : '+eur(cost,0),'zone',zk,{c:'sm pri',dis:!mxHas(b,rk)||!can(cost)})+'</div></div>';
+    return h;
+  }
+  h+='<div class="pk-th"><span class="sub">Thème</span><div class="seg">'+Object.keys(PK_TH).map(t=>'<button class="'+(z.th===t?'on':'')+'" data-a="met" data-i="'+b.id+'" data-v="theme" data-j="'+zk+':'+t+'">'+esc(PK_TH[t].n)+'</button>').join('')+'</div>'+
+    '<div class="sub">Les attractions '+(z.th? PK_TAG[PK_TH[z.th].tag].toLowerCase()+'s' : 'du thème')+' de la zone attirent 25 % de visiteurs en plus.'+(z.th?' Changer de thème coûte '+eur(bizDef(b).cost*.05,0)+'.':' Le premier choix est gratuit.')+'</div></div>';
+  if(it){
+    const R=it.k==='ride';
+    h+='<div class="pk-it">'+pkIco(it.id,30)+'<div><b>'+esc(it.n)+'</b><div class="sub">'+(R? PK_TAG[it.tg]+' · attractivité +'+Math.round(it.ap*100)+' % · capacité '+fmtN(Math.round(pkCapDay(b,it.cap)))+' visiteurs / jour' : it.sp? 'Dépense moyenne +'+eur(it.sp,1)+' par visiteur' : 'Embellit les attractions voisines')+(c.d?' · <b class="neg">en panne</b>':'')+'</div></div></div>'+
+      '<div>'+B('Démonter (récupère '+eur(pkItemCost(b,it)*.25,0)+')','rm',i,{c:'sm ghost'})+'</div></div>';
+    return h;
+  }
+  const near=pkAdj(i).map(j=>m.cells[j]&&pkIt(m.cells[j].t)).filter(Boolean);
+  h+='<div class="sub">'+(near.some(x=>x.k==='ride')? 'Case voisine d’une attraction : idéale pour un restaurant ou une boutique (+25 %).' : 'Les restaurants et boutiques vendent plus à côté d’une attraction. Jardins et fontaines embellissent les attractions voisines.')+'</div>';
+  Object.keys(PK_K).forEach(k=>{
+    const L=PK_IT.filter(x=>x.k===k); if(!L.length) return;
+    h+='<div class="tag">'+PK_K[k]+'</div><div class="pk-list">'+L.map(x=>{ const cost=pkItemCost(b,x), lock=!mxHas(b,x.rk), match=x.k==='ride'&&z.th&&PK_TH[z.th].tag===x.tg;
+      const info= x.k==='ride'? PK_TAG[x.tg]+(match?' (thème)':'')+' · +'+Math.round(x.ap*100)+' % · '+fmtN(Math.round(pkCapDay(b,x.cap)))+' places / jour' : x.sp? '+'+eur(x.sp,1)+' / visiteur' : x.id==='decor'? 'Toute la zone +12 %' : 'Voisins +'+(x.id==='jardin'?6:10)+' %';
+      return '<button class="pk-o'+(match?' match':'')+'" data-a="met" data-i="'+b.id+'" data-v="place" data-j="'+i+':'+x.id+'"'+(lock||!can(cost)?' disabled':'')+'>'+pkIco(x.id,22)+'<span><b>'+esc(x.n)+'</b><small>'+(lock? 'Palier '+x.rk+' requis' : esc(info))+'</small></span><em class="num">'+eur(cost,0)+'</em></button>'; }).join('')+'</div>';
+  });
+  return h+'</div>';
+}
+ACT.pksel=el=>{ const v=+el.dataset.v; ui.pk= v<0? null : {b:+el.dataset.i, c:v}; render(); };
+/* une construction réussie referme le panneau */
+{ const _met=ACT.met; ACT.met=el=>{ const v=el.dataset.v; _met(el); if((v==='place'||v==='rm'||v==='zone')&&ui.pk){ const b=S.biz.find(x=>x.id===ui.pk.b); if(b&&b.m&&(v!=='place'||b.m.cells[ui.pk.c])&&(v!=='zone'||b.m.zones[pkZone(ui.pk.c)].own)) { if(v!=='zone') ui.pk=null; render(); } } }; }
 
 
 </script>
