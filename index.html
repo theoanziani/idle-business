@@ -4501,7 +4501,7 @@ function vSet(){
     '<div class="row">'+btn('Sauvegarder maintenant','savenow',{c:'sm'})+btn('Copier le code de sauvegarde','export',{c:'sm'})+'</div>'+
     '<label for="ta-imp" class="sub">Importer un code</label><textarea id="ta-imp" class="inp" style="width:100%;height:70px" placeholder="Collez le code ici"></textarea><div>'+btn('Importer','import',{c:'sm'})+'</div>'+
     '<div class="sep"></div>'+btn('Retour au menu principal','menu',{c:'sm'})+'</div>')+
-    card('Barre du bas','<div class="row">'+btn('Personnaliser','tab',{c:'sm',i:'plus'})+'</div>')+card('Rapport de période','<div class="row">'+btn('Organiser le rapport','rpedit',{c:'sm'})+'</div>')+
+    card('Barre du bas','<div class="row">'+btn('Personnaliser','baredit',{c:'sm'})+'</div>')+card('Rapport de période','<div class="row">'+btn('Organiser le rapport','rpedit',{c:'sm'})+'</div>')+
     card('Affichage','<div class="stack"><div class="row"><b>Thème</b><div class="seg">'+[['auto','Système'],['light','Clair'],['dark','Sombre']].map(x=>'<button class="'+((ui.theme||'auto')===x[0]?'on':'')+'" data-a="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>'+'<div class="row sp" style="margin-top:10px"><b>Ciel des villes</b><div class="seg">'+[['cycle','Jour et nuit animés'],['real','Heure réelle']].map(x=>'<button class="'+(cityTimeMode()===x[0]?'on':'')+'" data-a="citytime" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>'+'</div>')+'</div>';
   h+=card('Guide du jeu','<div class="row">'+btn('Ouvrir le guide','tab',{c:'pri',i:'guide'})+'</div>');
   return h+'<div class="sub" style="text-align:center">Idle Business · V2</div>';
@@ -4552,15 +4552,19 @@ function vPlus(){
   const seen=new Set();
   MGROUPS.forEach(([g,ks])=>{ const items=ks.map(k=>MENU.find(x=>x[0]===k)).filter(Boolean); items.forEach(x=>seen.add(x[0])); if(items.length) h+='<div class="cat-h">'+g+'</div><div class="tiles">'+items.map(tile).join('')+'</div>'; });
   const rest=MENU.filter(x=>!seen.has(x[0])); if(rest.length) h+='<div class="tiles">'+rest.map(tile).join('')+'</div>';
+  return h;
+}
+
+/* Éditeur de la barre du bas : ouvert depuis Réglages > Barre du bas (fenêtre « baredit ») */
+function barEditor(){
+  const B=navBar(), used=B.l.concat(B.r), full=used.length>=PINMAX;
   const side=(a,lab)=>'<div class="bars"><div class="tag">'+lab+'</div>'+(a.length? a.map((k,i)=>barRow(k,lab,i,a.length)).join('') : '<div class="sub">Aucun raccourci.</div>')+'</div>';
   const free=MENU.filter(x=>!used.includes(x[0]));
-  h+=card('Barre du bas',
-    '<div class="stack"><div class="row bar-prev">'+B.l.map(k=>pill(NAVLBL(k))).join('')+pill('Sociétés')+pill('Accueil','info')+B.r.map(k=>pill(NAVLBL(k))).join('')+pill('Plus')+'</div>'+
+  return '<div class="stack"><div class="row bar-prev">'+B.l.map(k=>pill(NAVLBL(k))).join('')+pill('Sociétés')+pill('Accueil','info')+B.r.map(k=>pill(NAVLBL(k))).join('')+pill('Plus')+'</div>'+
     side(B.l,'À gauche d’Accueil')+side(B.r,'À droite d’Accueil')+
     '<div class="tag">Ajouter ('+used.length+'/'+PINMAX+')</div>'+
     (full? '<div class="sub">Barre pleine.</div>' : '<div class="row">'+free.map(x=>'<button class="btn sm" data-a="baradd" data-i="'+x[0]+'">+ '+esc(x[1])+'</button>').join('')+'</div>')+
-    '<div>'+btn('Rétablir par défaut','barreset',{c:'sm ghost'})+'</div></div>');
-  return h;
+    '<div>'+btn('Rétablir par défaut','barreset',{c:'sm ghost'})+'</div></div>';
 }
 
 function vAgency(){
@@ -4766,7 +4770,7 @@ function vGuide(){
     ])),
     sec('Sauvegardes',ul([
       'Cinq emplacements enregistrés sur l’appareil, sauvegardés après chaque jour.',
-      'Barre du bas : Plus > Barre du bas permet d’ajouter, retirer, ordonner et changer de côté jusqu’à quatre raccourcis.',
+      'Barre du bas : Réglages > Barre du bas > Personnaliser permet d’ajouter, retirer, ordonner et changer de côté jusqu’à quatre raccourcis.',
       'Menu principal : Continuer ou Parcourir les sauvegardes. Un code de sauvegarde permet de changer d’appareil.'
     ]))
   ].join('')+'</div>';
@@ -6576,6 +6580,10 @@ document.addEventListener('visibilitychange',()=>{ document.querySelectorAll('.c
   const mk2=ui.modal? ui.modal.type+':'+(ui.modal.id===undefined?'':ui.modal.id)+':'+(ui.modal.slot||'') : null;
   const ov2=document.querySelector('#modal-root .ov'); if(ov&&ov2&&mk===mk2) ov2.scrollTop=ovy;
 }; }
+
+/* ---------- Réglages > Barre du bas : l'éditeur s'ouvre dans une fenêtre ---------- */
+ACT.baredit=()=>{ ui.modal={type:'baredit'}; render(); };
+{ const _mc2=modalContent; modalContent=function(){ const m=ui.modal; if(m&&m.type==='baredit') return {title:'Barre du bas',sm:true,body:barEditor()+'<div style="margin-top:12px">'+btn('Terminé','closemodal',{c:'pri'})+'</div>'}; return _mc2(); }; }
 
 
 </script>
