@@ -649,7 +649,7 @@ button.fgrey{cursor:default}
 /* ---------- Barre du bas façon Apple Musique ---------- */
 #nav.glass{background:color-mix(in srgb,var(--card) 72%,transparent);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);
   box-shadow:0 10px 30px -10px rgba(6,20,40,.35),inset 0 0 0 1px rgba(255,255,255,.45);border-radius:32px;touch-action:none;
-  transition:width .38s cubic-bezier(.3,1.2,.4,1),left .38s cubic-bezier(.3,1.2,.4,1),transform .38s cubic-bezier(.3,1.2,.4,1),padding .3s}
+  transition:padding .3s ease}
 :root[data-theme="dark"] #nav.glass{box-shadow:0 10px 30px -10px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.08)}
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) #nav.glass{box-shadow:0 10px 30px -10px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.08)} }
 #nav.glass .nv,#nav.glass .nv.act,#nav.glass .nv-c .nv,#nav.glass .nv-c .nv.act{background:transparent;box-shadow:none;position:relative;z-index:1;margin-top:0}
@@ -664,12 +664,12 @@ button.fgrey{cursor:default}
 #nav.dragging .nv-ind{transition:transform .2s cubic-bezier(.3,1.2,.5,1),width .2s;background:color-mix(in srgb,var(--blue) 24%,transparent);box-shadow:0 6px 18px -6px rgba(6,20,40,.35),inset 0 0 0 1px rgba(255,255,255,.55)}
 #nav.dragging .nv.hov svg{transform:scale(1.22) translateY(-2px);transition:transform .15s}
 #nav .nv svg{transition:transform .2s}
-/* barre réduite */
-#nav.glass.mini{width:64px;left:max(14px,env(safe-area-inset-left,0px));transform:none;padding:5px;cursor:pointer}
-#nav.glass.mini .nv-g,#nav.glass.mini .nv-c{display:contents}
-#nav.glass.mini .nv{display:none}
-#nav.glass.mini .nv.act{display:flex;min-width:0;max-width:none;flex:1;padding:6px 0}
-#nav.glass.mini .nv.act .lb{display:none}
+/* barre compacte au défilement : même largeur, boutons à leur place, seuls les libellés s'effacent */
+#nav.glass .nv{transition:min-height .3s ease,padding .3s ease,transform .12s ease}
+#nav.glass .nv .lb{display:block;max-height:14px;overflow:hidden;transition:opacity .2s ease,max-height .3s ease}
+#nav.glass.mini{padding:3px 5px}
+#nav.glass.mini .nv{min-height:40px;padding-top:4px;padding-bottom:4px}
+#nav.glass.mini .nv .lb{opacity:0;max-height:0}
 
 /* ---------- Écran d'accueil « Ville vivante » (ui_v20.js) ---------- */
 .ts{position:fixed;inset:0;overflow:auto;background:var(--paper);color:var(--ink);z-index:1;display:flex;flex-direction:column;padding-top:calc(env(safe-area-inset-top,0px) + 96px);box-sizing:border-box}
@@ -6053,7 +6053,7 @@ Object.assign(ACT,{
    V19 : barre du bas façon Apple Musique
    - verre dépoli, pastille de sélection qui glisse d'un onglet à l'autre
    - glisser le doigt le long de la barre pour changer d'onglet
-   - la barre se réduit en défilant vers le bas et revient en remontant
+   - en défilant vers le bas, la barre devient plus fine (libellés masqués) sans bouger les boutons
    ============================================================ */
 const NAVG = { last:null, mini:false, drag:null, lastY:0 };
 function navItems(){ return [...document.querySelectorAll('#nav .nv')]; }
@@ -6083,7 +6083,6 @@ function navAfterRender(){
 function navAt(x){ let best=null, bd=1e9; navItems().forEach(el=>{ const r=el.getBoundingClientRect(), c=(r.left+r.right)/2, d=Math.abs(x-c); if(d<bd){ bd=d; best=el; } }); return best; }
 document.addEventListener('pointerdown',e=>{
   const nav=e.target.closest&&e.target.closest('#nav'); if(!nav||!S) return;
-  if(nav.classList.contains('mini')) return;
   NAVG.drag={x0:e.clientX, start:navAt(e.clientX), cur:null, moved:false, id:e.pointerId};
 },true);
 document.addEventListener('pointermove',e=>{
@@ -6109,13 +6108,10 @@ window.addEventListener('scroll',()=>{
   const nav=$('#nav'); if(!nav||!S) return;
   let m=NAVG.mini;
   if(y<60) m=false; else if(dy>6) m=true; else if(dy<-6) m=false;
-  if(m!==NAVG.mini){ NAVG.mini=m; nav.classList.toggle('mini',m); setTimeout(()=>{ const a=navActive(); if(a) NAVG.last=placeInd(a,true); },360); }
+  if(m!==NAVG.mini){ NAVG.mini=m; nav.classList.toggle('mini',m); navFollow(); }
 },{passive:true});
-document.addEventListener('click',e=>{
-  const nav=e.target.closest&&e.target.closest('#nav.mini'); if(!nav) return;
-  e.stopPropagation(); e.preventDefault(); NAVG.mini=false; nav.classList.remove('mini');
-  setTimeout(()=>{ const a=navActive(); if(a) NAVG.last=placeInd(a,true); },360);
-},true);
+/* la pastille suit la barre pendant qu'elle change de hauteur */
+function navFollow(){ const t0=performance.now(); const step=()=>{ const a=navActive(); if(a) NAVG.last=placeInd(a,true); if(performance.now()-t0<380) requestAnimationFrame(step); }; requestAnimationFrame(step); }
 window.addEventListener('resize',()=>{ const a=navActive(); if(a) NAVG.last=placeInd(a,true); });
 
 /* ---------- Écran d'accueil « Ville vivante » (après le chargement) ---------- */
