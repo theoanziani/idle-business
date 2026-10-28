@@ -801,6 +801,45 @@ html,body{overflow-anchor:none}
 .ft-form i{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:13px;color:#fff;background:var(--ink-3)}
 .ft-form i.w{background:var(--good-sh)}
 .ft-form i.l{background:var(--bad-sh)}
+.fm-r .sc{border:0;background:var(--paper-2);border-radius:10px;min-height:36px;cursor:pointer;color:var(--ink)}
+.fm-r .sc.vs{background:none}
+.fm{display:flex;flex-direction:column;gap:10px}
+.fm-sb{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px}
+.fm-sb .t{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;min-width:0}
+.fm-sb .t b{font-size:13px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.fm-sb .c{text-align:center}
+.fm-sb .c b{display:block;font:800 30px/1 var(--f-display)}
+.fm-sb .c small{font-weight:800;color:var(--ink-3)}
+#fm-cv{width:100%;display:block;border-radius:12px;background:#2a8447}
+.fm-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.fm-ctl .seg button{min-height:40px}
+.fm-tabs{align-self:flex-start}
+.fm-tabs button{min-height:40px}
+.fm-feed{max-height:42vh;overflow:auto}
+.fm-ev{display:grid;grid-template-columns:52px minmax(0,1fr);gap:8px;padding:7px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.fm-ev span{font-weight:800;color:var(--ink-3);font-size:13px}
+.fm-ev p{margin:0;font-size:14px;position:relative}
+.fm-ev.k-goal p{font-weight:800}
+.fm-ev.k-goal span{color:var(--green)}
+.fm-ev.k-yellow p::before,.fm-ev.k-red p::before{content:"";display:inline-block;width:9px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:#f4c430}
+.fm-ev.k-red p::before{background:#d93a2b}
+.fm-ev.k-ht,.fm-ev.k-ft{background:var(--paper-2);border-radius:10px;padding:8px 10px;border:0;margin:4px 0}
+.fm-ev.k-corner p,.fm-ev.k-sub p{color:var(--ink-2)}
+.fm-st{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;gap:10px;align-items:center;padding:6px 0}
+.fm-st b{font:800 16px var(--f-display);text-align:center}
+.fm-st span{display:block;text-align:center;font-size:12.5px;font-weight:700;color:var(--ink-3);margin-bottom:4px}
+.fm-st i{display:block;height:8px;border-radius:4px;background:var(--paper-2);overflow:hidden}
+.fm-st em{display:block;height:100%;background:var(--blue)}
+.fm-xi{display:flex;gap:8px;align-items:center;padding:4px 0;font-size:13.5px;border-bottom:1px solid var(--line)}
+.fm-xi span{width:32px;flex:none;font-weight:800;color:var(--ink-3);font-size:11.5px}
+.fm-xi small{margin-left:auto;font-weight:800;color:var(--ink-3)}
+.fc-sq{margin-top:12px}
+.fc-sq summary{min-height:44px;display:flex;align-items:center;font-weight:800;cursor:pointer}
+.fm-xi em{font-style:normal;font-size:12px;color:var(--ink-3);margin-left:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none}
+.fm-tabs button{white-space:nowrap;flex:none}
+.fm-ctl .seg{flex-wrap:nowrap}
+.fm-ctl .seg button{padding:6px 11px}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -5089,6 +5128,1322 @@ function footZone(lid,gi,pos,n){
 }
 
 /* ============================================================
+   FOOTBALL : joueurs connus des grands clubs (noms modifiés de quelques lettres)
+   Effectifs de référence : saison 2025-2026 (transferts de l'été 2026 non inclus).
+   Format : Nom|poste|âge en 2026|note|nationalité. Le reste de chaque effectif est créé par le jeu.
+   ============================================================ */
+const FOOT_REAL = {
+'Paris Saint-Germont':`Lucas Chevallier|G|24|84|France
+Matveï Safanov|G|27|80|Russie
+Achraf Hakimy|DL|27|88|Maroc
+Nuno Mendez|DL|24|87|Portugal
+Lucas Hernandes|DL|30|82|France
+Marquinhas|DC|32|85|Brésil
+Willian Pachu|DC|24|85|Équateur
+Ilya Zabarny|DC|23|82|Ukraine
+Lucas Beraldi|DC|22|78|Brésil
+João Nevas|MD|21|87|Portugal
+Vitinho|MC|26|89|Portugal
+Fabián Ruís|MC|30|84|Espagne
+Warren Zaïre-Emeri|MC|20|82|France
+Lee Kang-un|MO|25|80|Corée du Sud
+Senny Mayolu|MO|20|75|France
+Khvicha Kvaratskhelya|AIL|25|89|Géorgie
+Désiré Doé|AIL|21|86|France
+Bradley Barcolla|AIL|23|84|France
+Ousmane Dembéla|BU|29|90|France
+Gonçalo Ramas|BU|25|80|Portugal`,
+'Olympico de Marseille':`Gerónimo Rully|G|34|82|Argentine
+Leonardo Balerdy|DC|27|80|Argentine
+Nayef Aguert|DC|30|80|Maroc
+Facundo Medino|DC|27|79|Argentine
+CJ Egan-Rilley|DC|23|74|Angleterre
+Emerson Palmiery|DL|32|76|Italie
+Timothy Wea|DL|26|77|États-Unis
+Geoffrey Kondogbya|MD|33|77|Centrafrique
+Pierre-Emile Højberg|MC|30|82|Danemark
+Angel Gomez|MC|25|78|Angleterre
+Arthur Vermeren|MC|21|77|Belgique
+Hamed Traorè|MO|26|77|Côte d'Ivoire
+Mason Greenwod|AIL|24|84|Angleterre
+Igor Paixãu|AIL|26|80|Brésil
+Amine Gouri|BU|26|81|Algérie
+Pierre-Emerick Aubameyeng|BU|37|79|Gabon`,
+'AC Monaco':`Philipp Köhm|G|28|78|Suisse
+Thilo Kehrar|DC|29|78|Allemagne
+Mohammed Salizu|DC|27|78|Ghana
+Eric Diar|DC|32|77|Angleterre
+Vandersen|DL|25|80|Brésil
+Caio Henrico|DL|29|78|Brésil
+Denis Zakarya|MD|29|81|Suisse
+Lamine Camarra|MC|22|79|Sénégal
+Paul Pogbat|MC|33|76|France
+Aleksandr Golovine|MO|30|81|Russie
+Maghnes Akliouch|MO|24|82|France
+Takumi Minamono|MO|31|79|Japon
+Ansu Fatti|AIL|23|78|Espagne
+Folarin Balogan|BU|25|80|États-Unis
+Mika Bieret|BU|23|78|Danemark`,
+'LOSK Lille':`Berke Özar|G|26|78|Turquie
+Aïssa Mandy|DC|34|75|Algérie
+Nathan Ngoi|DC|22|76|Belgique
+Tiago Santas|DL|23|77|Portugal
+Romain Peraud|DL|28|76|France
+Thomas Meunié|DL|34|75|Belgique
+Benjamin Andrée|MD|35|78|France
+Ayyoub Bouadi|MD|18|77|France
+Hákon Arnar Haraldson|MO|23|80|Islande
+Matías Fernandez-Pardo|AIL|21|77|Belgique
+Osame Sahraouy|AIL|24|76|Norvège
+Felix Correa|AIL|25|76|Portugal
+Hamza Igamano|BU|23|77|Maroc
+Olivier Girod|BU|39|76|France`,
+'Olympico Lyonnais':`Dominik Grief|G|29|78|Slovaquie
+Moussa Niakhatè|DC|30|79|Sénégal
+Clinton Matta|DC|33|76|Angola
+Nicolás Tagliafigo|DL|33|78|Argentine
+Ainsley Maitland-Nilles|DL|28|75|Angleterre
+Tanner Tesmann|MD|24|77|États-Unis
+Orel Mangalla|MD|28|77|Belgique
+Corentin Tolissa|MC|32|79|France
+Pavel Šulk|MO|25|79|Tchéquie
+Adam Karabek|MO|22|75|Tchéquie
+Malick Fofanna|AIL|21|80|Belgique
+Ernest Nuameh|AIL|22|77|Ghana
+Afonso Moreyra|AIL|21|74|Portugal
+Martin Satriani|BU|25|74|Uruguay`,
+'RS Lens':`Robin Riser|G|21|77|France
+Jonathan Gradix|DC|33|76|France
+Malang Sar|DC|27|76|France
+Samson Baido|DC|22|74|Autriche
+Ruben Aguillar|DL|33|74|France
+Adrien Thomason|MC|32|79|France
+Mamadou Sangarè|MC|23|77|Mali
+Florian Thovin|AIL|33|80|France
+Abdallah Simma|AIL|24|77|Sénégal
+Rayan Fofani|AIL|19|72|France
+Wesley Saïde|BU|31|77|France
+Odsonne Édouart|BU|28|77|France`,
+'RS Strasbourg Alsace':`Mike Pender|G|20|76|Belgique
+Andrew Omobamidelle|DC|24|76|Irlande
+Guéla Doé|DL|23|77|Côte d'Ivoire
+Ben Chillwell|DL|29|76|Angleterre
+Valentín Barko|MC|22|78|Argentine
+Félix Lemaréchall|MC|22|76|France
+Julio Encisso|MO|22|77|Paraguay
+Diego Moreyra|AIL|21|77|Belgique
+Sebastian Nanasy|AIL|24|76|Suède
+Martial Godot|AIL|22|74|Angleterre
+Joaquín Panicheli|BU|23|78|Argentine`,
+'OGS Nice':`Yehvann Diouff|G|26|77|Sénégal
+Dantè|DC|42|70|Brésil
+Antoine Mendi|DC|22|74|France
+Jonathan Klauss|DL|33|76|France
+Melvin Barde|DL|25|75|France
+Charles Vanhoute|MD|27|75|Belgique
+Morgan Sansone|MC|31|74|France
+Tom Louchez|MC|22|73|France
+Tanguy Ndombelle|MC|29|74|France
+Sofiane Dyop|MO|26|78|Maroc
+Mohamed-Ali Cha|AIL|22|74|France
+Terem Moffy|BU|26|77|Nigeria`,
+'Stade Rennois':`Brice Sambo|G|32|81|France
+Anthony Rouaut|DC|24|76|France
+Abdelhamid Aït Boudlel|DC|20|74|Maroc
+Przemysław Frankowsky|DL|31|76|Pologne
+Quentin Merlain|DL|24|76|France
+Mahdi Camarra|MD|28|76|France
+Seko Fofanah|MC|31|78|Côte d'Ivoire
+Valentin Ronjier|MC|31|77|France
+Ludovic Blass|MO|28|77|France
+Mousa Al-Tamary|AIL|28|76|Jordanie
+Esteban Lepaule|BU|26|78|France
+Breel Embollo|BU|29|78|Suisse`,
+'Toulouse AC':`Guillaume Reste|G|21|78|France
+Charlie Creswell|DC|23|76|Angleterre
+Mark McKenzy|DC|27|75|États-Unis
+Rasmus Nicolaïsen|DC|29|74|Danemark
+Warren Kamanzy|DL|25|73|Norvège
+Djibril Sidibè|DL|33|72|France
+Cristian Cásseres|MC|26|76|Venezuela
+Santiago Hidalga|MO|21|74|Argentine
+Aron Dønum|AIL|28|75|Norvège
+Yann Gboha|AIL|25|76|France
+Frank Magry|BU|26|75|Cameroun`,
+'Stade Brestais 29':`Grégoire Coudart|G|27|74|France
+Brendan Chardonet|DC|31|75|France
+Bradley Loko|DL|24|75|France
+Kenny Lalla|DL|34|73|France
+Hugo Magneti|MC|27|75|France
+Pierre Lees-Mellou|MC|33|76|France
+Kamory Doumbya|MO|23|75|Mali
+Romain Del Castilla|AIL|30|77|France
+Mama Baldè|AIL|30|74|Guinée-Bissau
+Ludovic Ajorc|BU|32|75|France`,
+'Paris AC':`Kevin Trap|G|36|78|Allemagne
+Maxime Lopes|MC|28|77|France
+Vincent Marcheti|MC|28|73|France
+Ilan Kebal|MO|28|77|Algérie
+Moses Simone|AIL|31|78|Nigeria
+Jean-Philippe Kraso|BU|29|75|Côte d'Ivoire
+Willem Geubels|BU|25|74|France
+Pierre-Yves Hamelle|BU|32|71|France`,
+'AC Lorient':`Yvon Mvoggo|G|32|76|Suisse
+Bamo Meïtè|DC|24|73|France
+Laurent Abergell|MD|33|75|France
+Arthur Avome|MC|22|73|Cameroun
+Tosin Aiyegon|AIL|28|75|Bénin
+Pablo Pagys|AIL|23|74|France
+Théo Le Briz|AIL|24|73|France
+Mohamed Bamby|BU|24|74|Côte d'Ivoire`,
+'Le Havre FC':`Arthur Desmass|G|32|74|France
+Gautier Loris|DC|30|72|France
+Abdoulaye Tourè|MC|32|74|Guinée
+Rassoul Ndiay|MC|24|73|France
+Yassine Keshta|MO|24|73|Maroc
+Issa Soumarè|AIL|26|73|Sénégal`,
+'AS Auxerre':`Donovan Léone|G|33|75|France
+Juball|DC|32|73|Brésil
+Gideon Mensa|DL|27|73|Ghana
+Elisha Owuso|MD|28|74|Ghana
+Kevin Danoix|MC|21|72|France
+Gauthier Heim|MO|29|75|France
+Lassine Sinayoka|BU|26|76|Mali`,
+'Angers SCA':`Hervé Koffy|G|29|74|Burkina Faso
+Jordan Lefore|DC|32|72|France
+Haris Belkeba|MD|32|72|Algérie
+Himad Abdelly|MC|26|76|Algérie
+Prosper Petter|AIL|21|72|Nigeria
+Sidiki Chérrif|BU|19|74|France`,
+'Reale Madrid':`Thibaut Courtoix|G|34|89|Belgique
+Andriy Lunyn|G|27|78|Ukraine
+Trent Alexander-Arnolt|DL|27|85|Angleterre
+Dani Carvajel|DL|34|82|Espagne
+Álvaro Careras|DL|23|82|Espagne
+Ferland Mendi|DL|31|79|France
+Éder Militãu|DC|28|84|Brésil
+Antonio Rüdinger|DC|33|84|Allemagne
+Dean Huisjen|DC|21|84|Espagne
+Raúl Asensio|DC|23|79|Espagne
+Aurélien Tchouaméné|MD|26|86|France
+Federico Valverdi|MC|28|88|Uruguay
+Eduardo Camavingha|MC|23|83|France
+Dani Ceballas|MC|29|79|Espagne
+Jude Bellinghem|MO|23|89|Angleterre
+Arda Gülar|MO|21|84|Turquie
+Brahim Díez|MO|26|81|Maroc
+Vinícios Júnior|AIL|26|90|Brésil
+Rodrigho|AIL|25|85|Brésil
+Franco Mastantono|AIL|19|78|Argentine
+Kylian Mbapé|BU|27|92|France
+Gonzalo Garsía|BU|22|76|Espagne`,
+'CF Barcelona':`Joan Garsía|G|25|86|Espagne
+Marc-André ter Stegan|G|34|84|Allemagne
+Jules Koundè|DL|27|86|France
+Alejandro Balda|DL|22|83|Espagne
+Pau Cubarsy|DC|19|85|Espagne
+Ronald Arajo|DC|27|83|Uruguay
+Eric Garçia|DC|25|80|Espagne
+Andreas Christensan|DC|30|80|Danemark
+Marc Casadu|MD|22|79|Espagne
+Frenkie de Jongh|MC|29|86|Pays-Bas
+Pedry|MC|23|90|Espagne
+Gavy|MC|21|82|Espagne
+Dani Olmos|MO|28|85|Espagne
+Fermín Lópes|MO|23|83|Espagne
+Lamine Yamel|AIL|19|91|Espagne
+Raphynha|AIL|29|89|Brésil
+Marcus Rashfort|AIL|28|81|Angleterre
+Robert Lewandowsky|BU|37|85|Pologne
+Ferran Torras|BU|26|81|Espagne`,
+'Atlética Madrid':`Jan Oblac|G|33|87|Slovénie
+José María Ginénez|DC|31|80|Uruguay
+Robin Le Normant|DC|29|81|Espagne
+Dávid Hanko|DC|28|82|Slovaquie
+Clément Lenglat|DC|31|77|France
+Marcos Llorante|DL|31|82|Espagne
+Nahuel Molino|DL|28|79|Argentine
+Matteo Ruggieri|DL|23|77|Italie
+Johnny Cardozo|MD|24|79|États-Unis
+Koque|MC|34|78|Espagne
+Pablo Barrias|MC|23|82|Espagne
+Conor Galagher|MC|26|81|Angleterre
+Álex Baina|MO|25|83|Espagne
+Thiago Almeda|MO|25|80|Argentine
+Giuliano Simeoni|AIL|23|80|Argentine
+Nico Gonzales|AIL|28|80|Argentine
+Antoine Griezman|BU|35|83|France
+Julián Álvares|BU|26|87|Argentine
+Alexander Sørlot|BU|30|81|Norvège`,
+'Villarreal FC':`Luiz Junyor|G|25|79|Brésil
+Juan Foith|DC|28|79|Argentine
+Renato Veyga|DC|23|79|Portugal
+Rafa Marim|DC|24|78|Espagne
+Sergi Cardonna|DL|26|77|Espagne
+Thomas Partei|MD|33|80|Ghana
+Pape Gueie|MD|27|78|Sénégal
+Santi Comesana|MC|29|78|Espagne
+Dani Pareja|MC|37|78|Espagne
+Alberto Molero|MO|22|79|Espagne
+Nicolas Pépè|AIL|31|79|Côte d'Ivoire
+Tajon Buchanen|AIL|27|77|Canada
+Georges Mikaoutadze|BU|25|80|Géorgie
+Ayoze Péres|BU|33|80|Espagne
+Gerard Morena|BU|34|79|Espagne`,
+'Athletix Bilbao':`Unai Simone|G|29|84|Espagne
+Dani Vivien|DC|26|81|Espagne
+Aitor Paredas|DC|26|78|Espagne
+Yeray Álvares|DC|31|77|Espagne
+Jesús Arezo|DL|27|78|Espagne
+Yuri Berchice|DL|36|74|Espagne
+Mikel Jauregisar|MD|23|79|Espagne
+Beñat Prado|MC|25|77|Espagne
+Oihan Sanset|MO|26|82|Espagne
+Nico Willians|AIL|24|85|Espagne
+Iñaki Willians|AIL|32|80|Ghana
+Álex Berenger|AIL|31|77|Espagne
+Gorka Guruzetta|BU|30|78|Espagne
+Maroan Sanadi|BU|25|75|Maroc`,
+'Reale Betos':`Pau Lópes|G|31|79|Espagne
+Álvaro Valés|G|29|78|Espagne
+Natán|DC|25|78|Brésil
+Diego Llorante|DC|32|77|Espagne
+Marc Bartro|DC|35|74|Espagne
+Héctor Bellerim|DL|31|76|Espagne
+Ricardo Rodrigues|DL|33|76|Suisse
+Sofyan Amrabet|MD|29|79|Maroc
+Marc Rocca|MD|29|78|Espagne
+Pablo Fornels|MC|30|79|Espagne
+Isko|MO|34|82|Espagne
+Giovani Lo Celsio|MO|30|80|Argentine
+Antonny|AIL|26|81|Brésil
+Abde Ezzalzouly|AIL|24|80|Maroc
+Cucho Hernandes|BU|27|80|Colombie
+Chimy Ávilla|BU|32|75|Argentine`,
+'Reale Sociedat':`Álex Remira|G|31|82|Espagne
+Igor Zubeldya|DC|29|79|Espagne
+Aritz Elustonda|DC|32|75|Espagne
+Jon Aramburo|DL|23|77|Venezuela
+Sergio Gomes|DL|25|78|Espagne
+Jon Gorrotxategui|MD|23|75|Espagne
+Brais Mendes|MC|29|80|Espagne
+Carlos Solar|MC|29|78|Espagne
+Pablo Marim|MC|22|76|Espagne
+Takefusa Kubu|AIL|25|82|Japon
+Ander Barrenetxa|AIL|24|79|Espagne
+Gonçalo Guedez|AIL|29|78|Portugal
+Mikel Oyarsabal|BU|29|83|Espagne
+Orri Óskarson|BU|22|77|Islande`,
+'Celto Vigo':`Iván Vilar|G|29|76|Espagne
+Carl Starfeldt|DC|31|76|Suède
+Óscar Minguesa|DL|27|78|Espagne
+Marcos Alonzo|DL|35|75|Espagne
+Fran Beltrám|MC|27|77|Espagne
+Ilaix Moribo|MC|23|76|Guinée
+Williot Swedburg|AIL|22|76|Suède
+Hugo Álvares|AIL|22|75|Espagne
+Pablo Durám|AIL|25|75|Espagne
+Iago Aspaz|BU|38|78|Espagne
+Borja Iglesyas|BU|33|77|Espagne
+Ferran Jutgal|BU|27|76|Espagne`,
+'Sevilla AC':`Odysseas Vlachodimas|G|32|77|Grèce
+Ørjan Nylund|G|35|75|Norvège
+Kike Salaz|DC|24|75|Espagne
+Tanguy Nianzu|DC|24|75|France
+José Ángel Carmonna|DL|24|76|Espagne
+Nemanja Gudel|MD|34|76|Serbie
+Batista Mendi|MD|26|74|France
+Djibril Sowe|MC|29|76|Suisse
+Rubén Vargaz|AIL|28|78|Suisse
+Chidera Ejouke|AIL|28|77|Nigeria
+Akor Adems|BU|26|76|Nigeria
+Isaac Romera|BU|26|75|Espagne
+Alexis Sanches|BU|37|74|Chili`,
+'Valencia FC':`Julen Agirrezabal|G|25|77|Espagne
+Stole Dimitrievsky|G|32|77|Macédoine du Nord
+César Tárraga|DC|24|77|Espagne
+Mouctar Diakhabi|DC|29|76|Guinée
+José Gayò|DL|31|77|Espagne
+Dimitri Foulquié|DL|33|73|France
+Pepellu|MD|27|77|Espagne
+Javi Guera|MC|23|79|Espagne
+André Almeyda|MC|26|76|Portugal
+Diego Lópes|AIL|24|77|Espagne
+Luis Rioha|AIL|32|75|Espagne
+Hugo Durro|BU|26|76|Espagne
+Dani Rava|BU|30|74|Espagne`,
+'Osasona':`Sergio Herera|G|32|78|Espagne
+Alejandro Catenna|DC|31|77|Espagne
+Jorge Herrandu|DC|25|74|Espagne
+Juan Kruz|DL|26|74|Espagne
+Lucas Toró|MD|31|76|Espagne
+Jon Moncayolla|MC|28|77|Espagne
+Aimar Oros|MO|24|77|Espagne
+Moi Gomes|MO|32|75|Espagne
+Rubén Garsía|AIL|32|76|Espagne
+Víctor Muños|AIL|23|76|Espagne
+Ante Budimyr|BU|35|78|Croatie`,
+'Rayo Vallecaño':`Augusto Batala|G|29|77|Argentine
+Florian Lejeunne|DC|35|75|France
+Andrei Rațio|DL|28|78|Roumanie
+Pep Chavaría|DL|28|76|Espagne
+Óscar Valentim|MD|32|76|Espagne
+Pathé Cisse|MD|32|75|Sénégal
+Unai Lópes|MC|30|77|Espagne
+Isi Palazom|MO|31|78|Espagne
+Jorge de Frutas|AIL|29|78|Espagne
+Álvaro Garsia|AIL|33|76|Espagne
+Sergio Camelo|BU|25|75|Espagne
+Alemãu|BU|28|74|Brésil`,
+'RCD Espanyal':`Marko Dmitrovič|G|34|77|Serbie
+Leandro Cabrero|DC|34|75|Uruguay
+Fernando Calera|DC|30|74|Espagne
+Omar El Hilaly|DL|23|76|Maroc
+Carlos Romera|DL|24|75|Espagne
+Pol Losano|MD|26|74|Espagne
+Edu Expósita|MC|30|76|Espagne
+Javi Puadu|AIL|28|77|Espagne
+Tyrhys Dolam|AIL|24|75|Angleterre
+Roberto Fernandes|BU|24|75|Espagne
+Pere Mila|BU|33|74|Espagne`,
+'Getafe FC':`David Sorya|G|33|79|Espagne
+Djené Dakonan|DC|34|76|Togo
+Domingos Duarta|DC|31|75|Portugal
+Juan Iglesyas|DL|28|74|Espagne
+Mauro Arambary|MD|30|78|Uruguay
+Luis Mila|MC|31|77|Espagne
+Borja Mayorel|BU|29|76|Espagne
+Juanmy|BU|33|73|Espagne`,
+'Deportiva Alavés':`Antonio Siverra|G|29|77|Espagne
+Facundo Garsés|DC|26|75|Argentine
+Víctor Parado|DL|24|73|Espagne
+Antonio Blanko|MD|25|76|Espagne
+Carles Aleña|MC|28|75|Espagne
+Jon Guridy|MC|31|74|Espagne
+Carlos Visente|AIL|27|76|Espagne
+Toni Martines|BU|28|75|Espagne
+Lucas Boyè|BU|30|75|Argentine`,
+'Elche FC':`Matías Dituru|G|39|74|Argentine
+Pedro Bigaz|DC|36|72|Espagne
+Marc Aguadu|MD|26|74|Espagne
+Aleix Febaz|MC|30|74|Espagne
+Germán Valero|AIL|23|74|Espagne
+André Silvo|BU|30|76|Portugal
+Rafa Myr|BU|29|75|Espagne`,
+'Deportiva La Coruña':`Germán Pareño|G|33|72|Espagne
+Yeremay Hernandes|AIL|23|77|Espagne
+David Mela|AIL|20|74|Espagne
+Lucas Péres|BU|37|72|Espagne`,
+'Levanto UD':`Mathew Ryen|G|34|75|Australie
+Unai Elgesabal|DC|33|72|Espagne
+Pablo Martines|MC|28|74|Espagne
+Carlos Álvares|AIL|23|76|Espagne
+Roger Brugè|AIL|30|73|Espagne
+Iván Romera|BU|25|74|Espagne`,
+'Rasing Santander':`Peio Canalés|MO|21|73|Espagne
+Andrés Martím|AIL|27|74|Espagne`,
+'Arsenol':`David Rayo|G|30|87|Espagne
+William Salyba|DC|25|88|France
+Gabriel Magalhãe|DC|28|87|Brésil
+Piero Hincapyé|DC|24|82|Équateur
+Jurriën Tymber|DL|25|84|Pays-Bas
+Riccardo Calafiory|DL|24|82|Italie
+Ben Whyte|DL|28|82|Angleterre
+Declan Ryce|MD|27|88|Angleterre
+Martín Zubimendy|MD|27|86|Espagne
+Mikel Merina|MC|30|82|Espagne
+Martin Ødegard|MO|27|87|Norvège
+Eberechi Eza|MO|28|84|Angleterre
+Bukayo Sakka|AIL|24|88|Angleterre
+Gabriel Martinely|AIL|25|82|Brésil
+Leandro Trosard|AIL|31|81|Belgique
+Noni Madueka|AIL|24|81|Angleterre
+Viktor Gyökers|BU|28|86|Suède
+Kai Haverts|BU|27|83|Allemagne`,
+'Manchester Citi':`Gianluigi Donnaruma|G|27|87|Italie
+Rúben Diaz|DC|29|87|Portugal
+Joško Gvardiel|DC|24|86|Croatie
+Nathan Akè|DC|31|81|Pays-Bas
+Rico Lewys|DL|21|80|Angleterre
+Matheus Nunez|DL|27|80|Portugal
+Nico O'Reily|DL|21|78|Angleterre
+Rodry|MD|30|89|Espagne
+Tijjani Reinders|MC|27|84|Pays-Bas
+Bernardo Sylva|MC|31|85|Portugal
+Phil Fodden|MO|26|86|Angleterre
+Rayan Cherky|MO|22|84|France
+Jérémy Dokou|AIL|24|84|Belgique
+Savinha|AIL|22|82|Brésil
+Erling Haland|BU|25|91|Norvège
+Omar Marmouch|BU|27|82|Égypte`,
+'Liverpoul':`Alison|G|33|88|Brésil
+Virgil van Dyk|DC|34|88|Pays-Bas
+Ibrahima Konatè|DC|27|85|France
+Jeremie Frimpang|DL|25|83|Pays-Bas
+Milos Kerkes|DL|22|82|Hongrie
+Andy Robertsen|DL|32|82|Écosse
+Conor Bradly|DL|23|79|Irlande du Nord
+Ryan Gravenberg|MD|24|86|Pays-Bas
+Alexis Mac Alister|MC|27|87|Argentine
+Dominik Szoboszlay|MC|25|86|Hongrie
+Curtis Jonas|MC|25|80|Angleterre
+Florian Wirts|MO|23|88|Allemagne
+Mohamed Salha|AIL|34|88|Égypte
+Cody Gackpo|AIL|27|84|Pays-Bas
+Federico Chiesi|AIL|28|78|Italie
+Alexander Isaak|BU|26|88|Suède
+Hugo Ekitikè|BU|24|85|France`,
+'Chelsee':`Robert Sanches|G|28|81|Espagne
+Levi Colwil|DC|23|83|Angleterre
+Wesley Fofanna|DC|25|81|France
+Trevoh Chaloba|DC|26|80|Angleterre
+Reece Jamess|DL|26|84|Angleterre
+Marc Cucurela|DL|27|84|Espagne
+Malo Gusta|DL|23|80|France
+Moisés Caisedo|MD|24|88|Équateur
+Enzo Fernandes|MC|25|86|Argentine
+Cole Palmar|MO|24|88|Angleterre
+Pedro Netto|AIL|26|82|Portugal
+Estêvan|AIL|19|82|Brésil
+Alejandro Garnatcho|AIL|22|80|Argentine
+Jamie Gitens|AIL|21|79|Angleterre
+João Pedra|BU|24|83|Brésil
+Liam Delapp|BU|23|79|Angleterre`,
+'Newcastle Unitad':`Nick Pape|G|34|81|Angleterre
+Sven Botmann|DC|26|81|Pays-Bas
+Malick Thiau|DC|24|81|Allemagne
+Fabian Schärr|DC|34|79|Suisse
+Dan Burne|DC|34|78|Angleterre
+Tino Livramenta|DL|23|81|Angleterre
+Kieran Tripier|DL|35|78|Angleterre
+Bruno Guimarãe|MC|28|87|Brésil
+Sandro Tonaly|MC|26|85|Italie
+Joelington|MC|29|82|Brésil
+Anthony Gordan|AIL|25|84|Angleterre
+Harvey Barns|AIL|28|79|Angleterre
+Jacob Murfy|AIL|31|79|Angleterre
+Nick Woltermade|BU|24|82|Allemagne
+Yoane Wisa|BU|29|81|RD Congo`,
+'Aston Vila':`Emiliano Martines|G|33|86|Argentine
+Ezri Konza|DC|28|82|Angleterre
+Pau Torras|DC|29|82|Espagne
+Lucas Dignes|DL|32|78|France
+Matty Kash|DL|28|79|Pologne
+Boubacar Kamarra|MD|26|83|France
+Amadou Onanna|MD|24|82|Belgique
+Youri Tielmans|MC|29|83|Belgique
+John McGin|MC|31|81|Écosse
+Morgan Rodgers|MO|23|84|Angleterre
+Emi Buendya|MO|29|78|Argentine
+Jadon Sanchou|AIL|26|78|Angleterre
+Ollie Watkin|BU|30|84|Angleterre`,
+'Manchester Unitad':`Senne Lamens|G|24|79|Belgique
+Lisandro Martines|DC|28|83|Argentine
+Matthijs de Light|DC|26|82|Pays-Bas
+Leny Yorro|DC|20|80|France
+Diogo Dalott|DL|27|80|Portugal
+Luke Shau|DL|30|78|Angleterre
+Casemyro|MD|34|79|Brésil
+Kobbie Mainou|MC|21|80|Angleterre
+Bruno Fernandez|MO|31|86|Portugal
+Matheus Kunha|MO|27|84|Brésil
+Mason Mounts|MO|27|78|Angleterre
+Bryan Mbeumu|AIL|26|84|Cameroun
+Amad Dialo|AIL|23|81|Côte d'Ivoire
+Benjamin Šesko|BU|23|82|Slovénie`,
+'Tottenham Hotspurs':`Guglielmo Vicaria|G|29|82|Italie
+Cristian Romera|DC|28|85|Argentine
+Micky van der Ven|DC|25|84|Pays-Bas
+Pedro Poro|DL|26|82|Espagne
+Destiny Udoggie|DL|23|80|Italie
+Djed Spense|DL|25|78|Angleterre
+João Palinha|MD|30|82|Portugal
+Rodrigo Betancur|MC|29|80|Uruguay
+Pape Matar Sar|MC|23|80|Sénégal
+James Madison|MO|29|82|Angleterre
+Xavi Simmons|MO|23|84|Pays-Bas
+Mohammed Kudos|AIL|25|83|Ghana
+Dejan Kulusevsky|AIL|26|82|Suède
+Dominic Solanka|BU|28|80|Angleterre
+Richarlisson|BU|29|78|Brésil`,
+'Nottingham Forrest':`Matz Sells|G|34|80|Belgique
+Murilo|DC|23|81|Brésil
+Nikola Milenkovič|DC|28|82|Serbie
+Neco Willians|DL|25|79|Pays de Galles
+Ibrahim Sangarè|MD|28|79|Côte d'Ivoire
+Elliot Andersen|MC|23|83|Angleterre
+Morgan Gibbs-Whyte|MO|26|83|Angleterre
+Callum Hudson-Odoï|AIL|25|79|Angleterre
+Chris Woods|BU|34|80|Nouvelle-Zélande`,
+'Brighton Albian':`Bart Verbrugen|G|23|81|Pays-Bas
+Jan Paul van Heke|DC|25|80|Pays-Bas
+Lewis Dunck|DC|34|78|Angleterre
+Carlos Baleva|MD|22|82|Cameroun
+Jack Hinshelwod|MC|21|77|Angleterre
+Georginio Rutar|MO|24|79|France
+Kaoru Mitona|AIL|29|81|Japon
+Yankuba Minte|AIL|21|79|Gambie
+Danny Welbek|BU|35|77|Angleterre`,
+'Crystal Palais':`Dean Hendersen|G|29|81|Angleterre
+Maxence Lacroy|DC|26|81|France
+Daniel Muños|DL|30|81|Colombie
+Tyrick Mitchel|DL|26|78|Angleterre
+Jefferson Lerna|MD|31|78|Colombie
+Adam Warton|MC|22|82|Angleterre
+Ismaïla Sar|AIL|28|81|Sénégal
+Yeremy Pina|AIL|23|79|Espagne
+Jean-Philippe Mateto|BU|29|82|France`,
+'Internaziona Milano':`Yann Sommar|G|37|83|Suisse
+Alessandro Bastone|DC|27|87|Italie
+Stefan de Vrei|DC|34|80|Pays-Bas
+Yann Biseck|DC|25|81|Allemagne
+Francesco Acerby|DC|38|78|Italie
+Denzel Dumfrees|DL|30|83|Pays-Bas
+Federico Dimarko|DL|28|85|Italie
+Hakan Çalhanoglou|MD|32|85|Turquie
+Nicolò Barela|MC|29|86|Italie
+Henrikh Mkhitarian|MC|37|80|Arménie
+Davide Fratesi|MC|26|80|Italie
+Piotr Zielinsky|MC|32|80|Pologne
+Andy Diouff|MC|23|78|France
+Lautaro Martines|BU|28|88|Argentine
+Marcus Thuran|BU|28|85|France
+Ange-Yoan Bony|BU|22|78|France
+Pio Esposita|BU|21|77|Italie`,
+'SSC Napoly':`Vanja Milinkovič-Savič|G|29|81|Serbie
+Alex Merett|G|29|80|Italie
+Amir Rahmani|DC|32|82|Kosovo
+Alessandro Buongiorna|DC|27|83|Italie
+Sam Beukama|DC|27|82|Pays-Bas
+Giovanni Di Lorenza|DL|32|82|Italie
+Mathías Oliveira|DL|28|79|Uruguay
+Leonardo Spinazola|DL|33|77|Italie
+Stanislav Lobotko|MD|31|84|Slovaquie
+Scott McTominey|MC|29|86|Écosse
+Frank Anguisa|MC|30|83|Cameroun
+Kevin De Bruyn|MO|35|85|Belgique
+Matteo Politanno|AIL|32|80|Italie
+David Neris|AIL|29|80|Brésil
+Noa Lange|AIL|27|79|Pays-Bas
+Rasmus Højlunt|BU|23|82|Danemark
+Romelu Lukako|BU|33|81|Belgique`,
+'AC Milano':`Mike Maignant|G|30|87|France
+Fikayo Tomory|DC|28|81|Angleterre
+Strahinja Pavlovič|DC|25|80|Serbie
+Matteo Gabia|DC|26|79|Italie
+Pervis Estupiñam|DL|28|79|Équateur
+Alexis Saelemakers|DL|27|80|Belgique
+Youssouf Fofanna|MD|27|80|France
+Samuele Ricchi|MD|24|79|Italie
+Luka Modrič|MC|40|82|Croatie
+Adrien Rabiott|MC|31|83|France
+Ruben Loftus-Chek|MC|30|78|Angleterre
+Christopher Nkunkou|MO|28|81|France
+Christian Pulisik|AIL|27|85|États-Unis
+Rafael Leãu|AIL|27|85|Portugal
+Santiago Gimenes|BU|25|79|Mexique`,
+'Juventas':`Michele Di Gregoria|G|28|82|Italie
+Gleison Bremmer|DC|29|85|Brésil
+Pierre Kaloulou|DC|26|81|France
+Federico Gati|DC|27|80|Italie
+Lloyd Kely|DC|27|78|Angleterre
+Andrea Cambiasso|DL|26|83|Italie
+Manuel Locateli|MD|28|83|Italie
+Khéphren Thuran|MC|25|83|France
+Teun Koopmeyners|MC|28|81|Pays-Bas
+Weston McKenny|MC|27|80|États-Unis
+Kenan Yildis|AIL|21|85|Turquie
+Francisco Conseição|AIL|23|82|Portugal
+Edon Zegrova|AIL|27|80|Kosovo
+Dušan Vlahovič|BU|26|83|Serbie
+Jonathan Davyd|BU|26|82|Canada
+Loïs Opanda|BU|26|80|Belgique`,
+'Atalante':`Marco Carnesechi|G|25|83|Italie
+Isak Hiem|DC|27|80|Suède
+Berat Djimsity|DC|33|78|Albanie
+Sead Kolasinač|DC|33|77|Bosnie-Herzégovine
+Raoul Belanova|DL|26|79|Italie
+Davide Zapacosta|DL|34|77|Italie
+Édersom|MD|27|83|Brésil
+Marten de Roen|MD|35|79|Pays-Bas
+Charles De Ketelare|MO|25|83|Belgique
+Ademola Lookmann|AIL|28|84|Nigeria
+Kamaldeen Sulemanna|AIL|24|77|Ghana
+Gianluca Scamaca|BU|27|80|Italie
+Nikola Krstovič|BU|26|79|Monténégro`,
+'AS Romana':`Mile Svilan|G|26|84|Serbie
+Gianluca Mancinni|DC|30|80|Italie
+Evan Ndicca|DC|26|81|Côte d'Ivoire
+Mario Hermosso|DC|31|77|Espagne
+Wesly|DL|22|79|Brésil
+Angelinho|DL|29|79|Espagne
+Bryan Cristanti|MD|31|79|Italie
+Manu Konè|MC|25|82|France
+Neil El Aynaouy|MC|25|79|Maroc
+Lorenzo Pellegrino|MO|30|79|Italie
+Paulo Dibala|MO|32|82|Argentine
+Matías Soulè|AIL|23|81|Argentine
+Artem Dovbik|BU|29|80|Ukraine
+Evan Fergusson|BU|21|77|Irlande`,
+'SS Lazia':`Ivan Provedell|G|32|80|Italie
+Alessio Romagnolli|DC|31|80|Italie
+Mario Gilla|DC|25|80|Espagne
+Nuno Tavarez|DL|26|79|Portugal
+Adam Marusič|DL|33|77|Monténégro
+Nicolò Rovela|MD|24|80|Italie
+Mattéo Guendouzy|MC|27|81|France
+Mattia Zacagni|AIL|31|81|Italie
+Gustav Isaksem|AIL|25|78|Danemark
+Taty Castelanos|BU|27|79|Argentine
+Boulaye Dya|BU|29|78|Sénégal`,
+'Como 1908':`Jean Butet|G|31|79|France
+Diego Karlos|DC|33|77|Brésil
+Marc-Oliver Kemp|DC|31|76|Allemagne
+Álex Vale|DL|22|77|Espagne
+Maximo Perone|MD|23|79|Argentine
+Lucas Da Kunha|MC|25|79|France
+Nico Pas|MO|22|84|Argentine
+Assane Dyao|AIL|20|78|Sénégal
+Jesús Rodrigues|AIL|20|78|Espagne
+Álvaro Morato|BU|33|77|Espagne
+Tasos Douvicas|BU|27|76|Grèce`,
+'Bologna SC':`Łukasz Skorupsky|G|35|79|Pologne
+Jhon Lucumy|DC|27|80|Colombie
+Torbjørn Hegem|DC|27|77|Norvège
+Juan Mirando|DL|26|77|Espagne
+Remo Freuller|MD|34|79|Suisse
+Lewis Fergusen|MC|26|80|Écosse
+Riccardo Orsolino|AIL|29|81|Italie
+Jonathan Row|AIL|23|77|Angleterre
+Federico Bernardeski|AIL|32|77|Italie
+Santiago Kastro|BU|21|78|Argentine`,
+'ACF Fiorentino':`David de Gaia|G|35|82|Espagne
+Pietro Comuzo|DC|21|78|Italie
+Luca Raniery|DC|27|77|Italie
+Marin Pongračič|DC|28|77|Croatie
+Robin Gossens|DL|32|78|Allemagne
+Dodò|DL|27|79|Brésil
+Rolando Mandragorra|MD|29|77|Italie
+Nicolò Fagiolli|MC|25|78|Italie
+Albert Guðmundson|MO|29|79|Islande
+Moise Keane|BU|26|83|Italie
+Edin Džecko|BU|40|75|Bosnie-Herzégovine`,
+'FC Beyern München':`Manuel Neuers|G|40|84|Allemagne
+Jonas Urbik|G|22|76|Allemagne
+Dayot Upamecanu|DC|27|85|France
+Jonathan Thah|DC|30|85|Allemagne
+Kim Min-je|DC|29|83|Corée du Sud
+Joshua Kimmisch|DL|31|87|Allemagne
+Alphonso Davis|DL|25|83|Canada
+Konrad Leimer|DL|29|81|Autriche
+Josip Stanišič|DL|26|80|Croatie
+Aleksandar Pavlovič|MD|22|83|Allemagne
+Leon Goretska|MC|31|81|Allemagne
+Jamal Musialla|MO|23|89|Allemagne
+Lennart Karll|MO|18|77|Allemagne
+Michael Olisse|AIL|24|88|France
+Luis Díez|AIL|29|86|Colombie
+Serge Gnabri|AIL|31|81|Allemagne
+Harry Kaine|BU|33|90|Angleterre
+Nicolas Jakson|BU|25|79|Sénégal`,
+'Borussia Dortmond':`Gregor Kobell|G|28|86|Suisse
+Nico Schlotterback|DC|26|84|Allemagne
+Waldemar Antom|DC|30|80|Allemagne
+Niklas Süla|DC|31|78|Allemagne
+Julian Ryersen|DL|28|79|Norvège
+Daniel Svenson|DL|24|78|Suède
+Ramy Bensebainy|DL|31|77|Algérie
+Emre Kan|MD|32|79|Allemagne
+Felix Nmetcha|MC|25|81|Allemagne
+Marcel Sabitser|MC|32|80|Autriche
+Jobe Bellinghem|MC|20|78|Angleterre
+Julian Brand|MO|30|82|Allemagne
+Karim Adeyemy|AIL|24|81|Allemagne
+Maximilian Beyer|BU|23|80|Allemagne
+Serhou Guirassi|BU|30|85|Guinée`,
+'Bayer 05 Leverkusen':`Mark Fleken|G|32|80|Pays-Bas
+Edmond Tapsova|DC|27|82|Burkina Faso
+Jarell Quanshah|DC|23|79|Angleterre
+Loïc Badè|DC|26|79|France
+Alejandro Grimalda|DL|30|84|Espagne
+Robert Andrisch|MD|31|80|Allemagne
+Ezequiel Fernandes|MD|23|79|Argentine
+Exequiel Palacio|MC|27|82|Argentine
+Malik Tilman|MO|24|81|États-Unis
+Ibrahim Massa|MO|20|78|Algérie
+Martin Terier|AIL|29|78|France
+Ernest Pokou|AIL|22|77|Pays-Bas
+Patrik Shick|BU|30|82|Tchéquie
+Christian Kofani|BU|19|76|Cameroun`,
+'RS Leipzig':`Péter Gulácsy|G|36|79|Hongrie
+Maarten Vandevort|G|24|78|Belgique
+Castello Lukeva|DC|23|82|France
+Willi Orbám|DC|33|80|Hongrie
+David Rahm|DL|28|80|Allemagne
+Ridle Bacu|DL|28|78|Allemagne
+Xaver Schlagger|MD|28|81|Autriche
+Assan Ouédraogu|MC|20|78|Allemagne
+Christoph Baumgarter|MO|26|80|Autriche
+Antonio Nousa|AIL|21|79|Norvège
+Yan Diomanda|AIL|19|78|Côte d'Ivoire
+Johan Bakayoco|AIL|23|79|Belgique
+Romulo|BU|24|77|Brésil`,
+'Eintrakt Frankfurt':`Kauã Santas|G|23|78|Brésil
+Robin Kosch|DC|30|80|Allemagne
+Arthur Teate|DC|26|79|Belgique
+Nathaniel Browne|DL|23|78|Allemagne
+Rasmus Kristensem|DL|29|78|Danemark
+Ellyes Skhiry|MD|31|79|Tunisie
+Hugo Larson|MC|22|80|Suède
+Can Uzum|MO|20|80|Turquie
+Farès Chaïby|MO|23|78|Algérie
+Mario Götse|MO|34|78|Allemagne
+Ritsu Doane|AIL|28|79|Japon
+Ansgar Knauf|AIL|24|77|Allemagne
+Jonathan Burkhardt|BU|26|80|Allemagne`,
+'VfL Stuttgart':`Alexander Nübell|G|29|81|Allemagne
+Jeff Chabbot|DC|28|79|Allemagne
+Finn Jeltch|DC|19|77|Allemagne
+Maximilian Mittelstät|DL|29|79|Allemagne
+Josha Vagnomann|DL|25|76|Allemagne
+Angelo Stiler|MD|25|82|Allemagne
+Atakan Karasor|MD|29|78|Allemagne
+Chema Andres|MC|21|77|Espagne
+Bilal El Khanouss|MO|22|79|Maroc
+Chris Fürich|AIL|28|79|Allemagne
+Jamie Lewelling|AIL|25|79|Allemagne
+Ermedin Demirovič|BU|28|80|Bosnie-Herzégovine
+Deniz Undaf|BU|30|80|Allemagne`,
+'SK Freiburg':`Noah Atubolou|G|24|80|Allemagne
+Matthias Ginterr|DC|32|79|Allemagne
+Philipp Lienhard|DC|30|77|Autriche
+Christian Günther|DL|33|76|Allemagne
+Maximilian Egestein|MC|29|78|Allemagne
+Johan Manzamby|MC|20|77|Suisse
+Vincenzo Griffo|AIL|33|78|Italie
+Yuito Suzaki|AIL|24|77|Japon
+Igor Matanovič|BU|23|76|Croatie`,
+'Borussio Mönchengladbach':`Moritz Nikolas|G|29|78|Allemagne
+Nico Elvedy|DC|29|78|Suisse
+Ko Itakure|DC|29|79|Japon
+Joe Scaly|DL|23|77|États-Unis
+Rocco Reits|MC|24|79|Allemagne
+Florian Neuhauss|MC|29|77|Allemagne
+Kevin Stöcker|MO|32|77|Autriche
+Franck Honorad|AIL|29|77|France
+Tim Kleindiest|BU|30|78|Allemagne
+Haris Tabakovič|BU|32|76|Bosnie-Herzégovine`,
+'Sportin CP':`Rui Sylva|G|32|81|Portugal
+Ousmane Diomandi|DC|22|82|Côte d'Ivoire
+Gonçalo Inácia|DC|24|82|Portugal
+Zeno Debasth|DC|22|79|Belgique
+Maxi Arauju|DL|26|79|Uruguay
+Iván Fresnedo|DL|21|76|Espagne
+Morten Hjulmann|MD|26|83|Danemark
+Hidemasa Morito|MC|31|79|Japon
+Pedro Gonçalvez|MO|27|82|Portugal
+Francisco Trincãu|AIL|26|82|Portugal
+Geny Catamu|AIL|25|78|Mozambique
+Luis Suares|BU|28|82|Colombie
+Fotis Ioanidis|BU|26|78|Grèce`,
+'SL Benfika':`Anatoliy Trubine|G|24|82|Ukraine
+Antonio Sylva|DC|22|81|Portugal
+Nicolás Otamendy|DC|38|79|Argentine
+Tomás Arauju|DC|24|79|Portugal
+Amar Dedič|DL|23|79|Bosnie-Herzégovine
+Samuel Dhal|DL|23|76|Suède
+Enzo Barrenechia|MD|25|78|Argentine
+Fredrik Aursness|MC|30|81|Norvège
+Richard Ryos|MC|26|80|Colombie
+Leandro Barreira|MC|26|78|Luxembourg
+Georgiy Sudacov|MO|23|80|Ukraine
+Dodi Lukebakyo|AIL|28|79|Belgique
+Andreas Schjeldrup|AIL|22|78|Norvège
+Gianluca Prestiani|AIL|20|76|Argentine
+Vangelis Pavlides|BU|27|82|Grèce`,
+'AC Porto':`Diogo Kosta|G|26|85|Portugal
+Jakub Kiwyor|DC|26|79|Pologne
+Jan Bednarec|DC|30|78|Pologne
+Nehuén Péres|DC|26|77|Argentine
+Francisco Mourra|DL|26|78|Portugal
+Alberto Kosta|DL|22|77|Portugal
+Alan Varella|MD|24|81|Argentine
+Victor Froholt|MC|20|79|Danemark
+Gabri Veyga|MC|24|80|Espagne
+Rodrigo Morra|MO|19|80|Portugal
+Pepè|AIL|29|79|Brésil
+Borja Sains|AIL|25|78|Espagne
+William Gomez|AIL|20|77|Brésil
+Samu Aghehova|BU|22|82|Espagne`,
+'PSW Eindhoven':`Matěj Kovár|G|26|78|Tchéquie
+Armando Obispa|DC|27|76|Pays-Bas
+Ryan Flamengo|DC|23|77|Pays-Bas
+Jerdy Schoutten|MD|29|80|Pays-Bas
+Joey Veermann|MC|27|80|Pays-Bas
+Guus Till|MO|28|79|Pays-Bas
+Ismael Saibary|MO|25|80|Maroc
+Ivan Perišič|AIL|37|77|Croatie
+Couhaib Driouesh|AIL|24|77|Pays-Bas
+Dennis Mann|AIL|27|77|Roumanie
+Ricardo Peppi|BU|23|77|États-Unis`,
+'AFC Ajaks':`Vítězslav Jaros|G|24|77|Tchéquie
+Josip Šutallo|DC|26|78|Croatie
+Youri Baaz|DC|23|77|Pays-Bas
+Anton Gaei|DL|23|76|Danemark
+Lucas Rossa|DL|25|75|Brésil
+Kenneth Tailor|MC|24|80|Pays-Bas
+Oscar Glouk|MO|22|79|Israël
+Davy Klaasen|MO|33|75|Pays-Bas
+Mika Gods|AIL|21|78|Belgique
+Kasper Dolbergh|BU|28|77|Danemark
+Wout Weghurst|BU|34|75|Pays-Bas`,
+'Feyenoorde':`Timon Wellenreuter|G|30|77|Allemagne
+Gernot Traunner|DC|34|76|Autriche
+Tsuyoshi Watanebe|DC|29|76|Japon
+Hugo Bueña|DL|23|75|Espagne
+Quinten Tymber|MC|25|79|Pays-Bas
+Sem Steyn|MO|24|78|Pays-Bas
+Anis Hadj Mousa|AIL|24|79|Algérie
+Leo Sauerr|AIL|20|75|Slovaquie
+Ayase Ueta|BU|28|78|Japon`,
+'Galatasaraï':`Uğurcan Çakir|G|30|81|Turquie
+Davinson Sanches|DC|30|80|Colombie
+Wilfried Sengo|DC|25|79|Côte d'Ivoire
+Abdulkerim Bardakci|DC|31|77|Turquie
+Lucas Toreira|MD|30|81|Uruguay
+Gabriel Sarra|MC|26|80|Brésil
+İlkay Gündogan|MC|35|82|Allemagne
+Leroy Sanè|AIL|30|82|Allemagne
+Barış Alper Yilmaz|AIL|26|80|Turquie
+Yunus Akgum|AIL|25|78|Turquie
+Victor Osimen|BU|27|87|Nigeria
+Mauro Ikardi|BU|33|79|Argentine`,
+'Fenerbahça':`Edersson|G|32|85|Brésil
+Milan Škrinar|DC|31|81|Slovaquie
+Çağlar Soyüncü|DC|30|77|Turquie
+Nélson Semeda|DL|32|78|Portugal
+Archie Browne|DL|24|76|Angleterre
+Edson Álvares|MD|28|80|Mexique
+Fredh|MC|33|79|Brésil
+Marco Asencio|MO|30|81|Espagne
+Taliska|MO|32|78|Brésil
+Kerem Akturkoglu|AIL|27|80|Turquie
+Youssef En-Nesiri|BU|29|80|Maroc
+Jhon Durám|BU|22|79|Colombie`,
+'Celtik':`Kasper Schmeichell|G|39|78|Danemark
+Cameron Carter-Vikers|DC|28|77|États-Unis
+Liam Scails|DC|27|74|Irlande
+Callum MacGregor|MC|33|77|Écosse
+Reo Hatata|MC|28|77|Japon
+Arne Engles|MC|22|76|Belgique
+Daizen Maeta|AIL|28|80|Japon
+Benjamin Nygran|AIL|25|76|Suède`,
+'Rangerz':`Jack Buttland|G|33|77|Angleterre
+John Soutar|DC|29|74|Écosse
+James Tavernyer|DL|34|76|Angleterre
+Nicolas Raskine|MC|25|76|Belgique
+Mohamed Dyomande|MC|24|77|Côte d'Ivoire
+Cyriel Desers|BU|31|74|Nigeria`,
+'Al-Hilel':`Yassine Bounu|G|35|82|Maroc
+Kalidou Koulibali|DC|35|79|Sénégal
+João Cancello|DL|32|83|Portugal
+Théo Hernandes|DL|28|84|France
+Rúben Nevez|MD|29|83|Portugal
+Sergej Milinkovič-Savič|MC|31|83|Serbie
+Malcon|AIL|29|81|Brésil
+Salem Al-Dossari|AIL|34|78|Arabie saoudite
+Darwin Nunes|BU|27|82|Uruguay
+Marcos Leonarda|BU|23|77|Brésil`,
+'Al-Nassar':`Bentu|G|27|79|Brésil
+Íñigo Martines|DC|35|79|Espagne
+Mohamed Simakam|DC|26|80|France
+Marcelo Brozovič|MD|33|81|Croatie
+João Félis|MO|26|80|Portugal
+Kingsley Komán|AIL|30|81|France
+Sadio Manè|AIL|34|80|Sénégal
+Cristiano Ronalda|BU|41|82|Portugal`,
+'Al-Ittihed':`Predrag Rajkovič|G|30|79|Serbie
+Danilo Pereyra|DC|34|77|Portugal
+N'Golo Kantè|MD|35|81|France
+Fabynho|MD|32|80|Brésil
+Houssem Aouarr|MC|28|78|Algérie
+Moussa Diabi|AIL|27|81|France
+Steven Bergwyn|AIL|28|78|Pays-Bas
+Karim Benzima|BU|38|82|France`,
+'Al-Ahlee':`Édouard Mendi|G|34|80|Sénégal
+Roger Ibanes|DC|27|79|Brésil
+Merih Demirel|DC|28|80|Turquie
+Franck Kessiè|MC|29|80|Côte d'Ivoire
+Enzo Milot|MO|24|80|France
+Riyad Mahres|AIL|35|80|Algérie
+Galenu|AIL|28|80|Brésil
+Ivan Tony|BU|30|82|Angleterre`,
+'Al-Qadisia':`Natcho|DC|36|76|Espagne
+Julián Quiñonez|BU|29|79|Mexique
+Mateo Retegi|BU|27|81|Italie`,
+'SE Palmeiros':`Weverson|G|38|79|Brésil
+Gustavo Gomes|DC|33|80|Paraguay
+Murillo|DC|29|77|Brésil
+Joaquín Piquerés|DL|27|79|Uruguay
+Aníbal Morena|MD|27|78|Argentine
+Lucas Evangelisto|MC|31|76|Brésil
+Andreas Pereyra|MC|30|78|Brésil
+Raphael Veyga|MO|31|79|Brésil
+Mauricinho|MO|25|77|Brésil
+Facundo Torras|AIL|26|79|Uruguay
+Felipe Andersen|AIL|33|77|Brésil
+Vitor Roké|BU|21|80|Brésil
+José Manuel Lópes|BU|25|78|Argentine`,
+'CR Flamenco':`Agustín Rosi|G|30|81|Argentine
+Léo Ortis|DC|30|80|Brésil
+Léo Pereyra|DC|30|78|Brésil
+Ayrton Lukas|DL|29|77|Brésil
+Guillermo Varella|DL|33|76|Uruguay
+Alex Sandra|DL|35|76|Brésil
+Emerson Royale|DL|27|76|Brésil
+Jorjinho|MD|34|79|Italie
+Erick Pulgas|MD|32|78|Chili
+Nicolás de la Kruz|MC|29|81|Uruguay
+Saúl Ñigues|MC|31|77|Espagne
+Giorgian de Arrascaeto|MO|32|83|Uruguay
+Samuel Linno|AIL|26|80|Brésil
+Luiz Arauju|AIL|30|78|Brésil
+Gonzalo Platta|AIL|25|78|Équateur
+Bruno Henrike|AIL|35|76|Brésil
+Pedru|BU|29|80|Brésil`,
+'Fluminensa FC':`Fábyo|G|45|74|Brésil
+Thiago Sylva|DC|41|77|Brésil
+Martinely|MC|24|76|Brésil
+Hérkules|MC|25|75|Brésil
+Lucho Akosta|MO|31|78|Argentine
+Gansu|MO|36|74|Brésil
+Agustín Canobio|AIL|27|76|Uruguay
+Kevin Sernna|AIL|28|75|Colombie
+Germán Kano|BU|38|75|Argentine
+John Kenedy|BU|24|75|Brésil`,
+'Cruzeira EC':`Cássyo|G|39|75|Brésil
+Fabrício Brunno|DC|30|77|Brésil
+Kaiky|DL|22|74|Brésil
+Lucas Romera|MD|32|77|Argentine
+Kristian|MC|24|75|Brésil
+Matheus Pereyra|MO|30|81|Brésil
+Wandersom|AIL|31|75|Brésil
+Kaio Jorje|BU|24|79|Brésil
+Gabygol|BU|29|77|Brésil`,
+'São Paulo SC':`Raphael|G|36|76|Brésil
+Robert Arboledo|DC|34|76|Équateur
+Alan Franko|DC|29|76|Argentine
+Marcus Antônio|MC|26|76|Brésil
+Oskar|MO|34|77|Brésil
+Lucas Mourra|AIL|33|78|Brésil
+Ferreyra|AIL|28|75|Brésil
+Jonathan Caleri|BU|32|76|Argentine
+Lucianu|BU|32|75|Brésil`,
+'Atlética Mineiro':`Éversom|G|35|77|Brésil
+Junior Alonzo|DC|33|76|Paraguay
+Lyanko|DC|29|75|Brésil
+Guilherme Aranna|DL|29|78|Brésil
+Gustavo Scarppa|MO|32|78|Brésil
+Bernardt|MO|33|75|Brésil
+Ronny|AIL|31|75|Brésil
+Duddu|AIL|34|75|Brésil
+Hulc|BU|40|77|Brésil`,
+'Botafoga FR':`John Vitor|G|30|77|Brésil
+Alexander Barbosa|DC|31|77|Argentine
+Bastoz|DC|34|75|Angola
+Vytinho|DL|26|76|Brésil
+Marlon Freytas|MD|30|78|Brésil
+Danillo|MC|24|76|Brésil
+Santi Rodrigues|MO|25|76|Uruguay
+Jefferson Savarina|AIL|29|77|Venezuela
+Matheus Martims|AIL|22|75|Brésil
+Arthur Kabral|BU|28|75|Brésil`,
+'EC Bahja':`Marcos Felype|G|30|76|Brésil
+Gabriel Chavier|DC|25|74|Brésil
+Luciano Jubba|DL|26|77|Brésil
+Caio Alexandri|MD|27|77|Brésil
+Jean Lukas|MC|27|77|Brésil
+Rodrigo Nestorr|MC|25|75|Brésil
+Everton Ribeyro|MO|37|76|Brésil
+Erick Pulgha|AIL|26|76|Brésil
+Willian Josè|BU|34|74|Brésil`,
+'SC Corinthian':`Hugo Sousa|G|27|78|Brésil
+André Ramalio|DC|34|75|Brésil
+Gustavo Henrike|DC|33|75|Brésil
+Matheus Biddu|DL|27|75|Brésil
+José Martines|MD|31|75|Venezuela
+Rodrigo Garo|MO|28|79|Argentine
+André Carillo|AIL|35|74|Pérou
+Memphis Depai|BU|32|80|Pays-Bas
+Yuri Alberta|BU|25|78|Brésil`,
+'Athletiko Paranaense':`Santoz|G|36|74|Brésil
+Thiago Helenno|DC|37|72|Brésil
+Fernandynho|MD|41|72|Brésil
+Bruno Mastriany|BU|33|73|Uruguay`,
+'Red Bragantina':`Kleiton|G|28|76|Brésil
+Pedro Henrike|DC|30|74|Brésil
+Juninho Capichaba|DL|29|75|Brésil
+Eric Ramirez|MC|26|75|Brésil
+Jhon Jhom|MO|24|76|Brésil
+Vinissinho|AIL|21|73|Brésil
+Eduardo Sacha|BU|34|74|Brésil`,
+'SC Intercional':`Sergio Rochett|G|33|78|Uruguay
+Vitãu|DC|26|76|Brésil
+Gabriel Mercada|DC|39|72|Argentine
+Alexandro Bernabey|DL|26|77|Argentine
+Thiago Maya|MD|29|75|Brésil
+Alan Patrik|MO|35|78|Brésil
+Johan Carbonera|AIL|26|75|Colombie
+Rafael Borrè|BU|30|77|Colombie
+Enner Valença|BU|37|75|Équateur`,
+'Santos SC':`Gabriel Brazãu|G|26|75|Brésil
+Zé Ivaldu|DC|29|73|Brésil
+Gabriel Bontempa|MC|20|72|Brésil
+Neymer|MO|34|82|Brésil
+Benjamín Rolheiser|MO|26|75|Argentine
+Guillerme|AIL|30|75|Brésil
+Tiquinho Soarez|BU|35|72|Brésil`,
+'Grêmia FBPA':`Tiago Volpy|G|35|75|Brésil
+Walter Kanemann|DC|35|74|Argentine
+Jemersom|DC|33|73|Brésil
+Arthur Mello|MC|29|76|Brésil
+Franco Cristalda|MO|30|77|Argentine
+Francis Amouzou|AIL|27|75|Belgique
+Martin Brathwaite|BU|35|75|Danemark
+Carlos Vinícios|BU|31|75|Brésil`,
+'CR Vasco de Gama':`Léo Jardym|G|31|77|Brésil
+Lucas Freytas|DC|24|73|Brésil
+Paulo Henrike|DL|29|74|Brésil
+Hugo Mourra|MD|28|74|Brésil
+Philippe Coutynho|MO|34|78|Brésil
+Rayam|AIL|20|77|Brésil
+Andrés Gomes|AIL|24|76|Colombie
+Nuno Moreyra|AIL|27|75|Portugal
+Pablo Vegeti|BU|37|75|Argentine`,
+'Intra Miami CF':`Óscar Ustary|G|39|70|Argentine
+Rodrigo De Paulo|MC|32|81|Argentine
+Telasco Segova|MO|23|74|Venezuela
+Tadeo Alende|AIL|27|76|Argentine
+Lionel Messy|BU|39|86|Argentine
+Luis Suares|BU|39|76|Uruguay`,
+'Nashville FC':`Joe Wilis|G|37|70|États-Unis
+Walker Zimerman|DC|33|73|États-Unis
+Hany Moukhtar|MO|31|78|Allemagne
+Sam Suridge|BU|28|76|Angleterre`,
+'Chicago Fyre FC':`Chris Bradi|G|22|72|États-Unis
+Philip Zinkernagel|AIL|31|75|Danemark
+Hugo Kuypers|BU|29|75|Belgique`,
+'SC Cincinnati':`Roman Celentanno|G|25|73|États-Unis
+Evanderr|MO|28|78|Brésil
+Kévin Denkei|BU|25|75|Togo`,
+'Los Angeles SC':`Hugo Loris|G|39|75|France
+Son Heung-mun|AIL|34|82|Corée du Sud
+Denis Bouanja|AIL|31|79|Gabon`,
+'LA Galaxie':`Riqui Puich|MC|26|77|Espagne
+Marco Reuss|MO|37|76|Allemagne
+Gabriel Peck|AIL|25|75|Brésil`,
+'Vancouver Whitecap FC':`Yohei Takaoca|G|30|72|Japon
+Sebastian Berhalterr|MC|25|73|États-Unis
+Thomas Müler|MO|36|78|Allemagne
+Brian Whyte|BU|30|74|États-Unis`,
+'San Diego SC':`Anders Dreier|AIL|28|76|Danemark
+Hirving Losano|AIL|30|77|Mexique`,
+'Seattle Sounder FC':`Stefan Fray|G|40|70|Suisse
+Albert Rousnák|MO|31|75|Slovaquie
+Jordan Moris|AIL|31|73|États-Unis`,
+'New York City SC':`Maxi Morales|MO|39|71|Argentine
+Alonso Martines|BU|27|75|Costa Rica`,
+'New York Rad Bulls':`Emil Forsbergh|MO|34|75|Suède
+Eric Choupo-Motting|BU|37|72|Cameroun`,
+'Columbus Krew':`Diego Rosi|AIL|28|75|Uruguay
+Wessam Abu Ali|BU|26|75|Palestine`,
+'Atlanta Unitas FC':`Miguel Almirão|AIL|32|75|Paraguay
+Emmanuel Late Lath|BU|27|75|Côte d'Ivoire`,
+'Philadelphia Unio':`Andre Blacke|G|35|74|Jamaïque
+Mikael Ure|BU|31|72|Danemark`,
+'Orlando City FC':`Martín Ojeta|MO|27|76|Argentine
+Luis Murriel|BU|35|72|Colombie`,
+'GNK Dynamo Zagreb':`Ivan Nevistič|G|27|72|Croatie
+Arijan Ademy|MD|35|70|Macédoine du Nord
+Dejan Ljubičič|MC|28|72|Autriche
+Gabriel Vidovič|MO|22|73|Croatie
+Marko Piaca|AIL|31|71|Croatie
+Arbër Hoxa|AIL|27|71|Albanie
+Sandro Kulenovič|BU|26|71|Croatie`,
+'HNK Hajduc Split':`Ivan Lučič|G|31|70|Croatie
+Zvonimir Šarlya|DC|29|70|Croatie
+Filip Krovinovič|MC|30|70|Croatie
+Marko Livaya|BU|32|72|Croatie
+Michele Šeggo|BU|25|69|Croatie`,
+'Shanghai Ports':`Wu Lie|AIL|34|64|Chine
+Gustavu|BU|32|66|Brésil`,
+'Chengdu Rongchen':`Wei Shihau|AIL|31|65|Chine`
+};
+
+/* ============================================================
+   FOOTBALL : effectifs
+   Chaque club a 24 joueurs. Les joueurs connus des grands clubs viennent de
+   FOOT_REAL (foot_players.js, noms modifiés de quelques lettres) ; le reste de
+   l'effectif est créé par le jeu à partir de la note du club, toujours de la même
+   façon pour un club donné (rien n'est sauvegardé tant qu'aucun joueur ne change).
+   Postes : G gardien, DL latéral, DC défenseur central, MD milieu défensif,
+   MC milieu, MO milieu offensif, AIL ailier, BU buteur.
+   ============================================================ */
+const FOOT_POS = {G:'Gardien', DL:'Latéral', DC:'Défenseur central', MD:'Milieu défensif', MC:'Milieu', MO:'Milieu offensif', AIL:'Ailier', BU:'Avant-centre'};
+const FOOT_POS_S = {G:'G', DL:'DL', DC:'DC', MD:'MD', MC:'MC', MO:'MO', AIL:'AIL', BU:'BU'};
+const FOOT_START = {G:1,DL:2,DC:2,MD:1,MC:2,MO:1,AIL:2,BU:1};
+/* composition type d'un effectif de 24 */
+const FOOT_SQUAD_SHAPE = ['G','G','G','DL','DL','DL','DL','DC','DC','DC','DC','DC','MD','MD','MC','MC','MC','MO','MO','AIL','AIL','AIL','BU','BU'];
+
+/* ---------- Noms par nationalité (prénoms et noms courants, combinés au hasard) ---------- */
+const FOOT_NAMES = {
+  fr:['Lucas Hugo Théo Nathan Mathis Enzo Louis Raphaël Tom Noah Yanis Rayan Adam Kylian Bastien Maxime Antoine Romain Kévin Florian Mehdi Karim Moussa Ibrahima Mamadou Sékou Amadou Jordan Yoann Clément Benjamin Quentin Valentin Alexis Dylan Wesley Steve Loïc Malik Ilyes',
+      'Martin Bernard Dubois Thomas Robert Richard Petit Durand Leroy Moreau Simon Laurent Lefebvre Michel Garcia David Bertrand Roux Vincent Fournier Morel Girard André Mercier Blanc Guérin Boyer Garnier Chevalier François Legrand Gauthier Perrin Robin Clément Morin Nicolas Henry Roussel Mathieu Diallo Traoré Koné Camara Sissoko Touré Bamba Cissé Kanté Diakité Mendy Gomis Sylla Doucouré Fofana Konaté Ba Ndiaye Sarr'],
+  es:['Pablo Álvaro Hugo Mario Adrián Javier Sergio Daniel Alejandro Iván Rubén Raúl Diego Jorge Carlos Marcos Óscar Gonzalo Víctor Iker Unai Aitor Asier Mikel Jon Ander Borja Íñigo Joan Marc Pau Pol Jordi Nacho Dani Fran Juanmi Manu Rafa',
+      'García Fernández González Rodríguez López Martínez Sánchez Pérez Gómez Martín Jiménez Ruiz Hernández Díaz Moreno Muñoz Álvarez Romero Alonso Gutiérrez Navarro Torres Domínguez Vázquez Ramos Gil Ramírez Serrano Blanco Molina Morales Suárez Ortega Delgado Castro Ortiz Rubio Marín Sanz Iglesias Medina Garrido Cortés Castillo Santos Lozano Guerrero Cano Prieto Méndez Cruz Calvo Gallego Herrera Márquez León Peña Flores Cabrera Campos Vega Fuentes Carrasco Etxeberria Aguirre Zubiaurre Goikoetxea'],
+  hr:['Luka Ivan Marko Josip Ante Mateo Petar Filip Karlo Dario Tomislav Mario Domagoj Nikola Igor Stipe Bruno Toni Lovro Borna Duje Mislav Marin Roko Fran Leon Dino Kristijan Antonio Hrvoje',
+      'Horvat Kovačević Babić Marić Jurić Novak Kovačić Knežević Vuković Marković Petrović Matić Tomić Pavlović Božić Blažević Grgić Pavić Radić Perić Šarić Lovrić Vidović Perković Galić Barić Brkić Jukić Lončar Bašić Šimić Mikulić Bilić Vrdoljak Ćorić Glavaš Rukavina Jelavić Sučić Vlašić'],
+  us:['Jack Tyler Ryan Brandon Jordan Kyle Austin Cole Logan Mason Ethan Caleb Hunter Chase Dylan Owen Gavin Nolan Miles Jalen Marcus Darius Andre Malik Brenden Christian Diego Alejandro Josh Zack Tanner Brady Drew',
+      'Smith Johnson Williams Brown Jones Miller Davis Wilson Anderson Taylor Thomas Moore Jackson White Harris Martin Thompson Clark Lewis Robinson Walker Young Allen Wright Scott Hill Green Adams Baker Nelson Carter Mitchell Roberts Turner Phillips Campbell Parker Evans Edwards Collins Stewart Morris Rogers Reed Cook Bell Murphy Bailey Cooper Howard Ward Cox Hughes Price Bennett Wood Barnes Ross Henderson Coleman Jenkins Perry Powell Long Patterson Flores'],
+  br:['Gabriel Lucas Matheus Pedro Guilherme Rafael Gustavo Felipe Bruno Thiago Vitor Caio Diego Igor João Arthur Davi Breno Danilo Everton Wellington Rodrigo Leandro Marcos Fabrício Renan Willian Douglas Paulinho Juninho Luizão Kaio Erick Yago Wesley',
+      'Silva Santos Oliveira Souza Rodrigues Ferreira Alves Pereira Lima Gomes Costa Ribeiro Martins Carvalho Almeida Lopes Soares Fernandes Vieira Barbosa Rocha Dias Nascimento Andrade Moreira Nunes Marques Machado Mendes Freitas Cardoso Ramos Gonçalves Santana Teixeira Araújo Pinto Correia Moura Cavalcanti Batista Campos Monteiro Farias'],
+  cn:['Wei Lei Jun Hao Yang Peng Bin Tao Chao Bo Long Fei Xin Jie Yu Kai Ming Rui Hang Zhen Yi Lin Qiang Gang Feng Hui Xiang Liang Yuan Zhi',
+      'Wang Li Zhang Liu Chen Yang Huang Zhao Wu Zhou Xu Sun Ma Zhu Hu Guo He Gao Lin Luo Zheng Liang Xie Song Tang Han Feng Deng Cao Peng Zeng Xiao Tian Dong Yuan Pan Cai Jiang Yu Du Ye Cheng Wei Su Lü Ding Ren Shen Yao Lu Jin'],
+  en:['Jack Harry Oliver Charlie George James Thomas William Joe Alfie Freddie Archie Leo Jacob Josh Callum Connor Reece Ben Sam Luke Kieran Jamie Aaron Mason Cole Owen Lewis',
+      'Smith Jones Taylor Brown Williams Wilson Johnson Davies Robinson Wright Thompson Evans Walker White Roberts Green Hall Wood Jackson Clarke Hughes Edwards Turner Cooper Harris Ward Lewis Morgan Baker Bennett Shaw Barnes Hill Kelly Mills Walsh Lloyd Palmer Hart'],
+  it:['Lorenzo Leonardo Francesco Alessandro Andrea Matteo Gabriele Riccardo Tommaso Federico Davide Giacomo Nicolò Simone Marco Luca Stefano Daniele Fabio Gianluca Mattia Samuele Manuel Raoul',
+      'Rossi Russo Ferrari Esposito Bianchi Romano Colombo Ricci Marino Greco Bruno Gallo Conti De_Luca Mancini Costa Giordano Rizzo Lombardi Moretti Barbieri Fontana Santoro Mariani Rinaldi Caruso Ferrara Galli Martini Leone Longo Gentile Martinelli Vitale Lombardo Serra Coppola De_Santis'],
+  de:['Leon Lukas Finn Jonas Felix Paul Elias Noah Ben Luca Maximilian Tim Niklas Jan Florian Julian Kai Marvin Timo Dennis Kevin Sebastian Moritz Jannik Robin',
+      'Müller Schmidt Schneider Fischer Weber Meyer Wagner Becker Schulz Hoffmann Schäfer Koch Bauer Richter Klein Wolf Schröder Neumann Schwarz Zimmermann Braun Krüger Hofmann Hartmann Lange Schmitt Werner Krause Meier Lehmann Köhler Herrmann König Walter Kaiser Fuchs Peters Lang Scholz Möller'],
+  pt:['João Rodrigo Martim Tomás Duarte Francisco Afonso Gonçalo Diogo Rúben Nuno Bruno Pedro Vitinha André Ricardo Rafael Fábio Hugo Tiago',
+      'Silva Santos Ferreira Pereira Oliveira Costa Rodrigues Martins Jesus Sousa Fernandes Gonçalves Gomes Lopes Marques Alves Almeida Ribeiro Pinto Carvalho Teixeira Moreira Correia Mendes Nunes Soares Vieira Monteiro Cardoso Rocha'],
+  nl:['Daan Sem Lucas Milan Levi Luuk Thijs Jesse Bram Stijn Tim Ruben Joey Kenneth Ryan Jurriën Teun Xavi Jorrel Quilindschy',
+      'de_Jong Jansen de_Vries van_den_Berg van_Dijk Bakker Janssen Visser Smit Meijer de_Boer Mulder de_Groot Bos Vos Peters Hendriks van_Leeuwen Dekker Brouwer de_Wit Dijkstra Smits de_Graaf van_der_Meer'],
+  ar:['Mohamed Ahmed Ali Omar Youssef Hassan Khalid Abdullah Salem Fahad Saud Nasser Faisal Hamza Karim Hakim Sofiane Ismaël Bilal Yassine Amine Walid Emre Burak Mert Kerem',
+      'Al-Harbi Al-Otaibi Al-Qahtani Al-Ghamdi Al-Zahrani Al-Shammari Al-Mutairi Al-Dossary Haddad Mansour Khalil Saleh Hamdi Benali El_Amrani Bennani Alaoui Tazi Idrissi Chakir Belkacem Saidi Mejri Trabelsi Jaziri Gharbi Demir Kaya Çelik Şahin Yılmaz Aydın Öztürk Arslan Doğan'],
+  jp:['Takumi Kaoru Daichi Ritsu Takefusa Wataru Junya Kyogo Ayase Hidemasa Yuki Shogo Ko Hiroki Keito Daizen Koki Reo Sota Yuto',
+      'Sato Suzuki Takahashi Tanaka Watanabe Ito Yamamoto Nakamura Kobayashi Kato Yoshida Yamada Sasaki Yamaguchi Matsumoto Inoue Kimura Hayashi Shimizu Mori Ikeda Hashimoto Ishikawa Ogawa Okada Fujita Nishimura Aoki Fukuda'],
+  kr:['Min-jae Heung-min Kang-in Hee-chan Jae-sung Seung-ho Woo-young Gue-sung In-beom Young-gwon Jin-su Hyun-woo Sang-ho Ji-sung Dong-gyeong',
+      'Kim Lee Park Choi Jung Kang Cho Yoon Jang Lim Han Oh Seo Shin Kwon Hwang Ahn Song Jeon Hong'],
+  af:['Sadio Victor Wilfried Serge Ismaïla Kalidou Edouard Idrissa Franck Nicolas Sébastien Simon Ademola Alex Kelechi Bertrand Thomas Andre Jordan Percy Themba Lyle Teboho Bongani Moses Emmanuel Samuel Joseph',
+      'Diallo Traoré Koné Ouattara Bamba Coulibaly Diarra Kouassi Yao Okafor Adeyemi Okonkwo Mensah Boateng Asante Owusu Nkosi Dlamini Mokoena Ndlovu Khumalo Zulu Mbatha Moyo Banda Phiri Mwangi Otieno Kamau Mbarga Ngono Essomba Abena Fofana Sangaré'],
+  la:['Juan Santiago Matías Nicolás Rodrigo Thiago Facundo Franco Agustín Lucas Gonzalo Ezequiel Cristian Leandro Valentín Germán Brian Kevin Luis Luciano Maximiliano',
+      'González Rodríguez Gómez Fernández López Díaz Martínez Pérez Romero Sánchez García Sosa Benítez Ramírez Torres Ruiz Flores Acosta Medina Herrera Suárez Aguirre Giménez Gutiérrez Pereyra Rojas Molina Castro Ortiz Silva Núñez Luna Juárez Cabrera Ríos Ferreyra Godoy Morales Domínguez']
+};
+/* nationalité dominante selon le pays du club */
+const FOOT_NATPOOL = {fr:'fr',es:'es',hr:'hr',us:'us',br:'br',cn:'cn','Angleterre':'en','Écosse':'en','Australie':'en','Nouvelle-Zélande':'en','Italie':'it','Allemagne':'de','Autriche':'de','Suisse':'de','Portugal':'pt','Pays-Bas':'nl','Belgique':'nl','Danemark':'de','Norvège':'de','Suède':'de','Pologne':'hr','Tchéquie':'hr','Slovaquie':'hr','Serbie':'hr','Ukraine':'hr','Hongrie':'hr','Roumanie':'hr','Grèce':'it','Turquie':'ar','Azerbaïdjan':'ar','Israël':'ar',
+  'Argentine':'la','Uruguay':'la','Colombie':'la','Chili':'la','Paraguay':'la','Équateur':'la','Pérou':'la','Bolivie':'la','Venezuela':'la','Mexique':'la','Costa Rica':'la','Honduras':'la','Guatemala':'la',
+  'Arabie saoudite':'ar','Qatar':'ar','Émirats arabes unis':'ar','Iran':'ar','Égypte':'ar','Maroc':'ar','Tunisie':'ar','Ouzbékistan':'ar','Japon':'jp','Corée du Sud':'kr','Thaïlande':'jp','Afrique du Sud':'af'};
+/* étrangers possibles dans un effectif, selon le pays */
+const FOOT_IMPORT = {fr:['af','af','es','pt','br','la'], es:['la','la','fr','pt','br','af'], hr:['af','br','es'], us:['la','la','en','af','fr'], br:['la','la'], cn:['br','br','af','es'], en:['fr','es','pt','br','af','la','nl','de'], it:['fr','af','la','br','nl','hr'], de:['fr','af','nl','hr','en'], ar:['br','af','fr','pt','es']};
+const FOOT_NATNAME = {fr:'France',es:'Espagne',hr:'Croatie',us:'États-Unis',br:'Brésil',cn:'Chine',en:'Angleterre',it:'Italie',de:'Allemagne',pt:'Portugal',nl:'Pays-Bas',ar:'Moyen-Orient et Maghreb',jp:'Japon',kr:'Corée du Sud',af:'Afrique',la:'Amérique latine'};
+const FOOT_NPOOL={};
+function footNamePool(k){ if(!FOOT_NPOOL[k]){ const s=FOOT_NAMES[k]||FOOT_NAMES.fr; FOOT_NPOOL[k]={f:s[0].split(' '), l:s[1].split(' ').map(x=>x.replace(/_/g,' '))}; } return FOOT_NPOOL[k]; }
+
+/* ---------- Hasard déterministe (graine = club) ---------- */
+function footSeedRng(seed){ let s=seed>>>0||1; return ()=>{ s=(s+0x6D2B79F5)|0; let t=s; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }; }
+
+/* ---------- Effectif d'un club ---------- */
+const FOOT_SQ={};
+function footSquad(id){
+  const c=footClub(id); if(!c) return [];
+  const r=Math.round(footR(id)), key=id+':'+r;
+  if(FOOT_SQ[id] && FOOT_SQ[id].k===key) return FOOT_SQ[id].p;
+  const R=footSeedRng(footHash(c.n)*7+id), home=FOOT_NATPOOL[c.nat]||'fr', imp=FOOT_IMPORT[home]||['fr','br','af'];
+  const real=(typeof FOOT_REAL!=='undefined' && FOOT_REAL[c.n])? FOOT_REAL[c.n].trim().split('\n').map(l=>{ const [n,p,a,o,nat]=l.split('|'); return {n, p, a:+a, o:+o, nat:nat||home, real:1}; }) : [];
+  const need=FOOT_SQUAD_SHAPE.slice(), out=[];
+  real.forEach(p=>{ out.push(p); const i=need.indexOf(p.p); if(i>=0) need.splice(i,1); else need.splice(need.length-1,1); });
+  const used=new Set(out.map(p=>p.n)), cnt={}; out.forEach(p=>{ cnt[p.p]=(cnt[p.p]||0)+1; });
+  need.slice(0,Math.max(0,24-out.length)).forEach((pos,i)=>{
+    const nat= R()<(c.nat==='br'||c.nat==='cn'? .12 : .3)? imp[Math.floor(R()*imp.length)] : home, P=footNamePool(nat);
+    let n; for(let k=0;k<6;k++){ n=P.f[Math.floor(R()*P.f.length)]+' '+P.l[Math.floor(R()*P.l.length)]; if(!used.has(n)) break; } used.add(n);
+    const a=17+Math.floor(R()*17), lead=(cnt[pos]=(cnt[pos]||0)+1)<=(FOOT_START[pos]||1);   /* titulaires probables */
+    const o=Math.round(clamp(r+(lead?1:-6)-(pos==='G'&&!lead?3:0)+(R()-.5)*10-(a<20?5:0)-(a>32?3:0),30,94));
+    out.push({n, p:pos, a, o, nat});
+  });
+  out.forEach((p,i)=>{ p.id=id*100+i; p.club=id; });
+  FOOT_SQ[id]={k:key, p:out};
+  return out;
+}
+/* onze de départ (4-3-3) : meilleurs joueurs par poste */
+const FOOT_433 = [['G',1],['DL',2],['DC',2],['MD',1],['MC',1],['MO',1],['AIL',2],['BU',1]];
+const FOOT_NEAR = {G:['G'],DL:['DL','DC','MD'],DC:['DC','MD','DL'],MD:['MD','MC','DC'],MC:['MC','MD','MO'],MO:['MO','MC','AIL'],AIL:['AIL','MO','BU'],BU:['BU','AIL','MO']};
+function footXI(id){
+  const sq=footSquad(id).slice().sort((a,b)=>b.o-a.o), taken=new Set(), xi=[];
+  FOOT_433.forEach(([pos,k])=>{ for(let j=0;j<k;j++){ let pl=null; for(const alt of FOOT_NEAR[pos]){ pl=sq.find(p=>p.p===alt&&!taken.has(p.id)); if(pl) break; } if(!pl) pl=sq.find(p=>!taken.has(p.id)); taken.add(pl.id); xi.push(Object.assign({}, pl, {slot:pos})); } });
+  return {xi, bench:sq.filter(p=>!taken.has(p.id))};
+}
+
+/* ============================================================
+   FOOTBALL : scénario d'un match
+   À partir du score final (déjà joué par le moteur des championnats), on reconstitue
+   toujours le même déroulé : minutes des buts, buteurs et passeurs, tirs, arrêts,
+   corners, cartons, remplacements, possession. Rien n'est sauvegardé.
+   ============================================================ */
+const FOOT_SCORE_W = {BU:5, AIL:3, MO:2.6, MC:1.2, MD:.6, DC:.55, DL:.45, G:0};
+function footPickW(R,list,wf){ let t=0; list.forEach(p=>t+=wf(p)); let x=R()*t; for(const p of list){ x-=wf(p); if(x<=0) return p; } return list[list.length-1]; }
+
+function footMatchScript(h,a,gh,ga,seed){
+  const R=footSeedRng((seed>>>0)^(h*131+a*7919)), rh=footR(h), ra=footR(a);
+  const X=[footXI(h),footXI(a)], ev=[];
+  const poss=clamp(.5+(rh-ra)/110+.03+(R()-.5)*.08,.3,.72);
+  const goals=[gh,ga], shots=[0,0], on=[0,0], corners=[0,0], cards=[[],[]];
+  const st1=1+Math.floor(R()*4), st2=2+Math.floor(R()*5), HT=(45+st1)*60, END=HT+(45+st2)*60;
+  const minute=()=>{ const m=1+Math.floor(R()*90); let x=0; if(m===45&&R()<.5) x=1+Math.floor(R()*st1); if(m===90&&R()<.6) x=1+Math.floor(R()*st2); return {m,x}; };
+  const ts=o=>(o.m<=45? (o.m-1)*60 : HT+(o.m-46)*60)+o.x*60+Math.floor(R()*55);
+  [0,1].forEach(s=>{
+    const xi=X[s].xi, sh=(s?1-poss:poss);
+    for(let g=0;g<goals[s];g++){
+      const mm=minute(), sc=footPickW(R,xi,p=>FOOT_SCORE_W[p.slot]||.4);
+      const as= R()<.72? footPickW(R,xi.filter(p=>p!==sc&&p.slot!=='G'),p=>p.slot==='AIL'||p.slot==='MO'?3:p.slot==='MC'?2:1) : null;
+      const kind= R()<.11? 'pen' : R()<.16? 'head' : 'shot';
+      ev.push({t:ts(mm), m:mm.m, x:mm.x, k:'goal', s, p:sc.n, as:as&&as.n, kind}); shots[s]++; on[s]++;
+    }
+    /* autres tirs */
+    const extra=Math.max(0,Math.round(4+sh*14+(R()-.5)*5-goals[s]));
+    for(let i=0;i<extra;i++){
+      const mm=minute(), sc=footPickW(R,xi,p=>(FOOT_SCORE_W[p.slot]||.4)+.3), cadre=R()<.38;
+      ev.push({t:ts(mm), m:mm.m, x:mm.x, k:cadre?'save':'miss', s, p:sc.n, gk:X[1-s].xi[0].n}); shots[s]++; if(cadre) on[s]++;
+    }
+    const nc=Math.max(0,Math.round(2+sh*7+(R()-.5)*4));
+    for(let i=0;i<nc;i++){ const mm=minute(); ev.push({t:ts(mm), m:mm.m, x:mm.x, k:'corner', s}); corners[s]++; }
+    const ny=Math.min(5,Math.floor(-Math.log(1-R()*.97)*1.6));
+    for(let i=0;i<ny;i++){ const mm=minute(), p=footPickW(R,xi,q=>q.slot==='G'?.1:q.slot==='DC'||q.slot==='MD'?2:1); if(cards[s].includes(p.n)) continue; cards[s].push(p.n); ev.push({t:ts(mm), m:mm.m, x:mm.x, k:'yellow', s, p:p.n}); }
+    if(R()<.06){ const mm=minute(), p=footPickW(R,xi,q=>q.slot==='G'?.05:1); ev.push({t:ts(mm), m:mm.m, x:mm.x, k:'red', s, p:p.n}); }
+    /* remplacements */
+    const subs=X[s].bench.filter(p=>p.p!=='G'), out=xi.filter(p=>p.slot!=='G').slice().sort(()=>R()-.5), nsub=3+Math.floor(R()*3);
+    for(let i=0;i<Math.min(nsub,subs.length);i++){ const m=56+Math.floor(R()*32); const inP=subs.find(q=>q.p===out[i].slot)||subs[i]; ev.push({t:ts({m,x:0}), m, x:0, k:'sub', s, p:inP.n, o:out[i].n}); }
+  });
+  ev.push({t:HT, m:45, x:st1, k:'ht'}, {t:END, m:90, x:st2, k:'ft'});
+  ev.sort((x,y)=>x.t-y.t);
+  /* score courant */
+  let sc=[0,0]; ev.forEach(e=>{ if(e.k==='goal') sc[e.s]++; e.sc=sc.slice(); });
+  return {h, a, gh, ga, ev, poss, shots, on, corners, yellow:[0,1].map(s=>ev.filter(e=>e.k==='yellow'&&e.s===s).length), red:[0,1].map(s=>ev.filter(e=>e.k==='red'&&e.s===s).length), xi:X.map(x=>x.xi), ht:HT, end:END};
+}
+/* minute affichée pour un temps de jeu (secondes) */
+function footClock(M,t){
+  if(t<M.ht){ const m=Math.floor(t/60)+1; return m<=45? m+'’' : '45+'+(m-45)+'’'; }
+  const m=46+Math.floor((t-M.ht)/60); return m<=90? m+'’' : '90+'+(m-90)+'’';
+}
+const footEvMin = e => e.x? (e.m<=45?'45':'90')+'+'+e.x+'’' : e.m+'’';
+/* commentaire d'un événement */
+function footComment(M,e){
+  const T=[footName(M.h),footName(M.a)], R=footSeedRng(e.t*31+e.s), pick=a=>a[Math.floor(R()*a.length)], tm=T[e.s];
+  switch(e.k){
+    case 'goal': return (e.kind==='pen'? 'But sur penalty de '+e.p+' ('+tm+'). ' : e.kind==='head'? pick(['But de la tête de ','Tête imparable de '])+e.p+' ('+tm+')'+(e.as?' sur un centre de '+e.as:'')+'. ' : pick(['But de ','Frappe victorieuse de ','Quel but de '])+e.p+' ('+tm+')'+(e.as?', servi par '+e.as:'')+'. ')+e.sc[0]+'-'+e.sc[1]+'.';
+    case 'save': return pick(['Arrêt de '+e.gk+' devant '+e.p+'.','Tir cadré de '+e.p+', '+e.gk+' s’interpose.','Parade de '+e.gk+' sur la frappe de '+e.p+'.']);
+    case 'miss': return pick(['Frappe de '+e.p+' au-dessus.','Tir de '+e.p+' à côté.',e.p+' tente sa chance, c’est trop croisé.','Occasion pour '+tm+', '+e.p+' manque le cadre.']);
+    case 'corner': return 'Corner pour '+tm+'.';
+    case 'yellow': return 'Carton jaune pour '+e.p+' ('+tm+').';
+    case 'red': return 'Carton rouge ! '+e.p+' ('+tm+') est exclu.';
+    case 'sub': return 'Changement pour '+tm+' : '+e.p+' remplace '+e.o+'.';
+    case 'ht': return 'Mi-temps : '+e.sc[0]+'-'+e.sc[1]+'.';
+    case 'ft': return 'Fin du match : '+T[0]+' '+e.sc[0]+'-'+e.sc[1]+' '+T[1]+'.';
+  }
+  return '';
+}
+
+/* ============================================================
    SAUVEGARDES : 5 emplacements sur l'appareil.
    IndexedDB (partie compressée en gzip, métadonnées à part pour lister vite),
    repli sur localStorage si IndexedDB est indisponible.
@@ -7924,8 +9279,8 @@ function footLegend(lid){
   if(!nat.closed&&L.down) it.push(['down','Descente']);
   return it.length? '<div class="ft-leg">'+it.map(([k,t])=>'<span class="z-'+k+'"><i></i>'+t+'</span>').join('')+'</div>' : '';
 }
-const fres = r => { const h=r.h??r[0], a=r.a??r[1], gh=r.gh??r[2], ga=r.ga??r[3];
-  return '<div class="fm-r">'+fclubBtn(h,'h'+(gh>ga||r.w===h&&r.pen?' w':''))+'<b class="sc num">'+gh+' - '+ga+'</b>'+fclubBtn(a,'a'+(ga>gh||r.w===a&&r.pen?' w':''))+'</div>'+(r.pen?'<div class="fm-p">Tirs au but : '+esc(footName(r.pen))+'</div>':''); };
+const fres = (r,day) => { const h=r.h??r[0], a=r.a??r[1], gh=r.gh??r[2], ga=r.ga??r[3];
+  return '<div class="fm-r">'+fclubBtn(h,'h'+(gh>ga||r.w===h&&r.pen?' w':''))+'<button class="sc num" data-a="fmatch" data-i="'+h+'" data-j="'+a+'" data-v="'+gh+'-'+ga+'-'+(day||S.day)+'-'+(r.pen||0)+'" aria-label="Voir le match">'+gh+' - '+ga+'</button>'+fclubBtn(a,'a'+(ga>gh||r.w===a&&r.pen?' w':''))+'</div>'+(r.pen?'<div class="fm-p">Tirs au but : '+esc(footName(r.pen))+'</div>':''); };
 const ffix = (h,a) => '<div class="fm-r">'+fclubBtn(h,'h')+'<b class="sc vs">-</b>'+fclubBtn(a,'a')+'</div>';
 
 function vFoot(){
@@ -7939,7 +9294,7 @@ function vFoot(){
   /* séries éliminatoires */
   if(lg.po){
     const P=lg.po; let b='';
-    if(P.last) b+='<div class="tag">Derniers résultats</div>'+P.last.map(fres).join('');
+    if(P.last) b+='<div class="tag">Derniers résultats</div>'+P.last.map(r=>fres(r,P.dates[P.ri-1])).join('');
     if(P.ties.length) b+='<div class="tag">Prochain tour · '+footDateLabel(P.dates[P.ri],{wd:1,noY:1})+'</div>'+P.ties.map(([x,y])=>ffix(x,y)).join('');
     if(P.champ) b+='<div class="ft-champ">'+fcrest(P.champ,40)+'<div><small>Champion</small><b>'+esc(footName(P.champ))+'</b></div></div>';
     h+=card('Séries éliminatoires',b);
@@ -7948,7 +9303,7 @@ function vFoot(){
   if(N.on && !lg.done){
     let b='';
     const last=lg.last&&lg.last.res.filter(r=>r[4]===ui.fg);
-    if(last&&last.length) b+='<div class="tag">Journée '+lg.last.rd+' · '+footDateLabel(lg.last.day,{wd:1,noY:1})+'</div>'+last.map(fres).join('');
+    if(last&&last.length) b+='<div class="tag">Journée '+lg.last.rd+' · '+footDateLabel(lg.last.day,{wd:1,noY:1})+'</div>'+last.map(r=>fres(r,lg.last.day)).join('');
     const fx=lg.rd<lg.dates.length? footFixtures(lg.grp[ui.fg],footCycles(L.id))[lg.rd] : null;
     if(fx&&fx.length) b+='<div class="tag">Journée '+(lg.rd+1)+' · '+footDateLabel(lg.dates[lg.rd],{wd:1,noY:1})+'</div>'+fx.map(([x,y])=>ffix(x,y)).join('');
     if(b) h+=card('Matchs',b);
@@ -7960,7 +9315,7 @@ function vFoot(){
     if(C.champ) b+='<div class="ft-champ">'+fcrest(C.champ,40)+'<div><small>Vainqueur '+footSeasonLabel(ui.fn,N.y)+'</small><b>'+esc(footName(C.champ))+'</b></div></div>';
     else if(C.dates[C.ri]) b+='<div class="sub">'+footCupRoundName(C,C.ri)+' le '+footDateLabel(C.dates[C.ri],{wd:1})+'. '+(C.alive.length+C.byes.length)+' clubs encore en course.</div>';
     if(C.last){ const mine=C.last.res.filter(r=>r.h===S.foot.fav||r.a===S.foot.fav), show=(mine.length?mine:[]).concat(C.last.res.filter(r=>!mine.includes(r))).slice(0, C.last.res.length<=8? 8 : 6);
-      b+='<div class="tag">'+C.last.name+' · '+footDateLabel(C.last.day,{wd:1,noY:1})+'</div>'+show.map(fres).join('')+(C.last.res.length>show.length? '<div class="sub">et '+(C.last.res.length-show.length)+' autres matchs.</div>' : ''); }
+      b+='<div class="tag">'+C.last.name+' · '+footDateLabel(C.last.day,{wd:1,noY:1})+'</div>'+show.map(r=>fres(r,C.last.day)).join('')+(C.last.res.length>show.length? '<div class="sub">et '+(C.last.res.length-show.length)+' autres matchs.</div>' : ''); }
     h+=card(FOOT_CUPN[ui.fn],b||'<div class="sub">La coupe commence avec la saison.</div>');
   }
   /* palmarès */
@@ -7979,6 +9334,10 @@ ACT.fclub=el=>{ footInit(); ui.modal={type:'fclub',id:+el.dataset.i,prev:ui.moda
 ACT.ffav=el=>{ const id=+el.dataset.i; S.foot.fav= S.foot.fav===id? null : id; render(); toast(S.foot.fav? 'Vous suivez '+footName(id)+' : ses résultats arrivent dans le journal.' : 'Vous ne suivez plus ce club.'); };
 ACT.fgo=el=>{ const id=+el.dataset.i, lid=footLgOf(id); if(!lid) return; const L=FOOT_LEAGUES.find(x=>x.id===lid); ui.fn=L.nat; ui.fl=lid; ui.fg=Math.max(0,S.foot.lg[lid].grp.findIndex(g=>g.includes(id))); ui.modal=null; ui.tab='foot'; render(); };
 
+function footSquadHtml(id){
+  const sq=footSquad(id), order=['G','DL','DC','MD','MC','MO','AIL','BU'], groups=[['Gardiens',['G']],['Défenseurs',['DL','DC']],['Milieux',['MD','MC','MO']],['Attaquants',['AIL','BU']]];
+  return '<details class="fc-sq"><summary>Effectif ('+sq.length+' joueurs)</summary>'+groups.map(([g,ps])=>'<div class="tag">'+g+'</div>'+sq.filter(p=>ps.includes(p.p)).sort((a,b)=>b.o-a.o).map(p=>'<div class="fm-xi"><span>'+FOOT_POS_S[p.p]+'</span>'+esc(p.n)+'<em>'+p.a+' ans · '+esc(FOOT_NATNAME[p.nat]||p.nat)+'</em><small class="num">'+p.o+'</small></div>').join('')).join('')+'</details>';
+}
 function footClubBody(id){
   const c=footClub(id), lid=footLgOf(id);
   if(c.foreign) return '<div class="fc-hero">'+footCrest(c,64)+'<div><b>'+esc(c.n)+'</b><small>'+esc(c.city)+' · '+esc(c.nat)+'</small></div></div><div class="sub">Club étranger, présent dans les coupes internationales.</div>';
@@ -7993,10 +9352,197 @@ function footClubBody(id){
     '<div><span>Stade</span><b class="num">'+fmtN(c.cap,0)+'</b><small>places</small></div></div>'+
     (f.length? '<div class="tag">Forme</div><div class="ft-form">'+f.map(x=>'<i class="'+(x==='V'?'w':x==='D'?'l':'d')+'">'+x+'</i>').join('')+'</div>' : '')+
     nx+
+    footSquadHtml(id)+
     '<div class="row" style="margin-top:12px">'+btn(S.foot.fav===id?'Ne plus suivre':'Suivre ce club','ffav',{i:id,c:S.foot.fav===id?'ghost':'pri'})+btn('Voir le classement','fgo',{i:id,c:'ghost'})+'</div>'+
     '<div class="sub" style="margin-top:8px">Le rachat d’un club arrivera dans une prochaine mise à jour.</div>';
 }
 { const _mcF=modalContent; modalContent=function(){ const m=ui.modal; if(m&&m.type==='fclub'){ footInit(); if(!footClub(m.id)){ ui.modal=null; return _mcF(); } return {title:'Club',sm:true,body:footClubBody(m.id)}; } return _mcF(); }; }
+
+/* ============================================================
+   FOOTBALL : match suivi sur un terrain animé (vue de dessus)
+   Le déroulé vient de footMatchScript ; l'animation construit les actions qui
+   mènent à chaque tir. Vitesses ×1 à ×8, passage direct au résultat.
+   L'état de l'animation vit dans FOOT_LIVE (pas dans la page), pour survivre
+   aux rafraîchissements de l'écran.
+   ============================================================ */
+let FOOT_LIVE=null;
+const FM_SPEEDS=[1,2,4,8];
+/* positions de base en 4-3-3 pour une équipe qui attaque vers la droite (terrain 105 x 68) */
+const FM_BASE=[[4,34],[30,9],[30,59],[23,26],[23,42],[40,34],[50,22],[52,46],[70,11],[70,57],[79,34]];
+function fmColorDist(a,b){ const p=x=>[parseInt(x.slice(1,3),16),parseInt(x.slice(3,5),16),parseInt(x.slice(5,7),16)]; const A=p(a),B=p(b); return Math.hypot(A[0]-B[0],A[1]-B[1],A[2]-B[2]); }
+function fmKits(h,a){
+  const H=footClub(h), A=footClub(a), k0={f:H.c1, s:H.c2};
+  let k1={f:A.c1, s:A.c2};
+  if(fmColorDist(k0.f,k1.f)<110) k1={f:A.c2, s:A.c1};
+  if(fmColorDist(k0.f,k1.f)<110) k1= fmColorDist(k0.f,'#ffffff')>150? {f:'#ffffff', s:'#222222'} : {f:'#222222', s:'#ffffff'};
+  return [k0,k1];
+}
+function fmStart(h,a,gh,ga,day,pen){
+  const M=footMatchScript(h,a,gh,ga,day*977+13);
+  const L={M, h, a, pen, day, t:0, speed:1, play:true, i:0, feed:[], kits:fmKits(h,a), tab:'feed',
+    pl:[], ball:{x:52.5,y:34,tx:52.5,ty:34,v:0}, side:0, holder:10, nextPass:.8, pause:0, flash:null, half:1, done:false, raf:0, lt:0, R:footSeedRng(day*31+h)};
+  for(let s=0;s<2;s++) for(let i=0;i<11;i++){ const b=fmBasePos(L,s,i); L.pl.push({s,i,x:b[0],y:b[1],n:M.xi[s][i].n}); }
+  fmKickoff(L,0);
+  FOOT_LIVE=L; return L;
+}
+const fmDir = (L,s) => ((L.half===1)===(s===0))? 1 : -1;
+function fmBasePos(L,s,i){ const b=FM_BASE[i]; return fmDir(L,s)>0? [b[0],b[1]] : [105-b[0],68-b[1]]; }
+function fmKickoff(L,s){
+  L.pl.forEach(p=>{ const b=fmBasePos(L,p.s,p.i); const d=fmDir(L,p.s); p.x=Math.min(d>0?51:105,Math.max(d>0?0:54,b[0]-d*12)); p.y=b[1]; });
+  const st=L.pl.find(p=>p.s===s&&p.i===10); st.x=52.5; st.y=34; L.side=s; L.holder=st; L.ball.x=L.ball.tx=52.5; L.ball.y=L.ball.ty=34; L.ball.v=0; L.nextPass=.6;
+}
+/* prochaine action décisive (tir) */
+function fmNextShot(L){ const ev=L.M.ev; for(let j=L.i;j<ev.length;j++){ const e=ev[j]; if(e.k==='goal'||e.k==='save'||e.k==='miss') return e; if(e.k==='ht'||e.k==='ft') return null; } return null; }
+function fmPass(L,to,speed){ L.ball.tx=to.x; L.ball.ty=to.y; L.ball.v=speed||55; L.ball.to=to; L.holder=null; }
+function fmGoalOf(L,s){ return fmDir(L,s)>0? 105 : 0; }
+/* exécute un événement du scénario */
+function fmEvent(L,e){
+  L.feed.unshift(e);
+  const M=L.M;
+  if(e.k==='goal'||e.k==='save'||e.k==='miss'){
+    const sh=L.pl.find(p=>p.s===e.s&&p.n===e.p) || L.pl.find(p=>p.s===e.s&&p.i===10), gx=fmGoalOf(L,e.s), d=fmDir(L,e.s);
+    sh.x=gx-d*(e.kind==='pen'?11:13+L.R()*8); sh.y=34+(L.R()-.5)*(e.kind==='pen'?0:22);
+    L.ball.x=sh.x; L.ball.y=sh.y;
+    const gk=L.pl.find(p=>p.s!==e.s&&p.i===0);
+    if(e.k==='goal'){ L.ball.tx=gx+d*1.2; L.ball.ty=34+(L.R()-.5)*5; L.flash={t:'BUT !', s:e.s, until:2.2}; L.pause=2.2; L.after='kick'; L.afterS=1-e.s; }
+    else if(e.k==='save'){ L.ball.tx=gk.x; L.ball.ty=gk.y=34+(L.R()-.5)*5; L.pause=.5; L.after='gk'; L.afterS=1-e.s; }
+    else { L.ball.tx=gx+d*2; L.ball.ty=34+(L.R()<.5?-1:1)*(6+L.R()*6); L.pause=.6; L.after='gk'; L.afterS=1-e.s; }
+    L.ball.v=80; L.ball.to=null; L.holder=null;
+  } else if(e.k==='corner'){
+    const d=fmDir(L,e.s), cx=d>0?104.5:.5, cy=L.R()<.5?.5:67.5, tk=L.pl.find(p=>p.s===e.s&&(p.i===8||p.i===9));
+    tk.x=cx; tk.y=cy; L.ball.x=L.ball.tx=cx; L.ball.y=L.ball.ty=cy; L.holder=tk; L.side=e.s; L.nextPass=.7; L.corner=true;
+  } else if(e.k==='ht'){ L.half=2; L.pause=1.2; L.after='kick'; L.afterS=1; L.flash={t:'Mi-temps', until:1.2}; }
+  else if(e.k==='ft'){ L.done=true; L.play=false; L.flash={t:'Fin du match', until:9e9}; }
+  else if(e.k==='sub'){ const p=L.pl.find(q=>q.s===e.s&&q.n===e.o); if(p) p.n=e.p; }
+}
+/* pas d'animation (dt en secondes réelles) */
+function fmStep(L,dt){
+  const vis=Math.min(L.speed,3), M=L.M;
+  if(L.flash && L.flash.until<9e8){ L.flash.until-=dt; if(L.flash.until<=0) L.flash=null; }
+  if(L.pause>0){ L.pause-=dt; fmMoveBall(L,dt*vis); fmMovePlayers(L,dt*vis*.6); if(L.pause<=0){ if(L.after==='kick') fmKickoff(L,L.afterS); else if(L.after==='gk'){ const gk=L.pl.find(p=>p.s===L.afterS&&p.i===0); L.side=L.afterS; L.holder=gk; L.ball.x=gk.x; L.ball.y=gk.y; L.nextPass=.5; } L.after=null; } return; }
+  if(!L.play) return;
+  const gps=30*L.speed;                                   /* secondes de jeu par seconde réelle */
+  const t1=L.t+dt*gps;
+  /* événements atteints */
+  while(L.i<M.ev.length && M.ev[L.i].t<=t1){ const e=M.ev[L.i++]; L.t=e.t; fmEvent(L,e); if(L.pause>0||L.done) return; }
+  L.t=t1;
+  /* préparer l'action qui mène au prochain tir */
+  const E=fmNextShot(L), rt= E? (E.t-L.t)/gps : 99;
+  if(E && rt<2.6 && L.side!==E.s){ const h=L.holder||L.pl.find(p=>p.s===L.side&&p.i===6); const st=L.pl.filter(p=>p.s===E.s&&p.i>4).sort((a,b)=>Math.hypot(a.x-L.ball.x,a.y-L.ball.y)-Math.hypot(b.x-L.ball.x,b.y-L.ball.y))[0]; L.side=E.s; if(L.holder||L.ball.v===0){ L.holder=st; st.x=L.ball.x; st.y=L.ball.y; } else L.ball.to=st; L.nextPass=.35/vis; }
+  /* passes */
+  if(L.holder){
+    L.nextPass-=dt*vis;
+    const d=fmDir(L,L.side), H=L.holder;
+    H.x+=d*dt*vis*6; L.ball.x=H.x+d*.8; L.ball.y=H.y; L.ball.tx=L.ball.x; L.ball.ty=L.ball.y;
+    if(L.nextPass<=0){
+      const mates=L.pl.filter(p=>p.s===L.side&&p!==H&&p.i>0);
+      let to;
+      if(E && E.s===L.side && rt<1.4){ to=L.pl.find(p=>p.s===E.s&&p.n===E.p)||mates[mates.length-1]; }
+      else if(L.corner){ to=L.pl.filter(p=>p.s===L.side&&p.i>=5).sort(()=>L.R()-.5)[0]; L.corner=false; }
+      else { const fw=mates.filter(p=>(p.x-H.x)*d>-8); const pool=fw.length?fw:mates; to=pool[Math.floor(L.R()*pool.length)]; }
+      /* perte de balle, en fonction de la possession attendue */
+      const share=L.side===0? M.poss : 1-M.poss, lose=.13*(1-share)/share*(E&&E.s===L.side&&rt<3?0:1);
+      if(L.R()<lose){ const opp=L.pl.filter(p=>p.s!==L.side&&p.i>0).sort((a,b)=>Math.hypot(a.x-to.x,a.y-to.y)-Math.hypot(b.x-to.x,b.y-to.y))[0]; fmPass(L,opp,45*vis); L.side=1-L.side; }
+      else fmPass(L,to,48*vis);
+      L.nextPass=(.5+L.R()*.7)/vis;
+    }
+  }
+  fmMoveBall(L,dt*vis); fmMovePlayers(L,dt*vis);
+}
+function fmMoveBall(L,dt){
+  const B=L.ball; if(B.v<=0) return;
+  if(B.to){ B.tx=B.to.x; B.ty=B.to.y; }
+  const dx=B.tx-B.x, dy=B.ty-B.y, dd=Math.hypot(dx,dy), st=B.v*dt;
+  if(dd<=st){ B.x=B.tx; B.y=B.ty; B.v=0; if(B.to){ L.holder=B.to; L.side=B.to.s; B.to=null; } }
+  else { B.x+=dx/dd*st; B.y+=dy/dd*st; }
+}
+function fmMovePlayers(L,dt){
+  const B=L.ball;
+  L.pl.forEach(p=>{
+    if(p===L.holder) return;
+    const b=fmBasePos(L,p.s,p.i), d=fmDir(L,p.s), att=p.s===L.side;
+    let tx, ty;
+    if(p.i===0){ tx=b[0]+d*clamp((B.x-b[0])*d*.08,0,9); ty=34+(B.y-34)*.25; }
+    else { tx=b[0]+(B.x-52.5)*.36+(att? d*7 : -d*4); ty=b[1]+(B.y-34)*.25+(att?0:(p.i%2?2.5:-2.5));
+      const own=d>0?0:105, lim=p.i<=4? 7 : 14; if((tx-own)*d<lim) tx=own+d*lim;
+      if(!att){ const near=Math.hypot(p.x-B.x,p.y-B.y); if(near<14 && (p.i===5||p.i===6||p.i===3||p.i===4)){ tx=B.x-d*2; ty=B.y; } } }
+    if(B.to===p){ tx=B.tx; ty=B.ty; }
+    tx=clamp(tx,3,102); ty=clamp(ty,3,65);
+    const dx=tx-p.x, dy=ty-p.y, dd=Math.hypot(dx,dy), st=16*dt;
+    if(dd>st){ p.x+=dx/dd*st; p.y+=dy/dd*st; } else { p.x=tx; p.y=ty; }
+  });
+}
+/* dessin */
+function fmDraw(L){
+  const cv=document.getElementById('fm-cv'); if(!cv) return;
+  const W=cv.clientWidth, H=Math.round(W*68/105), dpr=Math.min(2,window.devicePixelRatio||1);
+  if(cv.width!==Math.round(W*dpr)){ cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); cv.style.height=H+'px'; }
+  const c=cv.getContext('2d'), k=W/105*dpr; c.setTransform(1,0,0,1,0,0);
+  for(let i=0;i<10;i++){ c.fillStyle=i%2?'#2f8f4e':'#2a8447'; c.fillRect(i*cv.width/10,0,cv.width/10+1,cv.height); }
+  c.setTransform(k,0,0,k,0,0); c.strokeStyle='rgba(255,255,255,.78)'; c.lineWidth=.35;
+  c.strokeRect(.5,.5,104,67); c.beginPath(); c.moveTo(52.5,.5); c.lineTo(52.5,67.5); c.stroke();
+  c.beginPath(); c.arc(52.5,34,9.15,0,7); c.stroke();
+  [[.5,1],[104.5,-1]].forEach(([x,d])=>{ c.strokeRect(d>0?x:x-16.5,13.85,16.5,40.3); c.strokeRect(d>0?x:x-5.5,24.85,5.5,18.3); c.beginPath(); c.arc(x+d*11,34,.4,0,7); c.fillStyle='rgba(255,255,255,.8)'; c.fill();
+    c.fillStyle='rgba(255,255,255,.9)'; c.fillRect(d>0?x-1.6:x,30.34,1.6,7.32); });
+  /* joueurs */
+  L.pl.forEach(p=>{ const kit=L.kits[p.s]; c.beginPath(); c.arc(p.x,p.y,1.55,0,7); c.fillStyle=p.i===0? (p.s?'#f4c430':'#202020') : kit.f; c.fill(); c.lineWidth=.5; c.strokeStyle=p.i===0? '#ffffff' : kit.s; c.stroke(); });
+  /* ballon */
+  const B=L.ball; c.beginPath(); c.arc(B.x+.25,B.y+.35,.8,0,7); c.fillStyle='rgba(0,0,0,.25)'; c.fill(); c.beginPath(); c.arc(B.x,B.y,.8,0,7); c.fillStyle='#fff'; c.fill(); c.lineWidth=.2; c.strokeStyle='#222'; c.stroke();
+  /* porteur du ballon */
+  const h=L.holder; if(h && !L.done){ c.font='600 2.6px system-ui,sans-serif'; c.textAlign='center'; const nm=h.n.split(' ').slice(-1)[0]; const tw=c.measureText(nm).width+2; c.fillStyle='rgba(0,0,0,.55)'; c.fillRect(h.x-tw/2,h.y-5.6,tw,3.2); c.fillStyle='#fff'; c.fillText(nm,h.x,h.y-3.2); }
+  if(L.flash){ c.fillStyle='rgba(0,0,0,.45)'; c.fillRect(0,26,105,16); c.fillStyle='#fff'; c.font='800 8px system-ui,sans-serif'; c.textAlign='center'; c.fillText(L.flash.t,52.5,37); }
+}
+function fmScoreNow(L){ const e=L.feed.find(x=>x.sc); return e? e.sc : [0,0]; }
+function fmUpdateDom(L){
+  const s=fmScoreNow(L), el=document.getElementById('fm-score'); if(el) el.textContent=s[0]+' - '+s[1];
+  const ck=document.getElementById('fm-clock'); if(ck) ck.textContent= L.done? 'Terminé' : L.t>=L.M.ht&&L.half===1? 'Mi-temps' : footClock(L.M,L.t);
+  const fd=document.getElementById('fm-feed'); if(fd && fd.dataset.n!==String(L.feed.length)+L.tab){ fd.dataset.n=String(L.feed.length)+L.tab; fd.innerHTML=fmTabHtml(L); }
+}
+function fmLoop(ts){
+  const L=FOOT_LIVE; if(!L || !ui.modal || ui.modal.type!=='fmatch'){ if(L) L.raf=0; return; }
+  const dt=L.lt? Math.min(.1,(ts-L.lt)/1000) : 0; L.lt=ts;
+  if(!document.hidden) fmStep(L,dt);
+  fmDraw(L); fmUpdateDom(L);
+  L.raf=requestAnimationFrame(fmLoop);
+}
+function fmEnsureLoop(){ const L=FOOT_LIVE; if(L && !L.raf){ L.lt=0; L.raf=requestAnimationFrame(fmLoop); } }
+/* panneaux sous le terrain */
+function fmStats(L){
+  const st={sh:[0,0],on:[0,0],co:[0,0],ye:[0,0],re:[0,0]};
+  L.feed.forEach(e=>{ if(e.s===undefined) return; if(e.k==='goal'||e.k==='save'||e.k==='miss'){ st.sh[e.s]++; if(e.k!=='miss') st.on[e.s]++; } if(e.k==='corner') st.co[e.s]++; if(e.k==='yellow') st.ye[e.s]++; if(e.k==='red') st.re[e.s]++; });
+  return st;
+}
+function fmTabHtml(L){
+  const M=L.M;
+  if(L.tab==='stats'){
+    const st=fmStats(L), pos=Math.round(M.poss*100);
+    const row=(lab,a,b)=>{ const t=(a+b)||1; return '<div class="fm-st"><b class="num">'+a+'</b><div><span>'+lab+'</span><i><em style="width:'+(a/t*100)+'%"></em></i></div><b class="num">'+b+'</b></div>'; };
+    return row('Possession (%)',pos,100-pos)+row('Tirs',st.sh[0],st.sh[1])+row('Tirs cadrés',st.on[0],st.on[1])+row('Corners',st.co[0],st.co[1])+row('Cartons jaunes',st.ye[0],st.ye[1])+row('Cartons rouges',st.re[0],st.re[1]);
+  }
+  if(L.tab==='xi'){
+    const col=s=>'<div><div class="tag">'+esc(footName(s?L.a:L.h))+' · 4-3-3</div>'+M.xi[s].map(p=>'<div class="fm-xi"><span>'+FOOT_POS_S[p.slot]+'</span>'+esc(p.n)+'<small class="num">'+p.o+'</small></div>').join('')+'</div>';
+    return '<div class="grid g2">'+col(0)+col(1)+'</div>';
+  }
+  const imp=L.feed.filter(e=>e.k!=='corner'||L.feed.length<30);
+  if(!imp.length) return '<div class="sub">Coup d’envoi.</div>';
+  return imp.map(e=>'<div class="fm-ev k-'+e.k+'"><span class="num">'+(e.k==='ft'||e.k==='ht'?'':footEvMin(e))+'</span><p>'+esc(footComment(M,e))+(e.k==='ft'&&L.pen? ' Qualification aux tirs au but pour '+esc(footName(L.pen))+'.' : '')+'</p></div>').join('');
+}
+function fmBody(L){
+  const M=L.M, s=fmScoreNow(L);
+  return '<div class="fm">'+
+    '<div class="fm-sb"><div class="t">'+fcrest(L.h,34)+'<b>'+esc(footName(L.h))+'</b></div><div class="c"><b id="fm-score" class="num">'+s[0]+' - '+s[1]+'</b><small id="fm-clock">'+(L.done?'Terminé':footClock(M,L.t))+'</small></div><div class="t">'+fcrest(L.a,34)+'<b>'+esc(footName(L.a))+'</b></div></div>'+
+    '<canvas id="fm-cv" aria-label="Terrain : le match en direct" role="img"></canvas>'+
+    '<div class="fm-ctl"><div class="seg">'+FM_SPEEDS.map(v=>'<button class="'+(L.speed===v&&L.play?'on':'')+'" data-a="fmspeed" data-v="'+v+'">×'+v+'</button>').join('')+'<button class="'+(!L.play&&!L.done?'on':'')+'" data-a="fmpause">Pause</button></div>'+
+    (L.done? '' : btn('Résultat','fmend',{c:'sm ghost'}))+'</div>'+
+    '<div class="seg fm-tabs">'+[['feed','Commentaire'],['stats','Statistiques'],['xi','Compositions']].map(([k,t])=>'<button class="'+(L.tab===k?'on':'')+'" data-a="fmtab" data-v="'+k+'">'+t+'</button>').join('')+'</div>'+
+    '<div id="fm-feed" class="fm-feed">'+fmTabHtml(L)+'</div></div>';
+}
+ACT.fmatch=el=>{ footInit(); const [gh,ga,day,pen]=el.dataset.v.split('-').map(Number); const L=fmStart(+el.dataset.i,+el.dataset.j,gh,ga,day||S.day,pen||null); ui.modal={type:'fmatch',prev:ui.modal&&ui.modal.type!=='fmatch'?ui.modal:null}; render(); };
+ACT.fmspeed=el=>{ const L=FOOT_LIVE; if(!L) return; L.speed=+el.dataset.v; if(!L.done) L.play=true; render(); };
+ACT.fmpause=()=>{ const L=FOOT_LIVE; if(!L||L.done) return; L.play=!L.play; render(); };
+ACT.fmtab=el=>{ const L=FOOT_LIVE; if(!L) return; L.tab=el.dataset.v; render(); };
+ACT.fmend=()=>{ const L=FOOT_LIVE; if(!L) return; L.pause=0; L.after=null; L.flash=null; while(L.i<L.M.ev.length){ const e=L.M.ev[L.i++]; L.t=e.t; if(e.k==='ft'){ L.feed.unshift(e); L.done=true; L.play=false; L.flash={t:'Fin du match',until:9e9}; } else { L.feed.unshift(e); if(e.k==='ht') L.half=2; } } fmKickoff(L,0); render(); };
+{ const _mcM=modalContent; modalContent=function(){ const m=ui.modal; if(m&&m.type==='fmatch'){ if(!FOOT_LIVE){ ui.modal=m.prev||null; return _mcM(); } setTimeout(fmEnsureLoop,0); return {title:'Match',body:fmBody(FOOT_LIVE)}; } return _mcM(); }; }
 
 
 </script>
