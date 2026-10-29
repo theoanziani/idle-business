@@ -869,8 +869,14 @@ html,body{overflow-anchor:none}
 .fc-news{display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px}
 .fc-news span{color:var(--ink-3);font-weight:700;font-size:12px}
 .fc-news.neg{color:var(--red)}
-.fc-tg{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:700}
-.fc-tg input{width:22px;height:22px}
+.fc-tg{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;font-weight:700;margin-top:8px;cursor:pointer}
+.fc-tg span{min-width:0;line-height:1.3}
+.fc-cd{display:grid;margin:4px 0 6px}
+.fc-cd>div{background:var(--paper);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.fc-cd span{font-size:11.5px;font-weight:700;color:var(--ink-3)}
+.fc-cd b{font:800 22px var(--f-display)}
+.fc-cd small{font-size:12px;font-weight:600;color:var(--ink-3)}
+.fc-cdp{margin-left:auto;flex:none}
 .fc-scroll{display:flex;flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none}
 .fc-scroll button{white-space:nowrap;flex:none}
 .ft tr.z-po td:first-child{border-left-color:var(--amber)}
@@ -915,6 +921,7 @@ html,body{overflow-anchor:none}
 .pk-o em{font-style:normal;font-weight:800;font-size:13px;white-space:nowrap}
 .pk-th .seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-self:stretch}
 .pk-th .seg button{white-space:normal;line-height:1.2;min-height:44px}
+.fc-top>div{min-width:0}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -10453,7 +10460,7 @@ function vClub(){
   }
   ui.ct=ui.ct&&FC_TABS.some(t=>t[0]===ui.ct)? ui.ct : 'ov';
   const c=footClub(O.id), lid=footLgOf(O.id), L=FOOT_LEAGUES.find(x=>x.id===lid);
-  h+='<div class="fc-top">'+footCrest(c,56)+'<div><b>'+esc(c.n)+'</b><small>'+esc(L.n)+' · '+esc(FOOT_NAT[c.nat].n)+'</small></div></div>';
+  h+='<div class="fc-top">'+footCrest(c,56)+'<div><b>'+esc(c.n)+'</b><small>'+esc(L.n)+' · '+esc(FOOT_NAT[c.nat].n)+'</small></div>'+(function(){ const u=fcUpcoming(O); return u? '<span class="pill info fc-cdp">'+(u.start?'Saison':'Match')+' : '+fcCountdown(u.day).toLowerCase()+'</span>' : ''; })()+'</div>';
   h+='<div class="ft-nav"><div class="seg">'+FC_TABS.map(([k,t])=>'<button class="'+(ui.ct===k?'on':'')+'" data-a="fctab" data-v="'+k+'">'+t+(k==='mk'&&O.offers.length?' ('+O.offers.length+')':'')+'</button>').join('')+'</div></div>';
   return h+({ov:fcTabOv,sq:fcTabSq,tac:fcTabTac,mk:fcTabMk,st:fcTabSt,ds:fcTabDs,fin:fcTabFin}[ui.ct])(O);
 }
@@ -10465,6 +10472,22 @@ function fcNextMatch(O){
   const gi=lg.grp.findIndex(g=>g.includes(O.id)), m=(footFixtures(lg.grp[gi],footCycles(lid))[lg.rd]||[]).find(p=>p.includes(O.id));
   return m? {h:m[0],a:m[1],day:lg.dates[lg.rd]} : null;
 }
+/* prochain match toutes compétitions (championnat, coupe nationale, coupes internationales) */
+function fcUpcoming(O){
+  const id=O.id, nat=footClub(id).nat, out=[], nx=fcNextMatch(O);
+  if(nx) out.push(Object.assign({comp:FOOT_LEAGUES.find(x=>x.id===footLgOf(id)).n},nx));
+  const C=S.foot.cup[nat];
+  if(C&&!C.champ&&C.dates[C.ri]!==undefined&&(C.alive.includes(id)||(C.ri<=1&&C.byes.includes(id)&&C.ri===1)))
+    out.push({comp:'Coupe nationale, '+footCupRoundName(C,C.ri).toLowerCase(), day:C.dates[C.ri], draw:true});
+  fiClubComps(id).forEach(k=>{ const E=S.foot.ic[k]; if(!E) return;
+    if(E.phase==='lp'){ const d=E.P.lp.dates[E.ri], m=(E.rounds[E.ri]||[]).find(x=>x.includes(id)); if(d!==undefined&&m) out.push({comp:FI[k].n, day:d, h:m[0], a:m[1]}); }
+    else if(E.phase==='ko'){ const st=E.P.ko[E.ki], t=E.ko&&E.ko.ties&&E.ko.ties.find(x=>x.includes(id)&&!x.w); if(st&&t){ const leg=E.leg||0, two=st.d.length>1; out.push({comp:FI[k].n+', '+st.n.toLowerCase()+(two?(leg?' (retour)':' (aller)'):''), day:st.d[leg], h:two&&leg===0?t[1]:t[0], a:two&&leg===0?t[0]:t[1]}); } }
+  });
+  const r=out.filter(x=>x.day>=S.day).sort((a,b)=>a.day-b.day)[0]; if(r) return r;
+  const N=S.foot.nat[nat]; if(!N.on&&N.start>=S.day) return {comp:'Reprise du championnat', day:N.start, start:true};
+  return null;
+}
+function fcCountdown(day){ const n=day-S.day; return n<=0? 'Aujourd’hui' : n===1? 'Demain' : 'Dans '+n+' jours'; }
 function fcTabOv(O){
   const lid=footLgOf(O.id), lg=S.foot.lg[lid], gi=Math.max(0,lg.grp.findIndex(g=>g.includes(O.id))), tab=footTable(lid,gi), pos=tab.findIndex(x=>x.id===O.id), t=lg.tab[O.id]||[0,0,0,0,0,0,0];
   const nx=fcNextMatch(O), f=(lg.form[O.id]||'').split('').filter(Boolean), r=Math.round(fcStrength());
@@ -10475,10 +10498,11 @@ function fcTabOv(O){
     '<div><span>Valeur du club</span><b class="num">'+eur(fcClubValue(O.id),0)+'</b><small>'+O.sq.length+' joueurs</small></div></div>'+
     (f.length? '<div class="tag">Forme</div><div class="ft-form">'+f.map(x=>'<i class="'+(x==='V'?'w':x==='D'?'l':'d')+'">'+x+'</i>').join('')+'</div>' : ''));
   let m='';
-  if(nx) m+='<div class="tag">Prochain match · '+footDateLabel(nx.day,{wd:1,noY:1})+'</div>'+ffix(nx.h,nx.a);
+  const up=fcUpcoming(O);
+  if(up) m+='<div class="fc-cd"><div><span>'+(up.start?'Début de saison':'Prochain match')+'</span><b class="num">'+fcCountdown(up.day)+'</b><small>'+esc(up.comp)+' · '+footDateLabel(up.day,{wd:1,noY:1})+'</small></div></div>'+(up.start? '<div class="sub">'+footStatus(footClub(O.id).nat,lid)+'</div>' : up.draw? '<div class="sub">Adversaire tiré au sort le jour du match.</div>' : ffix(up.h,up.a));
   else m+='<div class="sub">'+footStatus(footClub(O.id).nat,lid)+'</div>';
   if(O.last) m+='<div class="tag">Dernier match</div>'+fres({h:O.last.h,a:O.last.a,gh:O.last.gh,ga:O.last.ga},O.last.day);
-  m+='<div class="row" style="margin-top:10px"><label class="fc-tg"><input type="checkbox" data-a="fcset" data-i="live" '+(O.autoLive?'checked':'')+'> Ouvrir chaque match de mon équipe en direct</label></div>';
+  m+='<label class="fc-tg"><span>Ouvrir chaque match de mon équipe en direct</span><input type="checkbox" data-a="fcset" data-i="live" '+(O.autoLive?'checked':'')+' aria-label="Ouvrir chaque match de mon équipe en direct"></label>';
   h+=card('Matchs',m);
   if(O.news.length) h+=card('Actualités du club',O.news.slice(0,8).map(n=>'<div class="fc-news '+(n.c==='bad'?'neg':n.c==='good'?'pos':'')+'"><span class="num">'+footDateLabel(n.d,{noY:1})+'</span>'+esc(n.t)+'</div>').join(''));
   return h;
