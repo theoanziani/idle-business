@@ -9692,6 +9692,33 @@ function dcAuto(b,mode,q){ const m=b.m, d=bizDef(b);
 }
 
 /* ============================================================
+   LIENS ENTRE VOS ENTREPRISES ET VOTRE CLUB
+   - Ferme → buvettes du stade : à chaque match à domicile, les buvettes vendent ; avec votre
+     ferme, ce sont vos produits (recette ×1,5).
+   - Énergies renouvelables → stade : l'énergie du stade coûte 40 % de moins.
+   - Haute couture → tenues officielles : sponsors du club +10 %, et la maison gagne en prestige.
+   - Électronique → sponsor du maillot : votre smartphone remplace le sponsor principal (le club
+     perd 25 % de ses sponsors) mais se vend 15 % mieux ; s'il est meilleur que les rivaux, les
+     maillots floqués rapportent en plus au club.
+   État : O.phSp (sponsor smartphone sur le maillot, 0/1) dans le club du joueur.
+   ============================================================ */
+function lkHas(def){ return S.biz.find(x=>x.def===def&&x.status==='active'&&x.m)||null; }
+function lkPhone(){ const e=S.biz.find(x=>x.def==='electronics'&&x.status==='active'&&x.m&&x.m.ph&&x.m.mod); return e||null; }
+function lkPhoneHit(e){ return !!(e&&e.m.mod&&elScore(e,e.m.mod)>=elRival()); }
+{ const _hg=fcHomeGate; fcHomeGate=function(h,a){ _hg(h,a); const O=fcOwn(); if(!O||O.id!==h||!O.lastGate) return;
+    const n=O.lastGate.n, farm=!!lkHas('farm'), cap=footClub(O.id).cap;
+    fcPay('food','Club : buvettes'+(farm?' (produits de votre ferme)':''),n*3.5*(farm?1.5:1));
+    fcPay('energy','Club : énergie du stade'+(lkHas('renew')?' (vos centrales)':''),-cap*.35*(lkHas('renew')?.6:1)); }; }
+{ const _fd=fcDaily; fcDaily=function(day){ _fd(day); const O=fcOwn(); if(!O||footDate(day).d!==1) return;
+    const base=fcClubValue(O.id)*.06/12, hc=lkHas('couture'), e=lkPhone();
+    if(hc){ fcPay('spons','Club : tenues officielles de votre maison de couture',base*.10); hc.m.pres=clamp(hc.m.pres+.6,0,100); }
+    if(O.phSp){ if(!e){ O.phSp=0; fcNews('Plus de smartphone à afficher : le maillot retrouve son sponsor habituel.',''); }
+      else { fcPay('spons','Club : sponsor principal remplacé par votre smartphone',-base*.25); if(lkPhoneHit(e)) fcPay('spons','Club : maillots floqués de votre smartphone',base*.2); } }
+  }; }
+{ const _pd=elPhoneDemand; elPhoneDemand=function(b,M,day){ const u=_pd(b,M,day); try{ const O=fcOwn(); if(O&&O.phSp&&lkPhone()===b) return u*1.15; }catch(e){} return u; }; }
+function lkSetPhSp(v){ const O=fcOwn(); if(!O) return err('Vous n’avez pas de club.'); if(v&&!lkPhone()) return err('Il vous faut une usine d’électronique avec un smartphone en vente.'); O.phSp=v?1:0; return ok(v?'Votre smartphone s’affiche sur le maillot.':'Le maillot retrouve son sponsor habituel.'); }
+
+/* ============================================================
    SAUVEGARDES : 5 emplacements sur l'appareil.
    IndexedDB (partie compressée en gzip, métadonnées à part pour lister vite),
    repli sur localStorage si IndexedDB est indisponible.
@@ -12906,7 +12933,7 @@ function fcTabSt(O){
     return '<div class="fc-staff"><div><b>'+s.n+'</b> '+fcStars(l)+'<small>'+s.d+' Salaire : '+eur([0,1.5e5,4e5,1e6,2.5e6,6e6][l],0)+' par saison.</small></div>'+(l<5? btn('Recruter mieux : '+eur(fee,0),'fcstaff',{i:k,c:'sm',dis:S.cash<fee}) : pill('Le meilleur','good'))+'</div>'; }).join(''));
 }
 function fcTabFin(O){
-  const nat=footClub(O.id).nat, y=S.foot.nat[nat].y, f=O.fin[y]||{}, lab={gate:'Billetterie',tv:'Droits de diffusion',spons:'Sponsors et boutique',prize:'Primes',transfer:'Transferts',wages:'Salaires',staff:'Staff'};
+  const nat=footClub(O.id).nat, y=S.foot.nat[nat].y, f=O.fin[y]||{}, lab={gate:'Billetterie',food:'Buvettes',tv:'Droits de diffusion',spons:'Sponsors et boutique',prize:'Primes',transfer:'Transferts',wages:'Salaires',staff:'Staff',energy:'Énergie du stade'};
   const rows=Object.keys(lab).filter(k=>f[k]).map(k=>'<tr><td>'+lab[k]+'</td><td class="r num '+(f[k]>=0?'pos':'neg')+'">'+signed(f[k],0)+'</td></tr>').join(''), tot=Object.values(f).reduce((s,x)=>s+x,0);
   const wages=O.sq.reduce((s,p)=>s+p.w,0)+fcStaffCost(O), att=fcAttendance(O,null), cap=footClub(O.id).cap;
   let h=card('Saison '+footSeasonLabel(nat,y),(rows? '<div class="tw"><table class="tbl"><tbody>'+rows+'<tr><td><b>Résultat</b></td><td class="r num '+(tot>=0?'pos':'neg')+'"><b>'+signed(tot,0)+'</b></td></tr></tbody></table></div>' : '<div class="sub">Pas encore de recettes ni de dépenses cette saison.</div>')+
@@ -13293,7 +13320,7 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='2026.10.29.12';
+const IB_VER='2026.10.29.13';
 const IB_NEWS=[
   ['Parc d’attractions','Un plan de 24 cases en 4 zones à thème : attractions, restaurants, boutiques, décors, billet, coupe-file, nocturnes.'],
   ['Restaurant gastronomique','La carte plat par plat, le chef, la cave, les étoiles du guide, puis les bistrots.'],
@@ -13306,6 +13333,7 @@ const IB_NEWS=[
   ['Atelier de réparation','La file des appareils, les techniciens et leurs talents, le stock de pièces, le reconditionnement, la garantie et les avis.'],
   ['Boutique e-commerce','L’entonnoir visites, paniers, commandes ; trois canaux de publicité ; un catalogue aux tendances changeantes, en stock propre ou en expédition directe.'],
   ['Agence de recrutement','Les postes des clients, le vivier de candidats, le bon profil à proposer, l’intérim et les placements définitifs.'],
+  ['Vos entreprises et votre club','Dans les finances du club : buvettes du stade (vos produits de la ferme), énergie du stade (vos centrales), tenues officielles (votre maison de couture), et votre smartphone en sponsor du maillot.'],
   ['Data center et cloud','Des salles de 20 baies louées à des clients avec une disponibilité garantie. Leurs serveurs chauffent : il faut refroidir (air, eau, naturel, immergé) et assez de puissance électrique, sinon c’est la panne et les remboursements. Votre usine d’électronique équipe les salles moins cher.'],
   ['Énergies renouvelables','Une carte de régions plus ou moins ensoleillées, ventées ou arrosées : autorisations, centrales solaires, éoliennes et hydrauliques. La météo fait la production, le prix change chaque jour : vente au prix du jour ou contrat d’un an, batteries pour stocker. Vos usines et data centers paient leur énergie moins cher.'],
   ['Maison de haute couture','Trois collections par an : style, ampleur et tissus, créées par votre directeur artistique (talent, caprices), puis un défilé dans la ville de votre choix. La note de la critique fait le prestige et les ventes. Commandes sur mesure, licences qui usent le prestige, égérie. Avec une entreprise textile, vos filatures fournissent les tissus.'],
@@ -13665,6 +13693,19 @@ MET.dc.html=function(b){
       '<div class="row">'+(f?'<button class="btn sm pri" data-a="met" data-i="'+b.id+'" data-v="acc" data-j="'+c.id+':'+f.r.id+'">Installer en salle '+f.r.id+'</button>'+(f.head<0?'<span class="sub">La salle risque la surchauffe</span>':''):'<span class="sub">Pas assez de baies libres</span>')+'<button class="btn sm" data-a="met" data-i="'+b.id+'" data-v="dec" data-j="'+c.id+'">Refuser</button></div></div>'; }).join('')+'</div>';
   return h;
 };
+
+/* ============================================================
+   LIENS : carte « Vos entreprises et le club » dans les finances du club
+   ============================================================ */
+{ const _tf=fcTabFin; fcTabFin=function(O){ const h=_tf(O), farm=lkHas('farm'), rn=lkHas('renew'), hc=lkHas('couture'), e=lkPhone();
+  const row=(on,t,d)=>'<div class="rs-d"><div><b>'+t+'</b><small>'+d+'</small></div>'+pill(on?'Actif':'Inactif',on?'good':'info')+'</div>';
+  let c='<div class="ht-t">'+row(!!farm,'Buvettes du stade',farm?'Vos produits de la ferme : recette des buvettes ×1,5.':'Avec une ferme, les buvettes vendent vos produits (recette ×1,5).')+
+    row(!!rn,'Énergie du stade',rn?'Vos centrales alimentent le stade : énergie 40 % moins chère.':'Avec des énergies renouvelables, l’énergie du stade coûte 40 % de moins.')+
+    row(!!hc,'Tenues officielles',hc?'Votre maison de couture habille le club : sponsors +10 %, prestige de la maison en hausse.':'Avec une maison de haute couture, sponsors +10 % et prestige pour la maison.')+'</div>';
+  c+='<div class="met-c" style="margin-top:8px"><b>Sponsor du maillot</b><div class="seg">'+[[0,'Sponsor habituel'],[1,'Votre smartphone']].map(([v,n])=>'<button class="'+((O.phSp?1:0)===v?'on':'')+'" data-a="lkphsp" data-v="'+v+'"'+(v&&!e?' disabled':'')+'>'+n+'</button>').join('')+'</div><div class="sub">'+
+    (e? 'Votre smartphone se vend 15 % mieux, mais le club perd 25 % de ses sponsors.'+(lkPhoneHit(e)?' Il est meilleur que les rivaux : les maillots floqués rapportent 20 % en plus.':' S’il devient meilleur que les rivaux, les maillots floqués rapporteront en plus.') : 'Il faut une usine d’électronique avec un smartphone en vente.')+'</div></div>';
+  return h+card('Vos entreprises et le club',c); }; }
+ACT.lkphsp=el=>after(lkSetPhSp(+el.dataset.v));
 
 
 </script>
