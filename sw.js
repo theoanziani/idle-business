@@ -1,5 +1,5 @@
-/* Idle Business : fonctionnement hors ligne et mises à jour. Version 20261029-091411 */
-const CACHE = 'ib-20261029-091411';
+/* Idle Business : fonctionnement hors ligne et mises à jour. Version 20261029-092603 */
+const CACHE = 'ib-20261029-092603';
 const ASSETS = ["./", "index.html", "manifest.webmanifest", "icons/logo-192.png", "icons/logo-512.png", "icons/logo-apple-touch-icon.png", "fonts/nunito-latin-ext-wght-normal.woff2", "fonts/nunito-latin-wght-normal.woff2"];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
