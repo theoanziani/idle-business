@@ -7439,8 +7439,9 @@ function rsCalc(b){
   return {app, cost, n, all, dqa:n?dq/n:0, inS:n?inS/n:0, capF, V, waste, ws, miss, variety, se};
 }
 const RS_EL=1.7;
-/* prix du menu : de 50 % en dessous à 50 % au-dessus du prix de base (52 €) */
-const RS_PM0=52, RS_PMIN=26, RS_PMAX=78;
+const RS_PMIN=20, RS_PMAX=400;
+/* prix d'un nouveau bistrot : +10 % par bistrot déjà ouvert, au plus +50 % du premier */
+function rsBisCost(b){ return bizDef(b).cost*1.5*Math.min(1.5,Math.pow(1.1,b.m.bis)); }
 /* la salle et la cuisine ont une limite : au-delà, la demande ne se transforme plus en couverts */
 const rsSat = (d,cap) => { const c=1.8*cap; return d/Math.pow(1+Math.pow(d/c,3),1/3); };
 MET.resto = {
@@ -7492,7 +7493,7 @@ MET.resto = {
             ['Saison', RS_SEAS[p.se], Math.max(0,Math.round(p.inS*100))+' % de plats de saison']];
   },
   ctl(b){ rsFix(b); const m=b.m, d=bizDef(b), R0=metR0(b), out=[], p=rsCalc(b);
-    out.push({k:'seg', act:'pm', label:'Prix du menu : '+eur(m.pm,0), val:'x', opts:[[-5,'−5 €'],[-1,'−1 €'],[1,'+1 €'],[5,'+5 €']], sub:'Valeur perçue de votre carte : environ '+eur(p.V,0)+'. Au-dessus, la salle se vide. Prix possible : '+eur(RS_PMIN,0)+' à '+eur(RS_PMAX,0)+'.'});
+    out.push({k:'seg', act:'pm', label:'Prix du menu : '+eur(m.pm,0), val:'x', opts:[[-5,'−5 €'],[-1,'−1 €'],[1,'+1 €'],[5,'+5 €']], sub:'Valeur perçue de votre carte : environ '+eur(p.V,0)+'. Au-dessus, la salle se vide.'});
     out.push({k:'seg', act:'srv', label:'Services', val:m.srv, opts:[[0,'Le soir seulement'],[1,'Midi et soir']], sub:m.srv? 'Deux services : plus de couverts, toute l’équipe mobilisée.' : 'Un seul service : 38 % de couverts en moins, salaires réduits de 20 %.'});
     out.push({k:'tog', act:'resa', label:'Sur réservation uniquement', val:m.resa, sub:'Moins de pertes (−2 points) et les critiques apprécient (+3), mais 4 % de clients en moins.'});
     out.push({k:'btn', act:'cave', label:'Cave : vins de la maison', cost:R0*.9, sub:(m.cave>0? 'Stock pour '+m.cave+' jours de service.' : 'Cave vide.')+' Les accords mets-vins rapportent 12 € de plus par couvert.'});
@@ -7502,8 +7503,8 @@ MET.resto = {
       if(m.gc.length) out.push({k:'btn', act:'gcsell', label:'Vendre les grands crus aux collectionneurs', gain:v, sub:'Plus-value : '+eur(v-c,0)+'.'}); }
     if(mxHas(b,2)){ out.push({k:'tog', act:'deg', label:'Menu dégustation', val:m.deg||0, sub:'Valeur perçue +25 % et critiques +2, matières +20 %.'});
       out.push(m.tab? {k:'buy', act:'tab', label:'Table du chef', owned:true, sub:'Quelques couverts en cuisine, réservés des mois à l’avance.'} : {k:'buy', act:'tab', label:'Table du chef', cost:d.cost*.5, sub:'Quelques couverts en cuisine, très chers : environ '+eur(R0*.06,0)+' de plus par jour.'}); }
-    if(mxHas(b,4)){ const c=d.cost*1.5*Math.pow(1.1,m.bis);
-      out.push({k:'btn', act:'bis', label:'Ouvrir un bistrot ('+m.bis+' ouvert'+(m.bis>1?'s':'')+')', cost:c, dis:m.bis>=30, sub:'Chaque bistrot rapporte environ '+eur(R0*.22*clamp(m.crit/70,.4,1.3),0)+' par jour, selon la note des critiques de la maison mère.'}); }
+    if(mxHas(b,4)){ const c=rsBisCost(b);
+      out.push({k:'btn', act:'bis', label:'Ouvrir un bistrot ('+m.bis+' ouvert'+(m.bis>1?'s':'')+')', cost:c, dis:m.bis>=30, sub:'Chaque bistrot coûte 10 % de plus que le précédent, au plus 50 % de plus que le premier. Il rapporte environ '+eur(R0*.22*clamp(m.crit/70,.4,1.3),0)+' par jour, selon la note des critiques de la maison mère.'}); }
     if(mxHas(b,5)) out.push(m.tv? {k:'buy', act:'tv', label:'Émission et livre de recettes', owned:true, sub:'+12 % de clients, recettes des droits.'} : {k:'buy', act:'tv', label:'Émission et livre de recettes', cost:d.cost*3, sub:'+12 % de clients, des droits d’auteur chaque jour, prix perçu en hausse.'});
     return out;
   },
@@ -7526,7 +7527,7 @@ MET.resto = {
   auto: rsAuto
 };
 function rsBistro(b,auto){ const m=b.m; if(!mxHas(b,4)) return err('Palier 4 requis.'); if(m.bis>=30) return err('30 bistrots au maximum.');
-  const c=bizDef(b).cost*1.5*Math.pow(1.1,m.bis); if(!(auto? dlSpend(b,c,'Nouveau bistrot') : metBuy(b,c,'Nouveau bistrot'))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  const c=rsBisCost(b); if(!(auto? dlSpend(b,c,'Nouveau bistrot') : metBuy(b,c,'Nouveau bistrot'))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
   m.bis++; metLog(b,(auto?'le directeur ouvre':'ouverture d’')+' un bistrot ('+m.bis+' au total).','good'); return ok('Bistrot ouvert.'); }
 function rsAdd(b,arg){ const [k,id]=String(arg).split(':'), x=rsDish(id), m=b.m;
   if(!x||x.k!==k) return err('Plat inconnu.'); if(m.carte[k].includes(id)) return err('Déjà à la carte.'); if(m.carte[k].length>=RS_MAX[k]) return err(RS_MAX[k]+' '+RS_COURSE[k].toLowerCase()+' au maximum.');
@@ -7541,7 +7542,7 @@ function rsHire(b,i,auto){ const c=rsCands(b)[i]; if(!c) return err('Candidat in
 /* meilleur prix de menu d'après la fréquentation actuelle */
 function rsBestPm(b){ const m=b.m, p=rsCalc(b), cv=p.cost*(1+p.waste)+(p.ws?5:0); let best=m.pm, bv=-Infinity;
   const d0=Math.pow(Math.max(p.app,.5)/6.66,.8)*p.variety*1.03*(1+.06*m.stars)*(.9+.2*m.crit/100)*(m.tv?1.12:1), srv=[.62,1][m.srv];
-  for(let t=RS_PMIN;t<=RS_PMAX;t+=1){ const v=rsSat(d0*Math.pow(p.V/t,RS_EL)*srv,p.capF*srv)*(t+p.ws-cv); if(v>bv){ bv=v; best=t; } } return best; }
+  for(let t=RS_PMIN;t<=Math.min(RS_PMAX,Math.max(120,p.V*2));t+=1){ const v=rsSat(d0*Math.pow(p.V/t,RS_EL)*srv,p.capF*srv)*(t+p.ws-cv); if(v>bv){ bv=v; best=t; } } return best; }
 /* le chef de cuisine adapte la carte aux saisons */
 function rsAuto(b,mode,q){
   rsFix(b); const m=b.m, se=rsSeason();
@@ -7664,7 +7665,7 @@ MET.hotel = {
              out.push({k:'tog', act:'sem', label:'Séminaires en semaine', val:m.sem, sub:'Environ '+eur(R0*.06,0)+' par jour de semaine et +8 % de demande pour les chambres standard et supérieures.'}); } }
     if(mxHas(b,3)) out.push(m.pres? {k:'buy', act:'pres', label:'Suite présidentielle', owned:true, sub:'Une suite par niveau de l’hôtel.'} : {k:'buy', act:'pres', label:'Suite présidentielle', cost:d.cost*.25, sub:'Une suite par niveau de l’hôtel, à 3 500 € la nuit au prix de base.'});
     if(mxHas(b,4)) out.push(m.pal? {k:'buy', act:'pal', label:'Distinction Palace', owned:true, sub:'Nuits 15 % plus chères. Retirée si la note passe sous 4,3.'} : {k:'btn', act:'pal', label:'Demander la distinction Palace', cost:d.cost*.4, dis:m.st<5||m.av<4.5, sub:'Il faut 5 étoiles et une note des clients d’au moins 4,5 (actuellement '+m.av.toFixed(1).replace('.',',')+').'});
-    if(mxHas(b,5)) out.push({k:'btn', act:'rs', label:'Ouvrir un resort à l’étranger ('+m.rs+' sur 3)', cost:d.cost*1.2*(1+m.rs*.5), dis:m.rs>=3, sub:'Chaque resort rapporte environ '+eur(R0*.3,0)+' par jour, selon la note des clients de la marque.'});
+    if(mxHas(b,5)) out.push({k:'btn', act:'rs', label:'Ouvrir un resort à l’étranger ('+m.rs+' sur 3)', cost:d.cost*1.2*(1+Math.min(.5,m.rs*.25)), dis:m.rs>=3, sub:'Chaque resort rapporte environ '+eur(R0*.3,0)+' par jour, selon la note des clients de la marque.'});
     return out;
   },
   acts:{
@@ -7694,7 +7695,7 @@ function htBuy(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('P
   const c=bizDef(b).cost*f; if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
   m[k]=1; if(k==='salles'){ m.sem=1; } metLog(b,(auto?'le directeur ouvre : ':'nouveau : ')+label.toLowerCase()+'.','good'); return ok(label+' : c’est fait.'); }
 function htResort(b,auto){ const m=b.m; if(!mxHas(b,5)) return err('Palier 5 requis.'); if(m.rs>=3) return err('Trois resorts au maximum.');
-  const c=bizDef(b).cost*1.2*(1+m.rs*.5); if(!(auto? dlSpend(b,c,'Resort à l’étranger') : metBuy(b,c,'Resort à l’étranger'))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  const c=bizDef(b).cost*1.2*(1+Math.min(.5,m.rs*.25)); if(!(auto? dlSpend(b,c,'Resort à l’étranger') : metBuy(b,c,'Resort à l’étranger'))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
   m.rs++; metLog(b,'un resort ouvre sous votre marque ('+m.rs+' sur 3).','good'); return ok('Resort ouvert.'); }
 /* le directeur de l'hôtel fixe les prix et la surréservation */
 function htAuto(b,mode,q){
