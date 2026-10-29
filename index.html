@@ -991,6 +991,10 @@ html,body{overflow-anchor:none}
 .dc-room{display:flex;flex-direction:column;gap:6px}
 .dc-racks{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}.dc-racks i{height:14px;border-radius:3px;background:var(--sh)}.dc-racks i.on{background:var(--blue)}
 .dc-g{height:10px;border-radius:5px;background:var(--sh);overflow:hidden}.dc-g i{display:block;height:100%;background:var(--green)}.dc-g i.hot{background:var(--amber)}.dc-g i.ko{background:var(--red)}
+/* fiche en onglets */
+.ft-hide{display:none!important}
+.ft-tabs{position:sticky;top:0;z-index:3;margin:4px 0 2px;display:grid!important;grid-template-columns:repeat(4,1fr)}
+.ft-tabs button{min-height:44px;padding:0 4px}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -13320,7 +13324,7 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='2026.10.29.13';
+const IB_VER='2026.10.29.14';
 const IB_NEWS=[
   ['Parc d’attractions','Un plan de 24 cases en 4 zones à thème : attractions, restaurants, boutiques, décors, billet, coupe-file, nocturnes.'],
   ['Restaurant gastronomique','La carte plat par plat, le chef, la cave, les étoiles du guide, puis les bistrots.'],
@@ -13333,6 +13337,7 @@ const IB_NEWS=[
   ['Atelier de réparation','La file des appareils, les techniciens et leurs talents, le stock de pièces, le reconditionnement, la garantie et les avis.'],
   ['Boutique e-commerce','L’entonnoir visites, paniers, commandes ; trois canaux de publicité ; un catalogue aux tendances changeantes, en stock propre ou en expédition directe.'],
   ['Agence de recrutement','Les postes des clients, le vivier de candidats, le bon profil à proposer, l’intérim et les placements définitifs.'],
+  ['Fiche entreprise en onglets','Le résumé reste en haut, le reste est rangé en quatre onglets : Métier, Équipe, Finances, Réglages.'],
   ['Vos entreprises et votre club','Dans les finances du club : buvettes du stade (vos produits de la ferme), énergie du stade (vos centrales), tenues officielles (votre maison de couture), et votre smartphone en sponsor du maillot.'],
   ['Data center et cloud','Des salles de 20 baies louées à des clients avec une disponibilité garantie. Leurs serveurs chauffent : il faut refroidir (air, eau, naturel, immergé) et assez de puissance électrique, sinon c’est la panne et les remboursements. Votre usine d’électronique équipe les salles moins cher.'],
   ['Énergies renouvelables','Une carte de régions plus ou moins ensoleillées, ventées ou arrosées : autorisations, centrales solaires, éoliennes et hydrauliques. La météo fait la production, le prix change chaque jour : vente au prix du jour ou contrat d’un an, batteries pour stocker. Vos usines et data centers paient leur énergie moins cher.'],
@@ -13706,6 +13711,40 @@ MET.dc.html=function(b){
     (e? 'Votre smartphone se vend 15 % mieux, mais le club perd 25 % de ses sponsors.'+(lkPhoneHit(e)?' Il est meilleur que les rivaux : les maillots floqués rapportent 20 % en plus.':' S’il devient meilleur que les rivaux, les maillots floqués rapporteront en plus.') : 'Il faut une usine d’électronique avec un smartphone en vente.')+'</div></div>';
   return h+card('Vos entreprises et le club',c); }; }
 ACT.lkphsp=el=>after(lkSetPhSp(+el.dataset.v));
+
+/* ============================================================
+   FICHE ENTREPRISE EN ONGLETS
+   Un résumé toujours visible (illustration, chiffres clés, alertes, amélioration), puis
+   quatre onglets : Métier, Équipe, Finances, Réglages. La fiche est d'abord construite en entier
+   par les modules précédents ; on la range ensuite par onglet après chaque affichage.
+   Onglet choisi : ui.ft (gardé pendant la partie).
+   ============================================================ */
+const FT_TABS = [['met','Métier'],['eq','Équipe'],['fin','Finances'],['reg','Réglages']];
+function ftClassOf(el){
+  const c=el.classList, id=el.id, h=((el.querySelector('h2,h3')||{}).textContent||'').trim();
+  if(c.contains('bhero')||c.contains('bstats')||c.contains('notice')||c.contains('mini')||c.contains('bigup')) return 'top';
+  if(id==='bj-met') return 'met';
+  if(id==='bj-eq'||c.contains('qacts')||h==='Clients et équipe'||h==='Directeur du site') return 'eq';
+  if(c.contains('grid')&&/Flux du dernier jour/.test(el.textContent)) return 'fin';
+  if(h==='Ce qui fait vos ventes'||(c.contains('row')&&/Céder/.test(el.textContent))) return 'fin';
+  if(el.tagName==='SECTION'&&c.contains('card')&&!h) return 'eq';
+  return 'reg'; }
+function ftApply(){
+  if(!ui.modal||ui.modal.type!=='biz') return; const body=document.querySelector('.md .md-b'); if(!body||!body.querySelector('#bj-eq')||body.querySelector('.ft-tabs')) return;
+  const kids=[...body.children], cls=kids.map(ftClassOf), have=new Set(cls);
+  const tabs=FT_TABS.filter(([k])=>have.has(k)); if(tabs.length<2) return;
+  if(!ui.ft||!have.has(ui.ft)) ui.ft=tabs[0][0];
+  kids.forEach((el,i)=>{ if(cls[i]!=='top'&&cls[i]!==ui.ft) el.classList.add('ft-hide'); });
+  const nav=document.createElement('div'); nav.className='ft-tabs seg'; nav.setAttribute('role','tablist');
+  nav.innerHTML=tabs.map(([k,n])=>'<button role="tab" aria-selected="'+(ui.ft===k)+'" class="'+(ui.ft===k?'on':'')+'" data-a="fichetab" data-v="'+k+'">'+n+'</button>').join('');
+  /* résumé d'abord, puis la barre d'onglets, puis le reste dans l'ordre d'origine */
+  kids.forEach((el,i)=>{ if(cls[i]==='top') body.appendChild(el); }); body.appendChild(nav); kids.forEach((el,i)=>{ if(cls[i]!=='top') body.appendChild(el); });
+}
+{ const _r=render; render=function(){ const out=_r.apply(this,arguments); try{ ftApply(); }catch(e){ console.error(e); } return out; }; }
+ACT.fichetab=el=>{ ui.ft=el.dataset.v; const nav=document.querySelector('.ft-tabs'), md=document.querySelector('.md .md-b'), y=nav&&md? nav.offsetTop : 0; render();
+  const n2=document.querySelector('.ft-tabs'); if(n2&&md){ const box=document.querySelector('.md .md-b'); if(box&&box.scrollTop>n2.offsetTop) box.scrollTop=n2.offsetTop-8; } };
+/* les raccourcis (Personnel, Pilotage, Sécurité) ouvrent le bon onglet */
+{ const _j=ACT.jump; ACT.jump=el=>{ const id=el.dataset.i; if(ui.modal&&ui.modal.type==='biz'){ const t=document.getElementById(id); if(t&&t.classList.contains('ft-hide')){ ui.ft=ftClassOf(t); render(); } } const t2=document.getElementById(id); if(t2) t2.scrollIntoView({behavior:'smooth',block:'start'}); }; }
 
 
 </script>
