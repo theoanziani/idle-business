@@ -929,6 +929,15 @@ html,body{overflow-anchor:none}
 .rs-d small{display:block;font-size:11.5px;color:var(--ink-3);line-height:1.3}
 .rs-d.out{opacity:.55}
 .rs-d .btn{flex:none}
+.ht-t{display:flex;flex-direction:column;gap:6px}
+.ht-r{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--paper);border-radius:12px;padding:8px 10px}
+.ht-n{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.ht-n b{font-size:13.5px}
+.ht-n small{font-size:11.5px;color:var(--ink-3)}
+.ht-p{display:flex;align-items:center;gap:4px;flex:none}
+.ht-p span{display:flex;flex-direction:column;align-items:center;min-width:64px}
+.ht-p small{font-size:11px;color:var(--ink-3)}
+.ht-b{min-width:44px;min-height:44px;padding:0;font-size:18px}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -7110,13 +7119,13 @@ function setDelegation(b,mode,bud){
   if(bud!==undefined) b.dlb=clamp(+bud|0,0,2);
   return ok(mode? 'Délégation : '+DL_MODES[b.dl||'me'].n.toLowerCase()+'.' : 'Budget mis à jour.');
 }
-/* budget d'investissement du directeur : part des bénéfices des 30 derniers jours */
-function dlBudget(b){ const h=b.hist.slice(-30), s=h.reduce((a,x)=>a+x,0); return Math.max(0,s)*DL_BUD[b.dlb||0]; }
-function dlSpend(b,cost,label){ b.dls=b.dls||{m:-1,v:0}; const mo=Math.floor((S.day-1)/30); if(b.dls.m!==mo){ b.dls={m:mo,v:0}; }
-  if(b.dls.v+cost>dlBudget(b)) return false; if(!metBuy(b,cost,label)) return false; b.dls.v+=cost; return true; }
+/* réserve d'investissement du directeur : une part des bénéfices de chaque jour, plafonnée à un an de cette part */
+function dlBudget(b){ return Math.max(0,b.dlp||0); }
+function dlSpend(b,cost,label){ if(cost>dlBudget(b)) return false; if(!metBuy(b,cost,label)) return false; b.dlp=dlBudget(b)-cost; return true; }
 function dlDaily(b){
   const m=metOf(b); if(!m||!m.auto||b.status!=='active') return;
   const mode=dlMode(b); if(mode==='me') return;
+  if(mode==='full'&&b.last){ const add=DL_BUD[b.dlb||0]*Math.max(0,b.last.net); b.dlp=Math.min(dlBudget(b)+add, Math.max(dlBudget(b),add*360)); }
   try{ m.auto(b,mode,dlQuality(b)); }catch(e){ console.error(e); }
 }
 { const _ns=nextDay; nextDay=function(){ const ok=_ns(); if(ok){ try{ bizRetireStep(); S.biz.forEach(b=>{ mxDaily(b); dlDaily(b); }); }catch(e){ console.error(e); } } return ok; }; }
@@ -7402,7 +7411,7 @@ function rsInit(b){
 function rsFix(b){
   const m=b.m; if(!m||m.v===2) return;
   const n=rsInit(b); ['crit','stars','guide','log'].forEach(k=>{ if(m[k]!==undefined) n[k]=m[k]; });
-  n.best=n.stars; n.pm=Math.round(52*(b.price||1));
+  n.best=n.stars; n.pm=clamp(Math.round(52*(b.price||1)),RS_PMIN,RS_PMAX);
   if(m.carte===0) n.carte={e:['tartare'],p:['blanquette','poisson'],d:['creme']};
   else if(m.carte===2) n.carte={e:['veloute','oeuf','tartare'],p:['curry','blanquette','poisson','magret'],d:['mousse','creme','mochi']};
   if(m.prod) n.chef.lvl=3;
@@ -7430,6 +7439,8 @@ function rsCalc(b){
   return {app, cost, n, all, dqa:n?dq/n:0, inS:n?inS/n:0, capF, V, waste, ws, miss, variety, se};
 }
 const RS_EL=1.7;
+/* prix du menu : de 50 % en dessous à 50 % au-dessus du prix de base (52 €) */
+const RS_PM0=52, RS_PMIN=26, RS_PMAX=78;
 /* la salle et la cuisine ont une limite : au-delà, la demande ne se transforme plus en couverts */
 const rsSat = (d,cap) => { const c=1.8*cap; return d/Math.pow(1+Math.pow(d/c,3),1/3); };
 MET.resto = {
@@ -7444,7 +7455,7 @@ MET.resto = {
   rankSub:b=>{ const m=b.m, r=mxRank(b); if(r<3) return 'Les paliers 1 à 3 sont les étoiles du guide : il faut une note des critiques de '+RS_STAR[r+1]+' pour la '+(r?'prochaine':'première')+' étoile. Le guide passe tous les 45 jours.';
     if(r<5) return 'Avec trois étoiles obtenues, la maîtrise ('+Math.round(b.mx||0)+' / '+MX_STEPS[r===3?4:5]+') ouvre le palier suivant.'; return ''; },
   rank(b){ const m=b.m, x=b.mx||0, s=m.best||0; if(s<3) return s; return x>=MX_STEPS[5]? 5 : x>=MX_STEPS[4]? 4 : 3; },
-  mods(b){ rsFix(b); const m=b.m, p=rsCalc(b);
+  mods(b){ rsFix(b); const m=b.m; m.pm=clamp(m.pm,RS_PMIN,RS_PMAX); const p=rsCalc(b);
     const dem=Math.pow(Math.max(p.app,.5)/6.66,.8)*p.variety*1.03*Math.pow(p.V/m.pm,RS_EL)*(1+.06*m.stars)*(.9+.2*m.crit/100)*(m.tv?1.12:1);
     const srv=[.62,1][m.srv], resa=m.resa?.96:1;
     const chefSal=metR0(b)*RS_CHEF_SAL[m.chef.lvl];
@@ -7481,7 +7492,7 @@ MET.resto = {
             ['Saison', RS_SEAS[p.se], Math.max(0,Math.round(p.inS*100))+' % de plats de saison']];
   },
   ctl(b){ rsFix(b); const m=b.m, d=bizDef(b), R0=metR0(b), out=[], p=rsCalc(b);
-    out.push({k:'seg', act:'pm', label:'Prix du menu : '+eur(m.pm,0), val:'x', opts:[[-5,'−5 €'],[-1,'−1 €'],[1,'+1 €'],[5,'+5 €']], sub:'Valeur perçue de votre carte : environ '+eur(p.V,0)+'. Au-dessus, la salle se vide.'});
+    out.push({k:'seg', act:'pm', label:'Prix du menu : '+eur(m.pm,0), val:'x', opts:[[-5,'−5 €'],[-1,'−1 €'],[1,'+1 €'],[5,'+5 €']], sub:'Valeur perçue de votre carte : environ '+eur(p.V,0)+'. Au-dessus, la salle se vide. Prix possible : '+eur(RS_PMIN,0)+' à '+eur(RS_PMAX,0)+'.'});
     out.push({k:'seg', act:'srv', label:'Services', val:m.srv, opts:[[0,'Le soir seulement'],[1,'Midi et soir']], sub:m.srv? 'Deux services : plus de couverts, toute l’équipe mobilisée.' : 'Un seul service : 38 % de couverts en moins, salaires réduits de 20 %.'});
     out.push({k:'tog', act:'resa', label:'Sur réservation uniquement', val:m.resa, sub:'Moins de pertes (−2 points) et les critiques apprécient (+3), mais 4 % de clients en moins.'});
     out.push({k:'btn', act:'cave', label:'Cave : vins de la maison', cost:R0*.9, sub:(m.cave>0? 'Stock pour '+m.cave+' jours de service.' : 'Cave vide.')+' Les accords mets-vins rapportent 12 € de plus par couvert.'});
@@ -7497,7 +7508,7 @@ MET.resto = {
     return out;
   },
   acts:{
-    pm:(b,v)=>{ b.m.pm=clamp(b.m.pm+(+v||0),20,400); return ok('Menu à '+eur(b.m.pm,0)+'.'); },
+    pm:(b,v)=>{ b.m.pm=clamp(b.m.pm+(+v||0),RS_PMIN,RS_PMAX); return ok('Menu à '+eur(b.m.pm,0)+'.'); },
     srv:(b,v)=>{ b.m.srv=+v?1:0; return ok(''); },
     resa:(b,v)=>{ b.m.resa=+v?1:0; return ok(''); },
     acc:(b,v)=>{ if(+v&&b.m.cave<=0) return err('La cave est vide.'); b.m.acc=+v?1:0; return ok(''); },
@@ -7530,11 +7541,11 @@ function rsHire(b,i,auto){ const c=rsCands(b)[i]; if(!c) return err('Candidat in
 /* meilleur prix de menu d'après la fréquentation actuelle */
 function rsBestPm(b){ const m=b.m, p=rsCalc(b), cv=p.cost*(1+p.waste)+(p.ws?5:0); let best=m.pm, bv=-Infinity;
   const d0=Math.pow(Math.max(p.app,.5)/6.66,.8)*p.variety*1.03*(1+.06*m.stars)*(.9+.2*m.crit/100)*(m.tv?1.12:1), srv=[.62,1][m.srv];
-  for(let t=20;t<=Math.max(120,p.V*2);t+=1){ const v=rsSat(d0*Math.pow(p.V/t,RS_EL)*srv,p.capF*srv)*(t+p.ws-cv); if(v>bv){ bv=v; best=t; } } return best; }
+  for(let t=RS_PMIN;t<=RS_PMAX;t+=1){ const v=rsSat(d0*Math.pow(p.V/t,RS_EL)*srv,p.capF*srv)*(t+p.ws-cv); if(v>bv){ bv=v; best=t; } } return best; }
 /* le chef de cuisine adapte la carte aux saisons */
 function rsAuto(b,mode,q){
   rsFix(b); const m=b.m, se=rsSeason();
-  if(S.day%3===0){ const t=rsBestPm(b)+Math.round((1-q)*8*(rnd()-.5)); m.pm=clamp(m.pm+clamp(t-m.pm,-3,3),20,400); }
+  if(S.day%3===0){ const t=rsBestPm(b)+Math.round((1-q)*8*(rnd()-.5)); m.pm=clamp(m.pm+clamp(t-m.pm,-3,3),RS_PMIN,RS_PMAX); }
   if(S.day%7===0){
     m.resa=1; if(mxHas(b,2)) m.deg=1; if(m.cave<8&&metBuy(b,metR0(b)*.9,'Cave : vins de la maison')) m.cave+=30; m.acc=m.cave>0?1:0;
     const score=x=>x.p*rsQ(b,x)+(x.d*rsQ(b,x))*.4-(x.s&&x.s!==se?4:0)-(m.out[x.id]>S.day?9:0);
@@ -7545,8 +7556,155 @@ function rsAuto(b,mode,q){
   }
   if(mode!=='full'||S.day%14!==0) return;
   const cs=rsCands(b), better=cs.map((c,i)=>[c,i]).filter(([c])=>c.lvl>m.chef.lvl).sort((a,c)=>a[0].lvl-c[0].lvl)[0];
-  if(better&&rsChefFee(b,better[0])<=dlBudget(b)*3){ rsHire(b,better[1],false); return; } /* un bon chef vaut quelques mois d'investissement */
+  if(better&&rsChefFee(b,better[0])<=dlBudget(b)){ rsHire(b,better[1],true); return; }
   if(mxHas(b,4)) rsBistro(b,true);
+}
+
+/* ============================================================
+   HÔTEL / RESORT DE LUXE : remplir au meilleur prix
+   Quatre types de chambres, chacun avec son prix, qui suit (ou non) la demande du jour.
+   On peut vendre plus de chambres qu'on n'en a (surréservation) : les clients qui ne viennent
+   pas compensent, sinon il faut reloger les clients en trop dans un autre hôtel, à vos frais.
+   Systèmes : plateformes de réservation (plus de clients, commission), avis des clients,
+   mariages et séminaires, spa et restaurant.
+   Paliers : 4 étoiles, mariages et séminaires, 5 étoiles, palace, resorts à l'étranger.
+   État b.m (v:2) : st (étoiles), px {type: multiplicateur du prix}, dyn, ob (surréservation),
+   pl (plateformes), av (note /5), spa, resto, salles, mar, sem, pal, pres, rs, ev, y (veille).
+   Les montants affichés sont en euros du jeu : le nombre de chambres suit le chiffre
+   d'affaires de base (k = R0 / chiffre d'affaires de référence).
+   ============================================================ */
+const HT_T = [
+  {id:'std', n:'Standard', N:24, P:260, e:2.4},
+  {id:'sup', n:'Supérieure', N:10, P:420, e:2.2},
+  {id:'ste', n:'Suite', N:5, P:850, e:2.0},
+  {id:'pre', n:'Présidentielle', N:1, P:3500, e:1.8}
+];
+const HT_OCC=.70, HT_DEM=.84, HT_NS=.07, HT_COM=.18;
+const HT_REF1 = HT_T.reduce((a,t)=>a+(t.id==='pre'?0:t.N)*HT_OCC*t.P,0);
+/* taille de l'hôtel : le nombre de chambres suit le chiffre d'affaires de base de l'emplacement */
+const htSz = b => Math.max(1,Math.round(metR0(b)/(HT_REF1*(b.lvl||1))));
+const htRef = b => HT_REF1*(b.lvl||1)*htSz(b);
+function htInit(b){ return {v:2, st:3, px:{std:1,sup:1,ste:1,pre:1}, dyn:0, ob:0, pl:0, av:4, spa:0, resto:0, salles:0, mar:0, sem:0, pal:0, pres:0, rs:0, ev:null, y:null, log:[]}; }
+function htFix(b){ const m=b.m; if(!m||m.v===2) return;
+  const n=htInit(b); n.st=clamp(m.stars||4,3,5); n.spa=m.spa?1:0; n.salles=m.semi?1:0; n.sem=m.semi?1:0; n.dyn=m.yield?1:0; if(m.log) n.log=m.log;
+  const p=clamp(b.price||1,.8,1.3); Object.keys(n.px).forEach(k=>n.px[k]=p); b.m=n; b.price=1; b.mkt=0; }
+function htRooms(b,t){ return t.id==='pre'? (b.m.pres? b.lvl||1 : 0) : t.N*(b.lvl||1)*htSz(b); }
+function htSeason(b){ const C=cityOf(b), tour=(C.idx&&C.idx.tour)||3; return metSeason(.12+.04*tour)*(festOf(b.city).names.length?1.15:1); }
+function htStarP(m){ return (1+.18*(m.st-4))*(m.pal?1.15:1)*(m.spa?1.06:1); }
+/* demande du jour pour un type, au prix de référence */
+function htDemand(b,t,day){ const m=b.m, N=htRooms(b,t); if(!N) return 0;
+  const we=isWE(day||S.day), ev=m.ev&&m.ev.until>=S.day? m.ev : null;
+  let f=HT_DEM*htSeason(b)*(1-.04*(m.st-4))*(1+.25*(m.av-4))*(m.pl? 1.3 : 1);
+  if(m.sem&&!we&&(t.id==='std'||t.id==='sup')) f*=1.08;
+  if(ev&&ev.k==='salon') f*=1.5; if(ev&&ev.k==='star'&&(t.id==='ste'||t.id==='pre')) f*=1.4;
+  return N*f;
+}
+/* résultat d'un type pour un multiplicateur de prix donné (sans hasard) */
+function htSim(b,t,mult,ns){ const m=b.m, N=htRooms(b,t); if(!N) return {N:0,occ:0,rel:0,rev:0,price:0};
+  const price=t.P*htStarP(m)*mult, dem=htDemand(b,t)*Math.pow(1/mult,t.e);
+  const booked=Math.min(dem,N*(1+m.ob)), arr=booked*(1-(ns===undefined?HT_NS:ns)), occ=Math.min(arr,N), rel=Math.max(0,arr-N);
+  const com=m.pl? HT_COM*.3/1.3 : 0;
+  return {N, occ, rel, price, rev:occ*price*(1-com)};
+}
+/* coût d'une chambre occupée (ménage, linge, accueil) */
+function htRoomCost(b,t){ return .45*t.P*(1+(b.m.st-4)*.08); }
+function htBestMult(b,t){ let best=1, bv=-Infinity; for(let x=.6;x<=1.8001;x+=.05){ const r=htSim(b,t,x); const v=r.rev-r.rel*r.price*1.3-r.occ*htRoomCost(b,t); if(v>bv){ bv=v; best=Math.round(x*100)/100; } } return best; }
+function htCalc(b){ const m=b.m; let rev=0, occ=0, N=0, rel=0, rows=[];
+  HT_T.forEach(t=>{ const r=htSim(b,t,m.px[t.id]); rows.push(Object.assign({t},r)); rev+=r.rev; occ+=r.occ; N+=r.N; rel+=r.rel*r.price*1.3; });
+  return {rev, occ, N, relCost:rel, rows, k:metR0(b)/Math.max(1,htRef(b))};
+}
+MET.hotel = {
+  fam:'resto', core:true, init:htInit, fix:htFix,
+  ranks:[
+    {n:'Quatre étoiles', d:'Le classement 4 étoiles et la surréservation sont disponibles.'},
+    {n:'Mariages et séminaires', d:'Des salles de réception pour les mariages du week-end et les séminaires en semaine.'},
+    {n:'Cinq étoiles', d:'Le classement 5 étoiles et la suite présidentielle.'},
+    {n:'Palace', d:'La distinction Palace, pour un hôtel 5 étoiles noté au moins 4,5 par ses clients.'},
+    {n:'Resorts à l’étranger', d:'Ouvrez des resorts sous votre marque dans les grandes destinations.'}
+  ],
+  mods(b){ htFix(b); const m=b.m, c=htCalc(b), ref=htRef(b);
+    const restoRev= m.resto? c.occ*38*c.k : 0;
+        return { vol:1, price:c.rev/ref, cogs:Math.max(.05,c.rows.reduce((a,r)=>a+r.occ*htRoomCost(b,r.t),0)/(.45*ref))+(m.resto?.12:0),
+      fixed: c.relCost*c.k + metR0(b)*((m.spa?.012:0)+(m.resto?.01:0)+(m.salles?.005:0)),
+      rev: restoRev*.6 + (m.rs? metR0(b)*.3*m.rs*clamp(1+.25*(m.av-4),.5,1.4) : 0) + htEventRev(b) };
+  },
+  daily(b,ctx){ htFix(b); const m=b.m, c=htCalc(b);
+    if(m.dyn) HT_T.forEach(t=>{ m.px[t.id]=htBestMult(b,t); });
+    /* la veille : pour l'affichage */
+    m.y={occ:c.N? c.occ/c.N : 0, rel:Math.round(c.rows.reduce((a,r)=>a+r.rel,0)), rows:c.rows.map(r=>({id:r.t.id, o:r.N? r.occ/r.N:0}))};
+    /* avis */
+    const value=c.rows.reduce((a,r)=>a+(r.N? r.occ*(m.px[r.t.id]-1) : 0),0)/Math.max(1,c.occ);
+    const tgt=3.8+.2*(m.st-3)+(m.spa?.15:0)+(m.resto?.15:0)+(csOf(b)-60)/80-(m.y.rel/Math.max(1,c.N))*12-Math.max(0,value)*.8-(fatOf(b)>55?.3:0);
+    m.av=clamp(m.av+(tgt-m.av)*.03+.02*norm(),1,5);
+    /* événements */
+    if(m.ev&&m.ev.until<S.day) m.ev=null;
+    if(ctx.open&&!m.ev){ const r=rnd();
+      if(r<.008){ m.ev={k:'salon', until:S.day+4}; metLog(b,'un salon international remplit la ville : +50 % de demande pendant 4 jours. Les prix dynamiques en profitent.','good'); }
+      else if(r<.012&&m.st>=4){ m.ev={k:'star', until:S.day+5}; m.av=clamp(m.av+.1,1,5); metLog(b,'une célébrité séjourne à l’hôtel : les suites s’arrachent pendant 5 jours.','good'); }
+      else if(r<.016&&m.av<3.8){ m.av=clamp(m.av-.4,1,5); metLog(b,'un mauvais avis devient viral : la note des clients chute.','bad'); } }
+    if(m.y.rel>0&&rnd()<.3) metLog(b,m.y.rel+' client'+(m.y.rel>1?'s':'')+' relogé'+(m.y.rel>1?'s':'')+' dans un autre hôtel, à vos frais : la surréservation était trop forte.','warn');
+    if(m.pal&&(m.av<4.3||m.st<5)){ m.pal=0; metLog(b,'la distinction Palace vous est retirée : la note des clients est trop basse.','bad'); }
+  },
+  kpis(b){ htFix(b); const m=b.m, c=htCalc(b), rp=c.N? c.rev/c.N*c.k : 0;
+    return [['Taux d’occupation', Math.round((c.N?c.occ/c.N:0)*100)+' %', c.N+' chambres · '+'★'.repeat(m.st)+(m.pal?' Palace':'')],
+            ['Revenu par chambre', eur(rp,0), 'Par nuit, chambres vides comprises'],
+            ['Note des clients', m.av.toFixed(1).replace('.',',')+' / 5', m.av>=4.5?'Excellente':m.av>=4?'Très bonne':m.av>=3.5?'Correcte':'Décevante'],
+            ['Saison', metSeasonName(), m.ev&&m.ev.until>=S.day? (m.ev.k==='salon'?'Salon international en ville':'Une célébrité séjourne ici') : festOf(b.city).names.length? 'Fête en ville : '+festOf(b.city).names[0] : 'Tourisme '+'★'.repeat((cityOf(b).idx&&cityOf(b).idx.tour)||3)]];
+  },
+  ctl(b){ htFix(b); const m=b.m, d=bizDef(b), R0=metR0(b), out=[];
+    out.push({k:'tog', act:'dyn', label:'Prix dynamiques', val:m.dyn, sub:'Chaque jour, le prix de chaque type de chambre s’ajuste à la demande (saison, salons, avis).'});
+    out.push({k:'tog', act:'pl', label:'Plateformes de réservation', val:m.pl, sub:'+30 % de demande, mais les plateformes prennent 18 % sur leurs réservations.'});
+    if(mxHas(b,1)) out.push({k:'seg', act:'ob', label:'Surréservation', val:Math.round(m.ob*100), opts:[[0,'Aucune'],[5,'5 %'],[10,'10 %'],[15,'15 %']], sub:'Environ 7 % des clients ne viennent pas. Au-delà, il faut reloger les clients en trop dans un autre hôtel (130 % du prix de la nuit), et les avis baissent.'});
+    if(mxHas(b,1)&&m.st<4) out.push({k:'btn', act:'star', label:'Passer à 4 étoiles', cost:d.cost*.35, sub:'La nuit se vend 18 % plus cher, pour une clientèle un peu plus réduite.'});
+    if(mxHas(b,3)&&m.st===4) out.push({k:'btn', act:'star', label:'Passer à 5 étoiles', cost:d.cost*.5, sub:'La nuit se vend 18 % plus cher, pour une clientèle un peu plus réduite.'});
+    out.push(m.spa? {k:'buy', act:'spa', label:'Spa et bien-être', owned:true, sub:'Les nuits se vendent 6 % plus cher et les avis montent.'} : {k:'buy', act:'spa', label:'Spa et bien-être', cost:d.cost*.3, sub:'Les nuits se vendent 6 % plus cher et les avis montent. Entretien quotidien.'});
+    out.push(m.resto? {k:'buy', act:'resto', label:'Restaurant de l’hôtel', owned:true, sub:'Les clients dînent sur place.'} : {k:'buy', act:'resto', label:'Restaurant de l’hôtel', cost:d.cost*.15, sub:'Les clients dînent sur place : une recette par chambre occupée, et de meilleurs avis.'});
+    if(mxHas(b,2)){ if(!m.salles) out.push({k:'buy', act:'salles', label:'Salles de réception', cost:d.cost*.2, sub:'Pour accueillir mariages et séminaires.'});
+      else { out.push({k:'tog', act:'mar', label:'Mariages le samedi', val:m.mar, sub:'Environ '+eur(R0*.6,0)+' par mariage, une partie des chambres réservée aux invités.'});
+             out.push({k:'tog', act:'sem', label:'Séminaires en semaine', val:m.sem, sub:'Environ '+eur(R0*.06,0)+' par jour de semaine et +8 % de demande pour les chambres standard et supérieures.'}); } }
+    if(mxHas(b,3)) out.push(m.pres? {k:'buy', act:'pres', label:'Suite présidentielle', owned:true, sub:'Une suite par niveau de l’hôtel.'} : {k:'buy', act:'pres', label:'Suite présidentielle', cost:d.cost*.25, sub:'Une suite par niveau de l’hôtel, à 3 500 € la nuit au prix de base.'});
+    if(mxHas(b,4)) out.push(m.pal? {k:'buy', act:'pal', label:'Distinction Palace', owned:true, sub:'Nuits 15 % plus chères. Retirée si la note passe sous 4,3.'} : {k:'btn', act:'pal', label:'Demander la distinction Palace', cost:d.cost*.4, dis:m.st<5||m.av<4.5, sub:'Il faut 5 étoiles et une note des clients d’au moins 4,5 (actuellement '+m.av.toFixed(1).replace('.',',')+').'});
+    if(mxHas(b,5)) out.push({k:'btn', act:'rs', label:'Ouvrir un resort à l’étranger ('+m.rs+' sur 3)', cost:d.cost*1.2*(1+m.rs*.5), dis:m.rs>=3, sub:'Chaque resort rapporte environ '+eur(R0*.3,0)+' par jour, selon la note des clients de la marque.'});
+    return out;
+  },
+  acts:{
+    dyn:(b,v)=>{ b.m.dyn=+v?1:0; return ok(''); },
+    pl:(b,v)=>{ b.m.pl=+v?1:0; return ok(''); },
+    ob:(b,v)=>{ if(!mxHas(b,1)) return err('Palier 1 requis.'); b.m.ob=clamp(+v||0,0,15)/100; return ok('Surréservation : '+Math.round(b.m.ob*100)+' %.'); },
+    px:(b,arg)=>{ const [id,dv]=String(arg).split(':'); if(!b.m.px[id]) return err('Type inconnu.'); b.m.px[id]=clamp(Math.round((b.m.px[id]+(+dv||0))*100)/100,.6,1.8); b.m.dyn=0; return ok(''); },
+    star:(b)=>htStar(b,false),
+    spa:(b)=>htBuy(b,'spa',.3,'Spa',0,false),
+    resto:(b)=>htBuy(b,'resto',.15,'Restaurant de l’hôtel',0,false),
+    salles:(b)=>htBuy(b,'salles',.2,'Salles de réception',2,false),
+    pres:(b)=>htBuy(b,'pres',.25,'Suite présidentielle',3,false),
+    mar:(b,v)=>{ if(!b.m.salles) return err('Construisez d’abord les salles.'); b.m.mar=+v?1:0; return ok(''); },
+    sem:(b,v)=>{ if(!b.m.salles) return err('Construisez d’abord les salles.'); b.m.sem=+v?1:0; return ok(''); },
+    pal:(b)=>{ const m=b.m; if(!mxHas(b,4)) return err('Palier 4 requis.'); if(m.pal) return err('Déjà Palace.'); if(m.st<5||m.av<4.5) return err('Il faut 5 étoiles et une note de 4,5.');
+      const c=bizDef(b).cost*.4; if(!metBuy(b,c,'Distinction Palace')) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m.pal=1; metLog(b,'l’hôtel reçoit la distinction Palace.','good'); return ok('Distinction Palace obtenue.'); },
+    rs:(b)=>htResort(b,false)
+  },
+  auto: htAuto
+};
+function htEventRev(b){ const m=b.m, R0=metR0(b), wd=wdOf(S.day); let r=0;
+  if(m.salles&&m.mar&&wd===5) r+=R0*.6; if(m.salles&&m.sem&&wd<5) r+=R0*.06; return r; }
+function htStar(b,auto){ const m=b.m; const ok4=m.st===3&&mxHas(b,1), ok5=m.st===4&&mxHas(b,3); if(!ok4&&!ok5) return err(m.st>=5?'Classement maximal.':'Palier de maîtrise insuffisant.');
+  const c=bizDef(b).cost*(m.st===3?.35:.5); if(!(auto? dlSpend(b,c,'Montée en gamme') : metBuy(b,c,'Montée en gamme'))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  m.st++; metLog(b,'l’hôtel obtient sa '+m.st+'e étoile.','good'); return ok('Classement : '+m.st+' étoiles.'); }
+function htBuy(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.');
+  const c=bizDef(b).cost*f; if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  m[k]=1; if(k==='salles'){ m.sem=1; } metLog(b,(auto?'le directeur ouvre : ':'nouveau : ')+label.toLowerCase()+'.','good'); return ok(label+' : c’est fait.'); }
+function htResort(b,auto){ const m=b.m; if(!mxHas(b,5)) return err('Palier 5 requis.'); if(m.rs>=3) return err('Trois resorts au maximum.');
+  const c=bizDef(b).cost*1.2*(1+m.rs*.5); if(!(auto? dlSpend(b,c,'Resort à l’étranger') : metBuy(b,c,'Resort à l’étranger'))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  m.rs++; metLog(b,'un resort ouvre sous votre marque ('+m.rs+' sur 3).','good'); return ok('Resort ouvert.'); }
+/* le directeur de l'hôtel fixe les prix et la surréservation */
+function htAuto(b,mode,q){
+  htFix(b); const m=b.m;
+  m.dyn=1; if(mxHas(b,1)) m.ob= q>.7? .07 : q>.45? .05 : 0;
+  if(S.day%7===0){ const c=htCalc(b); m.pl= c.N&&c.occ/c.N<.78? 1 : 0; if(m.salles){ m.sem=1; m.mar=1; } }
+  if(mode!=='full'||S.day%14!==0) return;
+  if(m.st<5&&htStar(b,true).ok) return;
+  for(const [k,f,l,rk] of [['spa',.3,'Spa',0],['resto',.15,'Restaurant de l’hôtel',0],['salles',.2,'Salles de réception',2],['pres',.25,'Suite présidentielle',3]]){ if(!m[k]&&mxHas(b,rk)){ if(htBuy(b,k,f,l,rk,true).ok) return; } }
+  if(mxHas(b,5)) htResort(b,true);
 }
 
 /* ============================================================
@@ -8497,7 +8655,7 @@ function renderNav(){
   const badge={bank:S.bank.lic&&S.bank.apps.length&&bankOpen()?S.bank.apps.length:0, pol:S.bills.length&&!S.country?S.bills.length:0, rivals:rivBadge()};
   const item=(k,t,act)=>'<button class="nv '+(act?'act':'')+'" data-a="tab" data-i="'+k+'" '+(act?'aria-current="page"':'')+'>'+icon(k)+'<span class="lb">'+t+'</span>'+(badge[k]?'<i>'+badge[k]+'</i>':'')+'</button>';
   const B=navBar(), L=B.l, R=B.r, pins=L.concat(R), shown=['home','biz','plus'].concat(pins);
-  const lab=k=>NAVSHORT[k];
+  const lab=k=>NAVSHORT[k]||((MENU.find(x=>x[0]===k)||[])[1])||k;
   $('#nav').className=pins.length>2?'dense':'';
   $('#nav').innerHTML='<div class="nv-g">'+L.map(k=>item(k,lab(k),ui.tab===k)).join('')+item('biz',lab('biz'),ui.tab==='biz')+'</div>'+
     '<div class="nv-c">'+item('home',lab('home'),ui.tab==='home')+'</div>'+
@@ -10344,6 +10502,7 @@ function metCard(b){
    ============================================================ */
 ICON.foot='<circle cx="12" cy="12" r="9"/><path d="M12 7.5l4 2.9-1.5 4.7h-5L8 10.4zM12 3v4.5M16 10.4l4.3-1.4M14.5 15.1l2.7 3.7M9.5 15.1l-2.7 3.7M8 10.4L3.7 9"/>';
 MENU.splice(MENU.findIndex(x=>x[0]==='guide'),0,['foot','Football','']);
+NAVSHORT.foot='Football';
 MGROUPS.splice(MGROUPS.findIndex(g=>g[0]==='Aide'),0,['Sport',['foot']]);
 MDESC.foot='Championnats, coupes, clubs';
 
@@ -10656,6 +10815,7 @@ ACT.fmend=()=>{ const L=FOOT_LIVE; if(!L) return; L.pause=0; L.after=null; L.fla
    ============================================================ */
 ICON.club='<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>';
 MENU.splice(MENU.findIndex(x=>x[0]==='foot')+1,0,['club','Mon club','']);
+NAVSHORT.club='Mon club';
 MGROUPS.find(g=>g[0]==='Sport')[1].push('club');
 MDESC.club='Votre club : effectif, matchs, mercato';
 
@@ -10937,7 +11097,7 @@ function dlHtml(b){
     (x? '<div class="sub">'+esc(x.name)+' · compétence moyenne '+bossAvg(x).toFixed(1)+' / 10. Un meilleur directeur prend de meilleures décisions.</div>' : '<div class="sub">Aucun directeur : recrutez-en un dans la section « Directeur de site » de cette fiche.</div>')+
     '<div class="seg">'+Object.keys(DL_MODES).map(k=>'<button class="'+(md===k?'on':'')+'" data-a="dlset" data-i="'+b.id+'" data-v="'+k+'"'+(k!=='me'&&!x?' disabled':'')+'>'+DL_MODES[k].n+'</button>').join('')+'</div>'+
     '<div class="sub">'+DL_MODES[md].d+'</div>'+
-    (md==='full'? '<div class="row"><span class="sub">Investissement</span><div class="seg">'+['10 %','25 %','50 %'].map((n,k)=>'<button class="'+((b.dlb||0)===k?'on':'')+'" data-a="dlbud" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div></div><div class="sub">Part des bénéfices des 30 derniers jours qu’il peut dépenser chaque mois : '+eur(dlBudget(b),0)+' en ce moment.</div>' : '')+
+    (md==='full'? '<div class="row"><span class="sub">Investissement</span><div class="seg">'+['10 %','25 %','50 %'].map((n,k)=>'<button class="'+((b.dlb||0)===k?'on':'')+'" data-a="dlbud" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div></div><div class="sub">Part des bénéfices mise de côté chaque jour pour ses investissements. Réserve actuelle : '+eur(dlBudget(b),0)+'.</div>' : '')+
     '</div>';
 }
 ACT.dlset=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b) after(setDelegation(b,el.dataset.v)); };
@@ -11044,6 +11204,20 @@ MET.resto.html=function(b){
   return h;
 };
 ACT.rssel=el=>{ const v=el.dataset.v; ui.rs= v? {b:+el.dataset.i,k:v} : null; render(); };
+
+/* ============================================================
+   HÔTEL : les chambres et leurs prix dans la fiche
+   ============================================================ */
+MET.hotel.html=function(b){
+  htFix(b); const m=b.m, c=htCalc(b);
+  const B=(lab,arg,l)=>'<button class="btn sm ghost ht-b" data-a="met" data-i="'+b.id+'" data-v="px" data-j="'+arg+'" aria-label="'+esc(l)+'">'+lab+'</button>';
+  let h='<div class="pk-head"><b>Les chambres</b><span class="sub">'+(m.dyn?'Prix dynamiques : ajustés chaque jour':'Prix fixés par vous')+'</span></div><div class="ht-t">';
+  c.rows.forEach(r=>{ if(!r.N) return; const t=r.t, o=m.y&&m.y.rows? (m.y.rows.find(x=>x.id===t.id)||{}).o : r.occ/r.N;
+    h+='<div class="ht-r"><div class="ht-n"><b>'+t.n+'</b><small>'+r.N+' chambre'+(r.N>1?'s':'')+' · occupées à '+Math.round((o||0)*100)+' %</small>'+bar(o||0,o>.9?'g':o>.6?'':'a')+'</div>'+
+      '<div class="ht-p">'+B('−',t.id+':-0.05','Baisser le prix '+t.n)+'<span><b class="num">'+eur(r.price*c.k,0)+'</b><small>'+Math.round(m.px[t.id]*100)+' %</small></span>'+B('+',t.id+':0.05','Monter le prix '+t.n)+'</div></div>'; });
+  h+='</div><div class="sub">Changer un prix à la main désactive les prix dynamiques. Les clients comparent le prix au classement, au spa et à la note des avis.</div>';
+  return h;
+};
 
 
 </script>
