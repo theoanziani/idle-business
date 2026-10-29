@@ -967,9 +967,15 @@ html,body{overflow-anchor:none}
 .ga-cur{background:var(--paper);border-radius:16px;padding:16px;text-align:center;display:flex;flex-direction:column;gap:4px}
 .ga-cur b{font-size:17px}
 .ga-price{font-size:30px;font-weight:800;margin-top:6px}
-.ga-who{font-weight:700;color:var(--ink-2);min-height:22px}.ga-who.ok{color:var(--good,#1e8a4c)}.ga-who.ko{color:var(--bad,#c0392b)}
+.ga-who{font-weight:700;color:var(--ink-2);min-height:22px}.ga-who.ok{color:var(--green)}.ga-who.ko{color:var(--red)}
 .ga-res{gap:8px;align-items:center}.ga-res small{flex:none}.ga-res .seg{flex:1}
 .ga-amb{font-size:12px;color:var(--ink-3);margin-top:4px}
+/* promotion */
+.pr-op{display:flex;flex-direction:column;gap:10px}
+.pr-steps{display:flex;gap:4px;flex-wrap:wrap}
+.pr-steps span{font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;background:var(--paper);color:var(--ink-3)}
+.pr-steps span.done{color:var(--ink-2)}
+.pr-steps span.on{background:var(--blue);color:var(--blue-ink)}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -9128,6 +9134,141 @@ function gaAuto(b,mode,q){ const m=b.m, R0=metR0(b);
 }
 
 /* ============================================================
+   PROMOTION IMMOBILIÈRE : les opérations par étapes
+   Terrain → étude du programme → permis de construire → ventes sur plan → chantier → livraison.
+   Les ventes sur plan financent le chantier : on peut le lancer dès 30 % de surface vendue,
+   ou plus tôt avec un crédit promoteur (intérêts au taux de la banque centrale + 2 points).
+   Recettes : 20 % du prix à la signature, 70 % au fil du chantier, 10 % à la livraison.
+   Événements : recours de riverains (permis), hausse des taux (événement du jeu), retard de livraison.
+   Paliers : programmes mixtes, écoquartier, plusieurs villes, tour, quartier neuf.
+   Lien : votre société de construction réduit le coût (−12 %) et la durée (−25 %) des chantiers.
+   Unités : une parcelle de taille s porte 3 000 m² × s × densité ; prix et coûts sont exprimés en R0.
+   État b.m (v:1) : ops[] (opérations), land[] (terrains proposés), mk{} (marchés), landNext,
+   idle, nid, acc, accC, pend, pendC, done (opérations livrées), log.
+   ============================================================ */
+const PR_PROG = {res:{n:'Résidentiel', mix:{log:1}, rk:0}, mix:{n:'Mixte', mix:{log:.6,bur:.25,com:.15}, rk:1}, bur:{n:'Bureaux', mix:{log:.15,bur:.85}, rk:1}};
+const PR_TYPE = {log:{n:'Logements', p:1, v:1, c:1}, bur:{n:'Bureaux', p:1.1, v:.85, c:1.08}, com:{n:'Commerces', p:1.3, v:.6, c:1}};
+const PR_DENS = [{n:'Modeste', f:.7, r:.7, pd:0, cd:.9},{n:'Standard', f:1, r:1, pd:0, cd:1},{n:'Dense', f:1.4, r:2, pd:15, cd:1.15},{n:'Tour', f:3, r:2.5, pd:45, cd:1.6, rk:4}];
+const PR_ST = ['Terrain','Permis','Ventes sur plan','Chantier','Livraison'];
+const PR_LANDT = ['friche industrielle','ancien garage','terrain à bâtir','parking désaffecté','ancienne caserne','entrepôt à démolir','ancien centre commercial'];
+const PR_K = {land:55, sale:270, build:120};
+function prInit(b){ const m={v:1, ops:[], land:[], mk:{log:{v:1,d:0}, bur:{v:1,d:0}, com:{v:1,d:0}}, landNext:0, idle:0, nid:1, acc:0, accC:0, pend:0, pendC:0, done:0, log:[]}; b.m=m;
+  prLand(b);
+  /* une entreprise déjà ouverte reprend avec une opération en cours (ventes déjà signées) */
+  if(b.hist&&b.hist.length>5){ const L=m.land[0], o={id:m.nid++, n:L.n, city:L.city, cn:L.cn, s:L.s, q:L.q, r:L.r, lp:L.price, prog:'res', dens:1, eco:0, stage:'chantier', d0:S.day-200, pr:1, sold:.5, sv:0, rec:0, cp:.5, loan:0};
+    o.sv=.5*prVal(b,o); o.rec=o.sv*.55; o.cc=prCost(b,o); o.cd=prDur(o); m.ops.push(o); m.land.shift(); }
+  return m; }
+function prCityAvg(cid){ const C=D.CITIES[cid]; return C.d.reduce((a,x)=>a+x.p,0)/C.d.length; }
+function prLand(b){ const m=b.m, R0=metR0(b), home=prCityAvg(b.city);
+  m.land=[]; const cities=[b.city]; if(mxHas(b,3)) Object.keys(D.CITIES).filter(c=>c!==b.city&&cityUnlocked(c)&&!D.CITIES[c].parent).slice(0,4).forEach(c=>cities.push(c));
+  for(let i=0;i<3+(mxHas(b,3)?1:0);i++){ const cid=i===0?b.city:pick(cities), C=D.CITIES[cid], dq=pick(C.d), big=mxHas(b,5)&&i===3-(mxHas(b,3)?0:1)&&rnd()<.5;
+    const s=big? 4+2*rnd() : .6+rnd(), q=clamp(Math.sqrt(dq.p/home),.6,1.6);
+    m.land.push({id:m.nid++, n:(big?'Grand terrain pour un quartier neuf':cap1(pick(PR_LANDT)))+' · '+dq.n, city:cid, cn:C.n, s, q, r:.06+.22*rnd(), price:R0*PR_K.land*s*q*(.85+.3*rnd()), big}); }
+  m.landNext=S.day+30; }
+function cap1(t){ return t.charAt(0).toUpperCase()+t.slice(1); }
+function prSurf(o){ return 3000*o.s*PR_DENS[o.dens].f; }
+/* prix de marché de toute l'opération (avant réglage du prix) */
+function prVal(b,o){ const R0=metR0(b), mix=PR_PROG[o.prog].mix;
+  return R0*PR_K.sale*o.s*PR_DENS[o.dens].f*o.q*(o.eco?1.15:1)*Object.keys(mix).reduce((a,t)=>a+mix[t]*PR_TYPE[t].p*Math.sqrt(b.m.mk[t].v),0); }
+function prCost(b,o){ const R0=metR0(b), mix=PR_PROG[o.prog].mix, D_=PR_DENS[o.dens];
+  return R0*PR_K.build*o.s*D_.f*(o.dens===3?1.25:1)*(o.eco?1.08:1)*Object.keys(mix).reduce((a,t)=>a+mix[t]*PR_TYPE[t].c,0)*(buildCoLevel()>0?.88:1); }
+function prDur(o){ return Math.round(150*PR_DENS[o.dens].cd*Math.sqrt(o.s)*(buildCoLevel()>0?.75:1)); }
+function prPace(b,o){ const mix=PR_PROG[o.prog].mix, rt=clamp(1-.08*(S.macro.rate-4),.5,1.3);
+  return .0075*Object.keys(mix).reduce((a,t)=>a+mix[t]*PR_TYPE[t].v*b.m.mk[t].v,0)*Math.pow(o.pr,-3)*rt*(o.eco?1.1:1)/Math.sqrt(Math.max(1,o.s*PR_DENS[o.dens].f/1.5)); }
+function prMax(b){ return 2+(mxHas(b,3)?1:0)+(b.lvl>=3?1:0); }
+function prStage(o){ return o.stage==='etude'?0:o.stage==='permis'?1:o.stage==='vente'?2:o.stage==='chantier'?3:4; }
+/* recettes reconnues : 20 % à la signature, 70 % avec l'avancement, 10 % à la livraison */
+function prRecog(b,o){ const tgt=o.sv*(o.stage==='livre'?1:.2+.7*(o.cp||0)); if(tgt>o.rec){ b.m.acc+=tgt-o.rec; o.rec=tgt; } }
+function prFile(b,o){ if(o.stage!=='etude') return err('Le permis est déjà déposé.'); const c=metR0(b)*2; if(availFor(cityOf(b).ccy)<c) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  b.m.accC+=c; const D_=PR_DENS[o.dens]; o.stage='permis'; o.pe=S.day+rint(40,60)+D_.pd; o.rc=0;
+  const pr=o.r*D_.r*(o.eco?.5:1); if(rnd()<pr){ o.rc=1; o.rcDay=S.day+rint(10,30); }
+  metLog(b,'permis déposé pour « '+o.n+' » : réponse attendue dans '+(o.pe-S.day)+' jours.',''); return ok('Permis déposé.'); }
+function prStart(b,o,credit){ if(o.stage!=='vente') return err('Le chantier ne peut pas démarrer maintenant.'); const sh=o.sold;
+  if(sh<.3&&!credit) return err('Il faut 30 % de surface vendue sur plan, ou un crédit promoteur.');
+  o.stage='chantier'; o.cc=prCost(b,o); o.cd=prDur(o); o.cp=0; o.loan= sh<.3? o.cc*.7 : 0;
+  metLog(b,'chantier lancé : « '+o.n+' »'+(o.loan?' avec un crédit promoteur de '+eur(o.loan,0):'')+', livraison dans '+o.cd+' jours.',''); return ok('Chantier lancé.'); }
+function prBuyLand(b,id){ const m=b.m, L=m.land.find(x=>x.id===+id); if(!L) return err('Terrain déjà vendu.'); if(m.ops.filter(o=>o.stage!=='fini').length>=prMax(b)) return err(prMax(b)+' opérations au plus en même temps.');
+  if(availFor(cityOf(b).ccy)<L.price) return err('Trésorerie insuffisante : '+eur(L.price,0)+'.');
+  m.accC+=L.price; m.land=m.land.filter(x=>x!==L);
+  m.ops.push({id:m.nid++, n:L.n, city:L.city, cn:L.cn, s:L.s, q:L.q, r:L.r, lp:L.price, big:L.big, prog:'res', dens:1, eco:0, stage:'etude', d0:S.day, pr:1, sold:0, sv:0, rec:0, cp:0, loan:0});
+  metLog(b,'terrain acheté : '+L.n+' ('+eur(L.price,0)+').',''); return ok('Terrain acheté : définissez le programme puis déposez le permis.'); }
+MET.promo = {
+  fam:'imm', core:true, init:prInit,
+  ranks:[
+    {n:'Programmes mixtes', d:'Bureaux et commerces en plus des logements.'},
+    {n:'Écoquartier', d:'Un label qui se vend 15 % plus cher et qui apaise les riverains.'},
+    {n:'Plusieurs villes', d:'Des terrains dans les autres villes ouvertes et une opération de plus en même temps.'},
+    {n:'Tour', d:'Trois fois plus de surface sur le même terrain, mais un permis long et contesté.'},
+    {n:'Quartier neuf', d:'De très grands terrains pour bâtir un quartier entier.'}
+  ],
+  mods(b){ const m=b.m; return {vol:0, cogs:0, rev:m.pend, fixed:m.pendC}; },
+  daily(b,ctx){ const m=b.m, R0=metR0(b);
+    if(ctx.open){ m.pend=m.acc; m.pendC=m.accC; m.acc=0; m.accC=0; }
+    /* marchés : logements stables, bureaux qui suivent l'économie, commerces plus volatils */
+    Object.keys(m.mk).forEach(t=>{ const k=m.mk[t], amp=t==='log'?.003:t==='bur'?.005:.006; k.d=clamp(k.d*.98+amp*norm(),-.01,.01); k.v=clamp(k.v*Math.exp(k.d+(t==='bur'?.002*(S.macro.econ-1):0)-.002*(k.v-1)),.6,1.5); });
+    if(S.day>=m.landNext||m.land.length===0) prLand(b);
+    m.ops.forEach(o=>{
+      if(o.stage==='permis'){
+        if(o.rc===1&&S.day>=o.rcDay){ o.rc=2; const add=rint(40,90); o.pe+=add; let red='';
+          if(o.dens>0&&rnd()<.3){ o.dens--; red=' Le tribunal impose une hauteur réduite ('+PR_DENS[o.dens].n.toLowerCase()+').'; }
+          metLog(b,'recours de riverains contre « '+o.n+' » : le permis prend '+add+' jours de plus.'+red,'warn'); }
+        if(S.day>=o.pe){ o.stage='vente'; o.v0=prVal(b,o); metLog(b,'permis accordé pour « '+o.n+' » : les ventes sur plan commencent.','good'); }
+      }
+      if(o.stage==='vente'||o.stage==='chantier'||o.stage==='livre'){
+        if(o.sold<1){ const df=Math.min(1-o.sold, prPace(b,o)*Math.exp(.35*norm())); if(df>0){ o.sold+=df; o.sv+=df*prVal(b,o)*o.pr; } }
+      }
+      if(o.stage==='chantier'){
+        m.accC+=o.cc/o.cd; o.cp=Math.min(1,o.cp+1/o.cd);
+        if(o.loan) m.accC+=o.loan*(S.macro.rate+2)/100/360;
+        if(!o.late&&o.cp>.5&&rnd()<.004){ o.late=1; const add=Math.round(o.cd*rint(15,30)/100); o.cc*=1+add/o.cd*.3; o.cd+=add; o.cp=o.cp*(o.cd-add)/o.cd; m.accC+=o.sv*.01; metLog(b,'retard de livraison sur « '+o.n+' » : '+add+' jours de plus, pénalités aux acheteurs.','warn'); }
+        if(o.cp>=1){ o.stage='livre'; o.loan=0; m.done++; metLog(b,'livraison de « '+o.n+' » : '+Math.round(o.sold*100)+' % de la surface vendue.','good'); }
+      }
+      prRecog(b,o);
+      if(o.stage==='livre'&&o.sold>=.999){ o.stage='fini'; }
+      if(o.stage==='livre'&&S.day-o.d0>900&&o.sold<1){ const rest=1-o.sold; o.sv+=rest*prVal(b,o)*.8; o.sold=1; prRecog(b,o); o.stage='fini'; metLog(b,'les derniers lots de « '+o.n+' » sont cédés à un investisseur avec une décote de 20 %.',''); }
+    });
+    m.ops=m.ops.filter(o=>o.stage!=='fini');
+    /* sans consigne, l'équipe fait avancer les opérations et en lance une petite de temps en temps */
+    if(dlMode(b)==='me'){
+      m.ops.forEach(o=>{ if(o.stage==='etude'&&S.day-o.d0>=10) prFile(b,o); if(o.stage==='vente'&&o.sold>=.3) prStart(b,o,false); });
+      if(!m.ops.length){ m.idle=(m.idle||0)+1; if(m.idle>=15){ const L=m.land.filter(x=>x.city===b.city&&!x.big).sort((x,y)=>y.q*(1-y.r)/y.price-x.q*(1-x.r)/x.price)[0]; if(L&&prBuyLand(b,L.id).ok){ m.idle=0; metLog(b,'faute de nouvelle opération, l’équipe achète un petit terrain.',''); } } } else m.idle=0;
+    }
+  },
+  kpis(b){ const m=b.m, act=m.ops.length, ch=m.ops.filter(o=>o.stage==='chantier').length, mk=m.mk;
+    const val=m.ops.reduce((a,o)=>a+o.sv-o.rec,0);
+    return [['Opérations', act+' / '+prMax(b), ch? ch+' chantier'+(ch>1?'s':'')+' en cours' : act? 'Aucun chantier en cours' : 'Achetez un terrain'],
+            ['Ventes signées à encaisser', eur(val,0), 'Encaissées au fil des chantiers'],
+            ['Marché', 'Logements '+Math.round(mk.log.v*100), 'Bureaux '+Math.round(mk.bur.v*100)+' · commerces '+Math.round(mk.com.v*100)],
+            ['Taux directeur', S.macro.rate.toFixed(1).replace('.',',')+' %', m.done+' opération'+(m.done>1?'s':'')+' livrée'+(m.done>1?'s':'')]];
+  },
+  ctl(b){ return []; },
+  acts:{
+    land:(b,id)=>prBuyLand(b,id),
+    prog:(b,arg)=>{ const [id,v]=String(arg).split(':'), o=b.m.ops.find(x=>x.id===+id); if(!o||o.stage!=='etude') return err('Programme figé une fois le permis déposé.'); const P=PR_PROG[v]; if(!P) return err('Programme inconnu.'); if(P.rk&&!mxHas(b,P.rk)) return err('Palier '+P.rk+' requis.'); o.prog=v; return ok(''); },
+    dens:(b,arg)=>{ const [id,v]=String(arg).split(':'), o=b.m.ops.find(x=>x.id===+id), D_=PR_DENS[+v]; if(!o||o.stage!=='etude') return err('Densité figée une fois le permis déposé.'); if(!D_) return err('Densité inconnue.'); if(D_.rk&&!mxHas(b,D_.rk)) return err('Palier '+D_.rk+' requis.'); o.dens=+v; return ok(''); },
+    eco:(b,id)=>{ const o=b.m.ops.find(x=>x.id===+id); if(!o||o.stage!=='etude') return err('Label figé une fois le permis déposé.'); if(!mxHas(b,2)) return err('Palier 2 requis.'); o.eco=o.eco?0:1; return ok(''); },
+    file:(b,id)=>{ const o=b.m.ops.find(x=>x.id===+id); return o? prFile(b,o) : err('Opération introuvable.'); },
+    pr:(b,arg)=>{ const [id,v]=String(arg).split(':'), o=b.m.ops.find(x=>x.id===+id); if(!o) return err('Opération introuvable.'); o.pr=clamp(Math.round((o.pr+(+v||0))*100)/100,.85,1.2); return ok(''); },
+    start:(b,arg)=>{ const [id,c]=String(arg).split(':'), o=b.m.ops.find(x=>x.id===+id); return o? prStart(b,o,c==='1') : err('Opération introuvable.'); },
+    sellrest:(b,id)=>{ const o=b.m.ops.find(x=>x.id===+id); if(!o||o.stage!=='livre') return err('Possible une fois l’opération livrée.'); const rest=1-o.sold; o.sv+=rest*prVal(b,o)*.8; o.sold=1; prRecog(b,o); o.stage='fini'; b.m.ops=b.m.ops.filter(x=>x!==o); metLog(b,'derniers lots de « '+o.n+' » cédés en bloc (décote de 20 %).',''); return ok('Lots restants vendus en bloc.'); }
+  },
+  auto: prAuto
+};
+/* le directeur des programmes mène une opération à la fois (plusieurs en délégation totale) */
+function prAuto(b,mode,q){ const m=b.m, mx=mode==='full'?prMax(b):Math.min(2,prMax(b));
+  m.ops.forEach(o=>{
+    if(o.stage==='etude'){ const best=Object.keys(PR_PROG).filter(k=>!PR_PROG[k].rk||mxHas(b,PR_PROG[k].rk)).sort((x,y)=>prVal(b,Object.assign({},o,{prog:y}))/prCost(b,Object.assign({},o,{prog:y}))-prVal(b,Object.assign({},o,{prog:x}))/prCost(b,Object.assign({},o,{prog:x})))[0];
+      o.prog= rnd()<q? best : 'res'; o.dens= o.r<.15&&rnd()<q? 2 : 1; if(mxHas(b,2)&&(o.r>.15||rnd()<q)) o.eco=1; prFile(b,o); }
+    if(o.stage==='vente'||o.stage==='chantier'){ const pace=prPace(b,o); if(S.day%7===0){ o.pr=clamp(Math.round((o.pr+(pace<.004?-.02:pace>.008?.02:0)+(rnd()-.5)*(1-q)*.04)*100)/100,.9,1.12); } }
+    if(o.stage==='vente'&&(o.sold>=.3||(mode==='full'&&o.sold>=.18&&S.macro.rate<3.5&&rnd()<q))) prStart(b,o,o.sold<.3);
+    if(o.stage==='livre'&&o.sold<.9&&S.day-o.d0>600) MET.promo.acts.sellrest(b,o.id);
+  });
+  const act=m.ops.filter(o=>o.stage!=='livre').length;
+  if(act<mx&&S.day%5===0){ const L=m.land.filter(x=>!x.big||mode==='full').sort((x,y)=>(y.q/y.price*(1-y.r))-(x.q/x.price*(1-x.r)))[0];
+    if(L){ if(mode==='full'){ if(dlBudget(b)>=L.price){ if(prBuyLand(b,L.id).ok) b.dlp-=L.price; } else if(act===0) prBuyLand(b,L.id); } else prBuyLand(b,L.id); } }
+}
+
+/* ============================================================
    SAUVEGARDES : 5 emplacements sur l'appareil.
    IndexedDB (partie compressée en gzip, métadonnées à part pour lister vite),
    repli sur localStorage si IndexedDB est indisponible.
@@ -12729,7 +12870,7 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='2026.10.29.8';
+const IB_VER='2026.10.29.9';
 const IB_NEWS=[
   ['Parc d’attractions','Un plan de 24 cases en 4 zones à thème : attractions, restaurants, boutiques, décors, billet, coupe-file, nocturnes.'],
   ['Restaurant gastronomique','La carte plat par plat, le chef, la cave, les étoiles du guide, puis les bistrots.'],
@@ -12742,6 +12883,7 @@ const IB_NEWS=[
   ['Atelier de réparation','La file des appareils, les techniciens et leurs talents, le stock de pièces, le reconditionnement, la garantie et les avis.'],
   ['Boutique e-commerce','L’entonnoir visites, paniers, commandes ; trois canaux de publicité ; un catalogue aux tendances changeantes, en stock propre ou en expédition directe.'],
   ['Agence de recrutement','Les postes des clients, le vivier de candidats, le bon profil à proposer, l’intérim et les placements définitifs.'],
+  ['Promotion immobilière','Des opérations par étapes : terrain, programme et densité, permis de construire (gare aux recours), ventes sur plan, chantier, livraison. Les ventes sur plan financent le chantier, ou un crédit promoteur au taux du moment. Votre société de construction réduit coûts et délais.'],
   ['Galerie d’art et maison d’enchères','Des ventes en direct : vous choisissez les lots, leur ordre et leur prix de réserve, la salle s’anime ou se refroidit. Dépôts de collectionneurs, expertise contre les faux, artistes émergents. Vos œuvres de l’onglet Luxe peuvent y être exposées puis revendues.'],
   ['Studio vidéo et plateforme','Des projets (émission, série, film) avec un genre, un budget et des talents ; l’audience à la sortie, les droits du catalogue, la plateforme à abonnements.'],
   ['Pour tous','Délégation au directeur du site (3 niveaux) et 5 paliers de maîtrise par activité. Cybersécurité, supermarché, agence immobilière et fast-food sont retirés.']
@@ -12957,6 +13099,48 @@ function gaLoop(){ if(!ui.gl||!ui.modal||ui.modal.type!=='galive'){ ui.galoop=0;
   if(m&&m.type==='galive') return {title:'Vente en direct', sm:true, body:'<div id="ga-live" class="stack"></div>'};
   return _mc(); }; }
 { const _r=render; render=function(){ const out=_r.apply(this,arguments); if(ui.gl&&ui.modal&&ui.modal.type==='galive'){ gaDraw(); if(!ui.galoop){ ui.galoop=1; requestAnimationFrame(gaLoop); } } return out; }; }
+/* la croix de la vente en direct revient à la fiche de la galerie */
+{ const _cm=ACT.closemodal; ACT.closemodal=function(el){ if(ui.modal&&ui.modal.type==='galive'){ ACT.galclose(); return; } return _cm.apply(this,arguments); }; }
+
+/* ============================================================
+   PROMOTION IMMOBILIÈRE : opérations (étapes), terrains, marché
+   ============================================================ */
+function prBtn(b,v,j,lab,c,dis){ return '<button class="btn sm'+(c?' '+c:'')+'" data-a="met" data-i="'+b.id+'" data-v="'+v+'" data-j="'+j+'"'+(dis?' disabled':'')+'>'+lab+'</button>'; }
+function prSeg(b,v,o,L,val){ return '<div class="seg">'+L.map(([k,n,dis])=>'<button class="'+(String(val)===String(k)?'on':'')+'" data-a="met" data-i="'+b.id+'" data-v="'+v+'" data-j="'+o.id+':'+k+'"'+(dis?' disabled':'')+'>'+n+'</button>').join('')+'</div>'; }
+function prRate(){ return (S.macro.rate+2).toFixed(1).replace('.',',')+' %'; }
+function prSize(x){ return x>=3.5?'très grande opération':x>=1.3?'grande opération':x>=.8?'opération moyenne':'petite opération'; }
+function prSteps(o){ const k=prStage(o); return '<div class="pr-steps">'+PR_ST.map((n,i)=>'<span class="'+(i<k?'done':i===k?'on':'')+'">'+n+'</span>').join('')+'</div>'; }
+MET.promo.html=function(b){
+  const m=b.m, R0=metR0(b), cash=availFor(cityOf(b).ccy);
+  let h='<div class="pk-head"><b>Opérations</b><span class="sub">'+m.ops.length+' / '+prMax(b)+' en même temps</span></div>';
+  if(!m.ops.length) h+='<div class="sub">Aucune opération. Achetez un terrain ci-dessous pour en lancer une.</div>';
+  m.ops.forEach(o=>{ const V=prVal(b,o), C=prCost(b,o);
+    h+='<div class="pk-pan pr-op"><div class="row sp"><div><b>'+esc(o.n)+'</b><div class="sub">'+esc(o.cn)+' · '+prSize(o.s*PR_DENS[o.dens].f)+' · '+PR_PROG[o.prog].n.toLowerCase()+(o.eco?' · écoquartier':'')+'</div></div></div>'+prSteps(o);
+    if(o.stage==='etude'){
+      h+='<div class="met-c"><b>Programme</b>'+prSeg(b,'prog',o,Object.keys(PR_PROG).map(k=>[k,PR_PROG[k].n,PR_PROG[k].rk&&!mxHas(b,PR_PROG[k].rk)]),o.prog)+'</div>';
+      h+='<div class="met-c"><b>Densité</b>'+prSeg(b,'dens',o,PR_DENS.map((x,i)=>[i,x.n,x.rk&&!mxHas(b,x.rk)]),o.dens)+'<div class="sub">Plus dense : plus de surface à vendre, mais un permis plus long et plus de risque de recours.</div></div>';
+      if(mxHas(b,2)) h+='<div class="row sp"><div><b>Label écoquartier</b><div class="sub">Prix +15 %, coût +8 %, deux fois moins de recours.</div></div>'+prBtn(b,'eco',o.id,o.eco?'Retirer':'Ajouter')+'</div>';
+      const rk=o.r*PR_DENS[o.dens].r*(o.eco?.5:1);
+      h+='<div class="ht-t"><div class="rs-d"><div><b>Prix de vente estimé</b><small>Au prix du marché aujourd’hui</small></div><small class="num">'+eur(V,0)+'</small></div><div class="rs-d"><div><b>Coût du chantier</b><small>'+prDur(o)+' jours'+(buildCoLevel()>0?' · avec votre société de construction':'')+'</small></div><small class="num">'+eur(C,0)+'</small></div><div class="rs-d"><div><b>Risque de recours</b><small>Riverains et associations</small></div><small class="num">'+Math.round(rk*100)+' %</small></div></div>';
+      h+='<div class="row sp"><div class="sub">Dépôt du permis : '+eur(R0*2,0)+'. Réponse en 40 à 60 jours'+(PR_DENS[o.dens].pd?' (+'+PR_DENS[o.dens].pd+' j)':'')+'.</div>'+prBtn(b,'file',o.id,'Déposer le permis','pri',cash<R0*2)+'</div>';
+    } else if(o.stage==='permis'){
+      h+='<div class="sub">Instruction du permis : réponse dans '+Math.max(0,o.pe-S.day)+' jours'+(o.rc===2?' (recours en cours)':'')+'.</div>';
+    } else {
+      const pace=prPace(b,o);
+      h+='<div class="ht-t"><div class="rs-d"><div><b>Vendu sur plan</b><small>'+Math.round(o.sold*100)+' % de la surface · environ '+(o.sold<1?String(Math.round(pace*30000)/10).replace('.',',')+' % par mois':'tout est vendu')+'</small>'+bar(o.sold,'g')+'</div><small class="num">'+eur(o.sv,0)+'</small></div>'+
+        (o.stage==='chantier'?'<div class="rs-d"><div><b>Chantier</b><small>Livraison dans '+Math.max(0,Math.round((1-o.cp)*o.cd))+' jours'+(o.loan?' · crédit de '+eur(o.loan,0)+' à '+prRate():'')+(o.late?' · en retard':'')+'</small>'+bar(o.cp,'')+'</div><small class="num">'+eur(o.cc,0)+'</small></div>':'')+
+        '<div class="rs-d"><div><b>Encaissé</b><small>20 % à la signature, 70 % au fil du chantier, 10 % à la livraison</small></div><small class="num">'+eur(o.rec,0)+'</small></div></div>';
+      if(o.sold<1) h+='<div class="met-c"><b>Prix : '+(o.pr>=1?'+':'')+Math.round((o.pr-1)*100)+' % par rapport au marché</b><div class="seg">'+[[-.05,'−5 %'],[-.02,'−2 %'],[.02,'+2 %'],[.05,'+5 %']].map(([v,n])=>'<button data-a="met" data-i="'+b.id+'" data-v="pr" data-j="'+o.id+':'+v+'">'+n+'</button>').join('')+'</div><div class="sub">Plus cher, chaque lot rapporte plus mais se vend moins vite.</div></div>';
+      if(o.stage==='vente'){ const C2=prCost(b,o), ok3=o.sold>=.3;
+        h+='<div class="row sp"><div class="sub">'+(ok3?'Assez de ventes signées : la banque suit.':'Il faut 30 % de surface vendue pour lancer le chantier, ou un crédit promoteur (70 % du coût, intérêts '+prRate()+').')+' Coût : '+eur(C2,0)+'.</div>'+(ok3?prBtn(b,'start',o.id+':0','Lancer le chantier','pri'):prBtn(b,'start',o.id+':1','Lancer avec un crédit'))+'</div>'; }
+      if(o.stage==='livre'&&o.sold<1) h+='<div class="row sp"><div class="sub">Opération livrée. Vous pouvez céder les derniers lots en bloc à un investisseur (décote de 20 %).</div>'+prBtn(b,'sellrest',o.id,'Céder le reste')+'</div>';
+    }
+    h+='</div>'; });
+  /* terrains */
+  const full=m.ops.length>=prMax(b);
+  h+='<div class="pk-head"><b>Terrains à vendre</b><span class="sub">Nouveaux terrains dans '+Math.max(0,m.landNext-S.day)+' j</span></div><div class="ht-t">'+m.land.map(L=>'<div class="ga-lot"><div class="row sp"><div><b>'+esc(L.n)+'</b><small>'+esc(L.cn)+' · '+prSize(L.s)+' · quartier '+(L.q>=1.2?'très recherché':L.q>=1?'recherché':L.q>=.85?'ordinaire':'populaire')+' · riverains '+(L.r>.2?'très vigilants':L.r>.12?'vigilants':'calmes')+'</small></div><b class="num">'+eur(L.price,0)+'</b></div><div class="row">'+prBtn(b,'land',L.id,'Acheter','',full||cash<L.price)+'</div></div>').join('')+'</div>';
+  return h;
+};
 
 
 </script>
