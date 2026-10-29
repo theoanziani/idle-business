@@ -11748,6 +11748,26 @@ MET.textile.html=function(b){
   return h;
 };
 
+/* ---------- Version du jeu et fenêtre des nouveautés ---------- */
+const IB_VER='2026.10.29';
+const IB_NEWS=[
+  ['Parc d’attractions','Un plan de 24 cases en 4 zones à thème : attractions, restaurants, boutiques, décors, billet, coupe-file, nocturnes.'],
+  ['Restaurant gastronomique','La carte plat par plat, le chef, la cave, les étoiles du guide, puis les bistrots.'],
+  ['Hôtel','Quatre types de chambres et leurs prix, surréservation, plateformes, avis, mariages, Palace, resorts.'],
+  ['Ferme','Les parcelles au fil des saisons, l’élevage, la transformation, le bio.'],
+  ['Société de construction','Les appels d’offres, les chantiers, les engins et le prix des matériaux.'],
+  ['Usine textile','Les collections préparées deux saisons à l’avance d’après les tendances.'],
+  ['Pour tous','Délégation au directeur du site (3 niveaux) et 5 paliers de maîtrise par activité. Cybersécurité, supermarché, agence immobilière et fast-food sont retirés.']
+];
+{ const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
+{ const _mc=modalContent; modalContent=function(){ const m=ui.modal;
+  if(m&&m.type==='ibnews') return {title:'Nouveautés',sm:true,body:'<div class="stack"><div class="sub">Version '+IB_VER+'. Ouvrez une de ces entreprises (Sociétés, puis « Gérer ») : la carte « Pilotage du métier » montre son nouveau fonctionnement.</div>'+
+    IB_NEWS.map(x=>'<div><b>'+esc(x[0])+'</b><div class="sub">'+esc(x[1])+'</div></div>').join('')+'<div>'+btn('Compris','ibnewsok',{c:'pri'})+'</div></div>'};
+  return _mc(); }; }
+ACT.ibnewsok=()=>{ ui.modal=null; render(); };
+{ const _vs=VIEWS.set; VIEWS.set=function(){ return _vs()+card('Version du jeu','<div class="row sp"><span class="sub">Version '+IB_VER+'</span>'+btn('Voir les nouveautés','ibnewsopen',{c:'sm'})+'</div>'); }; }
+ACT.ibnewsopen=()=>{ ui.modal={type:'ibnews'}; render(); };
+
 
 </script>
 </body>
