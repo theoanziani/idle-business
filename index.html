@@ -7174,6 +7174,48 @@ function trSetDs(on){ const O=fcOwn(); if(!O) return err('Aucun club.'); if(on&&
 { const _g=fpGrow; fpGrow=function(p,O){ _g(p,O); try{ trApply(O,p); }catch(e){ console.error(e); } }; }
 
 /* ============================================================
+   Football : trophées individuels (V1.2.3)
+   Ballon d'or et trophée du meilleur gardien fin octobre, Golden Boy (moins de 21 ans) mi-décembre.
+   Classement : note du joueur + titres récents de son club + un peu de hasard.
+   État : S.foot.aw = [{y, bdo:[…10], gk, gb}] (10 dernières années, créé au premier besoin).
+   ============================================================ */
+function awTop(){ return FOOT_LEAGUES.filter(L=>L.lvl===1).map(L=>L.id); }
+function awClubBonus(id){
+  let b=0; const lid=footLgOf(id), h=S.foot.hist[lid]; if(h&&h[0]&&h[0].champ===id) b+=3;
+  Object.keys(S.foot.icHist||{}).forEach(k=>{ const x=S.foot.icHist[k][0]; if(x&&x.champ===id) b+= k==='eu1'? 5 : 2; });
+  const nat=footClub(id).nat, c=S.foot.cupHist&&S.foot.cupHist[nat]&&S.foot.cupHist[nat][0]; if(c&&c.champ===id) b+=1;
+  return b;
+}
+function awPool(){
+  const O=fcOwn(), out=[];
+  awTop().forEach(lid=>{ const lg=S.foot.lg[lid]; if(!lg) return; lg.grp.flat().forEach(id=>{ const sq= O&&O.id===id? O.sq : footSquad(id), bon=awClubBonus(id);
+    sq.slice().sort((a,b)=>b.o-a.o).slice(0,4).forEach(p=>out.push({p, club:id, s:p.o+bon+(frnd()-.5)*3})); }); });
+  if(O&&!out.some(x=>x.club===O.id)) O.sq.slice().sort((a,b)=>b.o-a.o).slice(0,4).forEach(p=>out.push({p, club:O.id, s:p.o+awClubBonus(O.id)+(frnd()-.5)*3}));
+  return out;
+}
+const awRow=x=>({n:x.p.n, club:x.club, o:Math.round(x.p.o), p:x.p.p, nat:x.p.nat, a:x.p.a, id:x.p.id});
+function awOf(y){ const A=S.foot.aw||(S.foot.aw=[]); let e=A.find(x=>x.y===y); if(!e){ e={y}; A.unshift(e); if(A.length>10) A.pop(); } return e; }
+function awOwnNote(r,label){ const O=fcOwn(); if(!O||r.club!==O.id) return; const q=O.sq.find(p=>String(p.id)===String(r.id)); if(q){ (q.aw=q.aw||[]).push(label); }
+  fcNews(r.n+' : '+label+'.','good'); O.mor=clamp(O.mor+3,10,100); }
+function awBallon(day){
+  const y=footDate(day).y, pool=awPool().sort((a,b)=>b.s-a.s), e=awOf(y);
+  e.bdo=pool.slice(0,10).map(awRow); const g=pool.filter(x=>x.p.p==='G')[0]; e.gk=g&&awRow(g);
+  const w=e.bdo[0]; log('good','Football : Ballon d’or '+y+' pour '+w.n+' ('+footName(w.club)+').','news');
+  if(e.gk) log('info','Football : trophée du meilleur gardien pour '+e.gk.n+' ('+footName(e.gk.club)+').','news');
+  e.bdo.forEach((r,i)=>awOwnNote(r, i===0? 'Ballon d’or '+y : (i+1)+'e du Ballon d’or '+y)); if(e.gk) awOwnNote(e.gk,'meilleur gardien '+y);
+}
+function awGolden(day){
+  const y=footDate(day).y, pool=awPool().filter(x=>x.p.a<=21).sort((a,b)=>b.s-a.s), e=awOf(y);
+  const all=pool.length? pool : []; const O=fcOwn();
+  /* les jeunes ne sont pas toujours parmi les 4 meilleurs d'un club : on ajoute les espoirs de votre club */
+  if(O) O.sq.filter(p=>p.a<=21).forEach(p=>all.push({p,club:O.id,s:p.o+awClubBonus(O.id)}));
+  all.sort((a,b)=>b.s-a.s); if(!all.length) return; e.gb=awRow(all[0]);
+  log('info','Football : Golden Boy '+y+' pour '+e.gb.n+' ('+footName(e.gb.club)+').','news'); awOwnNote(e.gb,'Golden Boy '+y);
+}
+function awStep(day){ const t=footDate(day); if(t.m===10&&t.d===28) awBallon(day); if(t.m===12&&t.d===16) awGolden(day); }
+{ const _fs=footStep; footStep=function(day){ _fs(day); try{ awStep(day); }catch(e){ console.error(e); } }; }
+
+/* ============================================================
    FOOTBALL : compétitions internationales (noms fictifs)
    Coupe d'Europe des champions et Coupe d'Europe (phase de ligue à 36, barrages,
    tours à élimination directe aller-retour, finale), Coupe des Libertés (8 groupes),
@@ -13698,6 +13740,23 @@ function fcTabDs(O){
 ACT.dshire=()=>after(dsHire());
 ACT.dsset=el=>after(dsSet(el.dataset.i,el.dataset.v));
 
+/* Football : affichage des trophées individuels (V1.2.3) */
+function awCard(){
+  const A=S.foot&&S.foot.aw; if(!A||!A.length) return card('Trophées individuels','<div class="sub">Ballon d’or et meilleur gardien fin octobre, Golden Boy (moins de 21 ans) mi-décembre.</div>');
+  const e=A.find(x=>x.bdo)||A[0], O=fcOwn(), mine=r=>O&&r.club===O.id? ' <span class="pill good">Votre club</span>' : '';
+  const row=(r,lab)=>'<div class="fm-xi aw-r"><span>'+lab+'</span>'+esc(r.n)+mine(r)+'<small>'+esc(footName(r.club))+' · '+FOOT_POS_S[r.p]+' · '+r.o+'</small></div>';
+  let h='';
+  if(e.bdo) h+='<div class="tag">Ballon d’or '+e.y+'</div>'+e.bdo.slice(0,5).map((r,i)=>row(r,(i+1)+'.')).join('');
+  if(e.gk) h+='<div class="tag">Meilleur gardien</div>'+row(e.gk,'G');
+  const g=A.find(x=>x.gb); if(g) h+='<div class="tag">Golden Boy '+g.y+'</div>'+row(g.gb,'GB');
+  const past=A.filter(x=>x.bdo&&x!==e).slice(0,5); if(past.length) h+='<div class="tag">Palmarès</div>'+past.map(x=>'<div class="sub">'+x.y+' : '+esc(x.bdo[0].n)+' ('+esc(footName(x.bdo[0].club))+')</div>').join('');
+  return card('Trophées individuels',h);
+}
+{ const _v=vFoot; vFoot=function(){ const h=_v(); return ui.fn==="int"? h : h+awCard(); }; VIEWS.foot=vFoot; }
+{ const _mc=modalContent; modalContent=function(){ const r=_mc(), m=ui.modal, O=fcOwn();
+  if(r&&m&&m.type==='fcpl'&&O){ const p=O.sq.find(x=>String(x.id)===String(m.id)); if(p&&p.aw&&p.aw.length) r.body+='<div class="tag">Distinctions</div><div class="sub">'+p.aw.map(esc).join(' · ')+'</div>'; }
+  return r; }; }
+
 /* ============================================================
    REFONTE DES SOCIÉTÉS : interface
    - Fiche d'une activité « cœur » : prix et marketing génériques masqués.
@@ -13938,11 +13997,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.2.2';
+const IB_VER='V1.2.3';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Football : programmes d’entraînement','Onglet Tactique : choisissez un programme par ligne (gardiens, défenseurs, milieux, attaquants), par exemple le tir pour les attaquants. Chaque mois, la statistique travaillée progresse et les autres baissent un peu ; la note générale suit, sans dépasser le potentiel.'],
-  ['Football : programme individuel et délégation','Dans la fiche d’un joueur, donnez-lui son propre programme. Vous pouvez aussi confier tous les programmes à votre directeur sportif : il fait travailler à chacun son point faible le plus important.']
+  ['Football : trophées individuels','Chaque fin octobre, le Ballon d’or et le trophée du meilleur gardien récompensent les meilleurs joueurs des premières divisions, en tenant compte des titres de leur club. Mi-décembre, le Golden Boy distingue le meilleur joueur de moins de 21 ans. Le classement s’affiche en bas de l’écran Football ; les distinctions de vos joueurs apparaissent dans leur fiche et motivent le vestiaire.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
