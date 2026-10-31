@@ -1044,6 +1044,8 @@ html,body{overflow-anchor:none}
 .pal-big .pal-ico{width:96px;height:96px;border-radius:50%;background:#fff;color:var(--pc);border:5px solid var(--pc);display:flex;align-items:center;justify-content:center}
 .pal-big .pal-ico svg{width:60px;height:60px;fill:none;stroke:currentColor;stroke-width:1.8;filter:none}
 
+.fp-box{margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(127,127,127,.08);display:flex;flex-direction:column;gap:2px}.fp-box small{opacity:.85}
+
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -6804,7 +6806,7 @@ function fcDaily(day){
   O.sq.forEach(p=>{ if(p.inj>0) p.inj--; });
   if(day%7===0) O.mor+= (60-O.mor)*.08;
   /* progression des joueurs chaque mois */
-  if(footDate(day).d===15) O.sq.forEach(p=>{ const g= p.a<=21? .5 : p.a<=24? .3 : p.a<=28? .05 : p.a<=31? -.1 : -.35; p.o=clamp(Math.round((p.o+g*(1+.15*(O.staff.youth-1))+(frnd()-.5)*.6)*10)/10,30,96); });
+  if(footDate(day).d===15){ O.sq.forEach(p=>fpGrow(p,O)); fcAcad(O).forEach(p=>fpGrow(p,O)); }
   fcMercatoDay(day);
 }
 /* billetterie : à chaque match à domicile */
@@ -6822,8 +6824,8 @@ function fcHomeGate(h,a){ const O=fcOwn(); if(!O||O.id!==h) return; const n=fcAt
       if(S.foot.cup[nat] && S.foot.cup[nat].champ===O.id) fcPay('prize','Club : victoire en coupe nationale',tv*.25);
       O.sq.forEach(p=>{ p.a++; p.w=Math.max(p.w,Math.round(fcPlayerWage(p)*.9)); });
       const R=frnd, home=FOOT_NATPOOL[nat]||'fr', P=footNamePool(home);
-      for(let i=0;i<2;i++){ const pos2=FOOT_SQUAD_SHAPE[Math.floor(R()*FOOT_SQUAD_SHAPE.length)]; const o=Math.round(clamp(footR(O.id)-18+O.staff.youth*2.5+(R()-.5)*10,35,85));
-        const pl={id:'y'+S.day+'_'+i, n:P.f[Math.floor(R()*P.f.length)]+' '+P.l[Math.floor(R()*P.l.length)], p:pos2, a:17, o, nat:home, inj:0}; pl.w=Math.round(fcPlayerWage(pl)*.5); O.sq.push(pl); fcNews(pl.n+' ('+FOOT_POS[pos2]+', '+o+') sort du centre de formation.','good'); }
+      const A=fcAcad(O); A.forEach(p=>{ p.a++; }); O.acad=A.filter(p=>{ if(p.a>=19){ fcNews(p.n+' quitte le centre de formation sans contrat.',''); return false; } return true; });
+      { const lo=clamp(footR(O.id)-30+O.staff.youth*3,35,60), n=2+Math.floor(frnd()*2)+(O.staff.youth>=4?1:0); fcAcadGen(O,n,lo,lo+14); fcNews(n+' jeunes entrent au centre de formation.','good'); }
       O.seasons++;
       fcNews('Fin de saison : '+(pos+1)+(pos?'e':'er')+' de '+L.n+'.', pos<3?'good':'');
     }
@@ -6996,6 +6998,48 @@ footPlay=function(h,a,neutral){
 
 /* ---------- Résultat caché tant que le match n'a pas été regardé ---------- */
 function fcHidden(h,a,day){ const O=S&&S.foot&&S.foot.own, L=O&&O.last; return !!(L&&!L.seen&&L.h===h&&L.a===a&&L.day===day); }
+
+/* ============================================================
+   Football : potentiel et centre de formation (V1.1.9)
+   p.pot : note maximale que le joueur peut atteindre (générée à la demande, stable).
+   O.acad : jeunes du centre de formation (15 à 18 ans), hors effectif. Valeur par défaut :
+   absent → 3 à 6 jeunes générés à la première ouverture.
+   ============================================================ */
+function fpPot(p){
+  if(p.pot===undefined){ const R=footSeedRng(footHash('pot|'+p.n+'|'+p.p)), a=p.a||25;
+    const gap= a<=17? 8+R()*30 : a<=19? 5+R()*24 : a<=22? 2+R()*16 : a<=25? R()*8 : a<=28? R()*3 : 0;
+    p.pot=Math.round(clamp(p.o+gap,p.o,97)); }
+  return Math.max(p.pot,Math.round(p.o));
+}
+const FP_LBL=[[58,'Potentiel pour jouer en troisième division'],[66,'Potentiel pour jouer en deuxième division'],[74,'Potentiel pour jouer en première division'],[80,'Potentiel de titulaire en première division'],[86,'Potentiel de joueur international'],[999,'Peut devenir spécial']];
+function fpLabel(pot){ return FP_LBL.find(x=>pot<x[0])[1]; }
+/* fourchette affichée : étroite pour vos joueurs, plus large selon le recruteur pour les autres */
+function fpRange(p,mine){
+  const O=fcOwn(), pot=fpPot(p), w= mine? 4 : Math.max(4,16-2*((O&&O.staff.scout)||1)), R=footSeedRng(footHash('rg|'+p.n));
+  let lo=Math.round(pot-R()*w); lo=Math.max(Math.round(p.o),lo); const hi=Math.min(99,lo+w); return [lo,Math.max(hi,pot)];
+}
+/* progression mensuelle bornée par le potentiel */
+function fpGrow(p,O){
+  const pot=fpPot(p), room=pot-p.o, yb=1+.15*((O.staff.youth||1)-1);
+  let g= p.a<=21? .15+.025*room : p.a<=24? .1+.02*room : p.a<=28? .05 : p.a<=31? -.1 : -.35;
+  if(g>0){ g=Math.min(g,.9)*yb; if(room<=0) g=0; }
+  p.o=clamp(Math.round((p.o+g+(frnd()-.5)*.6)*10)/10,30,Math.max(pot,p.o));
+}
+/* ---------- Centre de formation ---------- */
+function fcAcadGen(O,n,lo,hi){
+  const nat=footClub(O.id).nat, home=FOOT_NATPOOL[nat]||'fr', P=footNamePool(home), R=frnd, used=new Set(O.sq.map(p=>p.n));
+  for(let i=0;i<n;i++){ const pos=FOOT_SQUAD_SHAPE[Math.floor(R()*FOOT_SQUAD_SHAPE.length)];
+    let nm; for(let k=0;k<8;k++){ nm=P.f[Math.floor(R()*P.f.length)]+' '+P.l[Math.floor(R()*P.l.length)]; if(!used.has(nm)) break; } used.add(nm);
+    const o=Math.round(lo+R()*(hi-lo)), a=15+Math.floor(R()*3), pl={id:'a'+S.day+'_'+i+'_'+Math.floor(R()*1e6), n:nm, p:pos, a, o, nat:home, inj:0, acad:1};
+    fpPot(pl); O.acad.push(pl); }
+}
+function fcAcad(O){ if(!O) return []; if(!O.acad){ O.acad=[]; fcAcadGen(O,3+Math.floor(frnd()*4),40,70); } return O.acad; }
+function fcSignYouth(id){
+  const O=fcOwn(); if(!O) return err('Aucun club.'); const A=fcAcad(O), p=A.find(x=>x.id===id); if(!p) return err('Jeune introuvable.');
+  O.acad=A.filter(x=>x!==p); delete p.acad; p.w=Math.round(fcPlayerWage(p)*.5); O.sq.push(p);
+  fcNews(p.n+' signe son premier contrat professionnel.','good'); return ok(p.n+' rejoint l’effectif professionnel.');
+}
+function fcFreeYouth(id){ const O=fcOwn(); if(!O) return err('Aucun club.'); const p=fcAcad(O).find(x=>x.id===id); if(!p) return err('Jeune introuvable.'); O.acad=O.acad.filter(x=>x!==p); return ok(p.n+' quitte le centre de formation.'); }
 
 /* ============================================================
    FOOTBALL : compétitions internationales (noms fictifs)
@@ -13312,7 +13356,7 @@ ACT.fcsell=()=>{ const r=fcSell(); ui.modal=null; after(r); };
   if(m&&m.type==='fcsell'&&O){ const v=Math.round(fcClubValue(O.id)*.92/1e5)*1e5;
     return {title:'Revendre le club',sm:true,body:'<p style="margin-top:0">Vous recevez '+eur(v,0)+' et '+esc(footName(O.id))+' redevient géré par le jeu. Vous pourrez racheter un club plus tard.</p><div class="row sp">'+btn('Annuler','closemodal',{c:'ghost'})+btn('Revendre','fcsell',{c:'pri'})+'</div>'}; }
   if(m&&m.type==='fcpl'&&O){ const p=O.sq.find(x=>String(x.id)===String(m.id)); if(!p){ ui.modal=null; return _mcC(); }
-    return {title:esc(p.n),sm:true,body:'<div class="met-k"><div><span>Poste</span><b>'+FOOT_POS[p.p]+'</b><small>'+p.a+' ans · '+esc(FOOT_NATNAME[p.nat]||p.nat)+'</small></div><div><span>Note</span><b class="num">'+Math.round(p.o)+'</b><small>'+(p.inj>0?'Blessé ('+p.inj+' jours)':'Disponible')+'</small></div><div><span>Valeur</span><b class="num">'+eur(fcPlayerValue(p),0)+'</b></div><div><span>Salaire</span><b class="num">'+eur(p.w,0)+'</b><small>par saison</small></div></div>'+fsGrid(p)+
+    return {title:esc(p.n),sm:true,body:'<div class="met-k"><div><span>Poste</span><b>'+FOOT_POS[p.p]+'</b><small>'+p.a+' ans · '+esc(FOOT_NATNAME[p.nat]||p.nat)+'</small></div><div><span>Note</span><b class="num">'+Math.round(p.o)+'</b><small>'+(p.inj>0?'Blessé ('+p.inj+' jours)':'Disponible')+'</small></div><div><span>Valeur</span><b class="num">'+eur(fcPlayerValue(p),0)+'</b></div><div><span>Salaire</span><b class="num">'+eur(p.w,0)+'</b><small>par saison</small></div></div>'+fpBlock(p,true)+fsGrid(p)+
       '<div class="row" style="margin-top:12px">'+btn(O.list[p.id]?'Retirer de la liste des transferts':'Mettre sur la liste des transferts','fclist',{i:p.id,c:'pri'})+btn('Résilier ('+eur(Math.round(p.w*.5/1e3)*1e3,0)+')','fcrel',{i:p.id,c:'ghost'})+'</div><div class="sub" style="margin-top:8px">Un joueur sur la liste reçoit plus d’offres pendant le mercato.</div>'}; }
   if(m&&m.type==='fcslot'&&O){ const L=fcLineup(), cur=L.xi[m.slot]; if(!cur){ ui.modal=null; return _mcC(); }
     const pos=FC_FORM[O.form][m.slot], cands=O.sq.filter(p=>p.id!==cur.id&&fcAvail(p)).sort((a,b)=>(FOOT_NEAR[pos].includes(b.p)-FOOT_NEAR[pos].includes(a.p))||(b.o-a.o));
@@ -13321,7 +13365,7 @@ ACT.fcsell=()=>{ const r=fcSell(); ui.modal=null; after(r); };
     const v=fcPlayerValue(p), W=O&&fcWindow(S.day), join=O? Math.round(fcWillJoin(p)*100) : 0, disc=O? 1-.03*(O.staff.scout-1) : 1;
     const opt=[[1,'Valeur'],[1.25,'+25 %'],[1.5,'+50 %']];
     return {title:esc(p.n),sm:true,body:'<div class="fc-hero">'+fcrest(m.club,44)+'<div><b>'+esc(p.n)+'</b><small>'+FOOT_POS[p.p]+' · '+p.a+' ans · '+esc(footName(m.club))+'</small></div></div>'+
-      '<div class="met-k"><div><span>Note</span><b class="num">'+Math.round(p.o)+'</b></div><div><span>Valeur</span><b class="num">'+eur(v,0)+'</b></div><div><span>Salaire demandé</span><b class="num">'+eur(Math.round(fcPlayerWage(p)*1.1),0)+'</b><small>par saison</small></div><div><span>Envie de venir</span><b class="num">'+(O?join+' %':'-')+'</b><small>'+(O? (join>=70?'Partant':join>=35?'Hésitant':'Peu tenté') : 'Rachetez un club')+'</small></div></div>'+fsGrid(p)+
+      '<div class="met-k"><div><span>Note</span><b class="num">'+Math.round(p.o)+'</b></div><div><span>Valeur</span><b class="num">'+eur(v,0)+'</b></div><div><span>Salaire demandé</span><b class="num">'+eur(Math.round(fcPlayerWage(p)*1.1),0)+'</b><small>par saison</small></div><div><span>Envie de venir</span><b class="num">'+(O?join+' %':'-')+'</b><small>'+(O? (join>=70?'Partant':join>=35?'Hésitant':'Peu tenté') : 'Rachetez un club')+'</small></div></div>'+fpBlock(p,false)+fsGrid(p)+
       (!O? '<div class="sub" style="margin-top:8px">Rachetez un club pour faire des offres.</div>' : !W? '<div class="notice" style="margin-top:8px">Le mercato est fermé.</div>' :
       '<div class="tag">Faire une offre</div><div class="row">'+opt.map(([k,t])=>btn(t+' : '+eur(Math.round(v*k*disc/1e4)*1e4,0),'fcbid',{v:k,c:'sm'+(k===1.25?' pri':''),dis:S.cash<v*k*disc})).join('')+'</div><div class="sub" style="margin-top:6px">Un titulaire coûte plus cher : son club demande au moins 25 % de plus que sa valeur.</div>')}; }
   return _mcC();
@@ -13341,6 +13385,23 @@ ACT.fcsell=()=>{ const r=fcSell(); ui.modal=null; after(r); };
 
 /* grille des statistiques détaillées */
 function fsGrid(p){ return '<div class="tag">Statistiques</div><div class="fs-g">'+fsKeys(p).map(([k,t])=>{ const v=fsVal(p,k); return '<div><span>'+t+'</span><b class="num '+fsCls(v)+'">'+v+'</b></div>'; }).join('')+'</div>'; }
+
+/* potentiel : statut et fourchette */
+function fpBlock(p,mine){ const [lo,hi]=fpRange(p,mine), pot=fpPot(p);
+  return '<div class="fp-box"><b>'+esc(fpLabel(mine?pot:Math.round((lo+hi)/2)))+'</b><small>Potentiel maximal : <span class="num '+fsCls(lo)+'">'+lo+'</span> à <span class="num '+fsCls(hi)+'">'+hi+'</span>'+(mine?'':' (selon votre recruteur)')+'</small></div>'; }
+/* centre de formation dans l'onglet Effectif */
+{ const _sq=fcTabSq; fcTabSq=function(O){ const A=fcAcad(O);
+  return _sq(O)+card('Centre de formation ('+A.length+' jeunes)','<div class="sub">Jeunes de 15 à 18 ans, sans salaire. Faites signer les meilleurs : ils rejoignent l’effectif et progressent jusqu’à leur potentiel. À 19 ans, un jeune non signé quitte le club.</div>'+
+    (A.length? A.slice().sort((a,b)=>fpPot(b)-fpPot(a)).map(p=>'<button class="fc-pl" data-a="fcacad" data-i="'+esc(p.id)+'"><span class="fpos">'+FOOT_POS_S[p.p]+'</span><span class="nm"><b>'+esc(p.n)+'</b><small>'+p.a+' ans · '+esc(fpLabel(fpPot(p)))+'</small></span><b class="num fov">'+Math.round(p.o)+'</b></button>').join('') : '<div class="sub">Aucun jeune pour le moment. De nouveaux arrivent à chaque fin de saison.</div>'));
+}; }
+ACT.fcacad=el=>{ ui.modal={type:'fcacad',id:el.dataset.i}; render(); };
+ACT.fcsign=el=>{ const r=fcSignYouth(el.dataset.i); if(r.ok) ui.modal=null; after(r); };
+ACT.fcfree=el=>{ const r=fcFreeYouth(el.dataset.i); if(r.ok) ui.modal=null; after(r); };
+{ const _mc=modalContent; modalContent=function(){ const m=ui.modal, O=fcOwn();
+  if(m&&m.type==='fcacad'&&O){ const p=fcAcad(O).find(x=>String(x.id)===String(m.id)); if(!p){ ui.modal=null; return _mc(); }
+    return {title:esc(p.n),sm:true,body:'<div class="met-k"><div><span>Poste</span><b>'+FOOT_POS[p.p]+'</b><small>'+p.a+' ans · centre de formation</small></div><div><span>Note</span><b class="num">'+Math.round(p.o)+'</b><small>Salaire pro : '+eur(Math.round(fcPlayerWage(p)*.5),0)+' par saison</small></div></div>'+
+      fpBlock(p,true)+fsGrid(p)+'<div class="row" style="margin-top:12px">'+btn('Faire signer pro','fcsign',{i:p.id,c:'pri'})+btn('Libérer','fcfree',{i:p.id,c:'ghost'})+'</div>'}; }
+  return _mc(); }; }
 
 /* ============================================================
    FOOTBALL : écran des compétitions internationales (Football > International)
@@ -13662,11 +13723,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.1.8';
+const IB_VER='V1.1.9';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Football : 5 remplacements en direct','Pendant un match de championnat de votre club, touchez « Remplacer » : choisissez qui sort, puis qui entre (le poste et les statistiques utiles sont indiqués). La fin du match est rejouée avec votre nouvel onze et le classement prend le score final. Jusqu’à 5 changements par match, lors de la première diffusion.'],
-  ['Football : classement masqué','Tant que vous n’avez pas regardé le dernier match de votre club, le classement de son championnat reste masqué.']
+  ['Football : potentiel des joueurs','Chaque joueur a un potentiel maximal, du « potentiel pour jouer en troisième division » jusqu’à « peut devenir spécial ». La fiche indique aussi une fourchette : précise pour vos joueurs, plus large pour les autres selon le niveau de votre recruteur. Les joueurs progressent jusqu’à leur potentiel, plus vite quand ils sont jeunes.'],
+  ['Football : centre de formation','Dans l’onglet Effectif, votre centre accueille 3 à 6 jeunes de 15 à 17 ans dès le rachat du club, puis de nouveaux à chaque fin de saison. Faites signer les meilleurs : ils rejoignent l’effectif. À 19 ans, un jeune non signé quitte le club.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
