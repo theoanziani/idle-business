@@ -1046,6 +1046,17 @@ html,body{overflow-anchor:none}
 
 .fp-box{margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(127,127,127,.08);display:flex;flex-direction:column;gap:2px}.fp-box small{opacity:.85}
 
+/* V1.2.1 détection des jeunes */
+.ys-map{border-radius:12px;overflow:hidden;background:#1d5c8a;margin-bottom:10px}
+.ys-map svg{display:block;width:100%;height:auto}
+.ys-map .land polygon{fill:#3f8f5a;stroke:#2f6e45;stroke-width:.6}
+.ys-map .home{fill:#fff;stroke:#1f3c88;stroke-width:1}
+.ys-pt{cursor:pointer}.ys-pt .hit{fill:transparent}.ys-pt .dot{fill:#ffd23f;stroke:#7a5a00;stroke-width:.7}.ys-pt.on .dot{fill:#c8352a;stroke:#fff}
+.ys-len{margin-bottom:10px}
+.ys-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ys-list button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid rgba(127,127,127,.35);background:transparent;color:inherit;font:inherit;font-size:13px}
+.ys-list button.on{background:#1f3c88;color:#fff;border-color:#1f3c88}
+
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -7015,7 +7026,7 @@ const FP_LBL=[[58,'Potentiel pour jouer en troisième division'],[66,'Potentiel 
 function fpLabel(pot){ return FP_LBL.find(x=>pot<x[0])[1]; }
 /* fourchette affichée : étroite pour vos joueurs, plus large selon le recruteur pour les autres */
 function fpRange(p,mine){
-  const O=fcOwn(), pot=fpPot(p), w= mine? 4 : Math.max(4,16-2*((O&&O.staff.scout)||1)), R=footSeedRng(footHash('rg|'+p.n));
+  const O=fcOwn(), pot=fpPot(p), w= mine? 4 : p.rw || Math.max(4,16-2*((O&&O.staff.scout)||1)), R=footSeedRng(footHash('rg|'+p.n));
   let lo=Math.round(pot-R()*w); lo=Math.max(Math.round(p.o),lo); const hi=Math.min(99,lo+w); return [lo,Math.max(hi,pot)];
 }
 /* progression mensuelle bornée par le potentiel */
@@ -7040,6 +7051,96 @@ function fcSignYouth(id){
   fcNews(p.n+' signe son premier contrat professionnel.','good'); return ok(p.n+' rejoint l’effectif professionnel.');
 }
 function fcFreeYouth(id){ const O=fcOwn(); if(!O) return err('Aucun club.'); const p=fcAcad(O).find(x=>x.id===id); if(!p) return err('Jeune introuvable.'); O.acad=O.acad.filter(x=>x!==p); return ok(p.n+' quitte le centre de formation.'); }
+
+/* ============================================================
+   Football : détection des jeunes (V1.2.1)
+   O.ysc : recruteurs de jeunes (3 au plus) {id, n, exp, ex, w, m}
+     exp (expérience, 1 à 5) : nombre de jeunes proposés ; ex (expertise, 1 à 5) : qualité et potentiel.
+   m (mission) : {c, len, d0, end, nx} : pays, durée (30, 90 ou 180 jours), rapport tous les 14 jours.
+   O.yprop : jeunes proposés {…joueur, fee, until, sc} ; O.yscC : candidats, renouvelés tous les 30 jours.
+   Valeurs par défaut : tout est créé à la première lecture (fcYS).
+   ============================================================ */
+const YS_C = {
+  fr:{n:'France', pool:'fr', lat:46, lon:2, t:1.1}, es:{n:'Espagne', pool:'es', lat:40, lon:-4, t:1.1},
+  en:{n:'Angleterre', pool:'en', lat:52, lon:-1, t:1}, de:{n:'Allemagne', pool:'de', lat:51, lon:10, t:1.05},
+  it:{n:'Italie', pool:'it', lat:43, lon:12, t:1}, pt:{n:'Portugal', pool:'pt', lat:39.5, lon:-8, t:1.05},
+  nl:{n:'Pays-Bas', pool:'nl', lat:52.3, lon:5, t:1.05}, hr:{n:'Croatie', pool:'hr', lat:45, lon:16, t:1},
+  br:{n:'Brésil', pool:'br', lat:-12, lon:-50, t:1.2}, arg:{n:'Argentine', pool:'la', lat:-35, lon:-64, t:1.15},
+  co:{n:'Colombie', pool:'la', lat:4, lon:-73, t:1}, us:{n:'États-Unis', pool:'us', lat:39, lon:-98, t:.9},
+  ma:{n:'Maroc', pool:'ar', lat:32, lon:-6, t:.95}, sn:{n:'Sénégal', pool:'af', lat:14.5, lon:-14.5, t:1.05},
+  ci:{n:'Côte d’Ivoire', pool:'af', lat:7.5, lon:-5.5, t:1.05}, ng:{n:'Nigeria', pool:'af', lat:9, lon:8, t:1},
+  jp:{n:'Japon', pool:'jp', lat:36, lon:138, t:.95}, kr:{n:'Corée du Sud', pool:'kr', lat:36.5, lon:128, t:.9},
+  cn:{n:'Chine', pool:'cn', lat:35, lon:104, t:.8}
+};
+/* noms et nationalités des nouveaux pays */
+Object.keys(YS_C).forEach(k=>{ if(!FOOT_NAMES[k]) FOOT_NAMES[k]=FOOT_NAMES[YS_C[k].pool]||FOOT_NAMES.fr; if(!FOOT_NATNAME[k]) FOOT_NATNAME[k]=YS_C[k].n; });
+const YS_LEN=[30,90,180], YS_MAX=3;
+function fcYS(O){ if(!O.ysc) O.ysc=[]; if(!O.yprop) O.yprop=[]; if(!O.yscC||!(O.yscCd>S.day)){ O.yscC=ysCands(); O.yscCd=S.day+30; } return O; }
+function ysClubPos(O){ const nat=footClub(O.id).nat, c=YS_C[nat==='la'?'arg':nat==='af'?'ci':nat==='ar'?'ma':nat]||YS_C.fr; return c; }
+function ysDist(a,b){ const R=6371, r=Math.PI/180, dl=(b.lat-a.lat)*r, dn=(b.lon-a.lon)*r, x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2; return 2*R*Math.asin(Math.sqrt(x)); }
+/* coûts : voyage (aller-retour) et frais de mission par mois */
+function ysTravel(O,c){ return Math.round((8000+ysDist(ysClubPos(O),YS_C[c])*9)/1000)*1000; }
+function ysMonthly(s){ return 12000+6000*s.exp+4000*s.ex; }
+function ysMissionCost(O,s,c,len){ return ysTravel(O,c)+ysMonthly(s)*len/30; }
+function ysWage(s){ return (s.exp+s.ex)*45000; }
+function ysFee(s){ return (s.exp+s.ex)*25000; }
+function ysCands(){
+  const R=frnd, P=footNamePool('fr'), w=()=>{ const x=R(); return x<.3?1:x<.6?2:x<.82?3:x<.95?4:5; };
+  return Array.from({length:4},(_,i)=>({id:'s'+S.day+'_'+i, n:P.f[Math.floor(R()*P.f.length)]+' '+P.l[Math.floor(R()*P.l.length)], exp:w(), ex:w()}));
+}
+function ysHire(id){
+  const O=fcOwn(); if(!O) return err('Aucun club.'); fcYS(O); if(O.ysc.length>=YS_MAX) return err('Trois recruteurs au maximum.');
+  const s=O.yscC.find(x=>x.id===id); if(!s) return err('Candidat introuvable.'); const fee=ysFee(s); if(S.cash<fee) return err('Il faut '+eur(fee,0)+'.');
+  fcPay('staff','Club : recrutement d’un recruteur de jeunes',-fee); O.yscC=O.yscC.filter(x=>x!==s); s.w=ysWage(s); s.m=null; O.ysc.push(s);
+  return ok(s.n+' rejoint votre cellule de recrutement.');
+}
+function ysFire(id){ const O=fcOwn(); if(!O) return err('Aucun club.'); fcYS(O); const s=O.ysc.find(x=>x.id===id); if(!s) return err('Recruteur introuvable.');
+  O.ysc=O.ysc.filter(x=>x!==s); return ok(s.n+' quitte le club.'); }
+function ysSend(id,c,len){
+  const O=fcOwn(); if(!O) return err('Aucun club.'); fcYS(O); const s=O.ysc.find(x=>x.id===id); if(!s) return err('Recruteur introuvable.');
+  if(s.m) return err(s.n+' est déjà en mission.'); if(!YS_C[c]) return err('Pays inconnu.'); if(!YS_LEN.includes(len)) return err('Durée inconnue.');
+  const tr=ysTravel(O,c); if(S.cash<tr) return err('Il faut '+eur(tr,0)+' pour le voyage.');
+  fcPay('staff','Club : voyage de '+s.n+' ('+YS_C[c].n+')',-tr);
+  s.m={c, len, d0:S.day, end:S.day+len, nx:S.day+14};
+  return ok(s.n+' part '+len/30+' mois en mission : '+YS_C[c].n+'. Premier rapport dans 2 semaines.');
+}
+function ysRecall(id){ const O=fcOwn(); const s=O&&O.ysc.find(x=>x.id===id); if(!s||!s.m) return err('Pas de mission.'); s.m=null; return ok(s.n+' rentre au club.'); }
+/* un jeune repéré : l'expertise relève le potentiel, mais des profils modestes restent proposés */
+function ysYouth(O,s,c){
+  const R=frnd, C=YS_C[c], P=footNamePool(c), pos=FOOT_SQUAD_SHAPE[Math.floor(R()*FOOT_SQUAD_SHAPE.length)];
+  const low=R()<.5-.07*s.ex, pot=Math.round(clamp(low? 50+R()*16 : 48+s.ex*5+R()*14+(C.t-1)*25,48,95));
+  const a=15+Math.floor(R()*3), o=Math.round(clamp(pot-(14+R()*16)+(a-15)*2,38,72));
+  const p={id:'d'+S.day+'_'+Math.floor(R()*1e7), n:P.f[Math.floor(R()*P.f.length)]+' '+P.l[Math.floor(R()*P.l.length)], p:pos, a, o, pot, nat:c, inj:0};
+  p.fee=Math.round(4000*Math.exp((pot-50)/8.5)/1000)*1000; p.until=S.day+30; p.sc=s.n; p.cn=C.n; p.rw=Math.max(3,14-2*s.ex);
+  return p;
+}
+function ysReport(O,s){
+  const m=s.m, per=[[1,2],[2,3],[3,4],[4,5],[5,7]][s.exp-1], reps=Math.max(1,Math.round(m.len/14));
+  /* nombre de jeunes par mois de mission, réparti entre les rapports */
+  const tot=(per[0]+frnd()*(per[1]-per[0]+.99))*m.len/30, n=Math.floor(tot/reps+frnd());
+  const L=[]; for(let i=0;i<n;i++) L.push(ysYouth(O,s,m.c));
+  O.yprop=L.concat(O.yprop).slice(0,40);
+  fcNews('Rapport de '+s.n+' ('+YS_C[m.c].n+') : '+(n? n+' jeune'+(n>1?'s':'')+' proposé'+(n>1?'s':'')+'.' : 'aucun jeune à la hauteur cette fois.'), n?'good':'');
+  if(n) log('info','Club : '+s.n+' propose '+n+' jeune'+(n>1?'s':'')+' repéré'+(n>1?'s':'')+' ('+YS_C[m.c].n+').','news');
+}
+function ysDaily(day){
+  const O=fcOwn(); if(!O||!O.ysc) return; fcYS(O);
+  O.ysc.forEach(s=>{ const m=s.m; if(!m) return;
+    if((day-m.d0)%30===29) fcPay('staff','Club : frais de mission ('+s.n+')',-ysMonthly(s));
+    if(day>=m.nx){ ysReport(O,s); m.nx+=14; }
+    if(day>=m.end){ fcNews(s.n+' rentre de mission ('+YS_C[m.c].n+').',''); s.m=null; } });
+  if(day%7===0) O.yprop=O.yprop.filter(p=>p.until>day);
+  /* salaires des recruteurs : chaque lundi, comme l'effectif */
+  if(wdOf(day)===0){ const w=O.ysc.reduce((a,s)=>a+s.w,0)/52; if(w>0) fcPay('staff','Club : salaires des recruteurs de jeunes',-w); }
+}
+function ysSign(id){
+  const O=fcOwn(); if(!O) return err('Aucun club.'); fcYS(O); const p=O.yprop.find(x=>x.id===id); if(!p) return err('Proposition expirée.');
+  if(S.cash<p.fee) return err('Il faut '+eur(p.fee,0)+'.'); fcPay('transfer','Club : arrivée de '+p.n+' au centre de formation',-p.fee);
+  O.yprop=O.yprop.filter(x=>x!==p); const y=Object.assign({},p,{acad:1}); delete y.fee; delete y.until; delete y.sc; delete y.cn; delete y.rw; fcAcad(O).push(y);
+  return ok(p.n+' rejoint le centre de formation.');
+}
+function ysDrop(id){ const O=fcOwn(); if(!O) return err('Aucun club.'); fcYS(O); O.yprop=O.yprop.filter(x=>x.id!==id); return ok('Proposition écartée.'); }
+{ const _fd=fcDaily; fcDaily=function(day){ _fd(day); try{ ysDaily(day); }catch(e){ console.error(e); } }; }
 
 /* ============================================================
    FOOTBALL : compétitions internationales (noms fictifs)
@@ -13404,6 +13505,70 @@ ACT.fcfree=el=>{ const r=fcFreeYouth(el.dataset.i); if(r.ok) ui.modal=null; afte
   return _mc(); }; }
 
 /* ============================================================
+   Football : interface de la détection des jeunes (V1.2.1)
+   Onglet Staff : recruteurs, missions, jeunes proposés. Carte du monde pour choisir le pays.
+   ============================================================ */
+const YS_LAND=[
+  [[-168,65],[-140,70],[-95,72],[-75,62],[-55,52],[-66,44],[-80,25],[-97,18],[-88,15],[-80,8],[-105,22],[-117,32],[-125,48],[-150,60]],
+  [[-80,8],[-60,10],[-35,-6],[-40,-22],[-58,-38],[-68,-55],[-75,-45],[-72,-18],[-81,-5]],
+  [[-10,36],[-9,44],[-2,48],[5,54],[5,62],[15,70],[30,70],[40,65],[45,45],[28,41],[20,40],[12,44],[5,43]],
+  [[-5,50],[1,51],[-2,57],[-6,58],[-4,54]],
+  [[-17,15],[-10,30],[-5,36],[10,37],[32,31],[43,12],[51,12],[40,-15],[32,-28],[20,-35],[12,-17],[9,4],[-8,5]],
+  [[40,65],[60,72],[100,77],[140,72],[170,66],[160,58],[140,50],[130,40],[122,30],[108,20],[100,8],[95,18],[80,8],[72,20],[58,25],[48,30],[35,35],[28,41],[45,45]],
+  [[130,32],[141,36],[142,44],[139,40]],
+  [[114,-22],[130,-12],[142,-11],[153,-27],[145,-38],[135,-35],[115,-34]]
+];
+const ysX=lon=>lon+180, ysY=lat=>90-lat;
+function ysMap(O,sel){
+  const home=ysClubPos(O), land=YS_LAND.map(P=>'<polygon points="'+P.map(([x,y])=>ysX(x)+','+ysY(y)).join(' ')+'"/>').join('');
+  const dots=Object.entries(YS_C).map(([k,c])=>'<g class="ys-pt'+(k===sel?' on':'')+'" data-a="yspick" data-v="'+k+'"><circle cx="'+ysX(c.lon)+'" cy="'+ysY(c.lat)+'" r="7" class="hit"/><circle cx="'+ysX(c.lon)+'" cy="'+ysY(c.lat)+'" r="'+(k===sel?3.4:2.4)+'" class="dot"/></g>').join('');
+  return '<div class="ys-map"><svg viewBox="0 20 360 130" role="img" aria-label="Carte du monde : touchez un pays"><g class="land">'+land+'</g>'+
+    '<circle cx="'+ysX(home.lon)+'" cy="'+ysY(home.lat)+'" r="3" class="home"/>'+dots+'</svg></div>';
+}
+function ysStarsTxt(n){ return fcStars(n); }
+function ysScoutRow(O,s){
+  const m=s.m;
+  return '<div class="fc-staff"><div><b>'+esc(s.n)+'</b><small>Expérience '+ysStarsTxt(s.exp)+' · Expertise '+ysStarsTxt(s.ex)+'</small><small>'+
+    (m? 'En mission : '+esc(YS_C[m.c].n)+', retour '+fcCountdown(m.end).toLowerCase()+'. Prochain rapport '+fcCountdown(m.nx).toLowerCase()+'.' : 'Au club, disponible.')+' Salaire : '+eur(s.w,0)+' par saison.</small></div>'+
+    '<div class="row">'+(m? btn('Rappeler','ysrecall',{i:s.id,c:'sm ghost'}) : btn('Envoyer en mission','ysmis',{i:s.id,c:'sm pri'}))+'</div></div>';
+}
+function ysPropRow(p){
+  return '<button class="fc-pl" data-a="ysprop" data-i="'+esc(p.id)+'"><span class="fpos">'+FOOT_POS_S[p.p]+'</span><span class="nm"><b>'+esc(p.n)+'</b><small>'+p.a+' ans · '+esc(p.cn)+' · '+esc(fpLabel(Math.round((fpRange(p,false)[0]+fpRange(p,false)[1])/2)))+'</small></span><b class="num fov">'+Math.round(p.o)+'</b></button>';
+}
+{ const _st=fcTabSt; fcTabSt=function(O){ fcYS(O);
+  const free=YS_MAX-O.ysc.length;
+  return _st(O)+card('Recruteurs de jeunes ('+O.ysc.length+' sur '+YS_MAX+')','<div class="sub">L’expérience donne le nombre de jeunes proposés (une étoile : 1 ou 2 par mois de mission ; cinq étoiles : 5 à 7). L’expertise relève leur qualité et leur potentiel, sans écarter tous les profils modestes.</div>'+
+      O.ysc.map(s=>ysScoutRow(O,s)).join('')+(free>0? '<div class="row" style="margin-top:8px">'+btn('Recruter un recruteur de jeunes','yshire',{c:'sm'})+'</div>' : ''))+
+    card('Jeunes proposés ('+O.yprop.length+')', O.yprop.length? '<div class="sub">Chaque proposition reste valable 30 jours.</div>'+O.yprop.map(ysPropRow).join('') : '<div class="sub">Envoyez un recruteur en mission : il envoie un rapport toutes les deux semaines.</div>');
+}; }
+ACT.yshire=()=>{ ui.modal={type:'yshire'}; render(); };
+ACT.yshireok=el=>{ const r=ysHire(el.dataset.i); if(r.ok) ui.modal=null; after(r); };
+ACT.ysfire=el=>{ const r=ysFire(el.dataset.i); after(r); };
+ACT.ysmis=el=>{ ui.modal={type:'ysmis',id:el.dataset.i,c:null,len:90}; render(); };
+ACT.yspick=el=>{ const m=ui.modal; if(!m||m.type!=='ysmis') return; m.c=el.dataset.v; render(); };
+ACT.yslen=el=>{ const m=ui.modal; if(!m) return; m.len=+el.dataset.v; render(); };
+ACT.yssend=()=>{ const m=ui.modal; const r=ysSend(m.id,m.c,m.len); if(r.ok) ui.modal=null; after(r); };
+ACT.ysrecall=el=>{ after(ysRecall(el.dataset.i)); };
+ACT.ysprop=el=>{ ui.modal={type:'ysprop',id:el.dataset.i}; render(); };
+ACT.yssign=el=>{ const r=ysSign(el.dataset.i); if(r.ok) ui.modal=null; after(r); };
+ACT.ysdrop=el=>{ const r=ysDrop(el.dataset.i); if(r.ok) ui.modal=null; after(r); };
+{ const _mc=modalContent; modalContent=function(){ const m=ui.modal, O=fcOwn();
+  if(m&&m.type==='yshire'&&O){ fcYS(O);
+    return {title:'Recruteurs de jeunes disponibles',sm:true,body:'<div class="sub">Nouveaux candidats tous les 30 jours.</div>'+(O.yscC.length? O.yscC.map(s=>'<div class="fc-staff"><div><b>'+esc(s.n)+'</b><small>Expérience '+ysStarsTxt(s.exp)+' · Expertise '+ysStarsTxt(s.ex)+'</small><small>Salaire : '+eur(ysWage(s),0)+' par saison · mission : '+eur(ysMonthly(s),0)+' par mois.</small></div>'+btn('Recruter : '+eur(ysFee(s),0),'yshireok',{i:s.id,c:'sm pri',dis:S.cash<ysFee(s)})+'</div>').join('') : '<div class="sub">Aucun candidat pour le moment.</div>')}; }
+  if(m&&m.type==='ysmis'&&O){ const s=O.ysc.find(x=>x.id===m.id); if(!s){ ui.modal=null; return _mc(); }
+    const c=m.c&&YS_C[m.c], cost=c? ysMissionCost(O,s,m.c,m.len) : 0;
+    return {title:'Mission de '+esc(s.n),sm:true,body:ysMap(O,m.c)+
+      '<div class="seg ys-len">'+YS_LEN.map(l=>'<button class="'+(m.len===l?'on':'')+'" data-a="yslen" data-v="'+l+'">'+l/30+' mois</button>').join('')+'</div>'+
+      (c? '<div class="met-k"><div><span>Pays</span><b>'+esc(c.n)+'</b><small>Vivier : '+(c.t>=1.15?'exceptionnel':c.t>=1.05?'très riche':c.t>=.98?'riche':'modeste')+'</small></div><div><span>Coût total</span><b class="num">'+eur(cost,0)+'</b><small>Voyage '+eur(ysTravel(O,m.c),0)+' + '+eur(ysMonthly(s),0)+' par mois</small></div></div>'+
+        '<div class="sub">'+Math.round(m.len/14)+' rapports, un toutes les deux semaines.</div><div class="row" style="margin-top:10px">'+btn('Envoyer '+esc(s.n),'yssend',{c:'pri',dis:S.cash<ysTravel(O,m.c)})+'</div>'
+        : '<div class="sub">Touchez un pays sur la carte, ou choisissez-le dans la liste.</div>')+
+      '<div class="ys-list">'+Object.entries(YS_C).map(([k,x])=>'<button class="'+(m.c===k?'on':'')+'" data-a="yspick" data-v="'+k+'">'+esc(x.n)+'</button>').join('')+'</div>'}; }
+  if(m&&m.type==='ysprop'&&O){ fcYS(O); const p=O.yprop.find(x=>x.id===m.id); if(!p){ ui.modal=null; return _mc(); }
+    return {title:esc(p.n),sm:true,body:'<div class="met-k"><div><span>Poste</span><b>'+FOOT_POS[p.p]+'</b><small>'+p.a+' ans · '+esc(p.cn)+'</small></div><div><span>Note</span><b class="num">'+Math.round(p.o)+'</b><small>Repéré par '+esc(p.sc)+'</small></div><div><span>Indemnité</span><b class="num">'+eur(p.fee,0)+'</b><small>Proposition valable '+fcCountdown(p.until).toLowerCase()+'</small></div></div>'+
+      fpBlock(p,false)+fsGrid(p)+'<div class="row" style="margin-top:12px">'+btn('Faire venir au centre','yssign',{i:p.id,c:'pri',dis:S.cash<p.fee})+btn('Écarter','ysdrop',{i:p.id,c:'ghost'})+'</div>'}; }
+  return _mc(); }; }
+
+/* ============================================================
    FOOTBALL : écran des compétitions internationales (Football > International)
    ============================================================ */
 { const _vf=vFoot; vFoot=function(){
@@ -13723,11 +13888,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.1.9';
+const IB_VER='V1.2.1';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Football : potentiel des joueurs','Chaque joueur a un potentiel maximal, du « potentiel pour jouer en troisième division » jusqu’à « peut devenir spécial ». La fiche indique aussi une fourchette : précise pour vos joueurs, plus large pour les autres selon le niveau de votre recruteur. Les joueurs progressent jusqu’à leur potentiel, plus vite quand ils sont jeunes.'],
-  ['Football : centre de formation','Dans l’onglet Effectif, votre centre accueille 3 à 6 jeunes de 15 à 17 ans dès le rachat du club, puis de nouveaux à chaque fin de saison. Faites signer les meilleurs : ils rejoignent l’effectif. À 19 ans, un jeune non signé quitte le club.']
+  ['Football : recruteurs de jeunes','Dans l’onglet Staff de votre club, recrutez jusqu’à 3 recruteurs de jeunes, notés sur 5 en expérience (combien de jeunes ils proposent) et en expertise (leur qualité et leur potentiel).'],
+  ['Football : missions dans le monde','Envoyez un recruteur en mission sur la carte du monde, pour 1, 3 ou 6 mois. Le voyage et les frais mensuels dépendent du pays et du recruteur. Il envoie un rapport toutes les deux semaines : les jeunes proposés peuvent rejoindre votre centre de formation contre une indemnité.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
