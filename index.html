@@ -1061,6 +1061,15 @@ html,body{overflow-anchor:none}
 .tr-row{margin-top:8px;align-items:center}.tr-sel{min-height:44px;max-width:62%}
 
 .ys-zoom{position:absolute;right:8px;bottom:8px;min-height:44px}
+/* V1.2.6 blocs repliables de l'onglet Métier */
+details.mf{border-top:1px solid rgba(127,127,127,.2);margin:0}
+details.mf>summary{list-style:none;min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px;cursor:pointer}
+details.mf>summary::-webkit-details-marker{display:none}
+details.mf>summary>span{display:flex;flex-direction:column;min-width:0}
+details.mf>summary small{opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.mf>summary::after{content:'';flex:none;width:10px;height:10px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-right:6px;transition:transform .2s;opacity:.6}
+details.mf[open]>summary::after{transform:rotate(-135deg)}
+details.mf .mf-b{padding-bottom:10px}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -14031,10 +14040,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.2.5';
+const IB_VER='V1.2.6';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Football : pépites des pays peu communs','12 nouveaux pays de mission : Norvège, Islande, Géorgie, Mali, Ghana, Cameroun, Égypte, Algérie, Uruguay, Mexique, Australie et Canada. Leur vivier est plus modeste, mais un jeune très talentueux (potentiel 93 à 99) peut y surgir, un peu plus souvent qu’ailleurs.']
+  ['Onglet Métier allégé','Dans la fiche d’une entreprise, les indicateurs restent visibles et chaque bloc (sections du métier, prix et réglages, délégation, paliers et achats, journal) est replié avec un résumé d’une ligne. Touchez un bloc pour l’ouvrir : le jeu se souvient de ceux que vous laissez ouverts.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -14441,6 +14450,51 @@ function relocCard(b){ if(!b.bld||b.lvl<bizMaxHere(b)||b.lvl>=MAXLVL) return '';
     (L.length? '<div class="ht-t">'+L.map(x=>'<div class="rs-d"><div><b>'+esc(x.bd.addr)+'</b><small>'+esc(distOfB(x.bd).n)+' · '+D.BT[x.bd.t].n+' de '+fmtN(x.bd.surf)+' m² · jusqu’au niveau '+x.mx+(x.h? ' · déjà à vous' : co? ' · ville à vous' : ' · loyer '+eur(bldRent(x.bd),0)+' / j')+'</small></div><button class="btn sm pri" data-a="reloc" data-i="'+b.id+'" data-v="'+x.bd.id+'"'+(availFor(cityOf(b).ccy)<c?' disabled':'')+'>Déménager</button></div>').join('')+'</div>'
       : '<div class="sub">Aucun bâtiment libre plus grand dans cette ville pour le moment.</div>')+'</div>'; }
 ACT.reloc=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(!b) return; after(relocBiz(b,el.dataset.v)); };
+
+/* ============================================================
+   V1.2.6 : onglet Métier en blocs repliables
+   Les indicateurs restent visibles ; chaque bloc (sections du métier, réglages, délégation,
+   paliers et achats, journal) est replié avec un résumé d'une ligne. État : S.mfold
+   (clé « activité:bloc » → ouvert), valeur par défaut {} (tout replié).
+   ============================================================ */
+const MF_SPLIT=/^(Le chef|Directeur artistique|Égérie|Artisans)/;
+function mfTxt(el){ return ((el&&el.textContent)||'').replace(/\s+/g,' ').trim(); }
+function mfHead(el){ const h=el.querySelector('.tag,h3,b'); return mfTxt(h); }
+function mfCut(t,n){ n=n||70; return t.length>n? t.slice(0,n-1).trim()+'…' : t; }
+function mfOn(el){ const o=el.querySelector('.seg .on'); return o? mfTxt(o) : ''; }
+function mfWrap(def,key,title,sum,nodes){
+  const d=document.createElement('details'); d.className='mf'; d.dataset.k=def+':'+key; if(S.mfold&&S.mfold[d.dataset.k]) d.open=true;
+  d.innerHTML='<summary><span><b>'+esc(title)+'</b>'+(sum?'<small>'+esc(sum)+'</small>':'')+'</span></summary>';
+  const box=document.createElement('div'); box.className='mf-b'; nodes.forEach(n=>box.appendChild(n)); d.appendChild(box); return d;
+}
+function mfApply(){
+  if(!ui.modal||ui.modal.type!=='biz') return; const M=document.getElementById('bj-met'); if(!M||M.dataset.mf) return; M.dataset.mf='1';
+  const b=S.biz.find(x=>x.id===ui.modal.id); if(!b) return; const def=b.def, out=[];
+  /* sections propres au métier */
+  const plan=M.querySelector(':scope > .met-plan');
+  if(plan){ const kids=[...plan.children], groups=[]; let g=null;
+    kids.forEach(el=>{ const head=el.classList.contains('pk-head'), t=mfHead(el);
+      if(head||!g||MF_SPLIT.test(t)){ g={title: t||'Gestion', sum: head? mfTxt(el).replace(t,'').trim() : '', nodes:[]}; groups.push(g); if(head) return; }
+      g.nodes.push(el); });
+    groups.forEach((g,i)=>{ if(!g.sum){ const s=g.nodes.map(n=>n.querySelector('small,.sub')).find(Boolean); g.sum= g.nodes.length>1? g.nodes.length+' éléments' : mfTxt(s); }
+      out.push(mfWrap(def,'p'+i+':'+g.title,g.title,mfCut(g.sum),g.nodes)); });
+    plan.remove(); }
+  /* réglages, délégation, paliers et achats */
+  const cs=M.querySelector(':scope > .met-cs');
+  if(cs){ const reg=[], buy=[]; let dl=null;
+    [...cs.children].forEach(el=>{ const t=mfHead(el); if(/^Délégation/.test(t)) dl=el; else if(/^Maîtrise/.test(t)||el.classList.contains('met-buy')) buy.push(el); else reg.push(el); });
+    if(reg.length) out.push(mfWrap(def,'reg','Prix et réglages',mfCut(reg.slice(0,2).map(el=>{ const t=mfHead(el), o=mfOn(el); return o? t+' : '+o.toLowerCase() : t; }).join(' · ')),reg));
+    if(dl) out.push(mfWrap(def,'dl','Délégation',mfOn(dl)||'',[dl]));
+    if(buy.length){ const mx=buy.find(el=>/^Maîtrise/.test(mfHead(el))), r=mx&&mfHead(mx).match(/palier (\d) sur 5/), n=buy.filter(el=>el.querySelector('button.pri:not([disabled])')).length;
+      out.push(mfWrap(def,'buy','Paliers et achats',(r?'Palier '+r[1]+' sur 5':'')+(n? (r?' · ':'')+n+' achat'+(n>1?'s':'')+' possible'+(n>1?'s':'') : ''),buy)); }
+    cs.remove(); }
+  const lg=M.querySelector(':scope > .met-log');
+  if(lg){ const items=[...lg.children].filter(x=>!x.classList.contains('tag')); lg.querySelector('.tag')&&lg.querySelector('.tag').remove();
+    out.push(mfWrap(def,'log','Journal du métier',items.length? mfCut(mfTxt(items[0]).replace(/^J\d+\s*/,'')) : '',[lg])); }
+  out.forEach(d=>M.appendChild(d));
+}
+{ const _r=render; render=function(){ const o=_r.apply(this,arguments); try{ mfApply(); }catch(e){ console.error(e); } return o; }; }
+document.addEventListener('toggle',e=>{ const d=e.target; if(!d||!d.classList||!d.classList.contains('mf')) return; if(!S) return; S.mfold=S.mfold||{}; if(d.open) S.mfold[d.dataset.k]=1; else delete S.mfold[d.dataset.k]; },true);
 
 /* ============================================================
    JEU PLUS INTUITIF (V1.1.4)
