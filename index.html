@@ -1057,6 +1057,8 @@ html,body{overflow-anchor:none}
 .ys-list button{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid rgba(127,127,127,.35);background:transparent;color:inherit;font:inherit;font-size:13px}
 .ys-list button.on{background:#1f3c88;color:#fff;border-color:#1f3c88}
 
+.tr-row{margin-top:8px;align-items:center}.tr-sel{min-height:44px;max-width:62%}
+
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -7141,6 +7143,35 @@ function ysSign(id){
 }
 function ysDrop(id){ const O=fcOwn(); if(!O) return err('Aucun club.'); fcYS(O); O.yprop=O.yprop.filter(x=>x.id!==id); return ok('Proposition écartée.'); }
 { const _fd=fcDaily; fcDaily=function(day){ _fd(day); try{ ysDaily(day); }catch(e){ console.error(e); } }; }
+
+/* ============================================================
+   Football : programmes d'entraînement (V1.2.2)
+   O.trn = {l:{G,DEF,MID,ATT}, ind:{idJoueur:stat}, ds:bool} (créé au premier besoin).
+   Chaque mois, la statistique travaillée monte, les autres baissent un peu ; la note générale
+   suit (dans la limite du potentiel). Avec ds:true, le directeur sportif choisit pour chacun.
+   ============================================================ */
+const TR_OUT={equ:'Équilibré', vit:'Vitesse', tir:'Tir', pas:'Passe', dri:'Dribble', def:'Défense', phy:'Physique'};
+const TR_GK={equ:'Équilibré', ref:'Réflexes', plo:'Plongeon', mai:'Jeu à la main', pie:'Jeu au pied', vit:'Vitesse'};
+const TR_LINES={G:['Gardiens',['G']], DEF:['Défenseurs',['DL','DC']], MID:['Milieux',['MD','MC','MO']], ATT:['Attaquants',['AIL','BU']]};
+function trOf(O){ if(!O.trn) O.trn={l:{G:'equ',DEF:'equ',MID:'equ',ATT:'equ'}, ind:{}, ds:false}; return O.trn; }
+function trProgs(p){ return p.p==='G'? TR_GK : TR_OUT; }
+function trLineOf(p){ return Object.keys(TR_LINES).find(k=>TR_LINES[k][1].includes(p.p))||'MID'; }
+function trDsOn(O){ return !!(trOf(O).ds && O.ds && O.ds.lvl>0); }
+/* choix du directeur sportif : la plus faible des statistiques importantes du poste */
+function trDsPick(O,p){ const W=FS_W[p.p]||FS_W.MC, ks=Object.keys(W).sort((a,b)=>W[b]-W[a]).slice(0,O.ds.lvl>=3?3:2); return ks.sort((a,b)=>fsVal(p,a)-fsVal(p,b))[0]; }
+function trFocus(O,p){ const T=trOf(O); if(trDsOn(O)) return trDsPick(O,p); const k=T.ind[p.id]||T.l[trLineOf(p)]||'equ'; return k in trProgs(p)? k : 'equ'; }
+function trApply(O,p){
+  const k=trFocus(O,p); if(k==='equ') return; const sd=fsSd(p); if(!(k in sd)||fsVal(p,k)>=99) return;
+  const W=FS_W[p.p]||FS_W.MC, yb=1+.1*(((O.staff&&O.staff.coach)||1)-1);
+  sd[k]+=.9*yb; Object.keys(sd).forEach(x=>{ if(x!==k) sd[x]-=.12; });
+  let m=0; Object.keys(W).forEach(x=>{ m+=W[x]*(sd[x]||0); }); Object.keys(sd).forEach(x=>{ sd[x]=Math.round((sd[x]-m)*100)/100; });
+  const room=fpPot(p)-p.o; p.o=Math.round(clamp(p.o+Math.max(0,Math.min(m,room)),30,99)*10)/10;
+}
+function trSetLine(k,v){ const O=fcOwn(); if(!O||!TR_LINES[k]) return err('Ligne inconnue.'); const P=k==='G'?TR_GK:TR_OUT; if(!P[v]) return err('Programme inconnu.'); trOf(O).l[k]=v; return ok(TR_LINES[k][0]+' : '+P[v].toLowerCase()+'.'); }
+function trSetInd(id,v){ const O=fcOwn(); if(!O) return err('Aucun club.'); const p=O.sq.find(x=>String(x.id)===String(id))||fcAcad(O).find(x=>String(x.id)===String(id)); if(!p) return err('Joueur introuvable.');
+  const T=trOf(O); if(!v||v==='line'){ delete T.ind[p.id]; return ok(p.n+' suit le programme de sa ligne.'); } if(!trProgs(p)[v]) return err('Programme inconnu.'); T.ind[p.id]=v; return ok(p.n+' : programme '+trProgs(p)[v].toLowerCase()+'.'); }
+function trSetDs(on){ const O=fcOwn(); if(!O) return err('Aucun club.'); if(on&&!(O.ds&&O.ds.lvl>0)) return err('Recrutez d’abord un directeur sportif.'); trOf(O).ds=!!on; return ok(on? 'Le directeur sportif choisit les programmes.' : 'Vous choisissez les programmes.'); }
+{ const _g=fpGrow; fpGrow=function(p,O){ _g(p,O); try{ trApply(O,p); }catch(e){ console.error(e); } }; }
 
 /* ============================================================
    FOOTBALL : compétitions internationales (noms fictifs)
@@ -13568,6 +13599,25 @@ ACT.ysdrop=el=>{ const r=ysDrop(el.dataset.i); if(r.ok) ui.modal=null; after(r);
       fpBlock(p,false)+fsGrid(p)+'<div class="row" style="margin-top:12px">'+btn('Faire venir au centre','yssign',{i:p.id,c:'pri',dis:S.cash<p.fee})+btn('Écarter','ysdrop',{i:p.id,c:'ghost'})+'</div>'}; }
   return _mc(); }; }
 
+/* Football : interface des programmes d'entraînement (V1.2.2) */
+function trSel(ch,i,P,cur,extra){ return '<select class="btn sm tr-sel" data-ch="'+ch+'" data-i="'+esc(String(i))+'" aria-label="Programme">'+(extra||'')+Object.entries(P).map(([k,t])=>'<option value="'+k+'"'+(k===cur?' selected':'')+'>'+t+'</option>').join('')+'</select>'; }
+{ const _tac=fcTabTac; fcTabTac=function(O){ const T=trOf(O), ds=O.ds&&O.ds.lvl>0, on=trDsOn(O);
+  return _tac(O)+card('Entraînement','<div class="sub">Chaque mois, la statistique travaillée progresse et les autres baissent un peu. La note générale monte quand la statistique compte pour le poste, sans dépasser le potentiel.</div>'+
+    '<label class="fc-tg"><span>Confier les programmes au directeur sportif'+(ds?'':' (recrutez-en un dans l’onglet Staff)')+'</span><input type="checkbox" data-a="trds" '+(on?'checked':'')+(ds?'':' disabled')+' aria-label="Confier au directeur sportif"></label>'+
+    (on? '<div class="sub">Il fait travailler à chacun la plus faible des statistiques importantes de son poste.</div>' :
+    Object.entries(TR_LINES).map(([k,[n]])=>'<div class="row sp tr-row"><b>'+n+'</b>'+trSel('trline',k,k==='G'?TR_GK:TR_OUT,T.l[k])+'</div>').join('')+
+    (Object.keys(T.ind).length? '<div class="sub">'+Object.keys(T.ind).length+' joueur(s) suivent un programme individuel (fiche du joueur).</div>' : '<div class="sub">Programme individuel : ouvrez la fiche d’un joueur.</div>')));
+}; }
+CH.trline=el=>after(trSetLine(el.dataset.i,el.value));
+CH.trind=el=>after(trSetInd(el.dataset.i,el.value));
+ACT.trds=el=>after(trSetDs(!trDsOn(fcOwn())));
+{ const _mc=modalContent; modalContent=function(){ const r=_mc(), m=ui.modal, O=fcOwn();
+  if(r&&m&&(m.type==='fcpl'||m.type==='fcacad')&&O){ const p=O.sq.find(x=>String(x.id)===String(m.id))||fcAcad(O).find(x=>String(x.id)===String(m.id));
+    if(p){ const T=trOf(O), cur=T.ind[p.id]||'line', lineP=trProgs(p)[T.l[trLineOf(p)]]||'Équilibré';
+      r.body+='<div class="tag">Entraînement</div>'+(trDsOn(O)? '<div class="sub">Programme choisi par le directeur sportif : '+esc(trProgs(p)[trFocus(O,p)]||'Équilibré').toLowerCase()+'.</div>' :
+        '<div class="row sp tr-row"><span class="sub">Programme</span>'+trSel('trind',p.id,trProgs(p),cur,'<option value="line"'+(cur==='line'?' selected':'')+'>Comme sa ligne ('+esc(lineP.toLowerCase())+')</option>')+'</div>'); } }
+  return r; }; }
+
 /* ============================================================
    FOOTBALL : écran des compétitions internationales (Football > International)
    ============================================================ */
@@ -13888,11 +13938,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.2.1';
+const IB_VER='V1.2.2';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Football : recruteurs de jeunes','Dans l’onglet Staff de votre club, recrutez jusqu’à 3 recruteurs de jeunes, notés sur 5 en expérience (combien de jeunes ils proposent) et en expertise (leur qualité et leur potentiel).'],
-  ['Football : missions dans le monde','Envoyez un recruteur en mission sur la carte du monde, pour 1, 3 ou 6 mois. Le voyage et les frais mensuels dépendent du pays et du recruteur. Il envoie un rapport toutes les deux semaines : les jeunes proposés peuvent rejoindre votre centre de formation contre une indemnité.']
+  ['Football : programmes d’entraînement','Onglet Tactique : choisissez un programme par ligne (gardiens, défenseurs, milieux, attaquants), par exemple le tir pour les attaquants. Chaque mois, la statistique travaillée progresse et les autres baissent un peu ; la note générale suit, sans dépasser le potentiel.'],
+  ['Football : programme individuel et délégation','Dans la fiche d’un joueur, donnez-lui son propre programme. Vous pouvez aussi confier tous les programmes à votre directeur sportif : il fait travailler à chacun son point faible le plus important.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
