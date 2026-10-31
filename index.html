@@ -1323,11 +1323,13 @@ function log(sev,msg,k){ S.journal.push({d:S.day,s:sev,m:msg,k:k||'own'}); if(S.
 
 /* ---------- Trésorerie unique ---------- */
 function srcName(src){
+  if(src.startsWith('c:')){ const c=D.CITIES[src.slice(2)]; return 'Immobilier · '+(c?c.n:'ville'); }
   if(src.startsWith('b:')){ const b=S.biz.find(x=>x.id===+src.slice(2)); return b? b.name : 'Entreprise cédée'; }
   return {bank:'Banque', mk:'Marchés financiers', immo:'Immobilier', lux:'Luxe', tax:'Impôts', pol:'Politique', debt:'Crédits', gen:'Général', vc:'Capital-risque', country:'Pays', livret:'Livret', fx:'Change'}[src]||src;
 }
 /* Devise du compte qui reçoit ou paie : une entreprise d'une ville étrangère utilise le compte local. Les montants restent exprimés en euros. */
 function srcCcy(src){
+  if(src.charCodeAt(0)===99 && src.charCodeAt(1)===58){ const c=D.CITIES[src.slice(2)]; return c? c.ccy : 'EUR'; }
   if(src.charCodeAt(0)===98 && src.charCodeAt(1)===58){ const b=S.biz.find(x=>x.id===+src.slice(2)); if(b){ const c=D.CITIES[b.city]; if(c&&c.ccy!=='EUR') return c.ccy; } }
   return 'EUR';
 }
@@ -1594,8 +1596,10 @@ function convertCcy(from,to,amt,opt){
 function settleAccounts(){
   D.FOREIGN.forEach(c=>{
     if(S.acc[c]<0){
-      const eurEq=-S.acc[c]*S.fx[c], fee=convFee('EUR',c,eurEq);
-      S.cash-=eurEq*(1+fee); S.acc[c]=0; flowOnly('fx','Change automatique EUR vers '+c+' (frais)',-eurEq*fee);
+      /* compte local à découvert : change forcé depuis les euros, frais doublés */
+      const eurEq=-S.acc[c]*S.fx[c], fee=2*convFee('EUR',c,eurEq);
+      S.cash-=eurEq*(1+fee); S.acc[c]=0; flowOnly('fx','Change forcé EUR vers '+c+' (frais doublés)',-eurEq*fee);
+      if(S.fxWarn!==S.day){ S.fxWarn=S.day; log('warn','Compte en '+D.CCY[c].n.toLowerCase()+' à découvert : change forcé depuis vos euros, avec des frais doublés. Gardez une réserve dans chaque devise (menu Devises).'); }
     }
   });
   if(S.cash<0){
@@ -1804,7 +1808,9 @@ function startCrew(e,frac){
 
 /* ---------- Création, amélioration, cession ---------- */
 function launchCost(defId,inv,cityId,distId){ const d=D.biz[defId]; return d.cost*(d.startup? [1,1.6,3][inv||0] : 1)*locCostF(defId,cityId||'paris',distId); }
-const availFor = cc => S.cash + (cc!=='EUR'? Math.max(0,S.acc[cc])*S.fx[cc]*0.98 : 0);
+/* trésorerie propre à chaque devise : on paie dans la monnaie du pays (montant exprimé en euros) */
+const availFor = cc => cc==='EUR'? S.cash : Math.max(0,S.acc[cc]||0)*S.fx[cc];
+const bizCanPay = (b,amt) => availFor(cityOf(b).ccy)>=amt;
 function startupOdds(defId,inv){
   const su=D.biz[defId].startup, add=[0,.07,.14][inv||0];
   let pS=(su.pS+add)*(0.85+0.15*S.macro.econ), pF=Math.max(.05,su.pF-add);
@@ -2076,7 +2082,7 @@ function hrStep(){
   agencyVacancies().filter(v=>v.e.kind==='bank'||v.e.status==='active').forEach(v=>{
     for(let i=0;i<v.free&&left>0;i++){
       const c=A.pool.filter(x=>x.role===v.role).sort((a,b)=>b.prod-a.prod)[0]; if(!c) break;
-      const fee=agencyFee(v.e,v.role,c); if(S.cash<fee*4+1000) return;
+      const fee=agencyFee(v.e,v.role,c); if((v.e.kind==='bank'? S.cash : availFor(cityOf(v.e).ccy))<fee*4+1000) return;
       if(agencyHire(c.id,v.key).ok){ left--; n++; }
     }
   });
@@ -2203,7 +2209,7 @@ const trainReady = b => S.day-(b.tr===undefined?-99:b.tr)>=20;
 function trainTeam(b){
   if(b.status!=='active'||!headcount(b)) return err('Aucune équipe à former.');
   if(!trainReady(b)) return err('Prochaine formation dans '+(20-(S.day-b.tr))+' jours.');
-  const c=trainCost(b); if(S.cash<c) return err('Trésorerie insuffisante : '+eur(c,0)+' requis.');
+  const c=trainCost(b); if(!bizCanPay(b,c)) return err('Trésorerie insuffisante : '+eur(c,0)+' requis.');
   pay('b:'+b.id,'Formation du personnel',-c); b.tr=S.day;
   Object.values(b.staff).forEach(k=>{ k.prod=Math.round(Math.min(1.6,k.prod+0.06*clamp((1.6-k.prod)/0.6,0,1))*100)/100; k.loy=clamp(k.loy+3,0,100); });
   return ok('Équipe formée : productivité et fidélité en hausse.');
@@ -2803,8 +2809,8 @@ function buyCity(id){
   const C=D.CITIES[id]; if(!C) return err('Ville inconnue.');
   if(cityOwned(id)) return err('Vous possédez déjà cette ville.');
   if(!cityUnlocked(id)) return err(C.parent? 'Achetez d’abord '+D.CITIES[C.parent].n+' pour débloquer cette ville.' : 'Ville verrouillée : patrimoine total de '+eur(C.unlock,0)+' requis.');
-  const p=cityPriceEur(id); if(S.cash+accValue()*.97<p) return err('Trésorerie insuffisante : '+eur(p,0)+' requis.');
-  payCap('immo','Achat de la ville : '+C.n,-p); settleAccounts();
+  const p=cityPriceEur(id); if(availFor(C.ccy)<p) return err('Trésorerie insuffisante : '+eur(p,0)+' requis.');
+  payCap('c:'+id,'Achat de la ville : '+C.n,-p); settleAccounts();
   if(!S.cities) S.cities={};
   S.cities[id]={own:true,cost:p,h0:S.macro.house,pol:1,since:S.day};
   const kids=D.CITY_ORDER.filter(k=>D.CITIES[k].parent===id);
@@ -2814,14 +2820,14 @@ function buyCity(id){
 function sellCity(id){
   if(!cityOwned(id)) return err('Vous ne possédez pas cette ville.');
   if(S.country&&S.country.cities&&S.country.cities.includes(id)) return err('Cédez d’abord le pays dont elle fait partie.');
-  const p=cityValue(id)*0.92; payCap('immo','Cession de la ville : '+D.CITIES[id].n,p); delete S.cities[id];
+  const p=cityValue(id)*0.92; payCap('c:'+id,'Cession de la ville : '+D.CITIES[id].n,p); delete S.cities[id];
   log('info','Vous cédez '+D.CITIES[id].n+' pour '+eur(p,0)+'.'); return ok();
 }
 function setCityPol(id,v){ if(!cityOwned(id)) return err('Ville non possédée.'); S.cities[id].pol=clamp(v|0,0,2); return ok(); }
 function empireStep(){
   if(!S.cities) return;
   Object.keys(S.cities).forEach(id=>{ if(!cityOwned(id)) return;
-    pay('immo','Loyers de '+D.CITIES[id].n,cityIncome(id),'cap'); pay('immo','Entretien de '+D.CITIES[id].n,-cityUpkeep(id)); });
+    pay('c:'+id,'Loyers de '+D.CITIES[id].n,cityIncome(id),'cap'); pay('c:'+id,'Entretien de '+D.CITIES[id].n,-cityUpkeep(id)); });
 }
 function empireNW(){ let t=0; if(S.cities) Object.keys(S.cities).forEach(id=>{ t+=cityValueNW(id); }); return t; }
 
@@ -2980,7 +2986,7 @@ function rentBuilding(id){
   { const o=rivShopAt(id); if(o) return err('Occupé par '+rivDef(o.rid).n+' : faites une offre de rachat.'); }
   const dep=cityOwned(bd.city)? 0 : bldRent(bd)*30; if(availFor(D.CITIES[bd.city].ccy)<dep) return err('Trésorerie insuffisante : '+eur(dep,0)+' de dépôt de garantie.');
   if(!S.bld) S.bld={};
-  payCap('immo','Dépôt de garantie : '+bd.addr,-dep); settleAccounts();
+  payCap('c:'+bd.city,'Dépôt de garantie : '+bd.addr,-dep); settleAccounts();
   S.bld[id]={st:'rent',dep,biz:null,since:S.day};
   if(cityOwned(bd.city)){ log('info','Vous vous installez dans '+bd.addr+' ('+D.CITIES[bd.city].n+') : la ville vous appartient, aucun loyer.'); return ok('Bâtiment attribué : la ville vous appartient.'); }
   log('info','Bail signé : '+D.BT[bd.t].n.toLowerCase()+' de '+fmtN(bd.surf)+' m², '+bd.addr+' ('+D.CITIES[bd.city].n+'), '+eur(bldRent(bd),0)+' par jour.');
@@ -2991,10 +2997,10 @@ function buyBuilding(id){
   if(!cityUnlocked(bd.city)) return err('Ville verrouillée.');
   const h=bldHeld(id); if(h&&h.st==='own') return err('Ce bâtiment est déjà à vous.');
   { const o=rivShopAt(id); if(o) return err('Occupé par '+rivDef(o.rid).n+' : faites une offre de rachat.'); }
-  const p=bldPrice(bd); if(S.cash+accValue()*.97<p) return err('Trésorerie insuffisante : '+eur(p,0)+' requis.');
+  const p=bldPrice(bd); if(availFor(D.CITIES[bd.city].ccy)<p) return err('Trésorerie insuffisante : '+eur(p,0)+' requis.');
   if(!S.bld) S.bld={};
-  payCap('immo','Achat : '+bd.addr,-p);
-  if(h&&h.dep) payCap('immo','Restitution du dépôt de garantie',h.dep);
+  payCap('c:'+bd.city,'Achat : '+bd.addr,-p);
+  if(h&&h.dep) payCap('c:'+bd.city,'Restitution du dépôt de garantie',h.dep);
   settleAccounts();
   S.bld[id]={st:'own',cost:p,h0:S.macro.house,biz:h?h.biz:null,since:S.day};
   log('good','Vous achetez '+bd.addr+' ('+D.CITIES[bd.city].n+') pour '+eur(p,0)+'.');
@@ -3003,8 +3009,8 @@ function buyBuilding(id){
 function leaveBuilding(id){
   const h=bldHeld(id), bd=bldById(id); if(!h) return err('Vous n’occupez pas ce bâtiment.');
   if(h.biz&&S.biz.some(b=>b.id===h.biz)) return err('Une entreprise occupe ce bâtiment : cédez-la d’abord.');
-  if(h.st==='own'){ const v=bldValue(id)*0.95; payCap('immo','Vente : '+bd.addr,v); delete S.bld[id]; return ok('Bâtiment vendu '+eur(v,0)+'.'); }
-  if(h.dep) payCap('immo','Restitution du dépôt de garantie',h.dep);
+  if(h.st==='own'){ const v=bldValue(id)*0.95; payCap('c:'+bd.city,'Vente : '+bd.addr,v); delete S.bld[id]; return ok('Bâtiment vendu '+eur(v,0)+'.'); }
+  if(h.dep) payCap('c:'+bd.city,'Restitution du dépôt de garantie',h.dep);
   delete S.bld[id]; return ok(cityOwned(bd.city)? 'Bâtiment libéré.' : 'Bail résilié.');
 }
 /* Libère le bâtiment quand l'entreprise disparaît ; un bail se termine avec l'expulsion */
@@ -3018,7 +3024,7 @@ function bldStep(){
   Object.keys(S.bld).forEach(id=>{ const h=S.bld[id], bd=bldById(id); if(!bd){ delete S.bld[id]; return; }
     if(h.st!=='rent'||(h.biz&&S.biz.some(b=>b.id===h.biz))) return;
     if(cityOwned(bd.city)) return;
-    pay('immo','Loyer (local vide) : '+bd.addr,-bldRent(bd));
+    pay('c:'+bd.city,'Loyer (local vide) : '+bd.addr,-bldRent(bd));
     if(S.cash<0&&S.negDays>=EVICT_DAYS){ delete S.bld[id]; log('crit','Bail résilié pour loyers impayés : '+bd.addr+'. Le dépôt de garantie est perdu.'); }
   });
 }
@@ -3473,8 +3479,8 @@ function startBuild2(id,k){
   if(!h||h.st!=='own') return err('Achetez d’abord le terrain.');
   if(consOf(id)) return err('Un chantier est déjà en cours.');
   if(h.biz&&S.biz.some(b=>b.id===h.biz)) return err('Une entreprise occupe ce terrain.');
-  const c=planCost(bd,k); if(S.cash+accValue()*.97<c) return err('Trésorerie insuffisante : '+eur(c,0)+' requis.');
-  payCap('immo','Chantier : '+P.n+', '+bd.addr,-c); settleAccounts();
+  const c=planCost(bd,k); if(availFor(D.CITIES[bd.city].ccy)<c) return err('Trésorerie insuffisante : '+eur(c,0)+' requis.');
+  payCap('c:'+bd.city,'Chantier : '+P.n+', '+bd.addr,-c); settleAccounts();
   (S.cons=S.cons||[]).push({id,k,cost:c,end:S.day+planDays(k),start:S.day});
   log('info','Chantier lancé : '+P.n+' au '+bd.addr+' ('+D.CITIES[bd.city].n+'), livraison dans '+planDays(k)+' jours.');
   return ok();
@@ -3488,7 +3494,7 @@ function consStep(){
     return false; });
   /* Résidences : loyers ou prestige */
   if(S.bldMod) Object.keys(S.bldMod).forEach(id=>{ const m=S.bldMod[id], h=S.bld&&S.bld[id]; if(!h||m.t!=='home') return; const P=D.PLANS[m.plan];
-    if(h.lease) pay('immo','Loyers : '+P.n,bldValue(id)*0.045/360,'cap'); S.prestige=(S.prestige||0)+(h.lease?P.pr/2:P.pr); });
+    if(h.lease) pay('c:'+((bldById(id)||{}).city||'paris'),'Loyers : '+P.n,bldValue(id)*0.045/360,'cap'); S.prestige=(S.prestige||0)+(h.lease?P.pr/2:P.pr); });
 }
 function setLease(id,v){ const h=bldHeld(id), m=S.bldMod&&S.bldMod[id]; if(!h||!m||m.t!=='home') return err('Ce bien ne se loue pas.'); h.lease=!!v; return ok(v?'Résidence mise en location.':'Location arrêtée.'); }
 
@@ -3543,11 +3549,11 @@ function bossStep(){
   });
 }
 function bossCands(b){ if(!b.bc||b.bcDay!==S.day){ b.bc=[genBoss(b,-.5),genBoss(b,.6),genBoss(b,1.6)]; b.bcDay=S.day; } return b.bc; }
-function hireBoss(b,i){ const c=bossCands(b)[i]; if(!c) return err('Candidat introuvable.'); const fee=c.sal*10; if(S.cash<fee) return err('Trésorerie insuffisante : '+eur(fee,0)+' de frais de recrutement.');
+function hireBoss(b,i){ const c=bossCands(b)[i]; if(!c) return err('Candidat introuvable.'); const fee=c.sal*10; if(!bizCanPay(b,fee)) return err('Trésorerie insuffisante : '+eur(fee,0)+' de frais de recrutement.');
   if(b.boss){ pay('b:'+b.id,'Indemnités : '+b.boss.name,-b.boss.sal*20); }
   pay('b:'+b.id,'Recrutement du directeur de site',-fee); b.boss=Object.assign({},c,{since:S.day}); b.bc=null; return ok(c.name+' prend la direction de « '+b.name+' ».'); }
 function trainBoss(b,k){ const x=b.boss; if(!x) return err('Aucun directeur.'); if(S.day-x.tr<30) return err('Prochaine formation dans '+(30-(S.day-x.tr))+' jours.'); if(x.sk[k]>=10) return err('Compétence au maximum.');
-  const c=x.sal*12*x.sk[k]/5; if(S.cash<c) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); pay('b:'+b.id,'Formation : '+x.name,-c); x.sk[k]++; x.tr=S.day; x.mood=clamp(x.mood+5,0,100); return ok(x.name+' progresse en '+SKN[k].toLowerCase()+' ('+x.sk[k]+'/10).'); }
+  const c=x.sal*12*x.sk[k]/5; if(!bizCanPay(b,c)) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); pay('b:'+b.id,'Formation : '+x.name,-c); x.sk[k]++; x.tr=S.day; x.mood=clamp(x.mood+5,0,100); return ok(x.name+' progresse en '+SKN[k].toLowerCase()+' ('+x.sk[k]+'/10).'); }
 function raiseBoss(b){ const x=b.boss; if(!x) return err('Aucun directeur.'); x.sal*=1.15; x.mood=clamp(x.mood+20,0,100); return ok('Salaire de '+x.name+' augmenté de 15 %.'); }
 
 /* ============================================================
@@ -4291,7 +4297,7 @@ function agencyHire(candId,key){
   const slot=entRoles(e).find(x=>x[0]===c.role); if(!slot) return err('Cette entité n’a pas ce poste.');
   const coh=e.staff[c.role]||(e.staff[c.role]={n:0,prod:1,rel:.85,loy:60});
   if(coh.n>=slot[1]) return err('Tous les postes de ce type sont pourvus.');
-  const fee=agencyFee(e,c.role,c); if(S.cash<fee) return err('Trésorerie insuffisante : frais d’agence de '+eur(fee,0)+'.');
+  const fee=agencyFee(e,c.role,c); if((e.kind==='bank'? S.cash : availFor(cityOf(e).ccy))<fee) return err('Trésorerie insuffisante : frais d’agence de '+eur(fee,0)+'.');
   pay(e.kind==='bank'?'bank':'b:'+e.id,'Agence de recrutement : '+D.ROLES[c.role].s,-fee);
   const n=coh.n;
   coh.prod=(coh.prod*n+c.prod)/(n+1); coh.rel=(coh.rel*n+c.rel)/(n+1); coh.loy=(coh.loy*n+c.loy)/(n+1); coh.n=n+1;
@@ -7233,7 +7239,7 @@ function relocBiz(b,id){
   if(!bldHeld(id)){ const r=rentBuilding(id); if(!r.ok) return r; }
   const old=b.bld, ho=bldHeld(old);
   payCap('b:'+b.id,'Déménagement : '+b.name,-c); settleAccounts();
-  if(ho){ ho.biz=null; if(ho.st==='rent'){ if(ho.dep) payCap('immo','Restitution du dépôt de garantie',ho.dep); delete S.bld[old]; } }
+  if(ho){ ho.biz=null; if(ho.st==='rent'){ if(ho.dep) payCap('c:'+b.city,'Restitution du dépôt de garantie',ho.dep); delete S.bld[old]; } }
   b.bld=id; b.dist=bd.dist; b.cf=locCostF(b.def,b.city,bd.dist); S.bld[id].biz=b.id; b.closedUntil=Math.max(b.closedUntil||0,S.day+3);
   log('good','« '+b.name+' » déménage au '+bd.addr+' : jusqu’au niveau '+bldMaxLvl(bd,b.def)+' possible. Fermeture de 3 jours.');
   return ok('Déménagement : réouverture dans 3 jours.'); }
@@ -7271,7 +7277,7 @@ hrStep=function(){
   agencyVacancies().filter(v=>v.e.kind==='bank'||v.e.status==='active').forEach(v=>{
     for(let i=0;i<v.free&&left>0;i++){
       const c=A.pool.filter(x=>x.role===v.role&&hrFits(x)).sort((a,b)=>b.prod-a.prod)[0]; if(!c) break;
-      const fee=agencyFee(v.e,v.role,c); if(S.cash<fee*4+1000) return;
+      const fee=agencyFee(v.e,v.role,c); if((v.e.kind==="bank"? S.cash : availFor(cityOf(v.e).ccy))<fee*4+1000) return;
       if(agencyHire(c.id,v.key).ok){ left--; n++; } } });
   if(n) log('info','Service RH : '+n+' recrutement(s).');
   /* moral des directeurs : augmentation de 10 % sous le seuil choisi (une fois par mois au plus) */
@@ -10018,7 +10024,9 @@ function toast(m,k){
   const box=$('#toast-root'); if(!box) return; const d=document.createElement('div'); d.className='toast '+(k||''); d.textContent=m; box.appendChild(d);
   setTimeout(()=>{ d.remove(); },k==='bad'?5200:3200);
 }
-function res(r,okMsg){ if(!r) return r; if(r.ok){ if(r.msg||okMsg) toast(r.msg||okMsg,'good'); } else toast(r.msg||'Action impossible.','bad'); return r; }
+function res(r,okMsg){ if(!r) return r; if(r.ok){ if(r.msg||okMsg) toast(r.msg||okMsg,'good'); } else toast(fxHint(r.msg||'Action impossible.'),'bad'); return r; }
+/* rappel : à l'étranger, on paie avec le compte de la devise du pays */
+function fxHint(m){ try{ const b=ui.modal&&ui.modal.type==='biz'&&S.biz.find(x=>x.id===ui.modal.id), cc= b? cityOf(b).ccy : (ui.bz&&ui.bz.c&&D.CITIES[ui.bz.c]? D.CITIES[ui.bz.c].ccy : 'EUR'); if(/^Trésorerie insuffisante/.test(m)&&cc!=='EUR') return m+' Il faut des fonds en '+D.CCY[cc].n.toLowerCase()+' (solde : '+money(cc,S.acc[cc]||0,0)+') : changez des euros dans Devises.'; }catch(e){} return m; }
 
 /* ---------- graphiques SVG ---------- */
 let chartId=0;
@@ -10772,7 +10780,7 @@ function renderTop(){
       pill(marketsOpen()?'Bourse ouverte':'Bourse fermée',marketsOpen()?'good':'')+pill(we?'Week-end':'Jour ouvré',we?'warn':'')+'</div></div>';
   $('#t-week').innerHTML=wkc;
   $('#t-kpis').innerHTML=
-      '<div class="kpi"><span>Trésorerie</span><b class="num '+(S.cash<0?'neg':'')+'">'+eur(S.cash,0)+'</b>'+(dl!==null&&dl!==undefined?'<small class="'+cls(dl)+'">'+signed(dl,0)+'</small>':'')+'</div>'+
+      '<div class="kpi"><span>Trésorerie</span><b class="num '+(S.cash<0?'neg':'')+'">'+eur(S.cash,0)+'</b>'+(accValue()>1?'<small class="sub">+ '+eur(accValue(),0)+' en devises</small>':'')+(dl!==null&&dl!==undefined?'<small class="'+cls(dl)+'">'+signed(dl,0)+'</small>':'')+'</div>'+
       '<div class="kpi"><span>Valeur nette</span><b class="num">'+eur(S.nw,0)+'</b></div>'+
       '<div class="kpi"><span>Réputation</span><b class="num">'+Math.round(S.rep)+'</b></div>'+
       '<div class="kpi"><span>Influence</span><b class="num">'+fmtN(S.infl,0)+'</b></div>'+
@@ -11254,7 +11262,7 @@ function cityCard(id){
       '<div class="sub">Locataires : '+(tn.length? tn.slice(0,4).map(x=>esc(x.r.n)+' '+Math.round(x.w/tw*100)+' %').join(' · ') : 'commerces indépendants')+'. Vos activités ici ne paient plus de loyer.</div>'+
       '<div>'+btn('Céder la ville : '+eur(cityValue(id)*.92,0),'citysell',{c:'sm ghost dng',i:id})+'</div></div>';
   } else if(open){
-    const p=cityPriceEur(id), can=S.cash+accValue()*.97>=p;
+    const p=cityPriceEur(id), can=availFor(D.CITIES[id].ccy)>=p;
     prop='<div class="row sp" style="border-top:1px solid var(--line);padding-top:10px"><div><b>Acheter toute la ville</b><div class="sub">Tous les bâtiments des '+C.d.length+' quartiers, loués à des concurrents.</div></div>'+btn(eur(p,0),'citybuy',{c:'sm pri',i:id,dis:!can})+'</div>';
   }
   return '<section class="card bc '+(open?'':'lock')+'">'+cityBanner(id,'top')+'<div class="hd"><div><b>'+esc(C.n)+'</b><div class="sub">'+(C.parent?'Ville secondaire · ':'')+D.CCY[C.ccy].n+'</div></div>'+(own? pill('Propriétaire','good') : open? (mine? pill(mine+' activité(s)','info') : pill('Disponible','good')) : pill('Verrouillée','warn'))+'</div>'+
@@ -11620,7 +11628,7 @@ function modalPlans(id){
   const bd=bldById(id); if(!bd){ ui.modal=null; return null; }
   const body='<div class="sub">'+esc(bd.addr)+' · terrain de '+fmtN(bd.surf)+' m²'+(buildCoLevel()?' · votre société de construction réduit coûts et délais':'')+'</div><div class="stack">'+
     Object.keys(D.PLANS).map(k=>{ const P=D.PLANS[k], c=planCost(bd,k);
-      return '<div class="opt"><div class="row sp"><b>'+P.n+'</b><b class="num">'+eur(c,0)+'</b></div><div class="sub">'+fmtN(P.surf(bd.surf))+' m² · '+planDays(k)+' jours de chantier. '+P.txt+'</div><div>'+btn('Lancer le chantier','buildgo',{c:'sm pri',i:id,v:k,dis:S.cash+accValue()*.97<c})+'</div></div>'; }).join('')+'</div>';
+      return '<div class="opt"><div class="row sp"><b>'+P.n+'</b><b class="num">'+eur(c,0)+'</b></div><div class="sub">'+fmtN(P.surf(bd.surf))+' m² · '+planDays(k)+' jours de chantier. '+P.txt+'</div><div>'+btn('Lancer le chantier','buildgo',{c:'sm pri',i:id,v:k,dis:availFor(D.CITIES[bd.city].ccy)<c})+'</div></div>'; }).join('')+'</div>';
   return {title:'Construire',body,sm:true};
 }
 function mgrCard(){
@@ -13456,15 +13464,12 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.1.2';
+const IB_VER='V1.1.3';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Entreprises','Revenus +10 %. Niveau 4 possible dans tout bâtiment compatible, niveau maximal affiché, bouton rouge « Niveau max » et déménagement vers un plus grand bâtiment (onglet Finances). Un terrain constructible de plus par quartier, plus d’activités possibles par bâtiment.'],
-  ['Stock et qualité','Le stock de secours ne change plus la qualité : il permet de continuer à vendre pendant une pénurie chez les fournisseurs. Les commerces choisissent la qualité de leurs produits (standard, supérieure, premium).'],
-  ['Effets en pourcentage','Fini les « ×1,06 » : les effets s’affichent en pourcentage, et la productivité des salariés est une note sur 100 en couleur.'],
-  ['Service RH','Recrutement le lundi et le mercredi, avec vos minimums de productivité, fiabilité et fidélité. Il peut aussi augmenter un directeur dont le moral passe sous votre seuil. Un directeur peut être muté vers une autre entreprise.'],
-  ['Argent','Grand livre : revenus, dépenses et net de chaque entreprise depuis les derniers impôts. Compte offshore alimenté chaque jour par une part des bénéfices (plus il pèse, plus le risque monte). Estimation des bénéfices revue à la création.'],
-  ['Corrections','Retour depuis un quartier, ville possédée (plus de faux « bail signé »), budget de lobbying, retour à l’accueil après une création, enseignes rivales disparues, grosses pertes de l’e-commerce, start-up deux fois plus rapide, deux équipes utiles, week-end plus rentable pour les commerces, techniciens de réparation (talents connus à l’embauche, attribution au meilleur), bouton « Nouveau vivier » au-dessus des candidats.']
+  ['Une trésorerie par devise','Une entreprise à l’étranger encaisse et paie dans la devise de son pays. Pour y créer une entreprise, louer, acheter ou agrandir, il faut des fonds dans cette devise : changez des euros dans le menu Devises (avec des frais).'],
+  ['Découvert à l’étranger','Si un compte en devise passe à découvert, il est renfloué automatiquement depuis vos euros, mais avec des frais doublés. Gardez une réserve dans chaque devise.'],
+  ['Immobilier','Loyers, achats de bâtiments et de villes passent par la devise de la ville. Le grand livre les classe par ville.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
