@@ -6977,14 +6977,18 @@ function fsTeamXI(id){ const O=fcOwn(); return O&&O.id===id? fcLineup().xi : foo
 function fsPoss(h,a){ const H=fsLines(fsTeamXI(h)), A=fsLines(fsTeamXI(a)); return clamp(.5+(H.mid-A.mid)/60,.3,.7); }
 
 /* ---------- Moteur du match de votre club : lignes + léger avantage ---------- */
-footPlay=function(h,a,neutral){
-  const O=fcOwn(); if(!O || (O.id!==h && O.id!==a)) return footPlayBase(h,a,neutral);
-  const st=FC_STYLE[O.style]||FC_STYLE.eq, mine=O.id===h?0:1;
-  const rh=footR(h), ra=footR(a), adv=neutral?0:.15, H=fsLines(fsTeamXI(h)), A=fsLines(fsTeamXI(a));
+/* buts attendus des deux équipes selon leurs onze (xh, xa) */
+function fsRates(h,a,neutral,xh,xa){
+  const O=fcOwn(), st=FC_STYLE[O.style]||FC_STYLE.eq, mine=O.id===h?0:1;
+  const rh=footR(h), ra=footR(a), adv=neutral?0:.15, H=fsLines(xh), A=fsLines(xa);
   const duel=((H.atk-A.wall)-(A.atk-H.wall))/2, pos=(H.mid-A.mid)/2;
   let lh=1.30*Math.exp((rh-ra)/40+duel*.022+pos*.01+adv), la=1.10*Math.exp((ra-rh)/40-duel*.022-pos*.01-(neutral?0:.04));
   if(mine===0){ lh*=st.f*1.07; la*=st.a*.95; } else { la*=st.f*1.07; lh*=st.a*.95; }
-  const res=[fpois(lh),fpois(la)];
+  return [lh,la];
+}
+footPlay=function(h,a,neutral){
+  const O=fcOwn(); if(!O || (O.id!==h && O.id!==a)) return footPlayBase(h,a,neutral);
+  const [lh,la]=fsRates(h,a,neutral,fsTeamXI(h),fsTeamXI(a)), res=[fpois(lh),fpois(la)];
   O.poss=Math.round(fsPoss(h,a)*100);
   fcAfterMatch(h,a,res[0],res[1]);
   return res;
@@ -12782,6 +12786,7 @@ function footStatus(nat,lid){
 }
 function footTableHtml(lid,gi){
   const lg=S.foot.lg[lid], N=S.foot.nat[FOOT_LEAGUES.find(x=>x.id===lid).nat];
+  { const O=S.foot.own, L=O&&O.last; if(L&&!L.seen&&footLgOf(O.id)===lid&&lg.grp[gi]&&lg.grp[gi].includes(O.id)) return '<div class="notice">Classement masqué : regardez d’abord le dernier match de votre club.</div>'+fres({h:L.h,a:L.a,gh:L.gh,ga:L.ga},L.day); }
   let rows;
   if(!N.on && lg.prev && lg.prev.tabs[gi]) rows=lg.prev.tabs[gi].map(r=>({id:r[0],t:r.slice(1),old:1}));
   else rows=footTable(lid,gi);
@@ -13065,6 +13070,94 @@ ACT.fmpause=()=>{ const L=FOOT_LIVE; if(!L||L.done) return; L.play=!L.play; rend
 ACT.fmtab=el=>{ const L=FOOT_LIVE; if(!L) return; L.tab=el.dataset.v; render(); };
 ACT.fmend=()=>{ const L=FOOT_LIVE; if(!L) return; L.pause=0; L.after=null; L.flash=null; while(L.i<L.M.ev.length){ const e=L.M.ev[L.i++]; L.t=e.t; if(e.k==='ft'){ L.feed.unshift(e); L.done=true; L.play=false; L.flash={t:'Fin du match',until:9e9}; } else { L.feed.unshift(e); if(e.k==='ht') L.half=2; } } fmKickoff(L,0); render(); };
 { const _mcM=modalContent; modalContent=function(){ const m=ui.modal; if(m&&m.type==='fmatch'){ if(!FOOT_LIVE){ ui.modal=m.prev||null; return _mcM(); } setTimeout(fmEnsureLoop,0); return {title:'Match',body:fmBody(FOOT_LIVE)}; } return _mcM(); }; }
+
+/* ============================================================
+   FOOTBALL : remplacements en direct (V1.1.8)
+   Pendant le match de championnat de votre club (première diffusion), jusqu'à 5 changements.
+   Chaque changement rejoue la fin du match avec le nouvel onze (stats des joueurs),
+   puis le score final remplace celui du classement. Aucun nouveau champ obligatoire :
+   O.last.lock (le match ne peut plus être modifié) a une valeur par défaut « absente ».
+   ============================================================ */
+const FM_MAXSUB=5;
+function fmTm(M,t){ if(t<M.ht){ const m=Math.floor(t/60)+1; return m>45? {m:45,x:m-45} : {m,x:0}; } const m=46+Math.floor((t-M.ht)/60); return m>90? {m:90,x:m-90} : {m,x:0}; }
+/* le match peut-il encore changer ? championnat, dernière journée jouée, pas encore verrouillé */
+function fmOwnLive(h,a,day){
+  const O=fcOwn(); if(!O||!O.last||O.last.lock||O.last.h!==h||O.last.a!==a||O.last.day!==day) return false;
+  const lg=S.foot.lg[footLgOf(O.id)]; return !!(lg&&lg.last&&(lg.last.day===day||lg.last.day===day-1)&&lg.last.res.some(r=>r[0]===h&&r[1]===a));
+}
+{ const _fs=fmStart; fmStart=function(h,a,gh,ga,day,pen){
+  const own=fmOwnLive(h,a,day), L=_fs(h,a,gh,ga,day,pen), O=fcOwn();
+  if(own){ L.own=true; L.ownS=O.id===h?0:1; L.subs=0; L.used=[];
+    L.M.ev=L.M.ev.filter(e=>!(e.k==='sub'&&e.s===L.ownS)); }   /* vos changements, c'est vous */
+  return L; }; }
+/* rejoue la fin du match à partir de L.t */
+function fmResim(L){
+  const M=L.M, t0=L.t, s0=L.ownS, R=footSeedRng(L.day*7919+Math.floor(t0)*13+L.subs);
+  const [lh,la]=fsRates(M.h,M.a,false,M.xi[0],M.xi[1]), f=Math.max(0,(M.end-t0)/M.end);
+  M.poss=clamp(.5+(fsLines(M.xi[0]).mid-fsLines(M.xi[1]).mid)/60,.3,.7);
+  const ev=M.ev.filter(e=>e.t<=t0||e.k==='ht'||e.k==='ft'||(e.k==='sub'&&e.s!==s0)||e.k==='yellow'||e.k==='red');
+  const at=()=>{ const t=Math.floor(t0+1+R()*(M.end-t0-2)); return Object.assign({t},fmTm(M,t)); };
+  [0,1].forEach(s=>{
+    const xi=M.xi[s], sh=s?1-M.poss:M.poss, g=fpois((s?la:lh)*f);
+    const wSc=p=>(FOOT_SCORE_W[p.slot]||.4)*fsVal(p,'tir')/70;
+    for(let k=0;k<g;k++){ const T=at(), sc=footPickW(R,xi,wSc), as=R()<.72? footPickW(R,xi.filter(p=>p!==sc&&p.slot!=='G'),p=>fsVal(p,'pas')/60*(p.slot==='AIL'||p.slot==='MO'?3:p.slot==='MC'?2:1)) : null;
+      ev.push(Object.assign(T,{k:'goal', s, p:sc.n, as:as&&as.n, kind:R()<.1?'pen':R()<.16?'head':'shot'})); }
+    const extra=Math.max(0,Math.round((4+sh*14)*f+(R()-.5)*3-g));
+    for(let k=0;k<extra;k++){ const T=at(), sc=footPickW(R,xi,p=>wSc(p)+.3); ev.push(Object.assign(T,{k:R()<.38?'save':'miss', s, p:sc.n, gk:M.xi[1-s][0].n})); }
+    const nc=Math.max(0,Math.round((2+sh*7)*f)); for(let k=0;k<nc;k++) ev.push(Object.assign(at(),{k:'corner', s}));
+  });
+  ev.sort((x,y)=>x.t-y.t); let sc=[0,0]; ev.forEach(e=>{ if(e.k==='goal') sc[e.s]++; e.sc=sc.slice(); });
+  M.ev=ev; M.gh=sc[0]; M.ga=sc[1]; L.i=ev.filter(e=>e.t<=t0).length;
+}
+/* le score définitif remplace celui du classement */
+function fmCommit(L){
+  if(!L||!L.own||L.committed) return; L.committed=true;
+  const O=fcOwn(); if(!O||!O.last) return; O.last.lock=1;
+  const M=L.M, ng=M.gh, na=M.ga, og=O.last.gh, oa=O.last.ga; if(ng===og&&na===oa) return;
+  const lg=S.foot.lg[footLgOf(O.id)], r=lg&&lg.last&&lg.last.res.find(x=>x[0]===M.h&&x[1]===M.a);
+  if(!r) return;
+  const T=lg.tab, th=T[M.h], ta=T[M.a];
+  if(th&&ta){ th[0]--; ta[0]--; th[4]-=og; th[5]-=oa; ta[4]-=oa; ta[5]-=og;
+    if(og>oa){ th[1]--; ta[3]--; th[6]-=3; } else if(og<oa){ ta[1]--; th[3]--; ta[6]-=3; } else { th[2]--; ta[2]--; th[6]--; ta[6]--; }
+    [M.h,M.a].forEach(id=>{ lg.form[id]=(lg.form[id]||'').slice(0,-1); });
+    footRecord(lg,M.h,M.a,ng,na); }
+  r[2]=ng; r[3]=na;
+  const me=L.ownS, d=(g,c)=>g>c?4:g<c?-5:0, of=me?oa:og, oc=me?og:oa, nf=me?na:ng, nc=me?ng:na;
+  O.mor=clamp(O.mor-d(of,oc)+d(nf,nc),10,100);
+  O.last.gh=ng; O.last.ga=na;
+  fcNews('Après vos changements : '+footName(M.h)+' '+ng+'-'+na+' '+footName(M.a)+'.', nf>nc?'good':nf<nc?'bad':'');
+}
+{ const _cm=ACT.closemodal; ACT.closemodal=function(el){ if(ui.modal&&ui.modal.type==='fmatch') fmCommit(FOOT_LIVE); return _cm(el); }; }
+{ const _fe=ACT.fmend; ACT.fmend=function(el){ const r=_fe(el); fmCommit(FOOT_LIVE); return r; }; }
+{ const _st=fmStep; fmStep=function(L,dt){ _st(L,dt); if(L.done&&L.own&&!L.committed) fmCommit(L); }; }
+
+/* ---------- Interface ---------- */
+function fmSubBench(L){ const O=fcOwn(), on=new Set(L.M.xi[L.ownS].map(p=>String(p.id))); return O.sq.filter(p=>fcAvail(p)&&!on.has(String(p.id))&&!L.used.includes(String(p.id))); }
+ACT.fmsub=()=>{ const L=FOOT_LIVE; if(!L||!L.own||L.done||L.subs>=FM_MAXSUB) return; L.play=false; L.subUI={o:null}; L.tab='sub'; render(); };
+ACT.fmsubx=()=>{ const L=FOOT_LIVE; if(!L) return; L.subUI=null; L.tab='feed'; if(!L.done) L.play=true; render(); };
+ACT.fmsubo=el=>{ const L=FOOT_LIVE; if(!L||!L.subUI) return; L.subUI.o=+el.dataset.i; render(); };
+ACT.fmsubi=el=>{ const L=FOOT_LIVE; if(!L||!L.subUI||L.subUI.o===null) return; const O=fcOwn(), s=L.ownS, idx=L.subUI.o, old=L.M.xi[s][idx];
+  const p=O.sq.find(q=>String(q.id)===el.dataset.i); if(!p||L.subs>=FM_MAXSUB) return;
+  const np=Object.assign({},p,{slot:old.slot}); L.M.xi[s][idx]=np; L.used.push(String(old.id)); L.subs++;
+  const pl=L.pl.find(q=>q.s===s&&q.i===idx); if(pl) pl.n=np.n;
+  const e=Object.assign({t:L.t,k:'sub',s,p:np.n,o:old.n,sc:fmScoreNow(L)},fmTm(L.M,L.t)); L.M.ev.push(e); fmEvent(L,e);
+  fmResim(L); L.subUI=null; L.tab='feed'; L.play=true; render(); };
+{ const _th=fmTabHtml; fmTabHtml=function(L){
+  if(L.tab!=='sub'||!L.subUI) return _th(L);
+  const s=L.ownS, xi=L.M.xi[s], U=L.subUI;
+  let h='<div class="row sp"><b>Remplacement '+(L.subs+1)+' sur '+FM_MAXSUB+'</b>'+btn('Annuler','fmsubx',{c:'sm ghost'})+'</div>';
+  if(U.o===null) return h+'<div class="sub">Qui sort ?</div>'+xi.map((p,i)=>L.used.includes(String(p.id))? '' :
+    '<button class="fc-pl" data-a="fmsubo" data-i="'+i+'"><span class="fpos">'+FOOT_POS_S[p.slot]+'</span><span class="nm"><b>'+esc(p.n)+'</b><small>'+fmLineStat(p)+'</small></span><b class="num fov">'+Math.round(p.o)+'</b></button>').join('');
+  const out=xi[U.o], B=fmSubBench(L).sort((a,b)=>(FOOT_NEAR[out.slot].includes(b.p)-FOOT_NEAR[out.slot].includes(a.p))||(b.o-a.o));
+  return h+'<div class="sub">Qui remplace '+esc(out.n)+' ('+FOOT_POS[out.slot].toLowerCase()+') ?</div>'+(B.length? B.map(p=>
+    '<button class="fc-pl" data-a="fmsubi" data-i="'+esc(p.id)+'"><span class="fpos">'+FOOT_POS_S[p.p]+'</span><span class="nm"><b>'+esc(p.n)+'</b><small>'+(FOOT_NEAR[out.slot].includes(p.p)?'Bon poste':'Hors poste')+' · '+fmLineStat(p)+'</small></span><b class="num fov">'+Math.round(p.o)+'</b></button>').join('') : '<div class="sub">Aucun remplaçant disponible.</div>');
+}; }
+function fmLineStat(p){ const k=p.p==='G'? ['ref','plo'] : (p.slot||p.p)==='BU'||(p.slot||p.p)==='AIL'? ['tir','vit'] : ['DC','DL'].includes(p.slot||p.p)? ['def','phy'] : ['pas','dri'];
+  const N={ref:'Réf.',plo:'Plon.',tir:'Tir',vit:'Vit.',def:'Déf.',phy:'Phy.',pas:'Pas.',dri:'Dri.'}; return k.map(x=>N[x]+' '+fsVal(p,x)).join(' · '); }
+{ const _fb=fmBody; fmBody=function(L){ let h=_fb(L);
+  if(L.own&&!L.done&&!L.subUI){ const b=btn('Remplacer ('+L.subs+'/'+FM_MAXSUB+')','fmsub',{c:'sm pri',dis:L.subs>=FM_MAXSUB});
+    h=h.replace('<div class="seg fm-tabs">',(L.subs===0&&!L.subUI? '<div class="sub fm-subtip">Vos changements influencent la fin du match.</div>' : '')+'<div class="row fm-subrow">'+b+'</div><div class="seg fm-tabs">'); }
+  return h; }; }
 
 /* ============================================================
    FOOTBALL : écran « Mon club » et rachat depuis la fiche d'un club
@@ -13569,10 +13662,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.1.7';
+const IB_VER='V1.1.8';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Paliers célébrés partout','Chaque activité a maintenant son insigne et son animation : panneau Bio de la ferme, festivals du studio, musée de la galerie, podium du premier défilé, éolienne en mer, 99,99 % du data center, tour en construction, cloche de la Bourse, camion express, centre agréé, globe du recrutement, pont du BTP, puce de nouvelle génération et étiquette de la marque textile.']
+  ['Football : 5 remplacements en direct','Pendant un match de championnat de votre club, touchez « Remplacer » : choisissez qui sort, puis qui entre (le poste et les statistiques utiles sont indiqués). La fin du match est rejouée avec votre nouvel onze et le classement prend le score final. Jusqu’à 5 changements par match, lors de la première diffusion.'],
+  ['Football : classement masqué','Tant que vous n’avez pas regardé le dernier match de votre club, le classement de son championnat reste masqué.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
