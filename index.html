@@ -995,6 +995,12 @@ html,body{overflow-anchor:none}
 .ft-hide{display:none!important}
 .ft-tabs{position:sticky;top:0;z-index:3;margin:4px 0 2px;display:grid!important;grid-template-columns:repeat(4,1fr)}
 .ft-tabs button{min-height:44px;padding:0 4px}
+.bigup.maxed{background:var(--red)!important;color:#fff!important;opacity:1!important;box-shadow:0 4px 0 var(--bad-sh)!important}
+/* couleur des notes sur 100 */
+.nt-a{color:#0c6b35!important}.nt-b{color:#2e9e4f!important}.nt-c{color:#9a7b00!important}.nt-d{color:#d06a12!important}.nt-e{color:#c8352a!important}
+:root[data-theme="dark"] .nt-a,:root:not([data-theme="light"]) .dk .nt-a{color:#3ddc8c!important}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .nt-a{color:#3ddc8c!important} :root:not([data-theme="light"]) .nt-b{color:#7fd88c!important} :root:not([data-theme="light"]) .nt-c{color:#e8c64a!important} }
+:root[data-theme="dark"] .nt-b{color:#7fd88c!important}:root[data-theme="dark"] .nt-c{color:#e8c64a!important}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -1956,9 +1962,10 @@ function processBiz(b){
     const noise=clamp(1+(0.025+d.risk*0.45)*norm(),0.5,1.6);
     const wf=we? d.wkf:1;
     const vf=pr.volF*mult*noise*wf;
-    const mm=pr.mm; rev=vf*b.price*mm.price*warRev(b)+mm.rev; cogs=vf*d.c*mm.cogs; extra+=mm.fixed;
+    const mm=pr.mm; rev=vf*b.price*mm.price*warRev(b)+mm.rev; cogs=vf*d.c*mm.cogs*pqCost(b); extra+=mm.fixed;
     if(isStock(b)){ const st=stockDay(b,cogs,true); rev*=st.frac; cogs=factSupply(b,st.bought); }
     if(isFact(b)) rev=factoryDay(b,rev);
+    rev*=REV_BOOST;
     wages=(wageBill(b,we)*planEff(b).W*(b.hc?1.05:1)+bossExtra(b))*mm.wage;
     mkt=base.R0*(MKT_PCT[b.mkt]+warCost(b));
   } else if(isStock(b)) cogs=stockDay(b,0,false).bought;
@@ -2021,7 +2028,7 @@ function csCrit(b){
   const dd=distOf(b), sec=bizSec(b.def), aff=affOf(sec,cityOf(b),dd);
   const price=clamp(0.5-(b.price-1)*1.67,0,1);
   const service=clamp(staffFactor(b),0,1)*(1-fatOf(b)/200);
-  const quality=clamp(0.3+0.25*stkOf(b)+(b.pol-1)*1.2,0,1);
+  const quality=clamp(0.4+0.22*pqOf(b)+(b.pol-1)*1.2,0,1);   /* la qualité ne dépend plus du stock */
   const addr=clamp(0.5+(aff-1)*3,0,1);
   return {price,service,quality,addr,idx:0.3*price+0.3*service+0.2*quality+0.2*addr};
 }
@@ -2103,7 +2110,13 @@ function evict(b){
    GESTION FAÇON COMMERCE : stock réel, commandes, équipement, horaires, formation, mutuelle
    ============================================================ */
 const STOCK_SEC=['restauration','commerce','luxe','online','industrie','agri'];
-const isStock = b => STOCK_SEC.includes(bizSec(b.def));
+const isStock = b => STOCK_SEC.includes(bizSec(b.def)) && !(typeof metCore==='function'&&metCore(b));
+const REV_BOOST = 1.1;
+/* qualité du produit (activités de vente sans moteur métier) : 0 standard, 1 supérieure, 2 premium */
+const PQN=['Standard','Supérieure','Premium'], PQC=[1,1.12,1.3];
+const pqOn = b => isStock(b) && ['commerce','luxe','restauration'].includes(bizSec(b.def));
+const pqOf = b => pqOn(b)? (b.pq||0) : 0;
+const pqCost = b => PQC[pqOf(b)];
 const cogsRef = b => bizBase(b).R0*bizDef(b).c;
 const EQN=['Basique','Standard','Professionnel','Haut de gamme'], EQC=[1,1.5,2.2,3], EQP=[1,1.03,1.06,1.1], EQK=[0,.12,.3,.6];
 const eqOf = b => b.eq||0;
@@ -2130,9 +2143,9 @@ function planEff(b,pl){
   pl=pl||planOf(b);
   const w=slotW(b), d=slotDef(b), H=planH(b,pl), H0=d.reduce((a,x,i)=>a+(x?SLOTH[i]:0),0);
   const ws=pl.s.reduce((a,x,i)=>a+(x?w[i]:0),0), w0=d.reduce((a,x,i)=>a+(x?w[i]:0),0);
-  const Sm=Math.pow(ws/w0,.85);
+  let Sm=Math.pow(ws/w0,.85);
   let Wm, Fm;
-  if(pl.t===2){ Wm=H/H0*1.05; Fm=-0.15; }
+  if(pl.t===2){ Wm=H/H0*1.3; Fm=-0.3; Sm*=1.06; }  /* deux équipes : service plus rapide (+6 % de ventes), aucune fatigue, salaires +30 % */
   else { Wm=(Math.min(H,H0)+Math.max(0,H-H0)*1.1)/H0; Fm= H>H0? (H-H0)*0.16 : -(H0-H)*0.03; }
   return {S:Sm,W:Wm,F:Fm,H};
 }
@@ -2150,7 +2163,9 @@ function stockCap(b){ return cogsRef(b)*capDays(b); }
 function stockDay(b,need,open){
   if(b.stock===undefined) b.stock=cogsRef(b)*5;
   const day=S.day; let bought=0;
-  b.ord=(b.ord||[]).filter(o=>{ if(o.d<=day){ b.stock+=o.a; return false; } return true; });
+  const pen=b.penUntil&&day<b.penUntil;   /* pénurie : plus aucune livraison, le stock de secours permet de continuer */
+  b.ord=(b.ord||[]).filter(o=>{ if(o.d<=day&&!pen){ b.stock+=o.a; return false; } return true; });
+  if(open&&!pen&&rnd()<.003){ b.penUntil=day+rint(6,12); log('warn','Pénurie chez les fournisseurs de « '+b.name+' » : aucune livraison pendant '+(b.penUntil-day)+' jours. Votre stock de secours prend le relais.'); }
   let frac=1;
   if(open&&need>0){
     if(b.stock>=need) b.stock-=need;
@@ -2836,11 +2851,11 @@ D.BT = {
 };
 /* Types de bâtiment compatibles et surface nécessaire au niveau 1 (×1,35 par niveau) */
 D.DEFB = {
-  repair:{t:['shop','local'],s:40}, ecom:{t:['office','depot','shop'],s:60}, agency:{t:['shop','office','local'],s:60}, staffing:{t:['office','shop'],s:100},
-  resto:{t:['local'],s:150}, farm:{t:['land'],s:8000}, cyber:{t:['office','tower'],s:200}, build:{t:['depot','office'],s:300}, fastfood:{t:['local','shop'],s:120},
-  textile:{t:['depot'],s:1500}, saas:{t:['office','shop'],s:40}, electronics:{t:['depot','land'],s:2500}, super:{t:['mall'],s:2500}, studio:{t:['office','depot'],s:600},
-  ai:{t:['office','tower'],s:150}, warehouse:{t:['depot','land'],s:2000}, promo:{t:['office','tower'],s:300}, gallery:{t:['local','shop'],s:200},
-  phones:{t:['depot','land'],s:5000}, couture:{t:['local','shop'],s:250}, renew:{t:['land'],s:20000}, dc:{t:['depot','land'],s:3000},
+  repair:{t:['shop','local','mall','depot'],s:40}, ecom:{t:['office','depot','shop','local'],s:60}, agency:{t:['shop','office','local'],s:60}, staffing:{t:['office','shop','local','tower'],s:100},
+  resto:{t:['local','shop','mall'],s:150}, farm:{t:['land'],s:8000}, cyber:{t:['office','tower'],s:200}, build:{t:['depot','office','land','tower'],s:300}, fastfood:{t:['local','shop'],s:120},
+  textile:{t:['depot'],s:1500}, saas:{t:['office','shop','local','tower'],s:40}, electronics:{t:['depot','land'],s:2500}, super:{t:['mall'],s:2500}, studio:{t:['office','depot','land','tower'],s:600},
+  ai:{t:['office','tower'],s:150}, warehouse:{t:['depot','land'],s:2000}, promo:{t:['office','tower'],s:300}, gallery:{t:['local','shop','depot','mall'],s:200},
+  phones:{t:['depot','land'],s:5000}, couture:{t:['local','shop','office','depot','mall'],s:250}, renew:{t:['land'],s:20000}, dc:{t:['depot','land','tower'],s:3000},
   dealer:{t:['mall','depot'],s:2500}, park:{t:['land'],s:30000}, office:{t:['tower'],s:3000}, hotel:{t:['hotel'],s:3000}, shipping:{t:['land','depot'],s:6000}
 };
 /* Vraies rues par quartier */
@@ -2938,6 +2953,8 @@ function bldListBase(cid,did){
     return {id:key+'.'+i, city:cid, dist:did, t, surf, q, addr:(cid==='paris'||C.country==='France'? num+' '+sname : sname+' '+num)};
   }).sort((a,b)=>D.BT[a.t].rk-D.BT[b.t].rk||a.surf-b.surf);
   out.forEach((b,i)=>{ b.id=key+'.'+i; });
+  { const R2=hrng(key+'+terrain'), T=D.BT.land, sname=st[Math.floor(R2()*st.length)], num=61+Math.floor(R2()*80);
+    out.push({id:key+'.'+out.length, city:cid, dist:did, t:'land', surf:Math.round((T.s[0]+(T.s[1]-T.s[0])*Math.pow(R2(),1.4))/10)*10, q:Math.round((0.85+0.3*R2())*100)/100, addr:(cid==='paris'||C.country==='France'? num+' '+sname : sname+' '+num), extra:1}); }
   return BCACHE[key]=out;
 }
 function bldById(id){ const p=id.split('.'); if(p.length<3) return null; const C=D.CITIES[p[0]]; if(!C||!C.d.some(x=>x.id===p[1])) return null; return bldList(p[0],p[1])[+p[2]]||null; }
@@ -2951,7 +2968,8 @@ const bldHeld = id => S.bld&&S.bld[id];
 function bldValue(id){ const h=bldHeld(id); return h&&h.st==='own'? h.cost*S.macro.house/h.h0 : 0; }
 const rentLevel = p => p<3500?1:p<6500?2:p<10500?3:4;   // p en euros par m²
 /* Activités possibles dans un bâtiment et niveau maximal selon la surface */
-function bldMaxLvl(bd,def){ const n=D.DEFB[def]; if(!n||!n.t.includes(bd.t)||bd.surf<n.s) return 0; return Math.min(MAXLVL,1+Math.floor(Math.log(bd.surf/n.s)/Math.log(1.35))); }
+/* niveau 4 au moins dans tout bâtiment compatible (dès la moitié de la surface de base) */
+function bldMaxLvl(bd,def){ const n=D.DEFB[def]; if(!n||!n.t.includes(bd.t)||bd.surf<n.s*.5) return 0; return Math.min(MAXLVL,Math.max(4,1+Math.floor(Math.log(bd.surf/n.s)/Math.log(1.35)))); }
 function bldDefs(bd){ return D.bizOrder.filter(def=>bldMaxLvl(bd,def)>0); }
 const bldSales = b => { if(!b.bld) return 1; const bd=bldById(b.bld); return bd&&D.BT[bd.t].retail? 1+0.5*(bd.q-1) : 1; };
 
@@ -2964,8 +2982,9 @@ function rentBuilding(id){
   if(!S.bld) S.bld={};
   payCap('immo','Dépôt de garantie : '+bd.addr,-dep); settleAccounts();
   S.bld[id]={st:'rent',dep,biz:null,since:S.day};
+  if(cityOwned(bd.city)){ log('info','Vous vous installez dans '+bd.addr+' ('+D.CITIES[bd.city].n+') : la ville vous appartient, aucun loyer.'); return ok('Bâtiment attribué : la ville vous appartient.'); }
   log('info','Bail signé : '+D.BT[bd.t].n.toLowerCase()+' de '+fmtN(bd.surf)+' m², '+bd.addr+' ('+D.CITIES[bd.city].n+'), '+eur(bldRent(bd),0)+' par jour.');
-  return ok();
+  return ok('Bâtiment loué.');
 }
 function buyBuilding(id){
   const bd=bldById(id); if(!bd) return err('Bâtiment inconnu.');
@@ -2986,7 +3005,7 @@ function leaveBuilding(id){
   if(h.biz&&S.biz.some(b=>b.id===h.biz)) return err('Une entreprise occupe ce bâtiment : cédez-la d’abord.');
   if(h.st==='own'){ const v=bldValue(id)*0.95; payCap('immo','Vente : '+bd.addr,v); delete S.bld[id]; return ok('Bâtiment vendu '+eur(v,0)+'.'); }
   if(h.dep) payCap('immo','Restitution du dépôt de garantie',h.dep);
-  delete S.bld[id]; return ok('Bail résilié.');
+  delete S.bld[id]; return ok(cityOwned(bd.city)? 'Bâtiment libéré.' : 'Bail résilié.');
 }
 /* Libère le bâtiment quand l'entreprise disparaît ; un bail se termine avec l'expulsion */
 function bldRelease(b,evicted){
@@ -3202,7 +3221,7 @@ function offMove(a){ const O=S.off; if(!O||!O.on) return err('Aucun compte offsh
   else { const w=Math.min(-a,O.bal); if(w<=0) return err('Compte vide.'); O.bal-=w; payCap('gen','Rapatriement depuis l’offshore (frais 3 %)',w*.97); }
   return ok(); }
 function offClose(){ const O=S.off; if(!O||!O.on) return err('Aucun compte offshore.'); if(O.bal>0) payCap('gen','Clôture du compte offshore (frais 3 %)',O.bal*.97); S.off={on:false,bal:0,saved:O.saved,risk:O.risk*.5}; return ok('Compte fermé. Le risque d’enquête diminue avec le temps.'); }
-const offRisk = () => { const O=S.off; if(!O) return 0; const a=S.elec&&S.elec.ally? .4 : 1; return clamp((0.03+S.susp/600+(O.risk||0)*.05+(O.bal>1e6?.02:0))*a*(S.dm||1),0,.6); };
+function offRisk(){ const O=S.off; if(!O) return 0; const a=S.elec&&S.elec.ally? .4 : 1; return clamp((0.03+S.susp/600+(O.risk||0)*.05+(O.bal>1e6?.02:0))*a*(S.dm||1),0,.6); }
 /* Appelé à chaque échéance fiscale : renvoie l'impôt sur les sociétés évité */
 function offTax(corp){
   const O=S.off; if(!O||(!O.on&&!(O.risk>0.01))) return 0;
@@ -7134,6 +7153,11 @@ function dsDaily(day){
 const BIZ_GONE = ['cyber','super','agency','fastfood'];
 const BIZ_MERGED = {ai:'saas', phones:'electronics'}; /* les usines de smartphones sont converties par metier_elec.js */
 D.biz.saas.n='Start-up tech'; D.biz.saas.sub='Logiciel, puis intelligence artificielle';
+/* week-end : les commerces de proximité vendent plus le samedi et le dimanche (salaires ×1,5) */
+Object.entries({repair:1.35, resto:1.5, gallery:1.45, couture:1.5, dealer:1.5}).forEach(([k,v])=>{ if(D.biz[k]) D.biz[k].wkf=v; });
+function weFactor(b){ const d=bizDef(b); return isWE(S.day)&&(d.open==='always'||b.wk)? d.wkf : 1; }
+/* start-up : phases deux fois plus courtes */
+Object.keys(D.biz).forEach(k=>{ const su=D.biz[k].startup; if(su&&!su.half){ su.ph=su.ph.map(([n,d])=>[n,Math.max(2,Math.round(d/2))]); su.half=1; D.biz[k].launch=Math.round(D.biz[k].launch/2); } });
 D.biz.electronics.n='Électronique'; D.biz.electronics.sub='Composants, puis smartphones';
 BIZ_GONE.concat(Object.keys(BIZ_MERGED)).forEach(k=>{ if(D.biz[k]) D.biz[k].retired=true; });
 D.bizOrder=D.bizOrder.filter(k=>!D.biz[k].retired);
@@ -7147,6 +7171,11 @@ function bizRetireStep(){
   S.biz.slice().forEach(b=>{ if(!BIZ_GONE.includes(b.def)) return;
     const v=b.status==='active'? Math.max(bizValue(b),bizDef(b).cost*.8) : Math.max(b.inv$||0,bizDef(b).cost*.8);
     closeBiz(b,v,'un repreneur'); });
+  /* les enseignes rivales des activités retirées changent d'activité (ou ferment) */
+  if(S.riv&&Array.isArray(S.riv.deals)) S.riv.deals=S.riv.deals.filter(x=>D.biz[x.def]&&!D.biz[x.def].retired);
+  if(S.riv&&Array.isArray(S.riv.shops)) S.riv.shops=S.riv.shops.filter(sh=>{ if(!D.biz[sh.def]||!D.biz[sh.def].retired) return true;
+    const bd=bldById(sh.bld), opts=bd? bldDefs(bd).filter(d=>!D.biz[d].startup) : []; if(!opts.length) return false;
+    const same=opts.filter(d=>bizSec(d)===bizSec(sh.def)); sh.def=pick(same.length?same:opts); sh.lvl=Math.max(1,Math.min(sh.lvl,bldMaxLvl(bd,sh.def))); return true; });
 }
 
 /* ---------- Activités « cœur » : pas de prix ni de marketing génériques ---------- */
@@ -7186,6 +7215,78 @@ function dlDaily(b){
   try{ m.auto(b,mode,dlQuality(b)); }catch(e){ console.error(e); }
 }
 { const _ns=nextDay; nextDay=function(){ const ok=_ns(); if(ok){ try{ bizRetireStep(); S.biz.forEach(b=>{ mxDaily(b); dlDaily(b); }); }catch(e){ console.error(e); } } return ok; }; }
+
+/* ============================================================
+   DÉMÉNAGEMENT : une entreprise au niveau maximal de son bâtiment peut partir vers un plus grand
+   (même ville). Elle garde son niveau, son équipe et son métier ; 3 jours de fermeture.
+   ============================================================ */
+function bizMaxHere(b){ if(!b.bld) return MAXLVL; const bd=bldById(b.bld); return bd? bldMaxLvl(bd,b.def) : MAXLVL; }
+function relocCost(b){ return bizBase(b).R0*3*b.lvl; }
+function relocCands(b){ const C=D.CITIES[b.city]; if(!C||!b.bld) return [];
+  const out=[]; C.d.forEach(dd=>bldList(b.city,dd.id).forEach(bd=>{ if(bd.id===b.bld) return; const mx=bldMaxLvl(bd,b.def); if(mx<=b.lvl) return;
+    const h=bldHeld(bd.id); if(h&&h.biz&&S.biz.some(x=>x.id===h.biz)) return; if(rivShopAt(bd.id)||consOf(bd.id)) return; out.push({bd, mx, h}); }));
+  return out.sort((x,y)=>(y.mx-x.mx)||(bldRent(x.bd)-bldRent(y.bd))).slice(0,6); }
+function relocBiz(b,id){
+  if(!b||b.status!=='active') return err('Entreprise indisponible.'); const bd=bldById(id); if(!bd||bd.city!==b.city) return err('Bâtiment introuvable dans cette ville.');
+  if(!relocCands(b).some(x=>x.bd.id===id)) return err('Ce bâtiment ne convient pas.');
+  const c=relocCost(b); if(availFor(cityOf(b).ccy)<c) return err('Trésorerie insuffisante : '+eur(c,0)+' de déménagement.');
+  if(!bldHeld(id)){ const r=rentBuilding(id); if(!r.ok) return r; }
+  const old=b.bld, ho=bldHeld(old);
+  payCap('b:'+b.id,'Déménagement : '+b.name,-c); settleAccounts();
+  if(ho){ ho.biz=null; if(ho.st==='rent'){ if(ho.dep) payCap('immo','Restitution du dépôt de garantie',ho.dep); delete S.bld[old]; } }
+  b.bld=id; b.dist=bd.dist; b.cf=locCostF(b.def,b.city,bd.dist); S.bld[id].biz=b.id; b.closedUntil=Math.max(b.closedUntil||0,S.day+3);
+  log('good','« '+b.name+' » déménage au '+bd.addr+' : jusqu’au niveau '+bldMaxLvl(bd,b.def)+' possible. Fermeture de 3 jours.');
+  return ok('Déménagement : réouverture dans 3 jours.'); }
+
+/* ============================================================
+   ÉCONOMIE V1.1.2 : compte offshore alimenté chaque jour
+   Une part des bénéfices du jour (0, 5, 10 ou 20 %) part automatiquement sur le compte offshore.
+   Plus le compte pèse lourd par rapport à votre valeur nette, plus le risque de contrôle monte.
+   État : S.off.pct (part versée chaque jour).
+   ============================================================ */
+const OFF_PCTS = [0,.05,.1,.2];
+function offDaily(){ const O=S.off; if(!O||!O.on||!O.pct) return;
+  const net=S.biz.reduce((a,b)=>a+(b.status==='active'&&b.last&&b.last.net>0? b.last.net : 0),0); if(net<=0) return;
+  const a=Math.min(net*O.pct, Math.max(0,S.cash)); if(a<1) return;
+  payCap('gen','Versement automatique vers le compte offshore',-a); O.bal+=a; O.risk+=0.15*a/Math.max(1e5,S.nw); }
+const offWeight = () => { const O=S.off; return O&&O.on? clamp(O.bal/Math.max(1,S.nw),0,2) : 0; };
+{ const _or=offRisk; offRisk=function(){ return clamp(_or()+.25*offWeight(),0,.75); }; }
+{ const _nd=nextDay; nextDay=function(){ const r=_nd(); if(r){ try{ offDaily(); }catch(e){ console.error(e); } } return r; }; }
+function offSetPct(i){ const O=S.off; if(!O||!O.on) return err('Ouvrez d’abord un compte offshore.'); i=+i; if(!(i>=0&&i<OFF_PCTS.length)) return err('Part inconnue.'); O.pct=OFF_PCTS[i]; return ok(i? Math.round(OFF_PCTS[i]*100)+' % des bénéfices du jour partiront sur le compte.' : 'Versements automatiques arrêtés.'); }
+/* ---------- Grand livre : totaux par entreprise et activité depuis les derniers impôts ---------- */
+function glInit(){ if(!S.gl) S.gl={since:Math.max(1,(S.nextTax||30)-30), s:{}}; return S.gl; }
+{ const _rec=rec; rec=function(src,label,amt,cap){ _rec(src,label,amt,cap); try{ const G=glInit(), x=G.s[src]||(G.s[src]={in:0,out:0}); if(amt>0) x.in+=amt; else x.out-=amt; }catch(e){} }; }
+{ const _ts=taxStep; taxStep=function(){ const nt=S.nextTax; _ts(); if(S.nextTax!==nt){ S.gl={since:S.day, s:{}}; } }; }
+/* ---------- Service RH : profils visés, lundi et mercredi, moral des directeurs ---------- */
+/* Notes des salariés sur 100 : productivité (0,6 → 1,7 devient 0 → 99), fiabilité en %, fidélité sur 100 */
+const prodNote = p => clamp(Math.round(60+((p||1)-1)*80),1,99);   /* 1,00 (profil moyen) = 60/100 */
+const HR_PROD=[0,40,50,60,70], HR_REL=[0,75,85,90,95], HR_LOY=[0,50,60,70], HR_BOSS=[0,40,55,70];
+function hrSet(){ if(!S.hrSet) S.hrSet={prod:0, rel:0, loy:0, boss:0}; return S.hrSet; }
+function hrFits(c){ const H=hrSet(); return prodNote(c.prod)>=HR_PROD[H.prod]&&c.rel*100>=HR_REL[H.rel]&&c.loy>=HR_LOY[H.loy]; }
+hrStep=function(){
+  const L=hrLvl(); if(!L||!S.biz.length) return;
+  pay('gen','Service RH',-HR.day[L]*progMult());
+  const wd=wdOf(S.day); if(wd!==0&&wd!==2) return;
+  const A=agencyInit(), H=hrSet(); let left=HR.fill[L], n=0;
+  agencyVacancies().filter(v=>v.e.kind==='bank'||v.e.status==='active').forEach(v=>{
+    for(let i=0;i<v.free&&left>0;i++){
+      const c=A.pool.filter(x=>x.role===v.role&&hrFits(x)).sort((a,b)=>b.prod-a.prod)[0]; if(!c) break;
+      const fee=agencyFee(v.e,v.role,c); if(S.cash<fee*4+1000) return;
+      if(agencyHire(c.id,v.key).ok){ left--; n++; } } });
+  if(n) log('info','Service RH : '+n+' recrutement(s).');
+  /* moral des directeurs : augmentation de 10 % sous le seuil choisi (une fois par mois au plus) */
+  if(H.boss) S.biz.forEach(b=>{ const x=b.boss; if(!x||b.status!=='active'||x.mood>=HR_BOSS[H.boss]||S.day-(x.hrr||-99)<30) return;
+    x.sal*=1.1; x.mood=clamp(x.mood+15,0,100); x.hrr=S.day; log('info','Service RH : '+x.name+' (« '+b.name+' ») est augmenté de 10 % pour remonter son moral.'); });
+};
+function hrSetK(k,i){ const H=hrSet(), L={prod:HR_PROD,rel:HR_REL,loy:HR_LOY,boss:HR_BOSS}[k]; if(!L||!(+i>=0&&+i<L.length)) return err('Réglage inconnu.'); H[k]=+i; return ok(''); }
+/* ---------- Muter un directeur vers une autre entreprise ---------- */
+function moveBoss(from,to){ if(!from||!from.boss) return err('Aucun directeur à muter.'); if(!to||to===from||to.status!=='active') return err('Entreprise de destination indisponible.');
+  const x=from.boss, y=to.boss; to.boss=Object.assign({},x,{since:S.day, mood:clamp(x.mood-5,0,100)}); from.boss=y? Object.assign({},y,{since:S.day, mood:clamp(y.mood-5,0,100)}) : null;
+  return ok(x.name+' prend la direction de « '+to.name+' »'+(y? ' ; '+y.name+' le remplace à « '+from.name+' ».' : '.')); }
+/* ---------- Affichage des effets en pourcentage (au lieu de ×1,06) ---------- */
+const pctS = f => { const v=Math.round(f*100); return v===0? '0 %' : (v>0?'+':'−')+Math.abs(v)+' %'; };
+const multPct = m => pctS(m-1);
+const noteCls = v => v>=80?'nt-a':v>=65?'nt-b':v>=50?'nt-c':v>=35?'nt-d':'nt-e';
 
 /* ============================================================
    PARC D'ATTRACTIONS : gestion sur un plan
@@ -8066,6 +8167,9 @@ function bcAuto(b,mode,q){
   if((m.eng||0)<3&&bcEng(b,true).ok) return;
   if(mxHas(b,3)&&!m.lab&&dlSpend(b,bizDef(b).cost*.8,'Label environnemental')) m.lab=1;
 }
+/* sans consigne, l'équipe répond elle-même aux appels d'offres après 10 jours sans chantier */
+{ const _d=MET.build.daily; MET.build.daily=function(b,ctx){ _d.call(this,b,ctx); const m=b.m; if(dlMode(b)!=='me') return;
+  if(!m.jobs.length&&!m.off.some(o=>o.bid)){ m.idle=(m.idle||0)+1; if(m.idle>=10){ m.idle=0; bcAuto(b,'assist',.4); if(m.off.some(o=>o.bid)) metLog(b,'faute de chantier, l’équipe répond à des appels d’offres.',''); } } else m.idle=0; }; }
 
 /* ============================================================
    USINE TEXTILE : le pari sur les tendances
@@ -8479,8 +8583,10 @@ const RP_PART = {ecr:{n:'Écrans', c:35}, bat:{n:'Batteries', c:18}, con:{n:'Con
 const RP_FIRST = ['Lucas','Inès','Karim','Sofia','Hugo','Léa','Nathan','Yasmine','Tom','Chloé','Ilyes','Manon'];
 const rpPb = id => RP_PB.find(x=>x.id===id);
 function rpTechSync(b){ const m=b.m, n=Math.max(1,(b.staff.ouvrier&&b.staff.ouvrier.n)||0);
-  while(m.tech.length<n){ const i=m.tech.length, r=x=>1+Math.floor(Math.abs(Math.sin((b.id+1)*91.7+i*13.1+x*7.3))*5); m.tech.push({n:RP_FIRST[(b.id+i*5)%RP_FIRST.length], sk:{tel:r(1),tab:r(2),pc:r(3)}, h:0}); }
-  if(m.tech.length>n){ const gone=m.tech.slice(n).map(t=>t.n); m.tech.length=n; m.q.forEach(j=>{ if(gone.includes(j.tk)) j.tk=null; }); } }
+  while(m.tech.length<n){ const i=m.tech.length, r=x=>1+Math.floor(Math.abs(Math.sin((b.id+1)*91.7+i*13.1+x*7.3))*5); m.tech.push({n:RP_FIRST[(b.id+i*5)%RP_FIRST.length], sk:{tel:r(1),tab:r(2),pc:r(3)}, h:0, d:1}); }
+  /* trop de techniciens : on retire d'abord ceux créés par défaut (pas les recrues aux talents connus) */
+  const gone=[]; while(m.tech.length>n){ let i=m.tech.findIndex(t=>t.d); if(i<0) i=m.tech.length-1; gone.push(m.tech[i].n); m.tech.splice(i,1); }
+  if(gone.length) m.q.forEach(j=>{ if(gone.includes(j.tk)) j.tk=null; }); }
 function rpInit(b){ const m={v:1, tech:[], q:[], st:{ecr:6,bat:6,con:6,car:0}, ord:[], auto:1, aord:1, note:4, dep:0, ins:0, cert:0, agr:0, nid:1, sold:0, ev:null, pend:0, pendC:0, log:[]}; b.m=m; rpTechSync(b); return m; }
 const rpPartCost = (b,k) => RP_PART[k].c*rpPf(b)*(S.biz.some(x=>x.def==='electronics'&&x.status==='active')?.92:1)*(b.m.ev&&b.m.ev.k==='pen'&&b.m.ev.p===k&&b.m.ev.until>=S.day?2:1);
 function rpSpeed(t,dev){ return .6+.15*t.sk[dev]; }
@@ -8491,10 +8597,9 @@ function rpNewJob(b,o){ const m=b.m, L=RP_PB.filter(p=>!p.rk||mxHas(b,p.rk)), pb
   m.q.push({id:m.nid++, dev, pb:pb.id, price:o&&o.recon? 0 : Math.round(pb.p*f*(ins?.9:1)*(m.agr?1.2:1)*rpPf(b)), h:pb.h*f, done:0, tk:null, due:S.day+(o&&o.recon?60:rint(2,4)), recon:o&&o.recon?1:0, ret:o&&o.ret?1:0, ins:ins?1:0, part:pb.part&&!(o&&o.ret)? 0 : 1}); }
 /* répartition : chaque technicien prend le travail qui lui va le mieux (ou le premier venu) */
 function rpAssign(b,smart){ const m=b.m;
-  m.tech.forEach(t=>{ if(m.q.some(j=>j.tk===t.n)) return;
-    const free=m.q.filter(j=>!j.tk&&j.part); if(!free.length) return;
-    const j= smart? free.slice().sort((a,c)=>(c.ret-a.ret)||((a.due-S.day)-(c.due-S.day))||(t.sk[c.dev]-t.sk[a.dev]))[0] : free[0];
-    j.tk=t.n; }); }
+  /* chaque appareil va au technicien libre le plus doué pour ce type d'appareil (retours et urgences d'abord) */
+  const jobs=m.q.filter(j=>!j.tk&&j.part).sort((a,c)=>((c.ret||0)-(a.ret||0))||(a.due-c.due));
+  jobs.forEach(j=>{ const F=m.tech.filter(t=>!m.q.some(x=>x.tk===t.n)); if(!F.length) return; j.tk=F.sort((x,y)=>(y.sk[j.dev]||0)-(x.sk[j.dev]||0))[0].n; }); }
 MET.repair = {
   fam:'ind', core:true, init:rpInit,
   ranks:[
@@ -8513,7 +8618,7 @@ MET.repair = {
     if(m.ev&&m.ev.until<S.day) m.ev=null;
     if(!ctx.open) return;
     /* nouveaux appareils */
-    let n=rpArrivals(b); while(n>0){ if(rnd()<Math.min(1,n)) rpNewJob(b); n-=1; }
+    let n=rpArrivals(b)*weFactor(b); while(n>0){ if(rnd()<Math.min(1,n)) rpNewJob(b); n-=1; }
     /* pièces réservées */
     m.q.forEach(j=>{ if(!j.part){ const k=rpPb(j.pb).part; if((m.st[k]||0)>0){ m.st[k]--; j.part=1; } } });
     if(m.auto||m.smart) rpAssign(b,!!m.smart);
@@ -8540,7 +8645,7 @@ MET.repair = {
             ['Pièces en stock', ['ecr','bat','con'].map(k=>m.st[k]||0).join(' · '), 'Écrans · batteries · connecteurs']];
   },
   ctl(b){ const m=b.m, d=bizDef(b), R0=metR0(b), out=[];
-    out.push({k:'tog', act:'auto', label:'Répartition automatique', val:m.auto, sub:'Chaque technicien prend le premier appareil disponible. Répartir vous-même selon les talents de chacun va plus vite.'});
+    out.push({k:'tog', act:'auto', label:'Répartition automatique', val:m.auto, sub:'Chaque appareil va au technicien libre le plus doué pour ce type d’appareil, les retours et les urgences d’abord.'});
     out.push({k:'tog', act:'aord', label:'Commande automatique des pièces', val:m.aord, sub:'Recommande quand le stock baisse. Livraison en 2 jours.'});
     out.push({k:'btn', act:'buy', label:'Racheter 5 téléphones cassés', cost:5*45*rpPf(b), sub:'À réparer quand l’atelier a du temps, puis revendus reconditionnés environ '+eur(160*rpPf(b)*(m.cert?1.3:1),0)+' pièce.'});
     if(mxHas(b,2)) out.push(m.ins? {k:'buy', act:'ins', label:'Contrat avec une assurance', owned:true, sub:'+30 % d’appareils, payés 10 % moins cher.'} : {k:'buy', act:'ins', label:'Signer avec une assurance', cost:d.cost*1.5, sub:'+30 % d’appareils, payés 10 % moins cher.'});
@@ -8588,6 +8693,16 @@ function rpAuto(b,mode,q){ const m=b.m; m.aord=1; m.auto=1; m.smart= rnd()<(1-q)
   if(mxHas(b,4)&&!m.cert&&rpBuy(b,'cert',3,'Certification reconditionné',4,true).ok) return;
   if(mxHas(b,5)&&!m.agr) rpBuy(b,'agr',6,'Centre agréé',5,true);
 }
+
+/* ---------- Recrutement des techniciens : leurs talents sont connus avant l'embauche ---------- */
+function rpSk(prod){ const base=clamp(Math.round(1+2.4*((prod||1)-.7)),1,4), r=()=>clamp(base+rint(-1,1),1,5); return {tel:r(),tab:r(),pc:r()}; }
+const roleS = (e,r) => (e&&e.def==='repair'&&r==='ouvrier')? 'Technicien' : D.ROLES[r].s;
+function rpSkTxt(sk){ return sk? 'Téléphones '+'★'.repeat(sk.tel)+' · Tablettes '+'★'.repeat(sk.tab)+' · PC '+'★'.repeat(sk.pc) : ''; }
+function rpHired(e,c){ if(!e||e.def!=='repair'||!c||!c.sk||!e.m||!e.m.tech) return; e.m.tech.push({n:c.name, sk:Object.assign({},c.sk), h:0}); }
+{ const _ac=agencyCand; agencyCand=function(role,bonus){ const c=_ac(role,bonus); if(role==='ouvrier') c.sk=rpSk(c.prod); return c; }; }
+{ const _gc=genCands; genCands=function(e,role){ const out=_gc(e,role); if(role==='ouvrier') out.forEach(c=>{ c.sk=rpSk(c.prod); }); return out; }; }
+{ const _h=hire; hire=function(e,role,candId){ const c=candId&&e.cands&&(e.cands[role]||[]).find(x=>x.id===candId); const r=_h(e,role,candId); if(r.ok&&role==='ouvrier') rpHired(e,c); return r; }; }
+{ const _ah=agencyHire; agencyHire=function(candId,key){ const A=agencyInit(), c=A.pool.find(x=>x.id===candId), e=entByKey(key); const r=_ah(candId,key); if(r.ok&&c&&c.role==='ouvrier') rpHired(e,c); return r; }; }
 
 /* ============================================================
    BOUTIQUE E-COMMERCE : l'entonnoir de vente
@@ -8652,7 +8767,8 @@ MET.ecom = {
     m.ord=m.ord.filter(o=>{ if(S.day>=o.d){ const it=m.cat.find(x=>x.id===o.id); if(it) it.st+=o.n; return false; } return true; });
     if(m.ev&&m.ev.until<S.day) m.ev=null;
     const d=ecDay(b,false); m.stats=d;
-    m.pend+=d.rev; m.pendC+=d.cost+d.ads;
+    /* le stock est payé à la commande (trésorerie) et compté en charge au fil des ventes : plus de grosse perte le jour d'un réassort */
+    m.pend+=d.rev; m.pendC+=d.cost+d.ads+d.gc;
     /* avis */
     const tgt=4.4-(m.cat.some(x=>x.mode==='drop')?.25:0)-d.ret/Math.max(1,d.orders)*3-(d.lost>d.orders*.2?.5:0)-(m.ev&&m.ev.k==='retard'?.6:0)+(m.exp?.2:0);
     m.note=clamp(m.note+(tgt-m.note)*.03,1,5);
@@ -8701,7 +8817,7 @@ MET.ecom = {
 function ecBuy(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizDef(b).cost*f;
   if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m[k]=1; metLog(b,label.toLowerCase()+' : c’est fait.','good'); return ok(label+' : c’est fait.'); }
 function ecOrder(b,id,n){ const m=b.m, it=m.cat.find(x=>x.id===id); if(!it) return err('Produit absent du catalogue.'); if(it.mode!=='stock') return err('Ce produit est en expédition directe.');
-  const c=ecP(id).c*n; if(availFor(cityOf(b).ccy)<c) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m.pendC+=c; m.ord.push({id, n, d:S.day+3}); return ok(n+' unités commandées.'); }
+  const c=ecP(id).c*n; if(availFor(cityOf(b).ccy)<c) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); payCap('b:'+b.id,'Achat de stock : '+b.name,-c); settleAccounts(); m.ord.push({id, n, d:S.day+3}); return ok(n+' unités commandées.'); }
 /* le responsable marketing répartit le budget publicitaire */
 function ecAuto(b,mode,q){ const m=b.m; m.aord=1;
   if(S.day%7===0){
@@ -9051,7 +9167,7 @@ MET.gallery = {
   ],
   mods(b){ const m=b.m, R0=metR0(b), ex=m.st.filter(w=>w.exp);
     const lp=ex.filter(w=>w.o==='lux').reduce((a,w)=>{ const l=D.LUX.find(x=>x.id===w.lid); return a+(l?l.pr:0); },0);
-    const vis=R0*(.14+.035*ex.length+Math.min(.4,lp*.003))*(.7+m.not/100)*(m.mus?2:1);
+    const vis=R0*(.14+.035*ex.length+Math.min(.4,lp*.003))*(.7+m.not/100)*(m.mus?2:1)*weFactor(b);
     return {vol:0, cogs:0, rev:m.pend+vis, fixed:m.pendC+(m.mus?R0*.15:0)+(m.intl?R0*.04:0)};
   },
   daily(b,ctx){ const m=b.m, R0=metR0(b);
@@ -9357,7 +9473,7 @@ MET.couture = {
     {n:'Maison mythique', d:'Votre nom traverse le temps : le prestige résiste mieux aux licences et ne descend plus sous 40.'}
   ],
   mods(b){ const m=b.m, R0=metR0(b), pf=hcPf(m), sc=m.cur? m.cur.sc/60 : .7;
-    const pap=R0*.86*pf*sc*hcSeasonF(m)*(m.bq?1.4:1)*(m.cf>S.day?.8:1)*(m.eg>S.day?1.15:1)*clamp(S.macro.econ,.7,1.3);
+    const pap=R0*.86*pf*sc*hcSeasonF(m)*(m.bq?1.4:1)*(m.cf>S.day?.8:1)*(m.eg>S.day?1.15:1)*clamp(S.macro.econ,.7,1.3)*weFactor(b);
     const lic=(m.lic.acc?R0*.22:0)*pf+(m.lic.par?R0*.4:0)*pf;
     return {vol:0, cogs:0, rev:m.pend+pap+lic, fixed:m.pendC+m.art*R0*.03+(m.bq?R0*.12:0)};
   },
@@ -9941,17 +10057,17 @@ function staffPanel(e,kind){
   let h='<div class="tw"><table class="tbl"><thead><tr><th>Poste</th><th class="r">Effectif</th><th class="r">Product.</th><th class="r">Fiabilité</th><th class="r">Fidélité</th><th class="r">Salaire/j</th><th></th></tr></thead><tbody>';
   roles.forEach(([r,slots])=>{
     const c=e.staff[r]||{n:0,prod:0,rel:0,loy:0}; const w=c.n? wageOf(e,r,c):0;
-    h+='<tr><td>'+D.ROLES[r].s+'</td><td class="r num">'+c.n+' / '+slots+'</td><td class="r num">'+(c.n?c.prod.toFixed(2):'—')+'</td><td class="r num">'+(c.n?Math.round(c.rel*100)+' %':'—')+'</td><td class="r num '+(c.n&&c.loy<35?'neg':'')+'">'+(c.n?Math.round(c.loy):'—')+'</td><td class="r num">'+(c.n?eur(w,0):'—')+'</td><td class="r"><div class="row" style="justify-content:flex-end;gap:4px">'
+    h+='<tr><td>'+roleS(e,r)+'</td><td class="r num">'+c.n+' / '+slots+'</td><td class="r num '+(c.n?noteCls(prodNote(c.prod)):'')+'">'+(c.n?prodNote(c.prod)+' <small>('+multPct(c.prod)+')</small>':'—')+'</td><td class="r num">'+(c.n?Math.round(c.rel*100)+' %':'—')+'</td><td class="r num '+(c.n&&c.loy<35?'neg':'')+'">'+(c.n?Math.round(c.loy):'—')+'</td><td class="r num">'+(c.n?eur(w,0):'—')+'</td><td class="r"><div class="row" style="justify-content:flex-end;gap:4px">'
       +btn('Recruter','candopen',{c:'sm',i:key,j:r,dis:c.n>=slots})
       +btn('Compléter','hirefill',{c:'sm ghost',i:key,j:r,dis:c.n>=slots,t:'Recrute des profils moyens jusqu’à pourvoir tous les postes'})
       +btn('−1','fire',{c:'sm ghost dng',i:key,j:r,dis:!c.n,t:'Licencier un employé (indemnités)'})+'</div></td></tr>';
     if(ui.candRole[key]===r){
       const cs=candsFor(e,r);
-      h+='<tr><td colspan="7"><div class="stack" style="padding:6px 0"><div class="row sp"><b>Candidats pour « '+D.ROLES[r].s+' »</b>'+btn('Chercher d’autres profils ('+eur(60*(e.kind==='bank'?1:e.lvl),0)+')','candrefresh',{c:'sm',i:key,j:r})+'</div>';
+      h+='<tr><td colspan="7"><div class="stack" style="padding:6px 0"><div class="row sp"><b>Candidats pour « '+roleS(e,r)+' »</b>'+btn('Chercher d’autres profils ('+eur(60*(e.kind==='bank'?1:e.lvl),0)+')','candrefresh',{c:'sm',i:key,j:r})+'</div>';
       if(!cs.length) h+='<div class="sub">Aucun candidat. Lancez une recherche.</div>';
       cs.forEach(c=>{
         const tmp={prod:c.prod}, w=wageOf(e,r,tmp);
-        h+='<div class="cand"><div><b>'+esc(c.name)+'</b></div><div><span class="tag">Product.</span><br><span class="num">'+c.prod.toFixed(2)+'</span></div><div><span class="tag">Fiabilité</span><br><span class="num">'+Math.round(c.rel*100)+' %</span></div><div><span class="tag">Salaire/j</span><br><span class="num">'+eur(w,0)+'</span></div>'+btn('Embaucher','hire',{c:'sm pri',i:key,j:r,v:c.id})+'</div>';
+        h+='<div class="cand"><div><b>'+esc(c.name)+'</b>'+(e.def==='repair'&&c.sk?'<div class="sub">'+rpSkTxt(c.sk)+'</div>':'')+'</div><div><span class="tag">Product.</span><br><span class="num '+noteCls(prodNote(c.prod))+'">'+prodNote(c.prod)+'</span></div><div><span class="tag">Fiabilité</span><br><span class="num">'+Math.round(c.rel*100)+' %</span></div><div><span class="tag">Salaire/j</span><br><span class="num">'+eur(w,0)+'</span></div>'+btn('Embaucher','hire',{c:'sm pri',i:key,j:r,v:c.id})+'</div>';
       });
       h+='</div></td></tr>';
     }
@@ -10071,13 +10187,14 @@ function modalBiz(b){
     }
     /* pilotage */
     body+='<div class="card" id="bj-pil"><h2>Pilotage</h2><div class="grid">'+
+      (pqOn(b)? '<div class="stack"><b>Qualité du produit</b><div class="seg">'+PQN.map((n,k)=>'<button class="'+(pqOf(b)===k?'on':'')+'" data-a="setpq" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div><div class="sub">Coût des marchandises : '+(PQC[pqOf(b)]>1?'+'+Math.round((PQC[pqOf(b)]-1)*100)+' %':'normal')+'. Une meilleure qualité fait monter la satisfaction des clients, donc les ventes.</div></div>' : '')+
       '<div class="stack"><label for="sl-pol"><b>Politique salariale</b> : <span id="lb-pol" class="num">'+Math.round(b.pol*100)+' %</span></label><input type="range" id="sl-pol" min="80" max="140" step="5" value="'+Math.round(b.pol*100)+'" data-live="lb-pol" data-fmt="pct" data-ch="setpol" data-i="'+b.id+'"></div>'+
       (isFact(b)? factPilot(b) : '<div class="stack"><label for="sl-price"><b>Prix de vente</b> : <span id="lb-price" class="num">'+Math.round(b.price*100)+' %</span></label><input type="range" id="sl-price" min="80" max="130" step="5" value="'+Math.round(b.price*100)+'" data-live="lb-price" data-fmt="pct" data-ch="setprice" data-i="'+b.id+'"></div>')+
-      '<div class="stack"><b>Marketing</b><div class="seg">'+[0,1,2,3].map(k=>'<button class="'+(b.mkt===k?'on':'')+'" data-a="setmkt" data-i="'+b.id+'" data-v="'+k+'">'+['Aucun','Léger','Soutenu','Intense'][k]+'</button>').join('')+'</div><div class="sub">Coût : '+eur(base.R0*MKT_PCT[b.mkt],0)+' / jour ouvré. Ventes ×'+MKT_BOOST[b.mkt].toFixed(2)+'.</div></div>'+
+      '<div class="stack"><b>Marketing</b><div class="seg">'+[0,1,2,3].map(k=>'<button class="'+(b.mkt===k?'on':'')+'" data-a="setmkt" data-i="'+b.id+'" data-v="'+k+'">'+['Aucun','Léger','Soutenu','Intense'][k]+'</button>').join('')+'</div><div class="sub">Coût : '+eur(base.R0*MKT_PCT[b.mkt],0)+' / jour ouvré. Ventes '+multPct(MKT_BOOST[b.mkt])+'.</div></div>'+
       (d.open==='always'? '<div class="stack"><b>Week-end</b><div class="sub">Ouvert chaque jour</div></div>'
-        : '<div class="stack"><b>Ouverture le week-end</b><div class="seg"><button class="'+(!b.wk?'on':'')+'" data-a="setwk" data-i="'+b.id+'" data-v="0">Fermé</button><button class="'+(b.wk?'on':'')+'" data-a="setwk" data-i="'+b.id+'" data-v="1">Ouvert</button></div><div class="sub">Salaires +50 %, ventes à '+Math.round(d.wkf*100)+' % d’un jour de semaine.'+(b.wk&&d.wkf<1?' <b class="neg">Probablement peu rentable.</b>':'')+'</div></div>')+
+        : '<div class="stack"><b>Ouverture le week-end</b><div class="seg"><button class="'+(!b.wk?'on':'')+'" data-a="setwk" data-i="'+b.id+'" data-v="0">Fermé</button><button class="'+(b.wk?'on':'')+'" data-a="setwk" data-i="'+b.id+'" data-v="1">Ouvert</button></div><div class="sub">Salaires +50 %, ventes '+(d.wkf>=1?'+':'−')+Math.abs(Math.round((d.wkf-1)*100))+' % par rapport à un jour de semaine.'+(b.wk&&d.wkf<1.2?' <b class="neg">Probablement peu rentable.</b>':d.wkf>=1.3?' <b class="pos">Rentable pour un commerce.</b>':'')+'</div></div>')+
       planBlock(b)+
-      '<div class="stack"><b>Équipement : '+EQN[eqOf(b)]+'</b><div class="lvl">'+EQN.map((n,i)=>'<i class="'+(i<=eqOf(b)?'on':'')+'"></i>').join('')+'</div><div class="sub">Productivité ×'+EQP[eqOf(b)].toFixed(2)+(isStock(b)?', stockage '+capDays(b)+' jours':'')+'.</div>'+(eqOf(b)<3?'<div>'+btn('Passer à « '+EQN[eqOf(b)+1]+' » : '+eur(eqCost(b),0),'upeq',{c:'sm',i:b.id})+'</div>':'')+'</div>'+
+      '<div class="stack"><b>Équipement : '+EQN[eqOf(b)]+'</b><div class="lvl">'+EQN.map((n,i)=>'<i class="'+(i<=eqOf(b)?'on':'')+'"></i>').join('')+'</div><div class="sub">Productivité '+multPct(EQP[eqOf(b)])+(isStock(b)?', stockage '+capDays(b)+' jours':'')+'.</div>'+(eqOf(b)<3?'<div>'+btn('Passer à « '+EQN[eqOf(b)+1]+' » : '+eur(eqCost(b),0),'upeq',{c:'sm',i:b.id})+'</div>':'')+'</div>'+
       '<div class="stack"><b>Formation</b><div class="sub">Productivité et fidélité de toute l’équipe en hausse. Une session tous les 20 jours.</div><div>'+btn(trainReady(b)?'Former l’équipe : '+eur(trainCost(b),0):'Prochaine session dans '+(20-(S.day-b.tr))+' j','train',{c:'sm',i:b.id,dis:!trainReady(b)||!headcount(b)})+'</div></div>'+
       '<div class="stack"><b>Mutuelle santé</b><div class="seg"><button class="'+(!b.hc?'on':'')+'" data-a="sethc" data-i="'+b.id+'" data-v="0">Non</button><button class="'+(b.hc?'on':'')+'" data-a="sethc" data-i="'+b.id+'" data-v="1">Oui</button></div><div class="sub">+5 % de salaires, fidélité +5.'+(S.diff==='hard'&&!b.hc?' <b class="neg">En difficile, vos salariés la réclament (fidélité −5).</b>':'')+'</div></div>'+
       '</div></div>';
@@ -10085,17 +10202,17 @@ function modalBiz(b){
     { const cr=csCrit(b), fat=fatOf(b), sh=ownShare(b), full=premPrice(b), left=Math.max(0,full-premValue(b)), rentD=base.rent0*rentFactor(b)*progMult();
       const crit=[['Prix',cr.price],['Service',cr.service],['Qualité',cr.quality],['Adresse',cr.addr]];
       body+='<div class="card"><h2>Clients et équipe</h2><div class="stack">'+
-        '<div class="row sp"><b>Satisfaction des clients</b><span class="num"><b>'+Math.round(csOf(b))+' / 100</b> · ventes ×'+csMult(b).toFixed(2)+'</span></div>'+
+        '<div class="row sp"><b>Satisfaction des clients</b><span class="num"><b>'+Math.round(csOf(b))+' / 100</b> · ventes '+multPct(csMult(b))+'</span></div>'+
         '<div class="crit">'+crit.map(x=>'<div><span>'+x[0]+'</span>'+bar(x[1],x[1]<.35?'r':x[1]<.6?'a':'g')+'</div>').join('')+'</div>'+
-        '<div class="sub">Le prix bas, un effectif complet, la qualité (salaires, stock) et la bonne adresse font monter la satisfaction. Elle évolue lentement.</div>'+
+        '<div class="sub">Le prix bas, un effectif complet, la qualité (salaires, qualité du produit) et la bonne adresse font monter la satisfaction. Elle évolue lentement.</div>'+
         '<div class="row sp"><b>Fatigue de l’équipe</b><span class="num"><b>'+Math.round(fat)+' / 100</b></span></div>'+bar(fat/100,fat>60?'r':fat>30?'a':'g')+
-        '<div class="sub">'+(fat>30?'Ventes ×'+fatF(b).toFixed(2)+' et départs plus fréquents. ':'')+'Elle monte quand des postes manquent ou que le week-end est travaillé, et baisse les jours de repos'+(hrLvl()?' (aidée par votre service RH).':'.')+'</div>'+
+        '<div class="sub">'+(fat>30?'Ventes '+multPct(fatF(b))+' et départs plus fréquents. ':'')+'Elle monte quand des postes manquent ou que le week-end est travaillé, et baisse les jours de repos'+(hrLvl()?' (aidée par votre service RH).':'.')+'</div>'+
         (isStock(b)? (function(){ const cap=stockCap(b), st=b.stock||0, pend=pendingOf(b), cr=cogsRef(b);
           return '<div class="stack"><div class="row sp"><b>Stock de marchandises</b><span class="num"><b>'+(st/cr).toFixed(1)+' j</b> de ventes</span></div>'+bar(st/cap,st/cr<1.5?'r':st/cr<3?'a':'g')+
           '<div class="sub">'+eur(st,0)+' en rayon sur '+eur(cap,0)+' de capacité'+(pend>1?' · '+eur(pend,0)+' en livraison':'')+(b.soDays?' · <b class="neg">rupture en cours</b>':'')+'.</div>'+
           '<div class="row"><span class="sub">Stock visé</span><div class="seg">'+STKN.map((n,k)=>'<button class="'+(stkOf(b)===k?'on':'')+'" data-a="setstk" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div></div>'+
           '<div class="row"><span class="sub">Commande automatique</span><div class="seg"><button class="'+(b.auto===false?'on':'')+'" data-a="setauto" data-i="'+b.id+'" data-v="0">Non</button><button class="'+(b.auto!==false?'on':'')+'" data-a="setauto" data-i="'+b.id+'" data-v="1">Oui</button></div>'+btn('Remplir le stock','orderstk',{c:'sm',i:b.id})+'</div>'+
-          '<div class="sub">Les ventes s’arrêtent quand les rayons sont vides et les clients partent chez les concurrents. Livraison le lendemain.'+(S.proc?' Responsable des achats : −3 %.':' Un responsable des achats (Agence) fait baisser les prix de 3 %.')+'</div></div>'; })() : '')+
+          '<div class="sub">Le stock de secours permet de continuer à vendre pendant une pénurie chez les fournisseurs'+(b.penUntil>S.day?' (<b class="neg">pénurie en cours, encore '+(b.penUntil-S.day)+' j</b>)':'')+'. Sans stock, les ventes s’arrêtent. Livraison le lendemain.'+(S.proc?' Responsable des achats : −3 %.':' Un responsable des achats (Agence) fait baisser les prix de 3 %.')+'</div></div>'; })() : '')+
         (b.bld? bldLocHtml(b) : '<div class="stack"><div class="row sp"><b>Locaux</b>'+(sh>=.999? pill('Propriétaire','good') : sh>0? pill('Propriétaire en partie','info') : pill('Locataire',''))+'</div>'+
         '<div class="sub">Loyer : '+eur(rentD*(1-0.7*sh),0)+' / jour.'+(b.prem?' Valeur des locaux : '+eur(premValue(b),0)+' (suit le marché immobilier).':'')+'</div>'+
         (left>=1? '<div>'+btn((sh>0?'Compléter l’achat : ':'Acheter les locaux : ')+eur(left,0),'buyprem',{c:'sm pri',i:b.id,dis:S.cash<left&&cityOf(b).ccy==='EUR'})+'</div><div class="sub">Propriétaire, le loyer baisse de 70 %. Les locaux se revendent avec l’entreprise.</div>' : '')+'</div>')+
@@ -10110,12 +10227,13 @@ function modalBiz(b){
     /* facteurs */
     if(pr){
       const f=[['Effectif et compétences',pr.sf],['Conjoncture et taux',pr.demand],['Réputation',pr.rep],['Saturation du marché ('+(satIndex(b)+1)+'e exemplaire)',pr.sat],['Effet du prix sur les volumes',pr.vol],['Marketing',MKT_BOOST[b.mkt]],['Quartier et clientèle',pr.loc.aff],['Prestige de l’adresse',pr.loc.pres],['Ville et pouvoir d’achat',pr.loc.city],['Fête en cours',pr.loc.fe],['Satisfaction des clients',pr.csm],['Concurrence ('+intLabel(intensity(rivKey(b))).toLowerCase()+')',pr.comp],['Synergies',synBonus(d)],['Lois et actualité',lawMult(d)*tagMult(d.tags)],['Phase de croissance',startupMult(b)]].filter(x=>Math.abs(x[1]-1)>0.004||x[0].startsWith('Effectif'));
-      body+='<div class="card"><h2>Ce qui fait vos ventes</h2><div class="tw"><table class="tbl"><tbody>'+f.map(x=>'<tr><td>'+x[0]+'</td><td class="r num '+(x[1]>1.004?'pos':x[1]<0.996?'neg':'')+'">× '+x[1].toFixed(2)+'</td></tr>').join('')+'</tbody></table></div>'+(d.syn&&synBonus(d)===1?'<div class="sub" style="margin-top:6px">Synergie possible : '+d.syn.txt+' (+'+Math.round(d.syn.b*100)+' %).</div>':'')+(b.mods.length?'<div class="row" style="margin-top:8px">'+b.mods.map(m=>pill(m.label+' jusqu’au jour '+m.until,m.mult>1?'good':'bad')).join('')+'</div>':'')+'</div>';
+      body+='<div class="card"><h2>Ce qui fait vos ventes</h2><div class="tw"><table class="tbl"><tbody>'+f.map(x=>'<tr><td>'+x[0]+'</td><td class="r num '+(x[1]>1.004?'pos':x[1]<0.996?'neg':'')+'">'+multPct(x[1])+'</td></tr>').join('')+'</tbody></table></div>'+(d.syn&&synBonus(d)===1?'<div class="sub" style="margin-top:6px">Synergie possible : '+d.syn.txt+' (+'+Math.round(d.syn.b*100)+' %).</div>':'')+(b.mods.length?'<div class="row" style="margin-top:8px">'+b.mods.map(m=>pill(m.label+' jusqu’au jour '+m.until,m.mult>1?'good':'bad')).join('')+'</div>':'')+'</div>';
     }
     body+=bossPanel(b);
     body+='<div class="card" id="bj-eq"><h2>Équipe</h2>'+staffPanel(b,'biz')+'</div>';
     body+='<div class="row sp"><span class="sub">Valeur estimée : '+eur(bizValue(b),0)+'</span>'+btn('Céder l’entreprise : '+eur(sellPrice(b),0),'sellbiz',{c:'dng',i:b.id})+'</div>';
   }
+  if(b.status==='active') body+=relocCard(b);
   return {title:'Fiche société',body};
 }
 
@@ -10297,7 +10415,7 @@ function vPol(){
       '<div class="sub" style="margin-bottom:8px">En tant que souverain, vous décidez directement. Un décret tous les 10 jours'+(S.day-S.decreeDay<10?' (prochain dans '+(10-(S.day-S.decreeDay))+' j)':'')+'. Chaque décret pèse 50 % de plus sur l’opinion que le même texte voté.</div><div class="stack">'+
       D.BILLS.filter(b=>b.cond(S.laws)).map(b=>'<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:200px"><b>'+b.t+'</b><div class="sub">'+b.d+'</div></div>'+btn('Décréter','decree',{c:'sm pri',i:b.k,dis:S.day-S.decreeDay<10})+'</div>').join('')+'</div>');
   } else {
-    const pre=lobbyPresets(), pi=ui.tmp.lob||1, amt=pre[pi];
+    const pre=lobbyPresets(), pi=ui.tmp.lob??1, amt=pre[pi];
     h+='<div class="row sp"><h2 style="font-family:var(--f-display);font-size:24px;text-transform:uppercase;letter-spacing:.05em">Projets de loi</h2><div class="row"><span class="sub">Budget par action :</span><div class="seg">'+pre.map((a,i)=>'<button class="'+(pi===i?'on':'')+'" data-a="lobpre" data-v="'+i+'">'+eur(a,0)+'</button>').join('')+'</div></div></div>';
     if(!S.bills.length) h+='<div class="notice info">Aucun projet en discussion (prochain cycle : jour '+(Math.floor((S.day-1)/30)*30+31)+').</div>';
     h+='<div class="grid">'+S.bills.map(bl=>{ const d=billDef(bl.k), p=billProb(bl);
@@ -10320,12 +10438,13 @@ function vBooks(){
     card('Impôts','<div class="stack"><div class="row sp"><span>Prochaine échéance</span><b>jour '+S.nextTax+'</b></div><div class="tw"><table class="tbl"><tbody><tr><td>Sociétés ('+pct(S.laws.corpTax,0)+')</td><td class="r num">'+eur(e.corp,0)+'</td></tr><tr><td>Revenus du capital ('+pct(S.laws.capTax,0)+')</td><td class="r num">'+eur(e.cap,0)+'</td></tr>'+(S.laws.wealthTax?'<tr><td>Fortune</td><td class="r num">'+eur(e.wealth,0)+'</td></tr>':'')+'<tr><td><b>Estimation</b></td><td class="r num"><b>'+eur(e.total,0)+'</b></td></tr></tbody></table></div><div class="sub">Dernière échéance : '+(S.taxLast.length? S.taxLast.map(x=>x[0]+' '+eur(x[1],0)).join(' · '):'aucune')+'. Les pertes sont reportées sur les mois suivants.</div></div>')+
     card('Emprunts','<div class="stack"><div class="sub">Taux actuel : <b>'+fmtN(debtRate(),2)+' %</b> par an, intérêts versés chaque jour. Capacité : <b>'+eur(debtLimit(),0)+'</b> (60 % de vos actifs bruts).</div><div class="row"><label class="sr" for="in-bor">Montant</label><input class="inp w" id="in-bor" inputmode="numeric" placeholder="Montant en €" data-q="bor" value="'+(ui.qty.bor||'')+'">'+btn('Emprunter','borrow',{c:'sm pri'})+'</div>'+
     S.debts.map(d=>'<div class="row sp" style="border-top:1px solid var(--line);padding-top:6px"><span class="num">'+eur(d.p,0)+' à '+d.r.toFixed(2)+' %</span><span class="row">'+btn('Rembourser '+eur(Math.min(d.p,Math.max(0,S.cash)),0),'repay',{c:'sm',i:d.id,v:'part',dis:S.cash<=0})+btn('Tout','repay',{c:'sm ghost',i:d.id,v:'all',dis:S.cash<d.p})+'</span></div>').join('')+'</div>')+'</div>';
-  const srcs=Array.from(new Set(S.ledger.map(x=>x.s)));
-  const f=ui.tmp.lf||'all';
-  const lines=S.ledger.filter(x=>f==='all'||x.s===f).slice(-120).reverse();
-  h+=card('Grand livre','<div class="row" style="margin-bottom:8px"><label for="sel-lf">Source</label><select class="btn sm" id="sel-lf" data-ch="ledf"><option value="all">Toutes</option>'+srcs.map(s=>'<option value="'+esc(s)+'" '+(f===s?'selected':'')+'>'+esc(srcName(s))+'</option>').join('')+'</select><span class="sub"></div>'+
-    '<div class="tw"><table class="tbl"><thead><tr><th>Jour</th><th>Source</th><th>Libellé</th><th class="r">Débit</th><th class="r">Crédit</th><th class="r">Solde</th></tr></thead><tbody>'+
-    (lines.length? lines.map(x=>'<tr style="'+(x.c?'font-style:italic;color:var(--ink-2)':'')+'"><td class="num">'+x.d+'</td><td>'+esc(srcName(x.s))+'</td><td>'+esc(x.l)+'</td><td class="r num neg">'+(x.a<0?eur(-x.a,2):'')+'</td><td class="r num pos">'+(x.a>0?eur(x.a,2):'')+'</td><td class="r num">'+eur(x.b,0)+'</td></tr>').join('') : '<tr><td colspan="6" class="sub">Aucune écriture.</td></tr>')+'</tbody></table></div>',{c:'led'});
+  const G=glInit(), rows=Object.entries(G.s).map(([k,v])=>({k, n:srcName(k), i:v.in, o:v.out, net:v.in-v.out})).filter(r=>r.i>.5||r.o>.5).sort((a,c)=>Math.abs(c.net)-Math.abs(a.net));
+  const T=rows.reduce((a,r)=>({i:a.i+r.i,o:a.o+r.o}),{i:0,o:0});
+  h+=card('Grand livre','<div class="sub" style="margin-bottom:8px">Depuis les derniers impôts (jour '+G.since+'). Revenus, dépenses et résultat net de chaque entreprise et de chaque activité.</div>'+
+    '<div class="tw"><table class="tbl"><thead><tr><th>Source</th><th class="r">Revenus</th><th class="r">Dépenses</th><th class="r">Net</th></tr></thead><tbody>'+
+    (rows.length? rows.map(r=>'<tr><td>'+esc(r.n)+'</td><td class="r num pos">'+eur(r.i,0)+'</td><td class="r num neg">'+eur(r.o,0)+'</td><td class="r num '+(r.net>=0?'pos':'neg')+'"><b>'+signed(r.net,0)+'</b></td></tr>').join('')+
+      '<tr><td><b>Total</b></td><td class="r num pos"><b>'+eur(T.i,0)+'</b></td><td class="r num neg"><b>'+eur(T.o,0)+'</b></td><td class="r num '+(T.i-T.o>=0?'pos':'neg')+'"><b>'+signed(T.i-T.o,0)+'</b></td></tr>' : '<tr><td colspan="4" class="sub">Aucun mouvement depuis les derniers impôts.</td></tr>')+
+    '</tbody></table></div>');
   return h;
 }
 
@@ -10417,7 +10536,7 @@ function vAgency(){
   h+='<div class="grid g2">'+card(AG.names[lvl],'<div class="stack"><div class="lvl" aria-label="Niveau '+(lvl+1)+' sur '+AG.names.length+'">'+AG.names.map((n,i)=>'<i class="'+(i<=lvl?'on':'')+'"></i>').join('')+'</div>'+
       '<div class="sub">'+AG.desc[lvl]+'</div>'+
       '<div class="mini"><div><span>Vivier</span><b>'+AG.pool[lvl]+' profils</b></div><div><span>Frais d’agence</span><b>'+AG.feeDays[lvl]+' j de salaire</b></div><div><span>Embauches</span><b>'+A.hired+'</b></div></div>'+
-      '<div class="row">'+btn('Nouveau vivier ('+eur(AG.refresh[lvl],0)+')','agrefresh',{c:'sm',dis:!ents.length||S.cash<AG.refresh[lvl]})+'<span class="sub">Prochain renouvellement gratuit : jour '+(A.day+7)+'.</span></div></div>')+
+      '</div>')+
     card('Postes à pourvoir',
       !ents.length? '<div class="sub">Aucune société.</div>' :
       !vac.length? '<div class="notice good">Tous vos postes sont pourvus.</div>' :
@@ -10434,7 +10553,7 @@ function vAgency(){
   if(ui.agRole && ui.agRole!=='all' && !allRoles.includes(ui.agRole)) ui.agRole='all';
   const cur=ui.agRole||'all';
   const list=A.pool.filter(c=>cur==='all'||c.role===cur);
-  let body='<div class="stack"><div class="row sp"><div class="seg" role="group" aria-label="Filtrer par poste">'+
+  let body='<div class="stack"><div class="row">'+btn('Nouveau vivier ('+eur(AG.refresh[lvl],0)+')','agrefresh',{c:'sm',dis:!ents.length||S.cash<AG.refresh[lvl]})+'<span class="sub">Prochain renouvellement gratuit : jour '+(A.day+7)+'.</span></div><div class="row sp"><div class="seg" role="group" aria-label="Filtrer par poste">'+
     [['all','Tous']].concat(allRoles.map(r=>[r,D.ROLES[r].s])).map(([k,t])=>'<button class="'+(cur===k?'on':'')+'" data-a="agrole" data-v="'+k+'">'+t+'</button>').join('')+'</div>'+
     (lvl>=1&&cur!=='all'? btn('Recherche ciblée : '+D.ROLES[cur].s+' ('+eur(agencySearchCost(cur),0)+')','agsearch',{c:'sm',j:cur,dis:S.cash<agencySearchCost(cur)}) : '')+'</div>';
   if(lvl>=1&&cur==='all') body+='<div class="sub"></div>';
@@ -10443,7 +10562,7 @@ function vAgency(){
   list.forEach(c=>{
     const targets=vac.filter(v=>v.role===c.role).slice(0,4);
     body+='<div class="agc"><div class="who"><b>'+esc(c.name)+'</b>'+pill(D.ROLES[c.role].s)+(c.prod>=1.35?' '+pill('Talent rare','good'):'')+'</div>'+
-      '<div class="st"><span>Product.</span><b>'+c.prod.toFixed(2)+'</b></div><div class="st"><span>Fiabilité</span><b>'+Math.round(c.rel*100)+' %</b></div><div class="st"><span>Fidélité</span><b>'+Math.round(c.loy)+'</b></div>'+
+      (c.sk&&vac.some(v=>v.role===c.role&&v.e.def==='repair')?'<div class="sub" style="grid-column:1/-1">En réparation : '+rpSkTxt(c.sk)+'</div>':'')+'<div class="st"><span>Product.</span><b class="'+noteCls(prodNote(c.prod))+'">'+prodNote(c.prod)+'</b></div><div class="st"><span>Fiabilité</span><b>'+Math.round(c.rel*100)+' %</b></div><div class="st"><span>Fidélité</span><b>'+Math.round(c.loy)+'</b></div>'+
       '<div class="hr">'+(targets.length? targets.map(v=>{ const w=agencyWage(v.e,c.role,c), f=agencyFee(v.e,c.role,c); return btn('Recruter chez '+esc(entLabel(v.e))+' · '+eur(w,0)+'/j · frais '+eur(f,0),'aghire',{c:'sm pri',i:c.id,j:v.key,dis:S.cash<f}); }).join('') : '<span class="sub">Aucun poste de ce type à pourvoir.</span>')+'</div></div>';
   });
   body+='</div>';
@@ -10456,10 +10575,14 @@ function hrCard(){
   const L=hrLvl(), nx=L+1, maxed=nx>=HR.names.length;
   let body='<div class="stack"><div class="lvl" aria-label="Niveau '+(L+1)+' sur '+HR.names.length+'">'+HR.names.map((n,i)=>'<i class="'+(i<=L?'on':'')+'"></i>').join('')+'</div>'+
     '<div class="sub">'+(L? HR.desc[L] : 'Sans service RH, vous recrutez à la main. Un service RH comble les postes vacants chaque lundi avec les profils de l’agence, et limite la fatigue.')+'</div>';
-  if(L) body+='<div class="mini"><div><span>Postes pourvus / lundi</span><b>'+HR.fill[L]+'</b></div><div><span>Coût</span><b class="num">'+eur(HR.day[L]*progMult(),0)+' / j</b></div><div><span>Fidélité</span><b>+'+HR.loy[L]+'</b></div></div>';
+  if(L) body+='<div class="mini"><div><span>Postes pourvus / lundi et mercredi</span><b>'+HR.fill[L]+'</b></div><div><span>Coût</span><b class="num">'+eur(HR.day[L]*progMult(),0)+' / j</b></div><div><span>Fidélité</span><b>+'+HR.loy[L]+'</b></div></div>';
   if(!maxed){ const lock=!unlocked(HR.tier[nx]);
     body+='<div class="notice info"><b>Prochain niveau : '+HR.names[nx]+'.</b> '+HR.desc[nx]+' '+eur(HR.day[nx],0)+' par jour.</div><div class="row">'+btn((L?'Améliorer':'Créer')+' ('+eur(HR.cost[nx],0)+')','hrup',{c:'pri',dis:lock||S.cash<HR.cost[nx]})+(lock?'<span class="sub">Palier « '+D.TIERS[HR.tier[nx]].n+' » requis.</span>':'')+'</div>';
   } else body+='<div class="notice good">Niveau maximal atteint.</div>';
+  if(L){ const H=hrSet(), seg=(k,Lst,f)=>'<div class="seg">'+Lst.map((v,i)=>'<button class="'+(H[k]===i?'on':'')+'" data-a="hrset" data-j="'+k+'" data-v="'+i+'">'+(i?f(v):'Peu importe')+'</button>').join('')+'</div>';
+    body+='<div class="stack"><b>Profils visés</b><div class="sub">Le service RH recrute le lundi et le mercredi, uniquement des profils au-dessus de vos minimums.</div>'+
+      '<span class="sub">Productivité minimale (sur 100)</span>'+seg('prod',HR_PROD,v=>String(v))+'<span class="sub">Fiabilité minimale</span>'+seg('rel',HR_REL,v=>v+' %')+'<span class="sub">Fidélité minimale (sur 100)</span>'+seg('loy',HR_LOY,v=>String(v))+
+      '<b>Moral des directeurs</b><div class="sub">Sous ce seuil, le service RH augmente le directeur de 10 % (une fois par mois au plus).</div>'+seg('boss',HR_BOSS,v=>'Moral < '+v)+'</div>'; }
   return card(L? 'Service RH : '+HR.names[L] : 'Service RH', body+'</div>');
 }
 
@@ -10825,7 +10948,7 @@ const ACT={
   sellcountry:()=>ask('Céder le pays','Vous le revendez à 70 % de sa valeur.','Céder',()=>after(sellCountry())),
   /* politique */
   lobpre:el=>{ ui.tmp.lob=+el.dataset.v; render(); },
-  lobpro:el=>after(lobby(+el.dataset.i,'pro',lobbyPresets()[ui.tmp.lob||1])), lobcon:el=>after(lobby(+el.dataset.i,'con',lobbyPresets()[ui.tmp.lob||1])),
+  lobpro:el=>after(lobby(+el.dataset.i,'pro',lobbyPresets()[ui.tmp.lob??1])), lobcon:el=>after(lobby(+el.dataset.i,'con',lobbyPresets()[ui.tmp.lob??1])),
   donate:el=>after(donate(+el.dataset.v)), decree:el=>after(decree(el.dataset.i),'Décret promulgué.'),
   /* comptes */
   borrow:()=>{ const a=readIn('in-bor'); ui.qty.bor=''; after(borrow(a)); },
@@ -10853,6 +10976,7 @@ const ACT={
   barreset:()=>{ ui.bar={l:BARDEF.l.slice(),r:BARDEF.r.slice()}; saveUI(); render(); toast('Barre rétablie.','good'); },
   /* agence de recrutement */
   agupgrade:()=>after(agencyUpgrade(),'Agence améliorée.'),
+  hrset:el=>after(hrSetK(el.dataset.j,el.dataset.v)),
   agrefresh:()=>after(agencyRefresh(),'Nouveau vivier.'),
   agsearch:el=>after(agencySearch(el.dataset.j)),
   aghire:el=>after(agencyHire(+el.dataset.i,el.dataset.j)),
@@ -10931,7 +11055,7 @@ function modalLaunch(id){
     '<div class="sub">'+esc(C.txt)+'</div></div>';
   body+='<div class="stack"><div class="tag">Quartier</div>'+C.d.map(x=>{ const f=fitLabel(sec,x), c=launchCost(id,inv,T.lc,x.id), rf=rentFactorFor(sec,C,x);
     return '<button class="opt '+(x.id===T.ld?'on':'')+'" data-a="ldist" data-v="'+x.id+'"><div class="row sp"><b>'+esc(x.n)+'</b><span class="num"><b>'+eur(c,0)+'</b></span></div>'+
-      '<div class="row">'+pill(f[0],f[1])+dots(x.crime)+'<span class="sub">Loyer ×'+rf.toFixed(2)+'</span></div><div class="sub">'+esc(x.cl)+'</div></button>'; }).join('')+'</div>';
+      '<div class="row">'+pill(f[0],f[1])+dots(x.crime)+'<span class="sub">Loyer '+multPct(rf)+'</span></div><div class="sub">'+esc(x.cl)+'</div></button>'; }).join('')+'</div>';
   const fs=festNext(T.lc).slice(0,3);
   if(fs.length) body+='<div class="sub">Fêtes : '+fs.map(x=>esc(x.f.n)+' ('+(x.on?'en cours':'dans '+x.in+' j')+')').join(' · ')+'</div>';
   if(C.ccy!=='EUR') body+='<div class="notice">Les ventes et les charges de cette ville passent par votre compte en '+D.CCY[C.ccy].n.toLowerCase()+'. Si le solde manque, vos euros sont convertis avec des frais.</div>';
@@ -11054,6 +11178,7 @@ Object.assign(ACT,{
   sethc:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); setHc(b,el.dataset.v==='1'); after(); },
   setproc:el=>after(setProc(el.dataset.v==='1')),
   ncbuy:el=>{ const k=el.dataset.i; ask('Contrat de non-concurrence','Les rivaux quittent le marché « '+esc(keyLabel(k))+' » pendant 90 jours (pas de guerre des prix ni de débauchage). Coût : <b>'+eur(ncPrice(k),0)+'</b>.','Signer',()=>after(buyNC(k))); },
+  setpq:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b) b.pq=clamp(+el.dataset.v|0,0,2); after(); },
   setstk:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); setStk(b,+el.dataset.v); after(); },
   hrup:()=>after(hrUpgrade(),'Service RH amélioré.'),
   buyprem:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); const c=Math.max(0,premPrice(b)-premValue(b)); ask('Acheter les locaux','Les locaux de <b>'+esc(b.name)+'</b> coûtent <b>'+eur(c,0)+'</b>. Le loyer baisse de 70 % et le bien suit le marché immobilier.','Acheter',()=>after(buyPremises(b),'Locaux achetés.')); },
@@ -11088,7 +11213,7 @@ function vRivals(){
   const ents=S.biz.filter(b=>b.status==='active');
   h+=card('Talents à débaucher', !ents.length? '<div class="sub">Lancez d’abord une entreprise.</div>' : R.talents.length? '<div class="stack">'+R.talents.map(t=>{
     const targets=ents.filter(e=>{ const sl=entRoles(e).find(r=>r[0]===t.role); return sl&&((e.staff[t.role]||{n:0}).n<sl[1]); }).slice(0,3);
-    return '<div class="agc"><div class="who"><b>'+esc(t.name)+'</b>'+pill(D.ROLES[t.role].s)+pill(esc(rivDef(t.rival).n),'info')+'</div><div class="st"><span>Product.</span><b>'+t.prod.toFixed(2)+'</b></div><div class="st"><span>Fiabilité</span><b>'+Math.round(t.rel*100)+' %</b></div>'+
+    return '<div class="agc"><div class="who"><b>'+esc(t.name)+'</b>'+pill(D.ROLES[t.role].s)+pill(esc(rivDef(t.rival).n),'info')+'</div><div class="st"><span>Product.</span><b>'+prodNote(t.prod)+'</b></div><div class="st"><span>Fiabilité</span><b>'+Math.round(t.rel*100)+' %</b></div>'+
       '<div class="hr">'+(targets.length? targets.map(e=>{ const c=talentCost(e,t); return btn('Recruter chez '+esc(e.name)+' · prime '+eur(c,0),'talhire',{c:'sm pri',i:t.id,j:'b'+e.id,dis:S.cash<c}); }).join('') : '<span class="sub">Aucun poste de ce type à pourvoir.</span>')+'</div></div>'; }).join('')+'</div><div class="sub">Renouvelés chaque lundi. La prime vaut 14 jours de salaire.</div>' : '<div class="sub">Nouveaux talents lundi.</div>');
   /* rivaux */
   { const keys=[...new Set(S.biz.filter(b=>b.status==='active').map(rivKey))];
@@ -11208,10 +11333,10 @@ function bldCard(bd){
   const C=D.CITIES[bd.city], h=bldHeld(bd.id), b=h&&h.biz&&S.biz.find(x=>x.id===h.biz), defs=bldDefs(bd), ok=defs.filter(d=>unlocked(D.biz[d].tier)), co=cityOwned(bd.city);
   let act;
   if(b) act='<div class="row sp">'+pill(esc(b.name),'info')+btn('Gérer','bizopen',{c:'sm pri',i:b.id})+'</div>';
-  else if(h) act='<div class="row">'+(bd.t==='home'||consOf(bd.id)?'':btn('Établir une entreprise','estab',{c:'sm pri',i:bd.id}))+(h.st==='rent'&&!co?btn('Acheter '+eur(bldPrice(bd),0),'bldbuy',{c:'sm',i:bd.id}):'')+btn(h.st==='own'?'Vendre':'Résilier le bail','bldleave',{c:'sm ghost dng',i:bd.id})+'</div>';
+  else if(h) act='<div class="row">'+(bd.t==='home'||consOf(bd.id)?'':btn('Établir une entreprise','estab',{c:'sm pri',i:bd.id}))+(h.st==='rent'&&!co?btn('Acheter '+eur(bldPrice(bd),0),'bldbuy',{c:'sm',i:bd.id}):'')+btn(h.st==='own'?'Vendre':co?'Libérer':'Résilier le bail','bldleave',{c:'sm ghost dng',i:bd.id})+'</div>';
   else { const dep=co?0:bldRent(bd)*30, can=availFor(C.ccy)>=dep;
     act='<div class="row">'+btn(co?'Occuper (ville à vous)':'Louer · dépôt '+eur(dep,0),'bldrent',{c:'sm pri',i:bd.id,dis:!can})+(co?'':btn('Acheter '+eur(bldPrice(bd),0),'bldbuy',{c:'sm',i:bd.id}))+'</div>'; }
-  return '<section class="card bc'+(h?' held':'')+'"><div class="hd"><div><b>'+esc(bd.addr)+'</b><div class="sub">'+D.BT[bd.t].n+' · '+fmtN(bd.surf)+' m² · '+standing(bd.q)+'</div></div>'+(h? pill(h.st==='own'?'À vous':'Loué','good') : '')+'</div>'+
+  return '<section class="card bc'+(h?' held':'')+'"><div class="hd"><div><b>'+esc(bd.addr)+'</b><div class="sub">'+D.BT[bd.t].n+' · '+fmtN(bd.surf)+' m² · '+standing(bd.q)+'</div></div>'+(h? pill(h.st==='own'||co?'À vous':'Loué','good') : '')+'</div>'+
     '<div class="row sp"><div><div class="tag">Loyer</div><b class="num">'+(co?'—':eur(bldRent(bd),0)+' / j')+'</b></div><div style="text-align:right"><div class="tag">Prix</div><b class="num">'+eur(bldPrice(bd),0)+'</b></div></div>'+
     (bd.t==='home'?'':'<div class="sub">'+(ok.length? 'Pour : '+ok.slice(0,4).map(d=>esc(D.biz[d].n)).join(', ')+(ok.length>4?' (+'+(ok.length-4)+')':'') : 'Aucune activité disponible à votre palier')+(defs.length>ok.length?' · '+(defs.length-ok.length)+' à débloquer':'')+'.</div>')+act+bldExtra(bd)+'</section>';
 }
@@ -11241,9 +11366,9 @@ Object.assign(ACT,{
   bzcity:el=>{ if(S.tut) S.tut.city=1; ui.bz={c:el.dataset.i,d:null}; window.scrollTo(0,0); render(); },
   bzdist:el=>{ ui.bz={c:el.dataset.i,d:el.dataset.j}; ui.tab='biz'; window.scrollTo(0,0); render(); },
   bzback:el=>{ if(el.dataset.v==='1') ui.bz.d=null; else ui.bz={c:null,d:null}; window.scrollTo(0,0); render(); },
-  bldrent:el=>{ const r=rentBuilding(el.dataset.i); if(r.ok){ ui.tmp.inv=0; ui.modal={type:'estab',id:el.dataset.i}; } after(r,'Bâtiment loué.'); },
+  bldrent:el=>{ const r=rentBuilding(el.dataset.i); if(r.ok){ ui.tmp.inv=0; ui.modal={type:'estab',id:el.dataset.i}; } after(r); },
   bldbuy:el=>{ const bd=bldById(el.dataset.i); ask('Acheter le bâtiment',esc(bd.addr)+' : <b>'+eur(bldPrice(bd),0)+'</b>. Vous ne payez plus que 30 % du loyer (charges et taxes) et le bien suit le marché immobilier.','Acheter',()=>after(buyBuilding(bd.id),'Bâtiment acheté.')); },
-  bldleave:el=>{ const h=bldHeld(el.dataset.i), bd=bldById(el.dataset.i); ask(h.st==='own'?'Vendre le bâtiment':'Résilier le bail',h.st==='own'? 'Vous encaissez <b>'+eur(bldValue(bd.id)*.95,0)+'</b>.' : 'Le dépôt de garantie vous est rendu.',h.st==='own'?'Vendre':'Résilier',()=>after(leaveBuilding(bd.id))); },
+  bldleave:el=>{ const h=bldHeld(el.dataset.i), bd=bldById(el.dataset.i); const co=cityOwned(bd.city); ask(h.st==='own'?'Vendre le bâtiment':co?'Libérer le bâtiment':'Résilier le bail',h.st==='own'? 'Vous encaissez <b>'+eur(bldValue(bd.id)*.95,0)+'</b>.' : co? 'Le bâtiment redevient libre.' : 'Le dépôt de garantie vous est rendu.',h.st==='own'?'Vendre':co?'Libérer':'Résilier',()=>after(leaveBuilding(bd.id))); },
   estab:el=>{ ui.tmp.inv=0; ui.modal={type:'estab',id:el.dataset.i}; render(); },
   estgo:el=>{ const r=launchBiz(el.dataset.j,+el.dataset.v,null,null,el.dataset.i); if(r.ok) ui.modal=null; after(r,'Entreprise lancée.'); }
 });
@@ -11282,7 +11407,7 @@ function electionCard(){
   if(E.ally) b+='<div class="notice good">Gouverneur allié : <b>'+esc(E.ally.name)+'</b> jusqu’au jour '+E.ally.until+'. Contrôles fiscaux réduits.</div>';
   else if(E.last) b+='<div class="sub">Gouverneur actuel : <b>'+esc(E.last.name)+'</b> ('+esc(E.last.party)+').</div>';
   if(!E.cands.length) b+='<div class="sub">Prochaine élection au jour '+E.next+'. La campagne s’ouvre 45 jours avant.</div>';
-  else { const amt=lobbyPresets()[ui.tmp.lob||1];
+  else { const amt=lobbyPresets()[ui.tmp.lob??1];
     b+='<div class="row sp"><span class="sub">Vote au jour <b>'+E.next+'</b> (dans '+(E.next-S.day)+' j)</span><span class="sub">Don : '+eur(amt,0)+'</span></div>'+E.cands.map(c=>{ const p=pollOf(c);
       return '<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:8px"><div class="row sp"><div><b>'+esc(c.name)+'</b><div class="sub">'+esc(c.party)+'</div></div><b class="num">'+Math.round(p*100)+' %</b></div>'+bar(p,c.lean>0?'g':c.lean<0?'r':'a')+
         '<div class="sub">Programme : '+(c.prog.length? c.prog.map(k=>esc(billDef(k).t)).join(' ; ') : 'statu quo')+'.'+(c.fund+c.offf?' Votre soutien : '+eur(c.fund+c.offf,0)+'.':'')+'</div>'+
@@ -11295,7 +11420,7 @@ function offCard(){
   if(!O||!O.on) return card('Compte offshore','<div class="stack"><div class="sub">Une société écran dans un paradis fiscal réduit de 35 % votre impôt sur les sociétés et permet de financer discrètement des campagnes. À chaque échéance fiscale, une enquête peut tomber : amende de trois fois l’impôt évité, saisie du compte et 30 jours de prison.</div><div>'+btn('Ouvrir un compte ('+eur(OFF_OPEN,0)+')','offopen',{c:'sm',dis:!unlocked(2)||S.cash<OFF_OPEN})+(unlocked(2)?'':' <span class="sub">Palier Investisseur.</span>')+'</div></div>');
   const r=offRisk();
   return card('Compte offshore','<div class="stack"><div class="mini"><div><span>Solde</span><b class="num">'+eur(O.bal,0)+'</b></div><div><span>Impôt évité</span><b class="num pos">'+eur(O.saved,0)+'</b></div><div><span>Risque d’enquête</span><b class="num '+(r>.15?'neg':'')+'">'+Math.round(r*100)+' % / mois</b></div></div>'+
-    '<div class="row"><label class="sr" for="in-off">Montant</label><input class="inp w" id="in-off" inputmode="numeric" placeholder="Montant en €" data-q="off" value="'+esc(ui.qty.off||'')+'">'+btn('Virer','offin',{c:'sm'})+btn('Rapatrier (3 %)','offout',{c:'sm ghost'})+'</div>'+
+    '<div class="stack"><b>Versement automatique</b><div class="seg">'+OFF_PCTS.map((p,i)=>'<button class="'+((S.off&&S.off.pct||0)===p?'on':'')+'" data-a="offpct" data-v="'+i+'">'+(p?Math.round(p*100)+' %':'Aucun')+'</button>').join('')+'</div><div class="sub">Part des bénéfices du jour virée chaque jour sur le compte. Le compte pèse '+Math.round(offWeight()*100)+' % de votre valeur nette : plus il est gros, plus un contrôle devient probable (risque actuel '+Math.round(offRisk()*100)+' % par échéance).</div></div>'+'<div class="row"><label class="sr" for="in-off">Montant</label><input class="inp w" id="in-off" inputmode="numeric" placeholder="Montant en €" data-q="off" value="'+esc(ui.qty.off||'')+'">'+btn('Virer','offin',{c:'sm'})+btn('Rapatrier (3 %)','offout',{c:'sm ghost'})+'</div>'+
     '<div class="sub">Frais : 2 000 € + 0,5 % du solde par mois. Le risque monte avec la suspicion et les gros virements, et baisse avec un gouverneur allié.</div><div>'+btn('Fermer le compte','offclose',{c:'sm ghost dng'})+'</div></div>');
 }
 function modalJail(){
@@ -11313,6 +11438,7 @@ Object.assign(ACT,{
   fund:el=>after(fundCandidate(+el.dataset.i,+el.dataset.v,false)),
   fundoff:el=>after(fundCandidate(+el.dataset.i,+el.dataset.v,true)),
   offopen:()=>ask('Ouvrir un compte offshore','C’est de la fraude fiscale : vos impôts baissent de 35 %, mais une enquête peut vous coûter une forte amende et 30 jours de prison.','Ouvrir',()=>after(offOpen())),
+  offpct:el=>after(offSetPct(el.dataset.v)),
   offin:()=>{ const a=readIn('in-off'); ui.qty.off=''; after(offMove(a)); },
   offout:()=>{ const a=readIn('in-off'); ui.qty.off=''; after(offMove(-(a>0?a:(S.off?S.off.bal:0)))); },
   offclose:()=>after(offClose()),
@@ -11514,10 +11640,11 @@ function bossPanel(b){
   if(x){
     h+='<div class="row sp"><div><b>'+esc(x.name)+'</b><div class="sub">En poste depuis le jour '+x.since+' · '+eur(x.sal,0)+' / jour</div></div>'+pill('Moral '+Math.round(x.mood),x.mood<45?'bad':x.mood<60?'warn':'good')+'</div>'+
       '<div class="crit">'+Object.keys(SKN).map(k=>'<div><span>'+SKN[k]+' '+x.sk[k]+'/10</span>'+bar(x.sk[k]/10,x.sk[k]<4?'r':x.sk[k]<7?'a':'g')+'</div>').join('')+'</div>'+
-      '<div class="sub">Vente : ventes ×'+(1+0.015*(x.sk.ven-5)).toFixed(3)+'. Gestion : fatigue de l’équipe. Rigueur : incidents.</div>'+
+      '<div class="sub">Vente : ventes '+pctS(0.015*(x.sk.ven-5))+'. Gestion : fatigue de l’équipe. Rigueur : incidents.</div>'+
       '<div class="row">'+Object.keys(SKN).map(k=>btn('Former en '+SKN[k].toLowerCase()+' ('+eur(x.sal*12*x.sk[k]/5,0)+')','btrain',{c:'sm',i:b.id,v:k,dis:S.day-x.tr<30||x.sk[k]>=10})).join('')+'</div>'+
       (S.day-x.tr<30?'<div class="sub">Prochaine formation dans '+(30-(S.day-x.tr))+' jours.</div>':'')+
       '<div class="row">'+btn('Augmenter de 15 %','braise',{c:'sm'})+btn(ui.tmp.bc===b.id?'Masquer les candidats':'Remplacer','bcand',{c:'sm ghost',i:b.id})+'</div>';
+    { const T=S.biz.filter(o=>o!==b&&o.status==='active').sort((p,q)=>(!!p.boss-!!q.boss)); if(T.length) h+='<div class="row"><label class="sub" for="sel-mv">Muter vers</label><select class="btn sm" id="sel-mv-'+b.id+'">'+T.map(o=>'<option value="'+o.id+'">'+esc(o.name)+(o.boss?' (échange avec '+esc(o.boss.name)+')':' (poste vacant)')+'</option>').join('')+'</select><button class="btn sm" data-a="bmove" data-i="'+b.id+'">Muter</button></div>'; }
     h=h.replace("data-a=\"braise\"","data-a=\"braise\" data-i=\""+b.id+"\"");
   } else h+='<div class="notice bad">Poste vacant : ventes −4 %, plus d’incidents et de fatigue.</div>';
   if(!x||ui.tmp.bc===b.id) h+='<div class="stack">'+bossCands(b).map((c,i)=>'<div class="row sp" style="border-top:1px solid var(--line);padding-top:6px"><div><b>'+esc(c.name)+'</b><div class="sub">Gestion '+c.sk.ges+' · Vente '+c.sk.ven+' · Rigueur '+c.sk.rig+' · '+eur(c.sal,0)+' / j</div></div>'+btn('Recruter ('+eur(c.sal*10,0)+')','bhire',{c:'sm pri',i:b.id,v:i,dis:S.cash<c.sal*10})+'</div>').join('')+'</div>';
@@ -11529,13 +11656,17 @@ Object.assign(ACT,{
   lease:el=>after(setLease(el.dataset.i,el.dataset.v==='1')),
   mgr:el=>after(setMgr(el.dataset.i,el.dataset.v==='1')),
   btrain:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); after(trainBoss(b,el.dataset.v)); },
+  bmove:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i), sel=document.getElementById('sel-mv-'+el.dataset.i), t=sel&&S.biz.find(x=>x.id===+sel.value); after(moveBoss(b,t)); },
   braise:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); after(raiseBoss(b)); },
   bcand:el=>{ const id=+el.dataset.i; ui.tmp.bc=ui.tmp.bc===id?null:id; render(); },
   bhire:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); ui.tmp.bc=null; after(hireBoss(b,+el.dataset.v)); }
 });
 /* Estimation du bénéfice quotidien d'une activité dans un bâtiment (équipe complète, réglages standards) */
+/* bénéfice net moyen observé (en part de R0) pour une activité à moteur métier jouée sans consigne : mesuré par simulation (sim_met.js, 2 parties, jours 120 à 420) */
+const EST_NETK = {repair:.28, ecom:.2, staffing:.74, resto:.35, farm:.71, build:.26, textile:.2, electronics:.15, studio:.28, promo:.29, gallery:.37, couture:.23, renew:.49, dc:.39, park:.56, hotel:.35};
 function estNet(def,bd){
   const d=D.biz[def]; if(d.startup) return null;
+  if(MET[def]&&MET[def].core&&EST_NETK[def]!==undefined){ try{ const b0={id:-1, def, lvl:1, city:bd.city, dist:bd.dist, bld:bd.id, staff:{}, cf:locCostF(def,bd.city,bd.dist)}; return bizBase(b0).R0*EST_NETK[def]; }catch(e){ return null; } }
   const b={id:-1, def, lvl:1, city:bd.city, dist:bd.dist, bld:bd.id, staff:{}, pol:1, price:1, mkt:0, wk:false, mods:[], hist:[], cs:65, fat:0, stk:1, status:'active', sec:0, ins:false, cf:locCostF(def,bd.city,bd.dist), cands:{}};
   entRoles(b).forEach(([r,n])=>{ b.staff[r]={n,prod:1,rel:.85,loy:62}; });
   try{
@@ -11641,7 +11772,8 @@ function bizHero(b){
   qa.push(['Pilotage','prix, horaires, pub','jump',false,'bj-pil']);
   if(qa.length<4) qa.push(['Sécurité',SECN[b.sec||0],'jump',false,'bj-sec']);
   h+='<div class="qacts">'+qa.slice(0,4).map(q=>'<button class="qa" data-a="'+q[2]+'" data-i="'+(q[4]||b.id)+'"'+(q[3]?' disabled':'')+'><b>'+q[0]+'</b><small>'+q[1]+'</small></button>').join('')+'</div>';
-  if(b.lvl<MAXLVL) h+='<button class="btn bigup" data-a="upgrade" data-i="'+b.id+'"'+(b.up?' disabled':'')+'>'+(b.up?'Agrandissement en cours · '+b.up.t+' j':'Améliorer au niv. '+(b.lvl+1)+' <span>'+eur(upgradeCost(b),0)+'</span>')+'</button>';
+  if(b.lvl<MAXLVL&&b.lvl>=bizMaxHere(b)) h+='<button class="btn bigup maxed" disabled>Niveau max à cette adresse (niv. '+b.lvl+')</button>';
+  else if(b.lvl<MAXLVL) h+='<button class="btn bigup" data-a="upgrade" data-i="'+b.id+'"'+(b.up?' disabled':'')+'>'+(b.up?'Agrandissement en cours · '+b.up.t+' j':'Améliorer au niv. '+(b.lvl+1)+' <span>'+eur(upgradeCost(b),0)+'</span>')+'</button>';
   return h;
 }
 ACT.jump=el=>{ const t=document.getElementById(el.dataset.i); if(t) t.scrollIntoView({behavior:'smooth',block:'start'}); };
@@ -11653,20 +11785,20 @@ function planSlots(b,compact){
 }
 function planTeams(b){ const pl=planOf(b); return '<div class="seg">'+[[1,'1 équipe'],[2,'2 équipes']].map(x=>'<button class="'+(pl.t===x[0]?'on':'')+'" data-a="setplan" data-i="'+b.id+'" data-j="t" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>'; }
 function planFx(b){ const e=planEff(b), fs=e.F>0.05?'<b class="neg">fatigue +'+e.F.toFixed(2)+' / j</b>':e.F<-0.05?'<b class="pos">repos '+e.F.toFixed(2)+' / j</b>':'fatigue stable';
-  return 'Ouvert '+e.H+' h · ventes ×'+e.S.toFixed(2)+' · salaires ×'+e.W.toFixed(2)+' · '+fs; }
+  return 'Ouvert '+e.H+' h · ventes '+multPct(e.S)+' · salaires '+multPct(e.W)+' · '+fs; }
 function planBlock(b){
   if(!planOn(b)) return '<div class="stack"><b>Planning horaire</b><div class="sub">Activité ouverte 24 h/24 (en ligne ou hôtellerie) : équipes en roulement automatique.</div></div>';
   return '<div class="stack" style="grid-column:1/-1"><b>Planning horaire</b>'+planSlots(b)+
     '<div class="row sp"><span class="sub">Organisation</span>'+planTeams(b)+'</div>'+
     '<div class="sub">'+planFx(b)+'.</div>'+
-    '<div class="sub">La barre indique l’affluence du créneau. Au-delà des horaires habituels, une seule équipe fait des heures supplémentaires (+10 %) et se fatigue ; deux équipes coûtent 5 % de plus par heure mais se relaient.</div></div>';
+    '<div class="sub">La barre indique l’affluence du créneau. Au-delà des horaires habituels, une seule équipe fait des heures supplémentaires (+10 %) et se fatigue. Deux équipes se relaient : service plus rapide (ventes +6 %), plus de fatigue, mais salaires +30 %.</div></div>';
 }
 function planCard(){
   const L=S.biz.filter(b=>b.status==='active'&&planOn(b));
   if(!L.length) return '';
   return card('Planning des équipes','<div class="stack">'+L.map(b=>{ const e=planEff(b);
     return '<div class="plrow"><div class="row sp"><div style="min-width:0"><b>'+esc(b.name)+'</b><div class="sub">'+esc(distOf(b).n)+' · fatigue '+Math.round(fatOf(b))+'</div></div>'+planTeams(b)+'</div>'+planSlots(b,true)+
-      '<div class="sub">'+e.H+' h · ventes ×'+e.S.toFixed(2)+' · salaires ×'+e.W.toFixed(2)+(e.F>0.05?' · <b class="neg">fatigue +'+e.F.toFixed(2)+'/j</b>':'')+'</div></div>'; }).join('')+
+      '<div class="sub">'+e.H+' h · ventes '+multPct(e.S)+' · salaires '+multPct(e.W)+(e.F>0.05?' · <b class="neg">fatigue +'+e.F.toFixed(2)+'/j</b>':'')+'</div></div>'; }).join('')+
     '</div><div class="sub" style="margin-top:8px">Les activités ouvertes 24 h/24 (e-commerce, hôtels…) n’apparaissent pas ici.</div>');
 }
 ACT.setplan=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(!b) return; const j=el.dataset.j; after(setPlan(b, j==='t'?'t':+j, +el.dataset.v)); };
@@ -12439,12 +12571,12 @@ function bzNameOpen(go){
 }
 function bzNameVal(){ const i=document.getElementById('in-bizname'); return i? i.value : (ui.modal&&ui.modal.go&&ui.modal.go.name)||''; }
 ACT.bznext=()=>{ const g=ui.modal&&ui.modal.go; if(!g) return; g.k++; g.name=bizNameSuggest(g.def,g.city,g.dist,g.k); render(); };
-ACT.bzback=()=>{ const g=ui.modal&&ui.modal.go; ui.modal=g&&g.prev? g.prev : null; render(); };
+{ const _bb=ACT.bzback; ACT.bzback=el=>{ if(ui.modal&&ui.modal.go){ const g=ui.modal.go; ui.modal=g.prev||null; render(); return; } if(_bb) _bb(el); }; }
 ACT.bzgo=()=>{
   const g=ui.modal&&ui.modal.go; if(!g) return;
   const name=cleanBizName(bzNameVal()); if(name.length<2){ toast('Donnez un nom d’au moins 2 caractères.','bad'); return; }
   const r= g.kind==='est'? launchBiz(g.def,g.inv,null,null,g.bld,name) : launchBiz(g.def,g.inv,g.city,g.dist,null,name);
-  if(r.ok) ui.modal=null;
+  if(r.ok){ ui.modal=null; ui.tab='home'; ui.bz={c:null,d:null}; window.scrollTo(0,0); }
   after(r, D.biz[g.def].startup? 'Start-up « '+name+' » lancée.' : '« '+name+' » est lancée.');
 };
 /* ---------- Renommer ---------- */
@@ -13324,32 +13456,19 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='2026.10.29.14';
+const IB_VER='V1.1.2';
+/* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Parc d’attractions','Un plan de 24 cases en 4 zones à thème : attractions, restaurants, boutiques, décors, billet, coupe-file, nocturnes.'],
-  ['Restaurant gastronomique','La carte plat par plat, le chef, la cave, les étoiles du guide, puis les bistrots.'],
-  ['Hôtel','Quatre types de chambres et leurs prix, surréservation, plateformes, avis, mariages, Palace, resorts.'],
-  ['Ferme','Les parcelles au fil des saisons, l’élevage, la transformation, le bio.'],
-  ['Société de construction','Les appels d’offres, les chantiers, les engins et le prix des matériaux.'],
-  ['Usine textile','Les collections préparées deux saisons à l’avance d’après les tendances.'],
-  ['Électronique','Le rendement des puces, la recherche vers des gravures plus fines, puis vos propres smartphones lancés chaque année. Les anciennes usines de smartphones y sont regroupées.'],
-  ['Start-up tech','Utilisateurs gratuits, abonnés Pro et comptes Entreprise, feuille de route, levées de fonds, puis le pivot vers l’IA. Les anciennes start-ups IA y sont regroupées.'],
-  ['Atelier de réparation','La file des appareils, les techniciens et leurs talents, le stock de pièces, le reconditionnement, la garantie et les avis.'],
-  ['Boutique e-commerce','L’entonnoir visites, paniers, commandes ; trois canaux de publicité ; un catalogue aux tendances changeantes, en stock propre ou en expédition directe.'],
-  ['Agence de recrutement','Les postes des clients, le vivier de candidats, le bon profil à proposer, l’intérim et les placements définitifs.'],
-  ['Fiche entreprise en onglets','Le résumé reste en haut, le reste est rangé en quatre onglets : Métier, Équipe, Finances, Réglages.'],
-  ['Vos entreprises et votre club','Dans les finances du club : buvettes du stade (vos produits de la ferme), énergie du stade (vos centrales), tenues officielles (votre maison de couture), et votre smartphone en sponsor du maillot.'],
-  ['Data center et cloud','Des salles de 20 baies louées à des clients avec une disponibilité garantie. Leurs serveurs chauffent : il faut refroidir (air, eau, naturel, immergé) et assez de puissance électrique, sinon c’est la panne et les remboursements. Votre usine d’électronique équipe les salles moins cher.'],
-  ['Énergies renouvelables','Une carte de régions plus ou moins ensoleillées, ventées ou arrosées : autorisations, centrales solaires, éoliennes et hydrauliques. La météo fait la production, le prix change chaque jour : vente au prix du jour ou contrat d’un an, batteries pour stocker. Vos usines et data centers paient leur énergie moins cher.'],
-  ['Maison de haute couture','Trois collections par an : style, ampleur et tissus, créées par votre directeur artistique (talent, caprices), puis un défilé dans la ville de votre choix. La note de la critique fait le prestige et les ventes. Commandes sur mesure, licences qui usent le prestige, égérie. Avec une entreprise textile, vos filatures fournissent les tissus.'],
-  ['Promotion immobilière','Des opérations par étapes : terrain, programme et densité, permis de construire (gare aux recours), ventes sur plan, chantier, livraison. Les ventes sur plan financent le chantier, ou un crédit promoteur au taux du moment. Votre société de construction réduit coûts et délais.'],
-  ['Galerie d’art et maison d’enchères','Des ventes en direct : vous choisissez les lots, leur ordre et leur prix de réserve, la salle s’anime ou se refroidit. Dépôts de collectionneurs, expertise contre les faux, artistes émergents. Vos œuvres de l’onglet Luxe peuvent y être exposées puis revendues.'],
-  ['Studio vidéo et plateforme','Des projets (émission, série, film) avec un genre, un budget et des talents ; l’audience à la sortie, les droits du catalogue, la plateforme à abonnements.'],
-  ['Pour tous','Délégation au directeur du site (3 niveaux) et 5 paliers de maîtrise par activité. Cybersécurité, supermarché, agence immobilière et fast-food sont retirés.']
+  ['Entreprises','Revenus +10 %. Niveau 4 possible dans tout bâtiment compatible, niveau maximal affiché, bouton rouge « Niveau max » et déménagement vers un plus grand bâtiment (onglet Finances). Un terrain constructible de plus par quartier, plus d’activités possibles par bâtiment.'],
+  ['Stock et qualité','Le stock de secours ne change plus la qualité : il permet de continuer à vendre pendant une pénurie chez les fournisseurs. Les commerces choisissent la qualité de leurs produits (standard, supérieure, premium).'],
+  ['Effets en pourcentage','Fini les « ×1,06 » : les effets s’affichent en pourcentage, et la productivité des salariés est une note sur 100 en couleur.'],
+  ['Service RH','Recrutement le lundi et le mercredi, avec vos minimums de productivité, fiabilité et fidélité. Il peut aussi augmenter un directeur dont le moral passe sous votre seuil. Un directeur peut être muté vers une autre entreprise.'],
+  ['Argent','Grand livre : revenus, dépenses et net de chaque entreprise depuis les derniers impôts. Compte offshore alimenté chaque jour par une part des bénéfices (plus il pèse, plus le risque monte). Estimation des bénéfices revue à la création.'],
+  ['Corrections','Retour depuis un quartier, ville possédée (plus de faux « bail signé »), budget de lobbying, retour à l’accueil après une création, enseignes rivales disparues, grosses pertes de l’e-commerce, start-up deux fois plus rapide, deux équipes utiles, week-end plus rentable pour les commerces, techniciens de réparation (talents connus à l’embauche, attribution au meilleur), bouton « Nouveau vivier » au-dessus des candidats.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
-  if(m&&m.type==='ibnews') return {title:'Nouveautés',sm:true,body:'<div class="stack"><div class="sub">Version '+IB_VER+'. Ouvrez une de ces entreprises (Sociétés, puis « Gérer ») : la carte « Pilotage du métier » montre son nouveau fonctionnement.</div>'+
+  if(m&&m.type==='ibnews') return {title:'Nouveautés',sm:true,body:'<div class="stack"><div class="sub">Nouveautés de la version '+IB_VER+'.</div>'+
     IB_NEWS.map(x=>'<div><b>'+esc(x[0])+'</b><div class="sub">'+esc(x[1])+'</div></div>').join('')+'<div>'+btn('Compris','ibnewsok',{c:'pri'})+'</div></div>'};
   return _mc(); }; }
 ACT.ibnewsok=()=>{ ui.modal=null; render(); };
@@ -13387,7 +13506,7 @@ MET.saas.html=function(b){
   let x='<div class="pk-head"><b>Feuille de route</b><span class="sub">'+(m.dev? 'En cours : '+esc((SA_FEAT.find(f=>f.id===m.dev.id)||{}).n||'') : 'Choisissez la prochaine fonctionnalité')+'</span></div>';
   if(m.dev){ const f=SA_FEAT.find(z=>z.id===m.dev.id); if(f) x+=bar(m.dev.p/f.w,'g')+'<div class="sub">'+Math.round(m.dev.p)+' / '+f.w+' jours d’ingénieur. Plus d’ingénieurs dans l’équipe, plus vite c’est prêt.</div>'; }
   x+='<div class="pk-list">'+SA_FEAT.map(f=>{ const done=m.feat[f.id], lock=(f.rk&&!mxHas(b,f.rk)&&!(f.id==='ia'&&m.ai))||(f.id==='ia'&&!m.ai), cur=m.dev&&m.dev.id===f.id;
-    const eff=[f.q?'attrait +'+Math.round(f.q*100)+' %':'',f.cp?'abonnés Pro ×'+f.cp.toFixed(2).replace('.',','):'',f.ce?'entreprises ×'+f.ce.toFixed(1).replace('.',','):'',f.tam?'marché ×'+f.tam.toFixed(1).replace('.',','):'',f.ech?'départs d’entreprises −30 %':''].filter(Boolean).join(' · ');
+    const eff=[f.q?'attrait +'+Math.round(f.q*100)+' %':'',f.cp?'abonnés Pro '+multPct(f.cp):'',f.ce?'entreprises '+multPct(f.ce):'',f.tam?'marché '+multPct(f.tam):'',f.ech?'départs d’entreprises −30 %':''].filter(Boolean).join(' · ');
     return '<button class="pk-o'+(cur?' match':'')+'" data-a="met" data-i="'+b.id+'" data-v="dev" data-j="'+f.id+'"'+(done||lock?' disabled':'')+'><span><b>'+esc(f.n)+'</b><small>'+(done?'En ligne · ':lock?(f.id==='ia'&&mxHas(b,3)?'Après le pivot IA · ':'Palier '+f.rk+' requis · '):'')+esc(eff)+'</small></span><em class="num">'+(done?'':f.w+' j')+'</em></button>'; }).join('')+'</div>';
   if(h.length>=2) x+='<div class="sub">Revenu mensuel sur les derniers mois : '+h.slice(-6).map(v=>eur(v,0)).join(' → ')+'.</div>';
   if(m.obj) x+='<div class="notice info">Objectif des investisseurs : '+eur(m.obj.need,0)+' de chiffre d’affaires par jour avant le '+footDateLabel(m.obj.until)+'.</div>';
@@ -13726,6 +13845,7 @@ function ftClassOf(el){
   if(id==='bj-met') return 'met';
   if(id==='bj-eq'||c.contains('qacts')||h==='Clients et équipe'||h==='Directeur du site') return 'eq';
   if(c.contains('grid')&&/Flux du dernier jour/.test(el.textContent)) return 'fin';
+  if(id==='bj-reloc') return 'fin';
   if(h==='Ce qui fait vos ventes'||(c.contains('row')&&/Céder/.test(el.textContent))) return 'fin';
   if(el.tagName==='SECTION'&&c.contains('card')&&!h) return 'eq';
   return 'reg'; }
@@ -13745,6 +13865,12 @@ ACT.fichetab=el=>{ ui.ft=el.dataset.v; const nav=document.querySelector('.ft-tab
   const n2=document.querySelector('.ft-tabs'); if(n2&&md){ const box=document.querySelector('.md .md-b'); if(box&&box.scrollTop>n2.offsetTop) box.scrollTop=n2.offsetTop-8; } };
 /* les raccourcis (Personnel, Pilotage, Sécurité) ouvrent le bon onglet */
 { const _j=ACT.jump; ACT.jump=el=>{ const id=el.dataset.i; if(ui.modal&&ui.modal.type==='biz'){ const t=document.getElementById(id); if(t&&t.classList.contains('ft-hide')){ ui.ft=ftClassOf(t); render(); } } const t2=document.getElementById(id); if(t2) t2.scrollIntoView({behavior:'smooth',block:'start'}); }; }
+/* carte « Déménager » (onglet Finances) quand l'entreprise est au niveau max de son bâtiment */
+function relocCard(b){ if(!b.bld||b.lvl<bizMaxHere(b)||b.lvl>=MAXLVL) return ''; const L=relocCands(b), c=relocCost(b), co=cityOwned(b.city);
+  return '<div class="card" id="bj-reloc"><h2>Déménager</h2><div class="sub">« '+esc(b.name)+' » a atteint le niveau maximal de ce bâtiment. Dans un plus grand, elle pourra continuer de grandir. Elle garde son niveau et son équipe ; déménagement : '+eur(c,0)+', 3 jours de fermeture.</div>'+
+    (L.length? '<div class="ht-t">'+L.map(x=>'<div class="rs-d"><div><b>'+esc(x.bd.addr)+'</b><small>'+esc(distOfB(x.bd).n)+' · '+D.BT[x.bd.t].n+' de '+fmtN(x.bd.surf)+' m² · jusqu’au niveau '+x.mx+(x.h? ' · déjà à vous' : co? ' · ville à vous' : ' · loyer '+eur(bldRent(x.bd),0)+' / j')+'</small></div><button class="btn sm pri" data-a="reloc" data-i="'+b.id+'" data-v="'+x.bd.id+'"'+(availFor(cityOf(b).ccy)<c?' disabled':'')+'>Déménager</button></div>').join('')+'</div>'
+      : '<div class="sub">Aucun bâtiment libre plus grand dans cette ville pour le moment.</div>')+'</div>'; }
+ACT.reloc=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(!b) return; after(relocBiz(b,el.dataset.v)); };
 
 
 </script>
