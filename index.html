@@ -1009,6 +1009,25 @@ html,body{overflow-anchor:none}
 .qm{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:6px;border-radius:11px;background:var(--blue-soft);color:var(--blue);font-size:13px;font-weight:800;cursor:pointer;vertical-align:middle;position:relative}
 .qm::after{content:'';position:absolute;inset:-11px}
 .nb-row .sico{width:46px;height:46px;flex:none}
+/* animations de paliers */
+.pal-wrap{position:absolute;inset:0;pointer-events:none;z-index:2}
+.pal-stars{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+.pal-stars i{display:block;width:34px;height:34px;animation:palTw 2.4s ease-in-out infinite}
+.pal-stars.pal-sm i{width:22px;height:22px}
+.pal-stars svg,.pal-big svg{width:100%;height:100%;fill:#ffd23f;stroke:#b8860b;stroke-width:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
+@keyframes palTw{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.15) rotate(8deg)}}
+.pal-tag{position:absolute;top:12px;right:12px;background:#c8352a;color:#fff;font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.pal-tag2{top:44px;background:#1f3c88}
+.pal-carpet{position:absolute;left:50%;transform:translateX(-50%);top:150px;width:46px;height:40px;background:linear-gradient(#b3122b,#7d0d1f);clip-path:polygon(30% 0,70% 0,100% 100%,0 100%);opacity:.95}
+.pal-cele{position:fixed;inset:0;z-index:60;background:rgba(10,16,40,.78);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#fff;text-align:center;padding:24px;animation:palIn .35s ease-out;cursor:pointer}
+.pal-cele b{font-size:24px;font-family:var(--f-display);max-width:320px}.pal-cele small{font-size:14px;opacity:.85}.pal-cele .sub{color:#fff;opacity:.7;margin-top:10px}
+.pal-big{display:flex;gap:10px}.pal-big i{display:block;width:70px;height:70px;animation:palPop .7s cubic-bezier(.2,1.6,.4,1) both}
+.pal-burst{position:absolute;top:50%;left:50%;width:0;height:0}
+.pal-burst span{position:absolute;width:6px;height:60px;background:linear-gradient(#ffd23f,transparent);transform-origin:50% 0;transform:rotate(var(--a)) translateY(60px);animation:palRay 1.2s ease-out both;border-radius:3px}
+@keyframes palIn{from{opacity:0}to{opacity:1}}
+@keyframes palPop{from{transform:scale(0) rotate(-40deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes palRay{from{opacity:0;height:0}40%{opacity:1}to{opacity:0;height:140px}}
+@media (prefers-reduced-motion: reduce){ .pal-stars i,.pal-big i,.pal-burst span,.pal-cele{animation:none!important} }
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -13472,13 +13491,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.1.4';
+const IB_VER='V1.1.5';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Créer une société','Sur l’accueil, « Créer » ouvre la liste des activités, de la moins chère à la plus chère (les autres grisées), puis les bâtiments libres qui peuvent les accueillir, les plus adaptés et abordables d’abord.'],
-  ['Boutons « ? »','Touchez le « ? » à côté d’un mot du jeu (délégation, satisfaction, fatigue, valeur nette…) pour une explication en une phrase.'],
-  ['Fil d’Ariane','Dans Sociétés : Villes › Ville › Quartier, chaque étape est cliquable.'],
-  ['Guide en 7 chapitres','Premiers pas, l’équipe, le métier, la délégation, grandir, la finance, le club.']
+  ['Paliers célébrés','Restaurant et hôtel : à la première ouverture de la fiche après un palier (étoile, bistrot, télévision, classement, palace, resort), une animation le célèbre. Ensuite, il reste visible sur l’illustration : étoiles qui scintillent, tapis rouge du palace…']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -13992,6 +14008,42 @@ tutCard=function(){
 { const _tt=trainTeam; trainTeam=function(){ const r=_tt.apply(this,arguments); if(r&&r.ok&&S.tut) S.tut.trained=1; return r; }; }
 { const _ma=metAct; metAct=function(){ const r=_ma.apply(this,arguments); if(r&&r.ok&&S.tut) S.tut.met=1; return r; }; }
 { const _vb=VIEWS.books; VIEWS.books=function(){ if(S&&S.tut) S.tut.gl=1; return _vb.apply(this,arguments); }; }
+
+/* ============================================================
+   ANIMATIONS DE PALIERS (V1.1.5)
+   À la première ouverture de la fiche après un palier, une animation le célèbre ; ensuite un
+   insigne reste affiché sur l'illustration (étoiles qui scintillent, tapis rouge, etc.).
+   Restaurant : étoiles 1 à 3, bistrots, émission de télévision. Hôtel : étoiles, palace, resorts.
+   État : b.seenPal (dernier état vu des paliers, pour ne célébrer qu'une fois).
+   ============================================================ */
+const PAL = {
+  resto:{ badges:m=>({stars:m.stars||0, bis:m.bis||0, tv:m.tv?1:0}),
+    ev:{stars:['Première étoile au guide !','Deuxième étoile au guide !','Troisième étoile : la consécration !'], bis:['Votre premier bistrot ouvre ses portes'], tv:['Votre émission de cuisine arrive à la télévision']} },
+  hotel:{ badges:m=>({stars:Math.max(0,(m.st||3)-3), pal:m.pal?1:0, rs:m.rs||0}),
+    ev:{stars:['Votre hôtel passe à 4 étoiles !','Votre hôtel passe à 5 étoiles !'], pal:['Votre hôtel devient un palace'], rs:['Votre premier resort ouvre','Un deuxième resort ouvre','Un troisième resort ouvre']} }
+};
+function palNow(b){ const P=PAL[b.def]; return P&&b.m&&b.status==='active'? P.badges(b.m) : null; }
+/* nouveaux paliers depuis la dernière visite de la fiche */
+function palNews(b){ const P=PAL[b.def], now=palNow(b); if(!now) return []; const seen=b.seenPal||{}, out=[];
+  Object.keys(now).forEach(k=>{ for(let i=(seen[k]||0);i<now[k];i++){ const L=P.ev[k]; if(L) out.push({k, i, t:L[Math.min(i,L.length-1)]}); } }); return out; }
+const PAL_STAR='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z"/></svg>';
+function palBadgeHtml(b){ const n=palNow(b); if(!n) return ''; let h='';
+  if(b.def==='resto'){ if(n.stars) h+='<div class="pal-stars" aria-label="'+n.stars+' étoile(s) au guide">'+Array.from({length:n.stars},(_,i)=>'<i style="animation-delay:'+(i*.4)+'s">'+PAL_STAR+'</i>').join('')+'</div>';
+    if(n.tv) h+='<div class="pal-tag">À la télévision</div>'; if(n.bis) h+='<div class="pal-tag pal-tag2">'+n.bis+' bistrot'+(n.bis>1?'s':'')+'</div>'; }
+  if(b.def==='hotel'){ const st=3+n.stars; h+='<div class="pal-stars pal-sm" aria-label="'+st+' étoiles">'+Array.from({length:st},(_,i)=>'<i style="animation-delay:'+(i*.3)+'s">'+PAL_STAR+'</i>').join('')+'</div>';
+    if(n.pal) h+='<div class="pal-carpet" aria-label="Palace"></div><div class="pal-tag">Palace</div>'; if(n.rs) h+='<div class="pal-tag pal-tag2">'+n.rs+' resort'+(n.rs>1?'s':'')+'</div>'; }
+  return h? '<div class="pal-wrap">'+h+'</div>' : ''; }
+function palApply(){
+  if(!ui.modal||ui.modal.type!=='biz') return; const b=S.biz.find(x=>x.id===ui.modal.id); if(!b||!PAL[b.def]) return;
+  const hero=document.querySelector('.md .bhero'); if(hero&&!hero.querySelector('.pal-wrap')){ const x=palBadgeHtml(b); if(x){ hero.style.position='relative'; hero.insertAdjacentHTML('afterbegin',x); } }
+  const news=palNews(b); if(!news.length) return;
+  b.seenPal=palNow(b); const e=news[news.length-1], md=document.body; if(md.querySelector('.pal-cele')) return;
+  const big=(e.k==='stars')? Array.from({length:e.i+1},(_,i)=>'<i style="animation-delay:'+(.15+i*.25)+'s">'+PAL_STAR+'</i>').join('') : '<i>'+PAL_STAR+'</i>';
+  md.insertAdjacentHTML('beforeend','<div class="pal-cele" data-a="palok" role="dialog" aria-label="'+esc(e.t)+'"><div class="pal-burst">'+Array.from({length:14},(_,i)=>'<span style="--a:'+(i*360/14)+'deg"></span>').join('')+'</div><div class="pal-big">'+big+'</div><b>'+esc(e.t)+'</b><small>'+esc(b.name)+'</small><div class="sub">Touchez pour continuer</div></div>'); }
+ACT.palok=()=>{ const c=document.querySelector('.pal-cele'); if(c) c.remove(); };
+{ const _r=render; render=function(){ const o=_r.apply(this,arguments); try{ palApply(); }catch(e){ console.error(e); } return o; }; }
+/* les anciennes parties ne célèbrent pas tout d'un coup : on part de l'état actuel la première fois */
+{ const _ms=metState; metState=function(b){ const r=_ms(b); try{ if(r&&PAL[b.def]&&b.seenPal===undefined&&b.status==='active'&&b.hist&&b.hist.length>1) b.seenPal=PAL[b.def].badges(b.m); }catch(e){} return r; }; }
 
 
 </script>
