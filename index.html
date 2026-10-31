@@ -7157,7 +7157,9 @@ function ysReport(O,s){
   const L=[]; for(let i=0;i<n;i++) L.push(ysYouth(O,s,m.c));
   O.yprop=L.concat(O.yprop).slice(0,40);
   fcNews('Rapport de '+s.n+' ('+YS_C[m.c].n+') : '+(n? n+' jeune'+(n>1?'s':'')+' proposé'+(n>1?'s':'')+'.' : 'aucun jeune à la hauteur cette fois.'), n?'good':'');
-  if(n) log('info','Club : '+s.n+' propose '+n+' jeune'+(n>1?'s':'')+' repéré'+(n>1?'s':'')+' ('+YS_C[m.c].n+').','news');
+  /* rapport du jour : une ligne dans le journal de vos affaires (pas une simple actualité) */
+  const best=L.slice().sort((x,y)=>y.pot-x.pot)[0];
+  log(n?'good':'info','Rapport de votre recruteur de jeunes '+s.n+' ('+YS_C[m.c].n+') : '+(n? n+' jeune'+(n>1?'s':'')+' proposé'+(n>1?'s':'')+', le meilleur : '+fpLabel(Math.round((fpRange(best,false)[0]+fpRange(best,false)[1])/2)).toLowerCase()+'. À voir dans Club, onglet Staff.' : 'aucun jeune à la hauteur cette fois.'),'club');
 }
 function ysDaily(day){
   const O=fcOwn(); if(!O||!O.ysc) return; fcYS(O);
@@ -11702,7 +11704,7 @@ const RPR={
     '<div class="tw"><table class="tbl"><thead><tr><th>Entreprise</th><th class="r">Ventes</th><th class="r">Dépenses</th><th class="r">Net</th></tr></thead><tbody>'+
       s.rows.map(r=>'<tr><td><b>'+esc(r.name)+'</b><div class="sub">'+esc(cityName(r.city))+'</div></td><td class="r num">'+eur(r.rev,0)+'</td><td class="r num neg">'+eur(r.exp,0)+'</td><td class="r num '+cls(r.net)+'">'+signed(r.net,0)+'</td></tr>').join('')+
     '</tbody><tfoot><tr><td><b>Total</b></td><td class="r num"><b>'+eur(s.rev,0)+'</b></td><td class="r num neg"><b>'+eur(s.exp,0)+'</b></td><td class="r num '+cls(s.net)+'"><b>'+signed(s.net,0)+'</b></td></tr></tfoot></table></div>',
-  journal:s=>{ const j=s.journal.slice(-10).reverse(); return j.length? '<div class="log">'+j.map(x=>'<div><span class="d">J'+x.d+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>' : '<div class="sub">Rien à signaler.</div>'; },
+  journal:s=>{ const mine=s.journal.filter(x=>x.k!=='news'), j=mine.slice(-10).concat(s.journal.filter(x=>x.k==='news').slice(-Math.max(0,10-Math.min(10,mine.length)))).sort((x,y)=>(y.d-x.d)||((x.k==='news')-(y.k==='news'))); return j.length? '<div class="log">'+j.map(x=>'<div><span class="d">J'+x.d+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':x.k==='club'?'<span class="tag" style="margin-right:6px">Club</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>' : '<div class="sub">Rien à signaler.</div>'; },
   fest:s=>{
     const cities=[...new Set(S.biz.map(b=>b.city))];
     const up=[]; cities.forEach(c=>festNext(c).forEach(x=>{ if(!x.on&&x.in<=30) up.push(x); })); up.sort((a,b)=>a.in-b.in);
@@ -12326,7 +12328,7 @@ function vHome(){
   const ach=card('Objectifs','<div class="row sp"><span class="sub">'+done+' / '+ACH.length+' réalisés</span></div>'+bar(done/ACH.length,'g')+
     '<div class="flist" style="margin-top:8px">'+todo.slice(0,3).map(a=>'<div><span><b>'+a.t+'</b><small>'+a.d+'</small></span></div>').join('')+(todo.length?'':'<div class="sub">Tous les objectifs sont atteints.</div>')+'</div>');
   const jr=S.journal.slice(-8).reverse();
-  const jcard=card('Actualités','<div class="log">'+jr.map(x=>'<div><span class="d">J'+x.d+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>');
+  const jcard=card('Actualités','<div class="log">'+jr.map(x=>'<div><span class="d">J'+x.d+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':x.k==='club'?'<span class="tag" style="margin-right:6px">Club</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>');
   return h+'<div class="grid">'+agenda+ach+'</div>'+jcard;
 }
 
@@ -14233,11 +14235,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.2.8';
+const IB_VER='V1.2.9';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Concession : paliers célébrés','Comme les autres activités, la concession a son insigne et son animation : au premier objectif constructeur atteint, puis à l’ouverture de votre deuxième concession.'],
-  ['Football : changer de recruteur de jeunes','Dans l’onglet Staff, chaque recruteur de jeunes peut être remplacé par un candidat ou renvoyé, contre une indemnité de trois mois de salaire. Une mission en cours s’arrête.']
+  ['Rapports des recruteurs dans le rapport du jour','Quand un recruteur de jeunes envoie son rapport, il apparaît dans le rapport du jour (bloc Journal, étiquette Club) avec le nombre de jeunes proposés et le potentiel du meilleur. Dans ce bloc, vos propres événements passent désormais avant les actualités.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
