@@ -7122,8 +7122,14 @@ function ysHire(id){
   fcPay('staff','Club : recrutement d’un recruteur de jeunes',-fee); O.yscC=O.yscC.filter(x=>x!==s); s.w=ysWage(s); s.m=null; O.ysc.push(s);
   return ok(s.n+' rejoint votre cellule de recrutement.');
 }
+/* se séparer d'un recruteur : indemnité de 3 mois de salaire, la mission en cours s'arrête */
+function ysSever(s){ return Math.round(s.w*.25/1000)*1000; }
 function ysFire(id){ const O=fcOwn(); if(!O) return err('Aucun club.'); fcYS(O); const s=O.ysc.find(x=>x.id===id); if(!s) return err('Recruteur introuvable.');
-  O.ysc=O.ysc.filter(x=>x!==s); return ok(s.n+' quitte le club.'); }
+  const c=ysSever(s); if(S.cash<c) return err('Il faut '+eur(c,0)+' d’indemnité.'); fcPay('staff','Club : départ de '+s.n,-c);
+  O.ysc=O.ysc.filter(x=>x!==s); return ok(s.n+' quitte le club (indemnité '+eur(c,0)+').'); }
+/* remplacer : départ de l'ancien puis arrivée du nouveau, en une fois */
+function ysReplace(oldId,newId){ const O=fcOwn(); if(!O) return err('Aucun club.'); fcYS(O); const s=O.ysc.find(x=>x.id===oldId), n=O.yscC.find(x=>x.id===newId); if(!s||!n) return err('Introuvable.');
+  const c=ysSever(s)+ysFee(n); if(S.cash<c) return err('Il faut '+eur(c,0)+'.'); const r1=ysFire(oldId); if(!r1.ok) return r1; const r2=ysHire(newId); return r2.ok? ok(n.n+' remplace '+s.n+'.') : r2; }
 function ysSend(id,c,len){
   const O=fcOwn(); if(!O) return err('Aucun club.'); fcYS(O); const s=O.ysc.find(x=>x.id===id); if(!s) return err('Recruteur introuvable.');
   if(s.m) return err(s.n+' est déjà en mission.'); if(!YS_C[c]) return err('Pays inconnu.'); if(!YS_LEN.includes(len)) return err('Durée inconnue.');
@@ -10305,7 +10311,7 @@ MET.dealer = {
     if(m.aoc&&m.oc.length<Math.max(3,Math.round(6*k))) dlAuction(b);
     /* fin de trimestre : objectif de la marque */
     if(S.day>=m.q.end){ const Q=m.q, okQ=Q.sold>=Q.obj;
-      if(okQ){ const prime=Q.ca*B.pr; m.acc+=prime; m.bt=clamp(m.bt+8,0,100); metLog(b,'objectif '+B.n+' atteint ('+Q.sold+' / '+Q.obj+') : prime de '+eur(prime,0)+'.','good'); }
+      if(okQ){ const prime=Q.ca*B.pr; m.acc+=prime; m.qok=(m.qok||0)+1; m.bt=clamp(m.bt+8,0,100); metLog(b,'objectif '+B.n+' atteint ('+Q.sold+' / '+Q.obj+') : prime de '+eur(prime,0)+'.','good'); }
       else { m.bt=clamp(m.bt-(Q.sold<Q.obj*.7?12:5),0,100); metLog(b,'objectif '+B.n+' manqué ('+Q.sold+' / '+Q.obj+') : pas de prime ce trimestre.','bad'); }
       dlQuarter(b); }
     /* offres de flotte (palier 4) */
@@ -13830,7 +13836,7 @@ function ysScoutRow(O,s){
   const m=s.m;
   return '<div class="fc-staff"><div><b>'+esc(s.n)+'</b><small>Expérience '+ysStarsTxt(s.exp)+' · Expertise '+ysStarsTxt(s.ex)+'</small><small>'+
     (m? 'En mission : '+esc(YS_C[m.c].n)+', retour '+fcCountdown(m.end).toLowerCase()+'. Prochain rapport '+fcCountdown(m.nx).toLowerCase()+'.' : 'Au club, disponible.')+' Salaire : '+eur(s.w,0)+' par saison.</small></div>'+
-    '<div class="row">'+(m? btn('Rappeler','ysrecall',{i:s.id,c:'sm ghost'}) : btn('Envoyer en mission','ysmis',{i:s.id,c:'sm pri'}))+'</div></div>';
+    '<div class="row">'+(m? btn('Rappeler','ysrecall',{i:s.id,c:'sm ghost'}) : btn('Envoyer en mission','ysmis',{i:s.id,c:'sm pri'}))+btn('Remplacer','ysrep',{i:s.id,c:'sm ghost'})+btn('Se séparer ('+eur(ysSever(s),0)+')','ysfire',{i:s.id,c:'sm ghost'})+'</div></div>';
 }
 function ysPropRow(p){
   return '<button class="fc-pl" data-a="ysprop" data-i="'+esc(p.id)+'"><span class="fpos">'+FOOT_POS_S[p.p]+'</span><span class="nm"><b>'+esc(p.n)+'</b><small>'+p.a+' ans · '+esc(p.cn)+' · '+esc(fpLabel(Math.round((fpRange(p,false)[0]+fpRange(p,false)[1])/2)))+'</small></span><b class="num fov">'+Math.round(p.o)+'</b></button>';
@@ -13842,7 +13848,8 @@ function ysPropRow(p){
     card('Jeunes proposés ('+O.yprop.length+')', O.yprop.length? '<div class="sub">Chaque proposition reste valable 30 jours.</div>'+O.yprop.map(ysPropRow).join('') : '<div class="sub">Envoyez un recruteur en mission : il envoie un rapport toutes les deux semaines.</div>');
 }; }
 ACT.yshire=()=>{ ui.modal={type:'yshire'}; render(); };
-ACT.yshireok=el=>{ const r=ysHire(el.dataset.i); if(r.ok) ui.modal=null; after(r); };
+ACT.yshireok=el=>{ const m=ui.modal, r= m&&m.rep? ysReplace(m.rep,el.dataset.i) : ysHire(el.dataset.i); if(r.ok) ui.modal=null; after(r); };
+ACT.ysrep=el=>{ ui.modal={type:'yshire',rep:el.dataset.i}; render(); };
 ACT.ysfire=el=>{ const r=ysFire(el.dataset.i); after(r); };
 ACT.ysmis=el=>{ ui.modal={type:'ysmis',id:el.dataset.i,c:null,len:90}; render(); };
 ACT.yspick=el=>{ const m=ui.modal; if(!m||m.type!=='ysmis') return; m.c=el.dataset.v; render(); };
@@ -13855,7 +13862,8 @@ ACT.yssign=el=>{ const r=ysSign(el.dataset.i); if(r.ok) ui.modal=null; after(r);
 ACT.ysdrop=el=>{ const r=ysDrop(el.dataset.i); if(r.ok) ui.modal=null; after(r); };
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal, O=fcOwn();
   if(m&&m.type==='yshire'&&O){ fcYS(O);
-    return {title:'Recruteurs de jeunes disponibles',sm:true,body:'<div class="sub">Nouveaux candidats tous les 30 jours.</div>'+(O.yscC.length? O.yscC.map(s=>'<div class="fc-staff"><div><b>'+esc(s.n)+'</b><small>Expérience '+ysStarsTxt(s.exp)+' · Expertise '+ysStarsTxt(s.ex)+'</small><small>Salaire : '+eur(ysWage(s),0)+' par saison · mission : '+eur(ysMonthly(s),0)+' par mois.</small></div>'+btn('Recruter : '+eur(ysFee(s),0),'yshireok',{i:s.id,c:'sm pri',dis:S.cash<ysFee(s)})+'</div>').join('') : '<div class="sub">Aucun candidat pour le moment.</div>')}; }
+    const rs=m.rep&&O.ysc.find(x=>x.id===m.rep);
+    return {title:rs? 'Remplacer '+esc(rs.n) : 'Recruteurs de jeunes disponibles',sm:true,body:'<div class="sub">Nouveaux candidats tous les 30 jours.'+(rs? ' '+esc(rs.n)+' part avec une indemnité de '+eur(ysSever(rs),0)+(rs.m?' et sa mission s’arrête':'')+'.' : '')+'</div>'+(O.yscC.length? O.yscC.map(s=>'<div class="fc-staff"><div><b>'+esc(s.n)+'</b><small>Expérience '+ysStarsTxt(s.exp)+' · Expertise '+ysStarsTxt(s.ex)+'</small><small>Salaire : '+eur(ysWage(s),0)+' par saison · mission : '+eur(ysMonthly(s),0)+' par mois.</small></div>'+btn('Recruter : '+eur(ysFee(s),0),'yshireok',{i:s.id,c:'sm pri',dis:S.cash<ysFee(s)})+'</div>').join('') : '<div class="sub">Aucun candidat pour le moment.</div>')}; }
   if(m&&m.type==='ysmis'&&O){ const s=O.ysc.find(x=>x.id===m.id); if(!s){ ui.modal=null; return _mc(); }
     const c=m.c&&YS_C[m.c], cost=c? ysMissionCost(O,s,m.c,m.len) : 0;
     return {title:'Mission de '+esc(s.n),sm:true,body:ysMap(O,m.c,m.z)+
@@ -14225,12 +14233,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.2.7';
+const IB_VER='V1.2.8';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Concession automobile : un vrai métier','Comme une vraie concession : peu de marge sur le neuf, davantage sur l’occasion et l’atelier. Elle ne perd plus d’argent par défaut.'],
-  ['Marque partenaire','Distribuez Valmont, Kito, puis Volta (électrique) et Ardena (haut de gamme) avec les paliers. Chaque trimestre, la marque fixe un objectif de ventes de neuf : atteint, il rapporte une prime. La remise sur le neuf aide à l’atteindre.'],
-  ['Stock, reprises et atelier','Commandez vos voitures neuves (livrées en 7 jours) ; un stock qui dort coûte des frais financiers et une occasion qui traîne perd de la valeur. Une partie des acheteurs laisse sa voiture en reprise : l’atelier la remet en état avant de la revendre. L’atelier entretient aussi le parc de vos clients, avec une forte marge (encore plus si vous possédez une société de réparation).']
+  ['Concession : paliers célébrés','Comme les autres activités, la concession a son insigne et son animation : au premier objectif constructeur atteint, puis à l’ouverture de votre deuxième concession.'],
+  ['Football : changer de recruteur de jeunes','Dans l’onglet Staff, chaque recruteur de jeunes peut être remplacé par un candidat ou renvoyé, contre une indemnité de trois mois de salaire. Une mission en cours s’arrête.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -14895,6 +14902,11 @@ function palIconBadge(b,n){ const P=PAL[b.def]; if(!Object.keys(n).some(k=>n[k]>
 /* compteurs posés par les actions */
 { const _hs=hcShow; hcShow=function(b){ const r=_hs.apply(this,arguments); if(r&&r.ok&&b&&b.m) b.m.nsh=(b.m.nsh||0)+1; return r; }; }
 if(MET.saas&&MET.saas.acts&&MET.saas.acts.ipo){ const _ipo=MET.saas.acts.ipo; MET.saas.acts.ipo=function(b){ const r=_ipo.apply(this,arguments); if(r&&r.ok) b.m.ipo=1; return r; }; }
+
+/* V1.2.8 : concession automobile */
+palDef('dealer',{col:'#1f3c88', sticky:1, icon:PI('<path d="M3 15l2-5h14l2 5v3H3z"/><circle cx="7.5" cy="18" r="1.6"/><circle cx="16.5" cy="18" r="1.6"/><path d="M12 2.5l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z"/>'),
+  tag:n=>n.grp? 'Groupe de distribution' : 'Objectif atteint',
+  badges:m=>({obj:Math.min(1,m.qok||0), grp:m.grp?1:0}), ev:{obj:['Premier objectif constructeur atteint : la marque vous félicite'], grp:['Votre deuxième concession ouvre ses portes']}});
 
 
 </script>
