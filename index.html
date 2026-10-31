@@ -1038,6 +1038,12 @@ html,body{overflow-anchor:none}
 :root[data-theme="dark"] .st-a{color:#2fd27a}:root[data-theme="dark"] .st-b{color:#6fdc6f}:root[data-theme="dark"] .st-c{color:#b9e04a}
 .fm-r .sc.hid{font-size:13px;font-weight:600}
 
+/* V1.1.7 insignes de paliers */
+.pal-emb{position:absolute;top:10px;left:10px;width:46px;height:46px;border-radius:50%;background:#fff;color:var(--pc);border:3px solid var(--pc);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.3);animation:palTw 3s ease-in-out infinite}
+.pal-emb svg{width:28px;height:28px}
+.pal-big .pal-ico{width:96px;height:96px;border-radius:50%;background:#fff;color:var(--pc);border:5px solid var(--pc);display:flex;align-items:center;justify-content:center}
+.pal-big .pal-ico svg{width:60px;height:60px;fill:none;stroke:currentColor;stroke-width:1.8;filter:none}
+
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -13563,12 +13569,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.1.6';
+const IB_VER='V1.1.7';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Football : statistiques détaillées','Chaque joueur a maintenant ses statistiques : vitesse, tir, passe, dribble, défense et physique, ou réflexes, vitesse, plongeon, jeu à la main et jeu au pied pour les gardiens. Elles s’affichent dans la fiche du joueur, en vert foncé près de 99 et en rouge quand elles sont faibles.'],
-  ['Football : un moteur de match plus juste','Les matchs de votre club tiennent compte de vos lignes : l’attaque marque plus, la défense et le gardien encaissent moins, la passe donne la possession. Votre club gagne aussi un peu plus souvent.'],
-  ['Football : score caché','Le score de votre club n’apparaît plus avant d’avoir regardé le match. Touchez « Voir » pour le découvrir.']
+  ['Paliers célébrés partout','Chaque activité a maintenant son insigne et son animation : panneau Bio de la ferme, festivals du studio, musée de la galerie, podium du premier défilé, éolienne en mer, 99,99 % du data center, tour en construction, cloche de la Bourse, camion express, centre agréé, globe du recrutement, pont du BTP, puce de nouvelle génération et étiquette de la marque textile.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -14096,7 +14100,8 @@ const PAL = {
   hotel:{ badges:m=>({stars:Math.max(0,(m.st||3)-3), pal:m.pal?1:0, rs:m.rs||0}),
     ev:{stars:['Votre hôtel passe à 4 étoiles !','Votre hôtel passe à 5 étoiles !'], pal:['Votre hôtel devient un palace'], rs:['Votre premier resort ouvre','Un deuxième resort ouvre','Un troisième resort ouvre']} }
 };
-function palNow(b){ const P=PAL[b.def]; return P&&b.m&&b.status==='active'? P.badges(b.m) : null; }
+function palNow(b){ const P=PAL[b.def]; if(!P||!b.m||b.status!=='active') return null; const n=P.badges(b.m,b); if(!P.sticky) return n;
+  const hi=b.palHi||(b.palHi={}); Object.keys(n).forEach(k=>{ hi[k]=Math.max(hi[k]||0,n[k]); }); return Object.assign({},hi); }
 /* nouveaux paliers depuis la dernière visite de la fiche */
 function palNews(b){ const P=PAL[b.def], now=palNow(b); if(!now) return []; const seen=b.seenPal||{}, out=[];
   Object.keys(now).forEach(k=>{ for(let i=(seen[k]||0);i<now[k];i++){ const L=P.ev[k]; if(L) out.push({k, i, t:L[Math.min(i,L.length-1)]}); } }); return out; }
@@ -14106,18 +14111,57 @@ function palBadgeHtml(b){ const n=palNow(b); if(!n) return ''; let h='';
     if(n.tv) h+='<div class="pal-tag">À la télévision</div>'; if(n.bis) h+='<div class="pal-tag pal-tag2">'+n.bis+' bistrot'+(n.bis>1?'s':'')+'</div>'; }
   if(b.def==='hotel'){ const st=3+n.stars; h+='<div class="pal-stars pal-sm" aria-label="'+st+' étoiles">'+Array.from({length:st},(_,i)=>'<i style="animation-delay:'+(i*.3)+'s">'+PAL_STAR+'</i>').join('')+'</div>';
     if(n.pal) h+='<div class="pal-carpet" aria-label="Palace"></div><div class="pal-tag">Palace</div>'; if(n.rs) h+='<div class="pal-tag pal-tag2">'+n.rs+' resort'+(n.rs>1?'s':'')+'</div>'; }
+  if(PAL[b.def].icon) h+=palIconBadge(b,n);
   return h? '<div class="pal-wrap">'+h+'</div>' : ''; }
 function palApply(){
   if(!ui.modal||ui.modal.type!=='biz') return; const b=S.biz.find(x=>x.id===ui.modal.id); if(!b||!PAL[b.def]) return;
   const hero=document.querySelector('.md .bhero'); if(hero&&!hero.querySelector('.pal-wrap')){ const x=palBadgeHtml(b); if(x){ hero.style.position='relative'; hero.insertAdjacentHTML('afterbegin',x); } }
   const news=palNews(b); if(!news.length) return;
   b.seenPal=palNow(b); const e=news[news.length-1], md=document.body; if(md.querySelector('.pal-cele')) return;
-  const big=(e.k==='stars')? Array.from({length:e.i+1},(_,i)=>'<i style="animation-delay:'+(.15+i*.25)+'s">'+PAL_STAR+'</i>').join('') : '<i>'+PAL_STAR+'</i>';
+  const P0=PAL[b.def], big=P0.icon&&e.k!=='stars'? '<i class="pal-ico" style="--pc:'+P0.col+'">'+P0.icon+'</i>' : (e.k==='stars')? Array.from({length:e.i+1},(_,i)=>'<i style="animation-delay:'+(.15+i*.25)+'s">'+PAL_STAR+'</i>').join('') : '<i>'+PAL_STAR+'</i>';
   md.insertAdjacentHTML('beforeend','<div class="pal-cele" data-a="palok" role="dialog" aria-label="'+esc(e.t)+'"><div class="pal-burst">'+Array.from({length:14},(_,i)=>'<span style="--a:'+(i*360/14)+'deg"></span>').join('')+'</div><div class="pal-big">'+big+'</div><b>'+esc(e.t)+'</b><small>'+esc(b.name)+'</small><div class="sub">Touchez pour continuer</div></div>'); }
 ACT.palok=()=>{ const c=document.querySelector('.pal-cele'); if(c) c.remove(); };
 { const _r=render; render=function(){ const o=_r.apply(this,arguments); try{ palApply(); }catch(e){ console.error(e); } return o; }; }
 /* les anciennes parties ne célèbrent pas tout d'un coup : on part de l'état actuel la première fois */
-{ const _ms=metState; metState=function(b){ const r=_ms(b); try{ if(r&&PAL[b.def]&&b.seenPal===undefined&&b.status==='active'&&b.hist&&b.hist.length>1) b.seenPal=PAL[b.def].badges(b.m); }catch(e){} return r; }; }
+{ const _ms=metState; metState=function(b){ const r=_ms(b); try{ if(r&&PAL[b.def]&&b.seenPal===undefined&&b.status==='active'&&b.hist&&b.hist.length>1) b.seenPal=PAL[b.def].badges(b.m,b); }catch(e){} return r; }; }
+
+/* ---------- V1.1.7 : un insigne pour chaque autre activité ----------
+   icon : pictogramme (trait, couleur --pc) ; tag : texte de l'insigne ; sticky : un palier acquis reste affiché. */
+const PI=(d)=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
+function palDef(def,o){ PAL[def]=Object.assign({ev:{}},o); }
+palDef('farm',{col:'#2e9e4f', icon:PI('<path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14z"/><path d="M5 19l8-8"/>'), tag:()=>'Bio',
+  badges:(m,b)=>({bio: typeof fmBio==='function'&&fmBio(b)==='bio'?1:0}), ev:{bio:['Votre ferme est certifiée bio']}});
+palDef('studio',{col:'#c99a06', icon:PI('<path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M9 17h6"/>'), tag:()=>'Festivals',
+  badges:m=>({fest:m.fest?1:0}), ev:{fest:['Vos films entrent dans les grands festivals']}});
+palDef('gallery',{col:'#7a5cc4', icon:PI('<path d="M3 9l9-5 9 5M4 9h16M6 9v8M10 9v8M14 9v8M18 9v8M3 20h18M4 17h16"/>'), tag:()=>'Musée privé',
+  badges:m=>({mus:m.mus?1:0}), ev:{mus:['Votre galerie ouvre son musée privé']}});
+palDef('couture',{col:'#c8352a', sticky:1, icon:PI('<path d="M9 10h6v10H9zM3 14h6v6H3zM15 16h6v4h-6z"/><path d="M12 4l.9 1.9 2.1.3-1.5 1.4.4 2.1-1.9-1-1.9 1 .4-2.1L9 6.2l2.1-.3z"/>'), tag:()=>'Défilés',
+  badges:m=>({show:Math.min(1,m.nsh||0)}), ev:{show:['Votre premier défilé : la maison monte sur le podium']}});
+palDef('renew',{col:'#1f7fb8', sticky:1, icon:PI('<path d="M12 9v10M12 9V3M12 9l5.5 3M12 9l-5.5 3"/><circle cx="12" cy="9" r="1"/><path d="M2 20c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/>'), tag:()=>'Éolien en mer',
+  badges:m=>({mer:(m.pl||[]).some(p=>p.r==='mer')?1:0}), ev:{mer:['Votre première éolienne en mer tourne']}});
+palDef('dc',{col:'#0c6b35', sticky:1, icon:PI('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>'), tag:()=>'99,99 %',
+  badges:m=>({sla:(m.cl||[]).some(c=>c.sla==='9999')?1:0}), ev:{sla:['Premier client à 99,99 % de disponibilité']}});
+palDef('promo',{col:'#d06a12', icon:PI('<path d="M8 21V7h7v14M5 21h14M10 10h3M10 13h3M10 16h3"/><path d="M15 7V3M15 3h6M21 3v3"/>'), tag:()=>'Tour en construction',
+  badges:m=>({tour:(m.ops||[]).some(o=>o.dens===3&&o.stage!=='fini')?1:0}), ev:{tour:['Votre première tour sort de terre']}});
+palDef('saas',{col:'#1f3c88', sticky:1, icon:PI('<path d="M12 3v2M6 16c0-6 2.5-10 6-10s6 4 6 10l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>'), tag:()=>'En bourse',
+  badges:m=>({ipo:m.ipo?1:0}), ev:{ipo:['La cloche sonne : votre start-up entre en bourse']}});
+palDef('ecom',{col:'#d06a12', icon:PI('<path d="M2 6h11v10H2zM13 9h4l4 4v3h-8z"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>'), tag:()=>'Express',
+  badges:m=>({exp:m.exp?1:0}), ev:{exp:['Vos camions passent à la livraison express']}});
+palDef('repair',{col:'#2e9e4f', icon:PI('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 12l3 3 5-6"/>'), tag:()=>'Centre agréé',
+  badges:m=>({agr:m.agr?1:0}), ev:{agr:['Votre atelier devient centre agréé']}});
+palDef('staffing',{col:'#1f7fb8', icon:PI('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'), tag:()=>'International',
+  badges:m=>({intl:m.intl?1:0}), ev:{intl:['Votre cabinet recrute dans le monde entier']}});
+palDef('build',{col:'#5a6a7d', sticky:1, icon:PI('<path d="M2 17h20M4 17v-3a8 8 0 0 1 16 0v3M8 17v-3M12 17v-6M16 17v-3"/><path d="M2 20h20"/>'), tag:()=>'Ouvrages d’art',
+  badges:m=>({oa:(m.jobs||[]).some(j=>j.k==='oa')?1:0}), ev:{oa:['Votre premier pont est en chantier']}});
+palDef('electronics',{col:'#0b6b8a', sticky:1, icon:PI('<rect x="7" y="7" width="10" height="10" rx="1"/><path d="M10 7V4M14 7V4M10 20v-3M14 20v-3M7 10H4M7 14H4M20 10h-3M20 14h-3"/>'), tag:n=>'Génération '+(n.gen+1),
+  badges:m=>({gen:m.g||0}), ev:{gen:['Vos puces passent à une gravure plus fine']}});
+palDef('textile',{col:'#7a5cc4', icon:PI('<path d="M3 12V4h8l10 10-7 7z"/><circle cx="7.5" cy="7.5" r="1.5"/>'), tag:()=>'Marque propre',
+  badges:m=>({own:m.own?1:0}), ev:{own:['Votre étiquette est cousue sur chaque vêtement']}});
+function palIconBadge(b,n){ const P=PAL[b.def]; if(!Object.keys(n).some(k=>n[k]>0)) return '';
+  return '<div class="pal-emb" style="--pc:'+P.col+'" aria-label="'+esc(P.tag(n))+'">'+P.icon+'</div><div class="pal-tag" style="background:'+P.col+'">'+esc(P.tag(n))+'</div>'; }
+/* compteurs posés par les actions */
+{ const _hs=hcShow; hcShow=function(b){ const r=_hs.apply(this,arguments); if(r&&r.ok&&b&&b.m) b.m.nsh=(b.m.nsh||0)+1; return r; }; }
+if(MET.saas&&MET.saas.acts&&MET.saas.acts.ipo){ const _ipo=MET.saas.acts.ipo; MET.saas.acts.ipo=function(b){ const r=_ipo.apply(this,arguments); if(r&&r.ok) b.m.ipo=1; return r; }; }
 
 
 </script>
