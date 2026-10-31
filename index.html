@@ -1029,6 +1029,15 @@ html,body{overflow-anchor:none}
 @keyframes palRay{from{opacity:0;height:0}40%{opacity:1}to{opacity:0;height:140px}}
 @media (prefers-reduced-motion: reduce){ .pal-stars i,.pal-big i,.pal-burst span,.pal-cele{animation:none!important} }
 
+/* V1.1.6 stats football */
+.fs-g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.fs-g div{background:var(--card2,rgba(127,127,127,.08));border-radius:8px;padding:6px 8px;display:flex;flex-direction:column}
+.fs-g span{font-size:11px;opacity:.75}.fs-g b{font-size:20px}
+.st-a{color:#0b6b2e}.st-b{color:#23963f}.st-c{color:#7cae1f}.st-d{color:#c99a06}.st-e{color:#e06a10}.st-f{color:#cc2e25}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .st-a{color:#2fd27a} :root:not([data-theme="light"]) .st-b{color:#6fdc6f} :root:not([data-theme="light"]) .st-c{color:#b9e04a} }
+:root[data-theme="dark"] .st-a{color:#2fd27a}:root[data-theme="dark"] .st-b{color:#6fdc6f}:root[data-theme="dark"] .st-c{color:#b9e04a}
+.fm-r .sc.hid{font-size:13px;font-weight:600}
+
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -6748,17 +6757,8 @@ function fcStrength(){
   const O=fcOwn(); if(!O) return 50;
   return clamp(O.r0+(fcXiAvg()-O.xi0)+(O.staff.coach-2)*.8+(O.mor-60)/12,30,97);
 }
-/* style de jeu : appliqué au calcul des buts */
-{ const _play=footPlay; footPlay=function(h,a,neutral){
-    const O=fcOwn(); if(!O || (O.id!==h && O.id!==a)) return _play(h,a,neutral);
-    const st=FC_STYLE[O.style]||FC_STYLE.eq, mine=O.id===h?0:1;
-    const rh=footR(h), ra=footR(a), k=1/27, adv=neutral?0:.15;
-    let lh=1.30*Math.exp(k*(rh-ra)+adv), la=1.10*Math.exp(k*(ra-rh)-(neutral?0:.04));
-    if(mine===0){ lh*=st.f; la*=st.a; } else { la*=st.f; lh*=st.a; }
-    const res=[fpois(lh),fpois(la)];
-    fcAfterMatch(h,a,res[0],res[1]);
-    return res;
-  }; }
+/* moteur du match de votre club : voir foot_stats.js */
+var footPlayBase=footPlay;
 
 /* ---------- Après un match de votre équipe : moral, blessures, forme, direct ---------- */
 function fcAfterMatch(h,a,gh,ga){
@@ -6770,7 +6770,7 @@ function fcAfterMatch(h,a,gh,ga){
   L.xi.forEach(p=>{ const q=O.sq.find(x=>x.id===p.id); if(q && R()<.02*(1.25-.12*O.staff.phys)){ q.inj=Math.round((5+R()*28)*(1.1-.1*O.staff.phys)); fcNews(q.n+' est blessé ('+q.inj+' jours).','bad'); } });
   O.last={h,a,gh,ga,day:S.day};
   if(O.autoLive) O.live={h,a,gh,ga,day:S.day};
-  log(gf>gc?'good':gf<gc?'warn':'info','Votre club : '+footName(h)+' '+gh+'-'+ga+' '+footName(a)+'.','news');
+  log('info','Votre club : match joué contre '+footName(opp)+'. Regardez-le pour découvrir le score.','news');
 }
 function fcNews(t,c){ const O=fcOwn(); if(!O) return; O.news.unshift({d:S.day,t,c:c||''}); if(O.news.length>30) O.news.length=30; }
 
@@ -6919,6 +6919,73 @@ function fcSwap(slot,pid){ const O=fcOwn(); if(!O) return err('Aucun club.'); co
 { const _nw=computeNW; computeNW=function(){ const v=_nw(); const O=fcOwn(); if(O){ S.nw=v+fcClubValue(O.id); if(S.nw>S.peakNW) S.peakNW=S.nw; return S.nw; } return v; }; }
 { const _nb=nwBreakdown; nwBreakdown=function(){ const o=_nb(); const O=fcOwn(); if(O) o['Club de football']=fcClubValue(O.id); return o; }; }
 { const _sn=srcName; srcName=function(src){ return src==='foot'? 'Club de football' : _sn(src); }; }
+
+/* ============================================================
+   Football : statistiques détaillées des joueurs (V1.1.6)
+   - joueurs de champ : vitesse, tir, passe, dribble, défense, physique
+   - gardiens : réflexes, vitesse, plongeon, jeu à la main, jeu au pied
+   Les stats sont stockées en écarts (p.sd) autour de la note p.o :
+   la moyenne pondérée selon le poste redonne la note générale.
+   ============================================================ */
+const FS_OUT=[['vit','Vitesse'],['tir','Tir'],['pas','Passe'],['dri','Dribble'],['def','Défense'],['phy','Physique']];
+const FS_GK=[['ref','Réflexes'],['vit','Vitesse'],['plo','Plongeon'],['mai','Jeu à la main'],['pie','Jeu au pied']];
+const FS_PROF={
+  G:{ref:3,vit:-8,plo:2,mai:0,pie:-5},
+  DL:{vit:5,tir:-14,pas:0,dri:-3,def:3,phy:0},
+  DC:{vit:-4,tir:-18,pas:-6,dri:-12,def:8,phy:6},
+  MD:{vit:-3,tir:-9,pas:3,dri:-5,def:5,phy:4},
+  MC:{vit:-2,tir:-3,pas:6,dri:2,def:-5,phy:0},
+  MO:{vit:1,tir:3,pas:6,dri:6,def:-18,phy:-7},
+  AIL:{vit:8,tir:1,pas:0,dri:7,def:-22,phy:-7},
+  BU:{vit:2,tir:8,pas:-5,dri:2,def:-26,phy:4}};
+const FS_W={G:{ref:.35,plo:.3,mai:.15,pie:.1,vit:.1}, DL:{vit:.25,def:.3,pas:.2,phy:.15,dri:.1}, DC:{def:.45,phy:.3,vit:.1,pas:.15},
+  MD:{def:.3,pas:.3,phy:.25,vit:.15}, MC:{pas:.4,dri:.2,def:.15,tir:.1,phy:.15}, MO:{pas:.3,dri:.3,tir:.25,vit:.15},
+  AIL:{vit:.3,dri:.35,tir:.2,pas:.15}, BU:{tir:.45,phy:.2,vit:.2,dri:.15}};
+function fsKeys(p){ return p.p==='G'? FS_GK : FS_OUT; }
+/* écarts : profil du poste + caractère propre au joueur, recentrés pour garder la note */
+function fsGen(p){
+  const R=footSeedRng(footHash(String(p.n)+'|'+p.p)), prof=FS_PROF[p.p]||FS_PROF.MC, W=FS_W[p.p]||FS_W.MC, sd={};
+  fsKeys(p).forEach(([k])=>{ sd[k]=(prof[k]||0)+Math.round((R()-.5)*12); });
+  let m=0; Object.keys(W).forEach(k=>{ m+=W[k]*(sd[k]||0); }); Object.keys(sd).forEach(k=>{ sd[k]=Math.round(sd[k]-m); });
+  return sd;
+}
+function fsSd(p){ if(!p.sd || (p.p==='G')!==('ref' in p.sd)) p.sd=fsGen(p); return p.sd; }
+function fsVal(p,k){ const sd=fsSd(p); return Math.round(clamp(p.o+(sd[k]||0),15,99)); }
+/* note générale recalculée depuis les stats (servira aux entraînements) */
+function fsOverall(p){ const W=FS_W[p.p]||FS_W.MC; let s=0; Object.keys(W).forEach(k=>{ s+=W[k]*fsVal(p,k); }); return s; }
+/* couleur des stats : vert foncé près de 99, rouge loin */
+function fsCls(v){ return v>=88? 'st-a' : v>=78? 'st-b' : v>=68? 'st-c' : v>=58? 'st-d' : v>=48? 'st-e' : 'st-f'; }
+
+/* ---------- Lignes d'une équipe ---------- */
+const FS_ATK=['AIL','BU','MO'], FS_MID=['MC','MD','MO'], FS_DEF=['DL','DC','MD'];
+function fsLines(xi){
+  const avg=(pos,f)=>{ const l=xi.filter(p=>pos.includes(p.slot||p.p)); return l.length? l.reduce((s,p)=>s+f(p),0)/l.length : 45; };
+  const atk=avg(FS_ATK,p=>.45*fsVal(p,'tir')+.3*fsVal(p,'dri')+.25*fsVal(p,'vit'));
+  const mid=avg(FS_MID,p=>.6*fsVal(p,'pas')+.2*fsVal(p,'dri')+.2*fsVal(p,'phy'));
+  const def=avg(FS_DEF,p=>.6*fsVal(p,'def')+.25*fsVal(p,'phy')+.15*fsVal(p,'vit'));
+  const g=xi.find(p=>(p.slot||p.p)==='G'), gk=g? .4*fsVal(g,'ref')+.35*fsVal(g,'plo')+.15*fsVal(g,'mai')+.1*fsVal(g,'pie') : 40;
+  return {atk, mid, def, gk, wall:.65*def+.35*gk};
+}
+function fsTeamXI(id){ const O=fcOwn(); return O&&O.id===id? fcLineup().xi : footXI(id).xi; }
+/* possession attendue (domicile) */
+function fsPoss(h,a){ const H=fsLines(fsTeamXI(h)), A=fsLines(fsTeamXI(a)); return clamp(.5+(H.mid-A.mid)/60,.3,.7); }
+
+/* ---------- Moteur du match de votre club : lignes + léger avantage ---------- */
+footPlay=function(h,a,neutral){
+  const O=fcOwn(); if(!O || (O.id!==h && O.id!==a)) return footPlayBase(h,a,neutral);
+  const st=FC_STYLE[O.style]||FC_STYLE.eq, mine=O.id===h?0:1;
+  const rh=footR(h), ra=footR(a), adv=neutral?0:.15, H=fsLines(fsTeamXI(h)), A=fsLines(fsTeamXI(a));
+  const duel=((H.atk-A.wall)-(A.atk-H.wall))/2, pos=(H.mid-A.mid)/2;
+  let lh=1.30*Math.exp((rh-ra)/40+duel*.022+pos*.01+adv), la=1.10*Math.exp((ra-rh)/40-duel*.022-pos*.01-(neutral?0:.04));
+  if(mine===0){ lh*=st.f*1.07; la*=st.a*.95; } else { la*=st.f*1.07; lh*=st.a*.95; }
+  const res=[fpois(lh),fpois(la)];
+  O.poss=Math.round(fsPoss(h,a)*100);
+  fcAfterMatch(h,a,res[0],res[1]);
+  return res;
+};
+
+/* ---------- Résultat caché tant que le match n'a pas été regardé ---------- */
+function fcHidden(h,a,day){ const O=S&&S.foot&&S.foot.own, L=O&&O.last; return !!(L&&!L.seen&&L.h===h&&L.a===a&&L.day===day); }
 
 /* ============================================================
    FOOTBALL : compétitions internationales (noms fictifs)
@@ -12726,8 +12793,9 @@ function footLegend(lid){
   if(!nat.closed&&L.down) it.push(['down','Descente']);
   return it.length? '<div class="ft-leg">'+it.map(([k,t])=>'<span class="z-'+k+'"><i></i>'+t+'</span>').join('')+'</div>' : '';
 }
-const fres = (r,day) => { const h=r.h??r[0], a=r.a??r[1], gh=r.gh??r[2], ga=r.ga??r[3];
-  return '<div class="fm-r">'+fclubBtn(h,'h'+(gh>ga||r.w===h&&r.pen?' w':''))+'<button class="sc num" data-a="fmatch" data-i="'+h+'" data-j="'+a+'" data-v="'+gh+'-'+ga+'-'+(day||S.day)+'-'+(r.pen||0)+'" aria-label="Voir le match">'+gh+' - '+ga+'</button>'+fclubBtn(a,'a'+(ga>gh||r.w===a&&r.pen?' w':''))+'</div>'+(r.pen?'<div class="fm-p">Tirs au but : '+esc(footName(r.pen))+'</div>':''); };
+function fres(r,day){ const h=r.h??r[0], a=r.a??r[1], gh=r.gh??r[2], ga=r.ga??r[3];
+  if(typeof fcHidden==='function'&&fcHidden(h,a,day||S.day)) return '<div class="fm-r">'+fclubBtn(h,'h')+'<button class="sc num hid" data-a="fmatch" data-i="'+h+'" data-j="'+a+'" data-v="'+gh+'-'+ga+'-'+(day||S.day)+'-'+(r.pen||0)+'" aria-label="Regarder le match">Voir</button>'+fclubBtn(a,'a')+'</div>';
+  return '<div class="fm-r">'+fclubBtn(h,'h'+(gh>ga||r.w===h&&r.pen?' w':''))+'<button class="sc num" data-a="fmatch" data-i="'+h+'" data-j="'+a+'" data-v="'+gh+'-'+ga+'-'+(day||S.day)+'-'+(r.pen||0)+'" aria-label="Voir le match">'+gh+' - '+ga+'</button>'+fclubBtn(a,'a'+(ga>gh||r.w===a&&r.pen?' w':''))+'</div>'+(r.pen?'<div class="fm-p">Tirs au but : '+esc(footName(r.pen))+'</div>':''); }
 const ffix = (h,a) => '<div class="fm-r">'+fclubBtn(h,'h')+'<b class="sc vs">-</b>'+fclubBtn(a,'a')+'</div>';
 
 function vFoot(){
@@ -12825,6 +12893,7 @@ function fmKits(h,a){
   return [k0,k1];
 }
 function fmStart(h,a,gh,ga,day,pen){
+  { const O=S.foot&&S.foot.own; if(O&&O.last&&O.last.h===h&&O.last.a===a&&O.last.day===day) O.last.seen=1; }
   const M=footMatchScript(h,a,gh,ga,day*977+13);
   const L={M, h, a, pen, day, t:0, speed:1, play:true, i:0, feed:[], kits:fmKits(h,a), tab:'feed',
     pl:[], ball:{x:52.5,y:34,tx:52.5,ty:34,v:0}, side:0, holder:10, nextPass:.8, pause:0, flash:null, half:1, done:false, raf:0, lt:0, R:footSeedRng(day*31+h)};
@@ -13044,13 +13113,13 @@ function fcUpcoming(O){
 function fcCountdown(day){ const n=day-S.day; return n<=0? 'Aujourd’hui' : n===1? 'Demain' : 'Dans '+n+' jours'; }
 function fcTabOv(O){
   const lid=footLgOf(O.id), lg=S.foot.lg[lid], gi=Math.max(0,lg.grp.findIndex(g=>g.includes(O.id))), tab=footTable(lid,gi), pos=tab.findIndex(x=>x.id===O.id), t=lg.tab[O.id]||[0,0,0,0,0,0,0];
-  const nx=fcNextMatch(O), f=(lg.form[O.id]||'').split('').filter(Boolean), r=Math.round(fcStrength());
+  const nx=fcNextMatch(O), f=(lg.form[O.id]||'').split('').filter(Boolean), r=Math.round(fcStrength()), hid=!!(O.last&&!O.last.seen);
   let h=card('',
-    '<div class="met-k"><div><span>Classement</span><b class="num">'+(t[0]?(pos+1)+(pos?'e':'er'):'-')+'</b><small>'+t[6]+' points en '+t[0]+' matchs</small></div>'+
+    '<div class="met-k"><div><span>Classement</span>'+(hid? '<b class="num">-</b><small>Regardez le dernier match</small></div>' : '<b class="num">'+(t[0]?(pos+1)+(pos?'e':'er'):'-')+'</b><small>'+t[6]+' points en '+t[0]+' matchs</small></div>')+
     '<div><span>Force</span><b class="num">'+r+' / 100</b><small>'+esc(FC_FORM[O.form]?O.form:'')+' · '+FC_STYLE[O.style].n.toLowerCase()+'</small></div>'+
     '<div><span>Moral</span><b class="num">'+Math.round(O.mor)+' / 100</b><small>'+(O.mor>=75?'Excellent':O.mor>=55?'Bon':O.mor>=40?'Fragile':'Au plus bas')+'</small></div>'+
     '<div><span>Valeur du club</span><b class="num">'+eur(fcClubValue(O.id),0)+'</b><small>'+O.sq.length+' joueurs</small></div></div>'+
-    (f.length? '<div class="tag">Forme</div><div class="ft-form">'+f.map(x=>'<i class="'+(x==='V'?'w':x==='D'?'l':'d')+'">'+x+'</i>').join('')+'</div>' : ''));
+    (f.length&&!hid? '<div class="tag">Forme</div><div class="ft-form">'+f.map(x=>'<i class="'+(x==='V'?'w':x==='D'?'l':'d')+'">'+x+'</i>').join('')+'</div>' : ''));
   let m='';
   const up=fcUpcoming(O);
   if(up) m+='<div class="fc-cd"><div><span>'+(up.start?'Début de saison':'Prochain match')+'</span><b class="num">'+fcCountdown(up.day)+'</b><small>'+esc(up.comp)+' · '+footDateLabel(up.day,{wd:1,noY:1})+'</small></div></div>'+(up.start? '<div class="sub">'+footStatus(footClub(O.id).nat,lid)+'</div>' : up.draw? '<div class="sub">Adversaire tiré au sort le jour du match.</div>' : ffix(up.h,up.a));
@@ -13144,7 +13213,7 @@ ACT.fcsell=()=>{ const r=fcSell(); ui.modal=null; after(r); };
   if(m&&m.type==='fcsell'&&O){ const v=Math.round(fcClubValue(O.id)*.92/1e5)*1e5;
     return {title:'Revendre le club',sm:true,body:'<p style="margin-top:0">Vous recevez '+eur(v,0)+' et '+esc(footName(O.id))+' redevient géré par le jeu. Vous pourrez racheter un club plus tard.</p><div class="row sp">'+btn('Annuler','closemodal',{c:'ghost'})+btn('Revendre','fcsell',{c:'pri'})+'</div>'}; }
   if(m&&m.type==='fcpl'&&O){ const p=O.sq.find(x=>String(x.id)===String(m.id)); if(!p){ ui.modal=null; return _mcC(); }
-    return {title:esc(p.n),sm:true,body:'<div class="met-k"><div><span>Poste</span><b>'+FOOT_POS[p.p]+'</b><small>'+p.a+' ans · '+esc(FOOT_NATNAME[p.nat]||p.nat)+'</small></div><div><span>Note</span><b class="num">'+Math.round(p.o)+'</b><small>'+(p.inj>0?'Blessé ('+p.inj+' jours)':'Disponible')+'</small></div><div><span>Valeur</span><b class="num">'+eur(fcPlayerValue(p),0)+'</b></div><div><span>Salaire</span><b class="num">'+eur(p.w,0)+'</b><small>par saison</small></div></div>'+
+    return {title:esc(p.n),sm:true,body:'<div class="met-k"><div><span>Poste</span><b>'+FOOT_POS[p.p]+'</b><small>'+p.a+' ans · '+esc(FOOT_NATNAME[p.nat]||p.nat)+'</small></div><div><span>Note</span><b class="num">'+Math.round(p.o)+'</b><small>'+(p.inj>0?'Blessé ('+p.inj+' jours)':'Disponible')+'</small></div><div><span>Valeur</span><b class="num">'+eur(fcPlayerValue(p),0)+'</b></div><div><span>Salaire</span><b class="num">'+eur(p.w,0)+'</b><small>par saison</small></div></div>'+fsGrid(p)+
       '<div class="row" style="margin-top:12px">'+btn(O.list[p.id]?'Retirer de la liste des transferts':'Mettre sur la liste des transferts','fclist',{i:p.id,c:'pri'})+btn('Résilier ('+eur(Math.round(p.w*.5/1e3)*1e3,0)+')','fcrel',{i:p.id,c:'ghost'})+'</div><div class="sub" style="margin-top:8px">Un joueur sur la liste reçoit plus d’offres pendant le mercato.</div>'}; }
   if(m&&m.type==='fcslot'&&O){ const L=fcLineup(), cur=L.xi[m.slot]; if(!cur){ ui.modal=null; return _mcC(); }
     const pos=FC_FORM[O.form][m.slot], cands=O.sq.filter(p=>p.id!==cur.id&&fcAvail(p)).sort((a,b)=>(FOOT_NEAR[pos].includes(b.p)-FOOT_NEAR[pos].includes(a.p))||(b.o-a.o));
@@ -13153,7 +13222,7 @@ ACT.fcsell=()=>{ const r=fcSell(); ui.modal=null; after(r); };
     const v=fcPlayerValue(p), W=O&&fcWindow(S.day), join=O? Math.round(fcWillJoin(p)*100) : 0, disc=O? 1-.03*(O.staff.scout-1) : 1;
     const opt=[[1,'Valeur'],[1.25,'+25 %'],[1.5,'+50 %']];
     return {title:esc(p.n),sm:true,body:'<div class="fc-hero">'+fcrest(m.club,44)+'<div><b>'+esc(p.n)+'</b><small>'+FOOT_POS[p.p]+' · '+p.a+' ans · '+esc(footName(m.club))+'</small></div></div>'+
-      '<div class="met-k"><div><span>Note</span><b class="num">'+Math.round(p.o)+'</b></div><div><span>Valeur</span><b class="num">'+eur(v,0)+'</b></div><div><span>Salaire demandé</span><b class="num">'+eur(Math.round(fcPlayerWage(p)*1.1),0)+'</b><small>par saison</small></div><div><span>Envie de venir</span><b class="num">'+(O?join+' %':'-')+'</b><small>'+(O? (join>=70?'Partant':join>=35?'Hésitant':'Peu tenté') : 'Rachetez un club')+'</small></div></div>'+
+      '<div class="met-k"><div><span>Note</span><b class="num">'+Math.round(p.o)+'</b></div><div><span>Valeur</span><b class="num">'+eur(v,0)+'</b></div><div><span>Salaire demandé</span><b class="num">'+eur(Math.round(fcPlayerWage(p)*1.1),0)+'</b><small>par saison</small></div><div><span>Envie de venir</span><b class="num">'+(O?join+' %':'-')+'</b><small>'+(O? (join>=70?'Partant':join>=35?'Hésitant':'Peu tenté') : 'Rachetez un club')+'</small></div></div>'+fsGrid(p)+
       (!O? '<div class="sub" style="margin-top:8px">Rachetez un club pour faire des offres.</div>' : !W? '<div class="notice" style="margin-top:8px">Le mercato est fermé.</div>' :
       '<div class="tag">Faire une offre</div><div class="row">'+opt.map(([k,t])=>btn(t+' : '+eur(Math.round(v*k*disc/1e4)*1e4,0),'fcbid',{v:k,c:'sm'+(k===1.25?' pri':''),dis:S.cash<v*k*disc})).join('')+'</div><div class="sub" style="margin-top:6px">Un titulaire coûte plus cher : son club demande au moins 25 % de plus que sa valeur.</div>')}; }
   return _mcC();
@@ -13170,6 +13239,9 @@ ACT.fcsell=()=>{ const r=fcSell(); ui.modal=null; after(r); };
 { const _rC=render; render=function(){ const O=S&&S.foot&&S.foot.own; if(O&&O.live&&!ui.modal&&typeof fmStart==='function'){ const L=O.live; O.live=null; fmStart(L.h,L.a,L.gh,L.ga,L.day,null); ui.modal={type:'fmatch'}; } _rC(); }; }
 /* positions de votre système sur le terrain animé */
 { const _bp=fmBasePos; fmBasePos=function(L,s,i){ const O=fcOwn(); const id= s? L.a : L.h; if(O&&O.id===id&&FC_FORM_POS[O.form]){ const b=FC_FORM_POS[O.form][i]; return fmDir(L,s)>0? [b[0],b[1]] : [105-b[0],68-b[1]]; } return _bp(L,s,i); }; }
+
+/* grille des statistiques détaillées */
+function fsGrid(p){ return '<div class="tag">Statistiques</div><div class="fs-g">'+fsKeys(p).map(([k,t])=>{ const v=fsVal(p,k); return '<div><span>'+t+'</span><b class="num '+fsCls(v)+'">'+v+'</b></div>'; }).join('')+'</div>'; }
 
 /* ============================================================
    FOOTBALL : écran des compétitions internationales (Football > International)
@@ -13491,10 +13563,12 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.1.5';
+const IB_VER='V1.1.6';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Paliers célébrés','Restaurant et hôtel : à la première ouverture de la fiche après un palier (étoile, bistrot, télévision, classement, palace, resort), une animation le célèbre. Ensuite, il reste visible sur l’illustration : étoiles qui scintillent, tapis rouge du palace…']
+  ['Football : statistiques détaillées','Chaque joueur a maintenant ses statistiques : vitesse, tir, passe, dribble, défense et physique, ou réflexes, vitesse, plongeon, jeu à la main et jeu au pied pour les gardiens. Elles s’affichent dans la fiche du joueur, en vert foncé près de 99 et en rouge quand elles sont faibles.'],
+  ['Football : un moteur de match plus juste','Les matchs de votre club tiennent compte de vos lignes : l’attaque marque plus, la défense et le gardien encaissent moins, la passe donne la possession. Votre club gagne aussi un peu plus souvent.'],
+  ['Football : score caché','Le score de votre club n’apparaît plus avant d’avoir regardé le match. Touchez « Voir » pour le découvrir.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
