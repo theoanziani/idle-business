@@ -7164,11 +7164,17 @@ function ysReport(O,s){
   const best=L.slice().sort((x,y)=>y.pot-x.pot)[0];
   log(n?'good':'info','Rapport de votre recruteur de jeunes '+s.n+' ('+YS_C[m.c].n+') : '+(n? n+' jeune'+(n>1?'s':'')+' proposé'+(n>1?'s':'')+', le meilleur : '+fpLabel(Math.round((fpRange(best,false)[0]+fpRange(best,false)[1])/2)).toLowerCase()+'. À voir dans Club, onglet Staff.' : 'aucun jeune à la hauteur cette fois.'),'club');
 }
+/* V1.4.5 : nombre de rapports prévus et rendus ; le dernier tombe au plus tard le jour du retour */
+function ysReps(m){ return Math.max(1,Math.round(m.len/14)); }
+function ysDone(m){ if(m.rc===undefined) m.rc=Math.max(0,Math.round((m.nx-m.d0)/14)-1); return m.rc; }
+function ysNext(m){ const left=ysReps(m)-ysDone(m); return left<=0? null : Math.min(m.nx,m.end); }
 function ysDaily(day){
   const O=fcOwn(); if(!O||!O.ysc) return; fcYS(O);
   O.ysc.forEach(s=>{ const m=s.m; if(!m) return;
     if((day-m.d0)%30===29) fcPay('staff','Club : frais de mission ('+s.n+')',-ysMonthly(s));
-    if(day>=m.nx){ ysReport(O,s); m.nx+=14; }
+    ysDone(m);
+    if(day>=m.nx && m.nx<m.end && m.rc<ysReps(m)){ ysReport(O,s); m.rc++; m.nx+=14; }
+    if(day>=m.end && m.rc<ysReps(m)){ ysReport(O,s); m.rc++; }
     if(day>=m.end){ fcNews(s.n+' rentre de mission ('+YS_C[m.c].n+').',''); s.m=null; } });
   if(day%7===0) O.yprop=O.yprop.filter(p=>p.until>day);
   /* salaires des recruteurs : chaque lundi, comme l'effectif */
@@ -14173,7 +14179,7 @@ function ysStarsTxt(n){ return fcStars(n); }
 function ysScoutRow(O,s){
   const m=s.m;
   return '<div class="fc-staff"><div><b>'+esc(s.n)+'</b><small>Expérience '+ysStarsTxt(s.exp)+' · Expertise '+ysStarsTxt(s.ex)+'</small><small>'+
-    (m? 'En mission : '+esc(YS_C[m.c].n)+', retour '+fcCountdown(m.end).toLowerCase()+'. Prochain rapport '+fcCountdown(m.nx).toLowerCase()+'.' : 'Au club, disponible.')+' Salaire : '+eur(s.w,0)+' par saison.</small></div>'+
+    (m? 'En mission : '+esc(YS_C[m.c].n)+', retour '+fcCountdown(m.end).toLowerCase()+'. '+(ysNext(m)===null? 'Tous ses rapports sont rendus.' : ysNext(m)>=m.end? 'Dernier rapport à son retour.' : 'Prochain rapport '+fcCountdown(ysNext(m)).toLowerCase()+'.') : 'Au club, disponible.')+' Salaire : '+eur(s.w,0)+' par saison.</small></div>'+
     '<div class="row">'+(m? btn('Rappeler','ysrecall',{i:s.id,c:'sm ghost'}) : btn('Envoyer en mission','ysmis',{i:s.id,c:'sm pri'}))+btn('Remplacer','ysrep',{i:s.id,c:'sm ghost'})+btn('Se séparer ('+eur(ysSever(s),0)+')','ysfire',{i:s.id,c:'sm ghost'})+'</div></div>';
 }
 function ysPropRow(p){
@@ -14575,11 +14581,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.4.4';
+const IB_VER='V1.4.5';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Déménager à tout moment','Dans la fiche d’une entreprise (onglet Finances), vous pouvez la déplacer vers n’importe quel bâtiment libre de la même ville assez grand pour son niveau. Elle garde son niveau et son équipe, avec 3 jours de fermeture.'],
-  ['Tout agrandir','Dans Sociétés, un bouton lance l’agrandissement d’un niveau de toutes vos entreprises, les moins chères d’abord, dans la limite de votre trésorerie.']
+  ['Recruteurs de jeunes','La fiche d’un recruteur en mission n’annonce plus de rapport après son retour : elle indique le prochain rapport, « Dernier rapport à son retour » ou « Tous ses rapports sont rendus ». Les missions de six mois livrent bien leurs treize rapports, le dernier le jour du retour.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
