@@ -10640,6 +10640,38 @@ function lkPhoneHit(e){ return !!(e&&e.m.mod&&elScore(e,e.m.mod)>=elRival()); }
 function lkSetPhSp(v){ const O=fcOwn(); if(!O) return err('Vous n’avez pas de club.'); if(v&&!lkPhone()) return err('Il vous faut une usine d’électronique avec un smartphone en vente.'); O.phSp=v?1:0; return ok(v?'Votre smartphone s’affiche sur le maillot.':'Le maillot retrouve son sponsor habituel.'); }
 
 /* ============================================================
+   V1.3.6 : vos entreprises sponsorisent le club
+   O.sp = {kit, std, part:[]} : identifiants de vos sociétés (défaut : rien, ou le smartphone de O.phSp).
+   - Maillot : la société gagne en visibilité (+12 % de ventes selon la notoriété du club), le club perd 25 % de ses sponsors.
+   - Nom du stade : +7 %, le club perd 10 %.
+   - Partenaires officiels (3 au plus) : +3 % chacun, le club perd 4 % par partenaire.
+   La notoriété dépend du niveau du club (coefficient de 0,25 à 1,3).
+   ============================================================ */
+const SP_SLOT={kit:{n:'Maillot', boost:.12, cost:.25}, std:{n:'Nom du stade', boost:.07, cost:.10}, part:{n:'Partenaire officiel', boost:.03, cost:.04}};
+function spOf(O){ if(!O.sp){ O.sp={kit:null, std:null, part:[]}; if(O.phSp){ const e=lkPhone(); if(e) O.sp.kit=e.id; } } if(!Array.isArray(O.sp.part)) O.sp.part=[]; return O.sp; }
+function spBiz(id){ return S.biz.find(x=>x.id===id&&x.status==='active')||null; }
+function spFame(O){ return clamp((footR(O.id)-45)/35,.25,1.3); }
+function spSlotsOf(O,bid){ const P=spOf(O), out=[]; if(P.kit===bid) out.push('kit'); if(P.std===bid) out.push('std'); P.part.forEach(x=>{ if(x===bid) out.push('part'); }); return out; }
+function spBoost(b){ const O=S.foot&&S.foot.own; if(!O||!O.sp) return 0; return spSlotsOf(O,b.id).reduce((a,k)=>a+SP_SLOT[k].boost,0)*spFame(O); }
+function spCandidates(){ return S.biz.filter(x=>x.status==='active'); }
+function spSet(slot,bid){ const O=fcOwn(); if(!O) return err('Vous n’avez pas de club.'); const P=spOf(O); bid= bid===''||bid===null||bid===undefined||bid==='0'? null : +bid;
+  if(bid!==null&&!spBiz(bid)) return err('Société introuvable ou fermée.');
+  if(slot==='kit'||slot==='std'){ P[slot]=bid; if(slot==='kit') O.phSp= bid&&lkPhone()&&lkPhone().id===bid? 1 : 0;
+    return ok(bid? spBiz(bid).name+' : '+SP_SLOT[slot].n.toLowerCase()+' du club.' : SP_SLOT[slot].n+' : sponsor habituel.'); }
+  if(slot==='addp'){ if(bid===null) return err('Choisissez une société.'); if(P.part.length>=3) return err('Trois partenaires officiels au maximum.'); if(P.part.includes(bid)) return err('Déjà partenaire.'); P.part.push(bid); return ok(spBiz(bid).name+' devient partenaire officiel du club.'); }
+  if(slot==='rmp'){ P.part=P.part.filter(x=>x!==bid); return ok('Partenariat arrêté.'); }
+  return err('Emplacement inconnu.'); }
+/* visibilité : plus de ventes pour la société sponsor */
+{ const _mm=metMods; metMods=function(b){ const z=_mm(b); try{ const k=spBoost(b); if(k>0){ if(z.vol>0) z.vol*=1+k; else z.rev=(z.rev||0)*(1+k); } }catch(e){} return z; }; }
+/* chaque mois : sponsors du club en moins, sociétés fermées retirées */
+{ const _fd2=fcDaily; fcDaily=function(day){ _fd2(day); const O=fcOwn(); if(!O||footDate(day).d!==1) return; const P=spOf(O), base=fcClubValue(O.id)*.06/12;
+  ['kit','std'].forEach(k=>{ if(P[k]!==null&&!spBiz(P[k])){ P[k]=null; fcNews(SP_SLOT[k].n+' : la société sponsor a fermé, retour au sponsor habituel.',''); } });
+  P.part=P.part.filter(x=>spBiz(x));
+  /* le smartphone garde son propre calcul (plus haut) quand il est sur le maillot */
+  const kitPhone=O.phSp&&lkPhone()&&P.kit===lkPhone().id, lost=(P.kit!==null&&!kitPhone? SP_SLOT.kit.cost : 0)+(P.std!==null? SP_SLOT.std.cost : 0)+P.part.length*SP_SLOT.part.cost;
+  if(lost>0) fcPay('spons','Club : sponsors remplacés par vos sociétés',-base*lost); }; }
+
+/* ============================================================
    SAUVEGARDES : 5 emplacements sur l'appareil.
    IndexedDB (partie compressée en gzip, métadonnées à part pour lister vite),
    repli sur localStorage si IndexedDB est indisponible.
@@ -14466,10 +14498,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.3.5';
+const IB_VER='V1.3.6';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Une seule trésorerie','Les comptes en devises sont supprimés : toutes vos villes, en France comme à l’étranger, utilisent directement votre trésorerie en euros. Plus de change ni de frais de conversion. Vos anciens soldes en dollars, yuans ou reals ont été versés en euros, sans frais.']
+  ['Vos sociétés sponsorisent le club','Dans Mon club, onglet Finances : mettez n’importe laquelle de vos sociétés sur le maillot, donnez son nom au stade ou faites-en un partenaire officiel (3 au plus). Elle vend plus grâce à la visibilité du club, d’autant plus que le club est connu ; en échange, le club perd une partie de ses sponsors habituels.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -14930,10 +14962,24 @@ function alPlaneChoice(b,d,act){ const m=b.m, idle=m.fl.filter(p=>(!p.ln||!m.ln.
   let c='<div class="ht-t">'+row(!!farm,'Buvettes du stade',farm?'Vos produits de la ferme : recette des buvettes ×1,5.':'Avec une ferme, les buvettes vendent vos produits (recette ×1,5).')+
     row(!!rn,'Énergie du stade',rn?'Vos centrales alimentent le stade : énergie 40 % moins chère.':'Avec des énergies renouvelables, l’énergie du stade coûte 40 % de moins.')+
     row(!!hc,'Tenues officielles',hc?'Votre maison de couture habille le club : sponsors +10 %, prestige de la maison en hausse.':'Avec une maison de haute couture, sponsors +10 % et prestige pour la maison.')+'</div>';
-  c+='<div class="met-c" style="margin-top:8px"><b>Sponsor du maillot</b><div class="seg">'+[[0,'Sponsor habituel'],[1,'Votre smartphone']].map(([v,n])=>'<button class="'+((O.phSp?1:0)===v?'on':'')+'" data-a="lkphsp" data-v="'+v+'"'+(v&&!e?' disabled':'')+'>'+n+'</button>').join('')+'</div><div class="sub">'+
-    (e? 'Votre smartphone se vend 15 % mieux, mais le club perd 25 % de ses sponsors.'+(lkPhoneHit(e)?' Il est meilleur que les rivaux : les maillots floqués rapportent 20 % en plus.':' S’il devient meilleur que les rivaux, les maillots floqués rapporteront en plus.') : 'Il faut une usine d’électronique avec un smartphone en vente.')+'</div></div>';
   return h+card('Vos entreprises et le club',c); }; }
 ACT.lkphsp=el=>after(lkSetPhSp(+el.dataset.v));
+
+/* V1.3.6 : sponsors venant de vos sociétés */
+function spSel(slot,cur,excl){ const L=spCandidates().filter(b=>!(excl||[]).includes(b.id));
+  return '<select class="btn sm sp-sel" data-ch="spset" data-i="'+slot+'" aria-label="'+esc(SP_SLOT[slot==='addp'?'part':slot].n)+'">'+
+    (slot==='addp'? '<option value="">Ajouter une société…</option>' : '<option value="">Sponsor habituel</option>')+
+    L.map(b=>'<option value="'+b.id+'"'+(cur===b.id?' selected':'')+'>'+esc(b.name)+' · '+esc(bizDef(b).n)+'</option>').join('')+'</select>'; }
+{ const _tf2=fcTabFin; fcTabFin=function(O){ const h=_tf2(O), P=spOf(O), f=spFame(O), pc=x=>Math.round(x*f*1000)/10;
+  const row=(slot,label,d)=>'<div class="met-c"><b>'+label+'</b>'+spSel(slot,P[slot])+'<div class="sub">'+d+'</div></div>';
+  let c='<div class="sub">Mettez vos propres sociétés en avant : elles vendent plus grâce à la visibilité du club (plus le club est connu, plus l’effet est fort), mais le club perd une partie de ses sponsors.</div>'+
+    row('kit','Sponsor du maillot','+'+pc(SP_SLOT.kit.boost).toString().replace('.',',')+' % de ventes pour la société ; le club perd 25 % de ses sponsors. Un smartphone de votre usine sur le maillot garde ses effets propres.')+
+    row('std','Nom du stade','+'+pc(SP_SLOT.std.boost).toString().replace('.',',')+' % de ventes ; le club perd 10 % de ses sponsors.')+
+    '<div class="met-c"><b>Partenaires officiels ('+P.part.length+' / 3)</b>'+P.part.map(id=>{ const b=spBiz(id); return b? '<div class="row sp sp-p"><span>'+esc(b.name)+'<small class="sub"> · '+esc(bizDef(b).n)+'</small></span><button class="btn sm ghost" data-a="sprm" data-i="'+id+'">Retirer</button></div>' : ''; }).join('')+
+      (P.part.length<3? spSel('addp',null,P.part) : '')+'<div class="sub">+'+pc(SP_SLOT.part.boost).toString().replace('.',',')+' % de ventes chacun ; le club perd 4 % de ses sponsors par partenaire.</div></div>';
+  return h+card('Vos sociétés sponsors du club',c); }; }
+CH.spset=el=>after(spSet(el.dataset.i,el.value));
+ACT.sprm=el=>after(spSet('rmp',el.dataset.i));
 
 /* ============================================================
    FICHE ENTREPRISE EN ONGLETS
