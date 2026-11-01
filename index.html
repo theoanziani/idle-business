@@ -1787,6 +1787,11 @@ function migrateState(s){
   return s;
 }
 
+/* V1.4.8 : dates du jeu à la place des numéros de jour */
+const DATE_ABR=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+function dateL(day){ day=Math.max(1,Math.round(+day||1)); const t=footDate(day); return (t.d===1?'1er':t.d)+' '+FOOT_MONTHS[t.m-1]+' '+t.y; }
+function dateS(day){ day=Math.max(1,Math.round(+day||1)); const t=footDate(day); return (t.d===1?'1er':t.d)+' '+DATE_ABR[t.m-1]; }
+
 /* ============================================================
    ENTREPRISES, EMPLOYÉS (cohortes par poste), CALCULS D'EXPLOITATION
    ============================================================ */
@@ -2096,7 +2101,7 @@ function processBiz(b){
    GESTION DE COMMERCE : fatigue, satisfaction, approvisionnement, locaux, service RH
    ============================================================ */
 const STKN=['3 jours','7 jours','14 jours'], STKD=[3,7,14];
-const HR={names:['Aucun','Assistant RH','Département RH','Direction RH'], desc:['','Pourvoit seul les postes vacants chaque lundi avec les profils de l’agence.','Pourvoit davantage de postes, réduit la fatigue et améliore la fidélité.','Recrutement rapide, équipes bien suivies, fatigue très réduite.'],
+const HR={names:['Aucun','Assistant RH','Département RH','Direction RH'], desc:['','Pourvoit seul, chaque jour, tous les postes vacants dès qu’un candidat de l’agence respecte vos critères.','Comme l’assistant, et réduit la fatigue et améliore la fidélité.','Recrutement rapide, équipes bien suivies, fatigue très réduite.'],
   cost:[0,9000,70000,450000], tier:[0,1,2,3], day:[0,70,250,800], fill:[0,2,4,7], loy:[0,2,4,6], fat:[1,.85,.7,.55]};
 /* Calibrage : à réglages standard, chaque activité rapporte la cible prévue (coût / amortissement) à Paris */
 D.CAL={};
@@ -3149,7 +3154,7 @@ function shopOffer(id,amt){
   const R=rivInit(), sh=R.shops.find(x=>x.id===id); if(!sh) return err('Cette enseigne n’existe plus.');
   if(!unlocked(D.biz[sh.def].tier)) return err('Palier '+D.TIERS[D.biz[sh.def].tier].n+' requis pour cette activité.');
   if(!cityUnlocked(sh.city)) return err('Ville verrouillée.');
-  if(sh.cool&&S.day<sh.cool) return err(rivDef(sh.rid).n+' refuse de négocier avant le jour '+sh.cool+'.');
+  if(sh.cool&&S.day<sh.cool) return err(rivDef(sh.rid).n+' refuse de négocier avant le '+dateL(sh.cool)+'.');
   if(!(amt>0)) return err('Montant invalide.');
   const res=shopReserve(sh), r=rivDef(sh.rid);
   if(amt>=res) return acquireShop(sh,amt);
@@ -3264,7 +3269,7 @@ function elecCands(){
   E.cands=PARTY.map((p,i)=>{ const bills=D.BILLS.filter(b=>b.cond(S.laws)&&(p.lean===0? Math.abs(b.lean)<.6 : Math.sign(b.lean)===p.lean)); const prog=[];
     for(let k=0;k<2&&bills.length;k++){ const b=bills.splice(rint(0,bills.length-1),1)[0]; prog.push(b.k); }
     return {id:i, name:pick(FIRST)+' '+pick(LAST), party:p.n, lean:p.lean, base:raw[i]/tot, prog, fund:0, offf:0}; });
-  log('info','Campagne pour l’élection du gouverneur : vote au jour '+E.next+'. Vous pouvez financer un candidat dans Politique.','news');
+  log('info','Campagne pour l’élection du gouverneur : vote le '+dateL(E.next)+'. Vous pouvez financer un candidat dans Politique.','news');
 }
 const fundScale = () => lobbyScale()*4;
 function pollOf(c){ const E=S.elec; const w=E.cands.map(x=>x.base*(1+0.9*(1-Math.exp(-(x.fund+x.offf)/fundScale())))); const t=w.reduce((a,x)=>a+x,0); return w[c.id]/t; }
@@ -3499,7 +3504,7 @@ function newContract(){
   const qty=Math.max(10,Math.round(ref*rint(4,9)/10)*10), cities=D.CITY_ORDER.filter(cityUnlocked), city=pick(cities);
   I.offers.push({id:S.nid++, g, qty, city, px:Math.round(G.v*(1.15+0.3*rnd())*100)/100, due:S.day+rint(20,45), client:rnd()<.3? pick(rivAlive()).n : pick(CLIENTS), exp:S.day+8});
 }
-function acceptContract(id){ const I=indInit(), o=I.offers.find(x=>x.id===id); if(!o) return err('Offre expirée.'); if(I.active.length>=5) return err('Cinq contrats en cours au maximum.'); I.offers=I.offers.filter(x=>x!==o); o.st='open'; I.active.push(o); return ok('Contrat signé : livrer avant le jour '+o.due+'.'); }
+function acceptContract(id){ const I=indInit(), o=I.offers.find(x=>x.id===id); if(!o) return err('Offre expirée.'); if(I.active.length>=5) return err('Cinq contrats en cours au maximum.'); I.offers=I.offers.filter(x=>x!==o); o.st='open'; I.active.push(o); return ok('Contrat signé : livrer avant le '+dateL(o.due)+'.'); }
 function deliverFrom(cid,bid){
   const I=indInit(), c=I.active.find(x=>x.id===cid), b=S.biz.find(x=>x.id===bid); if(!c||c.st!=='open') return err('Contrat introuvable.');
   if(!b||goodOf(b)!==c.g) return err('Cette usine ne fabrique pas ce produit.');
@@ -4279,7 +4284,7 @@ function taxStep(){
   if(e.wealth>1){ pay('tax','Impôt sur la fortune',-e.wealth); paid+=e.wealth; parts.push(['Fortune',e.wealth]); }
   S.tb.corp=Math.min(0,S.tb.corp); S.tb.cap=Math.min(0,S.tb.cap);
   S.taxPaid30=paid; S.taxLast=parts; S.nextTax=S.day+30;
-  log('info','Échéance fiscale du jour '+S.day+' : '+eur(paid)+' prélevés.');
+  log('info','Échéance fiscale du '+dateL(S.day)+' : '+eur(paid)+' prélevés.');
 }
 
 /* ---------- Social, réputation, influence ---------- */
@@ -4362,7 +4367,8 @@ function agencyGen(){
 }
 function agencyStep(){
   const A=agencyInit();
-  if(S.day-A.day>=7 || (!A.pool.length && agencyEnts().length && S.day>A.day)) agencyGen();
+  /* V1.4.8 : nouveau vivier chaque jour */
+  if(S.day>A.day || (!A.pool.length && agencyEnts().length && S.day>A.day)) agencyGen();
 }
 function agencyWage(e,role,c){ return wageOf(e,role,{prod:c.prod}); }
 function agencyFee(e,role,c){ return Math.max(15,AG.feeDays[agencyInit().lvl]*agencyWage(e,role,c)*(1-0.08*staffingLevel())); }
@@ -7689,14 +7695,17 @@ function hrFits(c){ const H=hrSet(); return prodNote(c.prod)>=HR_PROD[H.prod]&&c
 hrStep=function(){
   const L=hrLvl(); if(!L||!S.biz.length) return;
   pay('gen','Service RH',-HR.day[L]*progMult());
-  const wd=wdOf(S.day); if(wd!==0&&wd!==2) return;
-  const A=agencyInit(), H=hrSet(); let left=HR.fill[L], n=0;
+  /* V1.4.8 : chaque jour, tout poste vacant est pourvu dès qu'un candidat du vivier respecte vos critères minimaux.
+     Le lundi, ce qui reste vide est complété par des profils moyens, seulement si ce profil respecte lui aussi vos critères. */
+  const A=agencyInit(), H=hrSet(), mon=wdOf(S.day)===0, avgOk=hrFits({prod:1,rel:.85,loy:62}); let left=Infinity, n=0, avg=0;
   agencyVacancies().filter(v=>v.e.kind==='bank'||v.e.status==='active').forEach(v=>{
+    let free=v.free;
     for(let i=0;i<v.free&&left>0;i++){
       const c=A.pool.filter(x=>x.role===v.role&&hrFits(x)).sort((a,b)=>b.prod-a.prod)[0]; if(!c) break;
-      const fee=agencyFee(v.e,v.role,c); if((v.e.kind==="bank"? S.cash : availFor(cityOf(v.e).ccy))<fee*4+1000) return;
-      if(agencyHire(c.id,v.key).ok){ left--; n++; } } });
-  if(n) log('info','Service RH : '+n+' recrutement(s).');
+      const fee=agencyFee(v.e,v.role,c); if((v.e.kind==="bank"? S.cash : availFor(cityOf(v.e).ccy))<fee*4+1000) break;
+      if(agencyHire(c.id,v.key).ok){ left--; n++; free--; } else break; }
+    if(mon&&avgOk&&free>0){ const r=hireFill(v.e,v.role,free); if(r&&r.ok){ avg+=free; n+=free; } } });
+  if(n) log('info','Service RH : '+n+' recrutement(s)'+(avg? ', dont '+avg+' profil'+(avg>1?'s':'')+' moyen'+(avg>1?'s':'')+' faute de candidat dans le vivier' : '')+'.');
   /* moral des directeurs : augmentation de 10 % sous le seuil choisi (une fois par mois au plus) */
   if(H.boss) S.biz.forEach(b=>{ const x=b.boss; if(!x||b.status!=='active'||x.mood>=HR_BOSS[H.boss]||S.day-(x.hrr||-99)<30) return;
     x.sal*=1.1; x.mood=clamp(x.mood+15,0,100); x.hrr=S.day; log('info','Service RH : '+x.name+' (« '+b.name+' ») est augmenté de 10 % pour remonter son moral.'); });
@@ -10067,7 +10076,7 @@ MET.renew = {
   kpis(b){ const m=b.m, L=m.last, R0=metR0(b), cap=m.pl.reduce((a,p)=>a+RN_T[p.t].k*p.sz,0), sav=S.biz.reduce((a,x)=>a+renewSaving(x),0);
     return [['Prix du jour', String(m.px.toFixed(2)).replace('.',','), m.ev&&m.ev.k==='cold'? 'Vague de froid' : m.ev&&m.ev.k==='storm'? 'Tempête' : m.px>1.15? 'Électricité chère' : m.px<.85? 'Électricité bon marché' : 'Prix normal'],
             ['Production', L? Math.round(L.prod/Math.max(1e-9,cap)*100)+' % du maximum' : '—', m.pl.length+' centrales · '+eur(L?L.rev:0,0)+' de ventes'],
-            ['Contrat', m.ctr.sh? Math.round(m.ctr.sh*100)+' % à '+m.ctr.p.toFixed(2).replace('.',',') : 'Aucun', m.ctr.sh? 'Jusqu’au jour '+m.ctr.until : 'Tout au prix du jour'],
+            ['Contrat', m.ctr.sh? Math.round(m.ctr.sh*100)+' % à '+m.ctr.p.toFixed(2).replace('.',',') : 'Aucun', m.ctr.sh? 'Jusqu’au '+dateL(m.ctr.until) : 'Tout au prix du jour'],
             ['Vos autres entreprises', sav>0? eur(sav,0)+' / j' : '—', sav>0? 'économisés sur leur énergie' : 'Usines et data centers paient leur énergie moins cher']];
   },
   ctl(b){ const m=b.m, d=bizDef(b), out=[];
@@ -10574,7 +10583,7 @@ MET.airline = {
             ['Kérosène', fmtN(alFuel(b),2)+' € / kg', m.hedge? 'Couvert encore '+(m.hedge.until-S.day)+' j' : 'Non couvert']];
   },
   ctl(b){ const m=b.m, d=bizDef(b), out=[];
-    out.push(m.hedge? {k:'buy', act:'hedge', label:'Couverture carburant', owned:true, sub:'70 % du kérosène payé '+fmtN(m.hedge.p,2)+' € / kg jusqu’au jour '+m.hedge.until+'.'} :
+    out.push(m.hedge? {k:'buy', act:'hedge', label:'Couverture carburant', owned:true, sub:'70 % du kérosène payé '+fmtN(m.hedge.p,2)+' € / kg jusqu’au '+dateL(m.hedge.until)+'.'} :
       {k:'btn', act:'hedge', label:'Se couvrir 90 jours au prix du jour', cost:alHedgeCost(b), sub:'70 % du kérosène payé '+fmtN(m.fp*1.03,2)+' € / kg pendant 90 jours, quoi qu’il arrive.'});
     [['fid',1,1.5,'Programme de fidélité','Plus de passagers, surtout en affaires.'],['sal',2,3,'Salons à l’aéroport','Plus de passagers affaires, meilleure image.'],['mnt',3,5,'Maintenance maison','Entretien −20 %, pannes plus courtes.'],['ali',4,8,'Alliance de compagnies','+15 % de demande long-courrier.'],['fret',5,12,'Fret en soute','+8 % de recettes long-courrier.']].forEach(([k2,rk,f,l,s])=>{
       if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:d.cost*f, sub:s}); });
@@ -10963,7 +10972,7 @@ function bizStatus(b){
 }
 function vHomeOld(){
   const t=tierNow(), nx=D.TIERS[t+1];
-  let h=head('Tableau de bord','Jour '+S.day+', '+D.DAYS[wdOf(S.day)].toLowerCase()+'. Décidez, puis passez au jour suivant pour encaisser.');
+  let h=head('Tableau de bord',D.DAYS[wdOf(S.day)]+' '+dateL(S.day)+'. Décidez, puis passez au jour suivant pour encaisser.');
   if(tutOn()) h+=tutCard();
   else if(!S.biz.length && S.day<15) h+='<div class="notice info">Dans Sociétés, choisissez une ville, un quartier puis un bâtiment pour établir votre première entreprise.<div class="row" style="margin-top:8px">'+btn('Choisir une ville','tab',{c:'pri',i:'biz'})+'</div></div>';
   h+=d100Card();
@@ -10973,22 +10982,22 @@ function vHomeOld(){
   const hist=S.nwH; const step=S.nwStep||1;
   const nwCard=card('Valeur nette',
     '<div class="row sp" style="align-items:baseline"><b class="num" style="font-size:26px">'+eur(S.nw)+'</b><span class="sub">Départ : '+eur(S.startCap)+' · pic : '+eur(S.peakNW)+'</span></div>'+
-    lineChart(hist,{x0:'Jour 1',x1:'Jour '+S.day,label:'Évolution de la valeur nette'})+
+    lineChart(hist,{x0:dateS(1),x1:dateS(S.day),label:'Évolution de la valeur nette'})+
     '<div class="stk" style="margin:8px 0 6px">'+pos.map((e,i)=>'<i style="width:'+(e[1]/tot*100).toFixed(2)+'%;background:'+CATCOL[i%9]+'" title="'+e[0]+'"></i>').join('')+'</div>'+
     '<div class="legend">'+pos.map((e,i)=>'<span><i style="background:'+CATCOL[i%9]+'"></i>'+e[0]+' '+eur(e[1])+'</span>').join('')+(bd.Dettes<0?'<span class="neg">Dettes '+eur(bd.Dettes)+'</span>':'')+'</div>');
   /* bilan */
   const fl=S.flLast||{}; const rows=Object.entries(fl).map(([k,v])=>({k,in:v.in,out:v.out,net:v.in-v.out})).sort((a,b)=>Math.abs(b.net)-Math.abs(a.net));
   const tin=rows.reduce((a,r)=>a+r.in,0), tout=rows.reduce((a,r)=>a+r.out,0);
-  const flCard=card('Bilan du jour '+(S.flLastDay||'—'),
+  const flCard=card('Bilan du '+(S.flLastDay? dateL(S.flLastDay) : 'jour'),
     rows.length? '<div class="tw"><table class="tbl"><thead><tr><th>Source</th><th class="r">Entrées</th><th class="r">Sorties</th><th class="r">Net</th></tr></thead><tbody>'+
       rows.slice(0,12).map(r=>'<tr><td>'+esc(srcName(r.k))+'</td><td class="r num">'+(r.in?eur(r.in,0):'')+'</td><td class="r num neg">'+(r.out?eur(r.out,0):'')+'</td><td class="r num '+cls(r.net)+'">'+signed(r.net,0)+'</td></tr>').join('')+
       '</tbody><tfoot><tr><td><b>Total</b></td><td class="r num"><b>'+eur(tin,0)+'</b></td><td class="r num neg"><b>'+eur(tout,0)+'</b></td><td class="r num '+cls(tin-tout)+'"><b>'+signed(tin-tout,0)+'</b></td></tr></tfoot></table></div>'+(rows.length>12?'<div class="sub">+ '+(rows.length-12)+' autres lignes dans le Livre de comptes.</div>':'')
     : '<div class="sub">Aucun flux encore.</div>', {c:'led'});
   /* agenda */
   const ev=[]; const e=taxEstimate();
-  ev.push(['Échéance fiscale', 'Jour '+S.nextTax+' (dans '+(S.nextTax-S.day)+' j)', 'Estimation : '+eur(e.total,0)]);
-  if(S.bills.length) ev.push(['Vote des lois','Jour '+S.bills[0].vote+' (dans '+(S.bills[0].vote-S.day)+' j)',S.bills.length+' projets à l’étude']);
-  else if(!S.country) ev.push(['Prochain cycle législatif','Jour '+(Math.floor(S.day/30)*30+31),'']);
+  ev.push(['Échéance fiscale', dateL(S.nextTax)+' (dans '+(S.nextTax-S.day)+' j)', 'Estimation : '+eur(e.total,0)]);
+  if(S.bills.length) ev.push(['Vote des lois',dateL(S.bills[0].vote)+' (dans '+(S.bills[0].vote-S.day)+' j)',S.bills.length+' projets à l’étude']);
+  else if(!S.country) ev.push(['Prochain cycle législatif',dateL(Math.floor(S.day/30)*30+31),'']);
   S.biz.filter(b=>b.status==='build').forEach(b=>ev.push(['Ouverture : '+b.name,'Dans '+Math.max(0,b.since+b.t-S.day)+' j','']));
   S.biz.filter(b=>b.up).forEach(b=>ev.push(['Agrandissement : '+b.name,'Dans '+b.up.t+' j','Niveau '+b.up.to]));
   S.projects.forEach(p=>ev.push(['Chantier : '+p.name,'Dans '+p.t+' j','']));
@@ -11006,7 +11015,7 @@ function vHomeOld(){
     '<div class="stack" style="margin-top:10px">'+todo.slice(0,4).map(a=>'<div><b>'+a.t+'</b><div class="sub">'+a.d+'</div></div>').join('')+(todo.length?'':'<div class="sub">Tous les objectifs sont atteints.</div>')+'</div>');
   /* journal */
   const jr=S.journal.slice(-14).reverse();
-  const jcard=card('Journal et actualités','<div class="log">'+jr.map(x=>'<div><span class="d">J'+x.d+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>');
+  const jcard=card('Journal et actualités','<div class="log">'+jr.map(x=>'<div><span class="d">'+dateS(x.d)+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>');
   return h+'<div class="grid g2">'+nwCard+flCard+'</div><div class="grid">'+agenda+tcard+ach+'</div>'+jcard;
 }
 
@@ -11096,7 +11105,7 @@ function modalBiz(b){
     /* facteurs */
     if(pr){
       const f=[['Effectif et compétences',pr.sf],['Conjoncture et taux',pr.demand],['Réputation',pr.rep],['Saturation du marché ('+(satIndex(b)+1)+'e exemplaire)',pr.sat],['Effet du prix sur les volumes',pr.vol],['Marketing',MKT_BOOST[b.mkt]],['Quartier et clientèle',pr.loc.aff],['Prestige de l’adresse',pr.loc.pres],['Ville et pouvoir d’achat',pr.loc.city],['Fête en cours',pr.loc.fe],['Satisfaction des clients',pr.csm],['Concurrence ('+intLabel(intensity(rivKey(b))).toLowerCase()+')',pr.comp],['Synergies',synBonus(d)],['Lois et actualité',lawMult(d)*tagMult(d.tags)],['Phase de croissance',startupMult(b)]].filter(x=>Math.abs(x[1]-1)>0.004||x[0].startsWith('Effectif'));
-      body+='<div class="card"><h2>Ce qui fait vos ventes</h2><div class="tw"><table class="tbl"><tbody>'+f.map(x=>'<tr><td>'+x[0]+'</td><td class="r num '+(x[1]>1.004?'pos':x[1]<0.996?'neg':'')+'">'+multPct(x[1])+'</td></tr>').join('')+'</tbody></table></div>'+(d.syn&&synBonus(d)===1?'<div class="sub" style="margin-top:6px">Synergie possible : '+d.syn.txt+' (+'+Math.round(d.syn.b*100)+' %).</div>':'')+(b.mods.length?'<div class="row" style="margin-top:8px">'+b.mods.map(m=>pill(m.label+' jusqu’au jour '+m.until,m.mult>1?'good':'bad')).join('')+'</div>':'')+'</div>';
+      body+='<div class="card"><h2>Ce qui fait vos ventes</h2><div class="tw"><table class="tbl"><tbody>'+f.map(x=>'<tr><td>'+x[0]+'</td><td class="r num '+(x[1]>1.004?'pos':x[1]<0.996?'neg':'')+'">'+multPct(x[1])+'</td></tr>').join('')+'</tbody></table></div>'+(d.syn&&synBonus(d)===1?'<div class="sub" style="margin-top:6px">Synergie possible : '+d.syn.txt+' (+'+Math.round(d.syn.b*100)+' %).</div>':'')+(b.mods.length?'<div class="row" style="margin-top:8px">'+b.mods.map(m=>pill(m.label+' jusqu’au '+dateL(m.until),m.mult>1?'good':'bad')).join('')+'</div>':'')+'</div>';
     }
     body+=bossPanel(b);
     body+='<div class="card" id="bj-eq"><h2>Équipe</h2>'+staffPanel(b,'biz')+'</div>';
@@ -11286,7 +11295,7 @@ function vPol(){
   } else {
     const pre=lobbyPresets(), pi=ui.tmp.lob??1, amt=pre[pi];
     h+='<div class="row sp"><h2 style="font-family:var(--f-display);font-size:24px;text-transform:uppercase;letter-spacing:.05em">Projets de loi</h2><div class="row"><span class="sub">Budget par action :</span><div class="seg">'+pre.map((a,i)=>'<button class="'+(pi===i?'on':'')+'" data-a="lobpre" data-v="'+i+'">'+eur(a,0)+'</button>').join('')+'</div></div></div>';
-    if(!S.bills.length) h+='<div class="notice info">Aucun projet en discussion (prochain cycle : jour '+(Math.floor((S.day-1)/30)*30+31)+').</div>';
+    if(!S.bills.length) h+='<div class="notice info">Aucun projet en discussion (prochain cycle : '+dateL(Math.floor((S.day-1)/30)*30+31)+').</div>';
     h+='<div class="grid">'+S.bills.map(bl=>{ const d=billDef(bl.k), p=billProb(bl);
       return '<section class="card bc"><div class="hd"><b>'+d.t+'</b>'+pill('Vote dans '+Math.max(0,bl.vote-S.day)+' j','info')+'</div><div class="sub">'+d.d+'</div>'+
         '<div><div class="row sp"><span class="sub">Chances d’adoption</span><b class="num">'+Math.round(p*100)+' %</b></div>'+bar(p,p>.6?'g':p>.4?'a':'r')+'</div>'+
@@ -11295,7 +11304,7 @@ function vPol(){
     h+=card('Dons aux partis','<div class="row sp"><div class="sub" style="flex:1;min-width:220px"></div>'+btn('Donner '+eur(amt,0),'donate',{c:'sm pri',v:amt,dis:S.cash<amt||!unlocked(1)})+'</div>'+(!unlocked(1)?'<div class="sub">Disponible dès le palier Entrepreneur.</div>':''));
   }
   h+=electionCard()+offCard();
-  if(S.lawLog.length) h+=card('Historique des votes','<div class="log">'+S.lawLog.slice(0,10).map(x=>'<div><span class="d">J'+x.d+'</span><span class="'+(x.pass?'warn':'')+'">'+(x.decree?'Décret : ':x.pass?'Adoptée : ':'Rejetée : ')+esc(x.t)+'</span></div>').join('')+'</div>');
+  if(S.lawLog.length) h+=card('Historique des votes','<div class="log">'+S.lawLog.slice(0,10).map(x=>'<div><span class="d">'+dateS(x.d)+'</span><span class="'+(x.pass?'warn':'')+'">'+(x.decree?'Décret : ':x.pass?'Adoptée : ':'Rejetée : ')+esc(x.t)+'</span></div>').join('')+'</div>');
   return h;
 }
 
@@ -11304,12 +11313,12 @@ function vBooks(){
   const e=taxEstimate();
   let h=head('Livre de comptes','Votre compte unique : chaque mouvement d’argent est enregistré ici, entreprise par entreprise.');
   h+='<div class="grid">'+card('Trésorerie','<div class="mini"><div><span>Solde</span><b class="num '+(S.cash<0?'neg':'')+'">'+eur(S.cash,0)+'</b></div><div><span>Livret</span><b class="num">'+eur(S.livret.bal,0)+'</b></div><div><span>Dettes</span><b class="num '+(debtTotal()>0?'neg':'')+'">'+eur(debtTotal(),0)+'</b></div></div>')+
-    card('Impôts','<div class="stack"><div class="row sp"><span>Prochaine échéance</span><b>jour '+S.nextTax+'</b></div><div class="tw"><table class="tbl"><tbody><tr><td>Sociétés ('+pct(S.laws.corpTax,0)+')</td><td class="r num">'+eur(e.corp,0)+'</td></tr><tr><td>Revenus du capital ('+pct(S.laws.capTax,0)+')</td><td class="r num">'+eur(e.cap,0)+'</td></tr>'+(S.laws.wealthTax?'<tr><td>Fortune</td><td class="r num">'+eur(e.wealth,0)+'</td></tr>':'')+'<tr><td><b>Estimation</b></td><td class="r num"><b>'+eur(e.total,0)+'</b></td></tr></tbody></table></div><div class="sub">Dernière échéance : '+(S.taxLast.length? S.taxLast.map(x=>x[0]+' '+eur(x[1],0)).join(' · '):'aucune')+'. Les pertes sont reportées sur les mois suivants.</div></div>')+
+    card('Impôts','<div class="stack"><div class="row sp"><span>Prochaine échéance</span><b>'+dateL(S.nextTax)+'</b></div><div class="tw"><table class="tbl"><tbody><tr><td>Sociétés ('+pct(S.laws.corpTax,0)+')</td><td class="r num">'+eur(e.corp,0)+'</td></tr><tr><td>Revenus du capital ('+pct(S.laws.capTax,0)+')</td><td class="r num">'+eur(e.cap,0)+'</td></tr>'+(S.laws.wealthTax?'<tr><td>Fortune</td><td class="r num">'+eur(e.wealth,0)+'</td></tr>':'')+'<tr><td><b>Estimation</b></td><td class="r num"><b>'+eur(e.total,0)+'</b></td></tr></tbody></table></div><div class="sub">Dernière échéance : '+(S.taxLast.length? S.taxLast.map(x=>x[0]+' '+eur(x[1],0)).join(' · '):'aucune')+'. Les pertes sont reportées sur les mois suivants.</div></div>')+
     card('Emprunts','<div class="stack"><div class="sub">Taux actuel : <b>'+fmtN(debtRate(),2)+' %</b> par an, intérêts versés chaque jour. Capacité : <b>'+eur(debtLimit(),0)+'</b> (60 % de vos actifs bruts).</div><div class="row"><label class="sr" for="in-bor">Montant</label><input class="inp w" id="in-bor" inputmode="numeric" placeholder="Montant en €" data-q="bor" value="'+(ui.qty.bor||'')+'">'+btn('Emprunter','borrow',{c:'sm pri'})+'</div>'+
     S.debts.map(d=>'<div class="row sp" style="border-top:1px solid var(--line);padding-top:6px"><span class="num">'+eur(d.p,0)+' à '+d.r.toFixed(2)+' %</span><span class="row">'+btn('Rembourser '+eur(Math.min(d.p,Math.max(0,S.cash)),0),'repay',{c:'sm',i:d.id,v:'part',dis:S.cash<=0})+btn('Tout','repay',{c:'sm ghost',i:d.id,v:'all',dis:S.cash<d.p})+'</span></div>').join('')+'</div>')+'</div>';
   const G=glInit(), rows=Object.entries(G.s).map(([k,v])=>({k, n:srcName(k), i:v.in, o:v.out, net:v.in-v.out})).filter(r=>r.i>.5||r.o>.5).sort((a,c)=>Math.abs(c.net)-Math.abs(a.net));
   const T=rows.reduce((a,r)=>({i:a.i+r.i,o:a.o+r.o}),{i:0,o:0});
-  h+=card('Grand livre','<div class="sub" style="margin-bottom:8px">Depuis les derniers impôts (jour '+G.since+'). Revenus, dépenses et résultat net de chaque entreprise et de chaque activité.</div>'+
+  h+=card('Grand livre','<div class="sub" style="margin-bottom:8px">Depuis les derniers impôts (le '+dateL(G.since)+'). Revenus, dépenses et résultat net de chaque entreprise et de chaque activité.</div>'+
     '<div class="tw"><table class="tbl"><thead><tr><th>Source</th><th class="r">Revenus</th><th class="r">Dépenses</th><th class="r">Net</th></tr></thead><tbody>'+
     (rows.length? rows.map(r=>'<tr><td>'+esc(r.n)+'</td><td class="r num pos">'+eur(r.i,0)+'</td><td class="r num neg">'+eur(r.o,0)+'</td><td class="r num '+(r.net>=0?'pos':'neg')+'"><b>'+signed(r.net,0)+'</b></td></tr>').join('')+
       '<tr><td><b>Total</b></td><td class="r num pos"><b>'+eur(T.i,0)+'</b></td><td class="r num neg"><b>'+eur(T.o,0)+'</b></td><td class="r num '+(T.i-T.o>=0?'pos':'neg')+'"><b>'+signed(T.i-T.o,0)+'</b></td></tr>' : '<tr><td colspan="4" class="sub">Aucun mouvement depuis les derniers impôts.</td></tr>')+
@@ -11336,7 +11345,7 @@ function vTitle(){
   const n=svCount(), last=svLast(), m=last? SV.meta[last-1] : null, rdy=SV.ready;
   let main;
   if(!rdy) main=btn('Chargement…','noop',{c:'pri stamp',dis:true});
-  else if(m) main=btn('Continuer','continue',{c:'pri stamp'})+'<div class="sub tc"><b>'+esc(m.name)+'</b> · jour '+m.day+' · '+eur(m.nw,0)+'<br>Emplacement '+last+' · '+svAgo(m.updated)+'</div>';
+  else if(m) main=btn('Continuer','continue',{c:'pri stamp'})+'<div class="sub tc"><b>'+esc(m.name)+'</b> · '+dateL(m.day)+' · '+eur(m.nw,0)+'<br>Emplacement '+last+' · '+svAgo(m.updated)+'</div>';
   else main=btn('Nouvelle partie','slotnew',{c:'pri stamp',i:1});
   return '<div class="start"><div><div class="tag">Jeu de simulation économique</div><h1>Idle<br>Business<i>.</i></h1></div>'+
     '<p style="margin:0" class="mut">Bâtissez un empire financier, jour après jour.</p>'+
@@ -11346,7 +11355,7 @@ function vTitle(){
 function slotCard(i){
   const m=SV.meta[i-1];
   if(!m) return '<button class="slot empty" data-a="slotnew" data-i="'+i+'"><span class="sn">'+i+'</span><span class="sb"><b>Emplacement libre</b><small>Toucher pour créer une nouvelle partie</small></span></button>';
-  return '<div class="slot"><button class="slot-main" data-a="slotplay" data-i="'+i+'"><span class="sn">'+i+'</span><span class="sb"><b>'+esc(m.name)+'</b><small>Jour '+m.day+' · '+eur(m.nw,0)+' · '+D.TIERS[m.tier].n+'</small><small>'+svAgo(m.updated)+'</small></span></button>'+
+  return '<div class="slot"><button class="slot-main" data-a="slotplay" data-i="'+i+'"><span class="sn">'+i+'</span><span class="sb"><b>'+esc(m.name)+'</b><small>'+dateL(m.day)+' · '+eur(m.nw,0)+' · '+D.TIERS[m.tier].n+'</small><small>'+svAgo(m.updated)+'</small></span></button>'+
     '<button class="btn sm dng" data-a="slotdel" data-i="'+i+'" aria-label="Supprimer la sauvegarde de l’emplacement '+i+'">Supprimer</button></div>';
 }
 function newGameForm(slot){
@@ -11394,7 +11403,7 @@ function barEditor(){
 function vAgency(){
   const A=agencyInit(), lvl=A.lvl, nx=lvl+1, maxed=nx>=AG.names.length;
   const ents=agencyEnts(), vac=agencyVacancies();
-  let h=head('Agence de recrutement','Un vivier de candidats pour toutes vos sociétés, renouvelé chaque lundi. Vous payez des frais d’agence à chaque embauche.');
+  let h=head('Agence de recrutement','Un vivier de candidats pour toutes vos sociétés, renouvelé chaque jour. Vous payez des frais d’agence à chaque embauche.');
   /* Agence */
   let up='';
   if(!maxed){
@@ -11422,7 +11431,7 @@ function vAgency(){
   if(ui.agRole && ui.agRole!=='all' && !allRoles.includes(ui.agRole)) ui.agRole='all';
   const cur=ui.agRole||'all';
   const list=A.pool.filter(c=>cur==='all'||c.role===cur);
-  let body='<div class="stack"><div class="row">'+btn('Nouveau vivier ('+eur(AG.refresh[lvl],0)+')','agrefresh',{c:'sm',dis:!ents.length||S.cash<AG.refresh[lvl]})+'<span class="sub">Prochain renouvellement gratuit : jour '+(A.day+7)+'.</span></div><div class="row sp"><div class="seg" role="group" aria-label="Filtrer par poste">'+
+  let body='<div class="stack"><div class="row">'+btn('Nouveau vivier ('+eur(AG.refresh[lvl],0)+')','agrefresh',{c:'sm',dis:!ents.length||S.cash<AG.refresh[lvl]})+'<span class="sub">Nouveau vivier gratuit chaque jour ; ce bouton en tire un autre aussitôt.</span></div><div class="row sp"><div class="seg" role="group" aria-label="Filtrer par poste">'+
     [['all','Tous']].concat(allRoles.map(r=>[r,D.ROLES[r].s])).map(([k,t])=>'<button class="'+(cur===k?'on':'')+'" data-a="agrole" data-v="'+k+'">'+t+'</button>').join('')+'</div>'+
     (lvl>=1&&cur!=='all'? btn('Recherche ciblée : '+D.ROLES[cur].s+' ('+eur(agencySearchCost(cur),0)+')','agsearch',{c:'sm',j:cur,dis:S.cash<agencySearchCost(cur)}) : '')+'</div>';
   if(lvl>=1&&cur==='all') body+='<div class="sub"></div>';
@@ -11443,13 +11452,13 @@ function vAgency(){
 function hrCard(){
   const L=hrLvl(), nx=L+1, maxed=nx>=HR.names.length;
   let body='<div class="stack"><div class="lvl" aria-label="Niveau '+(L+1)+' sur '+HR.names.length+'">'+HR.names.map((n,i)=>'<i class="'+(i<=L?'on':'')+'"></i>').join('')+'</div>'+
-    '<div class="sub">'+(L? HR.desc[L] : 'Sans service RH, vous recrutez à la main. Un service RH comble les postes vacants chaque lundi avec les profils de l’agence, et limite la fatigue.')+'</div>';
-  if(L) body+='<div class="mini"><div><span>Postes pourvus / lundi et mercredi</span><b>'+HR.fill[L]+'</b></div><div><span>Coût</span><b class="num">'+eur(HR.day[L]*progMult(),0)+' / j</b></div><div><span>Fidélité</span><b>+'+HR.loy[L]+'</b></div></div>';
+    '<div class="sub">'+(L? HR.desc[L] : 'Sans service RH, vous recrutez à la main. Un service RH pourvoit chaque jour les postes vacants avec les candidats de l’agence qui respectent vos critères, et limite la fatigue.')+'</div>';
+  if(L) body+='<div class="mini"><div><span>Postes pourvus</span><b>Chaque jour, selon vos critères</b></div><div><span>Coût</span><b class="num">'+eur(HR.day[L]*progMult(),0)+' / j</b></div><div><span>Fidélité</span><b>+'+HR.loy[L]+'</b></div></div>';
   if(!maxed){ const lock=!unlocked(HR.tier[nx]);
     body+='<div class="notice info"><b>Prochain niveau : '+HR.names[nx]+'.</b> '+HR.desc[nx]+' '+eur(HR.day[nx],0)+' par jour.</div><div class="row">'+btn((L?'Améliorer':'Créer')+' ('+eur(HR.cost[nx],0)+')','hrup',{c:'pri',dis:lock||S.cash<HR.cost[nx]})+(lock?'<span class="sub">Palier « '+D.TIERS[HR.tier[nx]].n+' » requis.</span>':'')+'</div>';
   } else body+='<div class="notice good">Niveau maximal atteint.</div>';
   if(L){ const H=hrSet(), seg=(k,Lst,f)=>'<div class="seg">'+Lst.map((v,i)=>'<button class="'+(H[k]===i?'on':'')+'" data-a="hrset" data-j="'+k+'" data-v="'+i+'">'+(i?f(v):'Peu importe')+'</button>').join('')+'</div>';
-    body+='<div class="stack"><b>Profils visés</b><div class="sub">Le service RH recrute le lundi et le mercredi, uniquement des profils au-dessus de vos minimums.</div>'+
+    body+='<div class="stack"><b>Profils visés</b><div class="sub">Chaque jour, le service RH embauche dans le vivier tous les candidats au-dessus de vos minimums, jusqu’à pourvoir tous les postes. Le lundi, s’il reste des postes vides, il complète avec des profils moyens, seulement s’ils respectent aussi vos minimums.</div>'+
       '<span class="sub">Productivité minimale (sur 100)</span>'+seg('prod',HR_PROD,v=>String(v))+'<span class="sub">Fiabilité minimale</span>'+seg('rel',HR_REL,v=>v+' %')+'<span class="sub">Fidélité minimale (sur 100)</span>'+seg('loy',HR_LOY,v=>String(v))+
       '<b>Moral des directeurs</b><div class="sub">Sous ce seuil, le service RH augmente le directeur de 10 % (une fois par mois au plus).</div>'+seg('boss',HR_BOSS,v=>'Moral < '+v)+'</div>'; }
   return card(L? 'Service RH : '+HR.names[L] : 'Service RH', body+'</div>');
@@ -11523,8 +11532,8 @@ function vGuide(){
       'Chaque poste a une <b>productivité</b>, une <b>fiabilité</b> et une <b>fidélité</b>. Un salaire généreux fidélise, un salaire faible fait démissionner.',
       'Les managers multiplient l’efficacité de l’équipe. Un effectif incomplet réduit les ventes.',
       'Licencier coûte des indemnités et baisse la réputation.',
-      '<b>Agence de recrutement</b> : vivier commun à toutes vos sociétés, renouvelé chaque lundi. Frais d’agence à chaque embauche. Quatre niveaux (intérim, cabinet, chasseur de têtes, élite) : vivier plus large, meilleurs profils, frais plus élevés. Recherche ciblée dès le cabinet.',
-      '<b>Service RH</b> (3 niveaux) : comble seul les postes vacants chaque lundi avec les profils de l’agence, améliore la fidélité et limite la fatigue, contre un coût quotidien.',
+      '<b>Agence de recrutement</b> : vivier commun à toutes vos sociétés, renouvelé chaque jour. Frais d’agence à chaque embauche. Quatre niveaux (intérim, cabinet, chasseur de têtes, élite) : vivier plus large, meilleurs profils, frais plus élevés. Recherche ciblée dès le cabinet.',
+      '<b>Service RH</b> (3 niveaux) : pourvoit seul, chaque jour, tous les postes vacants dès qu’un candidat de l’agence respecte vos critères minimaux (le lundi, il complète avec des profils moyens s’ils respectent aussi ces critères), améliore la fidélité et limite la fatigue, contre un coût quotidien.',
       'L’activité <b>Agence de recrutement</b> (palier Entrepreneur) réduit vos frais d’agence de 8 % par niveau, agrandit le vivier et améliore les profils.'
     ])),
     sec('Banque',ul([
@@ -11766,7 +11775,7 @@ function doNext(n,quiet){
     }
     ev.forEach(pushModal);
   }
-  if(n>1 && S.day-d0<n && !S.over) toast('Arrêt anticipé au jour '+S.day+' : événement important.','bad');
+  if(n>1 && S.day-d0<n && !S.over) toast('Arrêt anticipé le '+dateL(S.day)+' : événement important.','bad');
   render(); saveGame();
 }
 
@@ -11832,7 +11841,7 @@ const ACT={
   continue:async()=>{ const sl=svLast(); if(!sl) return; if(await svLoadGame(sl)){ computeNW(); ui.tab='home'; ui.delta=null; ui.modal=offmDays()>0?{type:'offline',n:offmDays()}:null; mount(); render(); } else toast('Cette sauvegarde est illisible.','bad'); },
   slotplay:async el=>{ const sl=+el.dataset.i; if(await svLoadGame(sl)){ computeNW(); ui.tab='home'; ui.delta=null; ui.modal=offmDays()>0?{type:'offline',n:offmDays()}:null; mount(); render(); } else toast('Cette sauvegarde est illisible.','bad'); },
   slotnew:el=>{ ui.modal={type:'newgame',slot:+el.dataset.i}; render(); },
-  slotdel:el=>{ const sl=+el.dataset.i, m=SV.meta[sl-1]; if(!m) return; ask('Supprimer la sauvegarde','Supprimer <b>'+esc(m.name)+'</b> (jour '+m.day+') ? Cette action est définitive.','Supprimer',()=>{ svDelete(sl).then(()=>{ ui.modal={type:'saves'}; render(); }); }); },
+  slotdel:el=>{ const sl=+el.dataset.i, m=SV.meta[sl-1]; if(!m) return; ask('Supprimer la sauvegarde','Supprimer <b>'+esc(m.name)+'</b> ('+dateL(m.day)+') ? Cette action est définitive.','Supprimer',()=>{ svDelete(sl).then(()=>{ ui.modal={type:'saves'}; render(); }); }); },
   theme:el=>{ setTheme(el.dataset.v); render(); },
   speed:el=>{ ui.speed=+el.dataset.v; render(); },
   startnew:async el=>{ const slot=+el.dataset.i||svFree()||1; const name=($('#in-name').value||'Ma Holding').trim().slice(0,40)||'Ma Holding'; const cap=+$('#sel-cap').value; const df=$('#sel-diff')? $('#sel-diff').value : 'hard'; const md=$('#sel-mode')? $('#sel-mode').value : 'classic'; await svNewGame(slot,name,cap,df,md); ui.tab='home'; ui.delta=null; ui.modal=null; mount(); render(); },
@@ -11979,7 +11988,7 @@ function rpPrefs(){
   p.order=p.order.filter((k,i,a)=>RPB[k]&&a.indexOf(k)===i); Object.keys(RPB).forEach(k=>{ if(!p.order.includes(k)) p.order.push(k); });
   p.off=p.off||{}; return p;
 }
-function rpTitle(s){ return s.days===1? 'Rapport · jour '+s.d1 : 'Rapport · '+s.days+' jours'; }
+function rpTitle(s){ return s.days===1? 'Rapport du '+dateL(s.d1) : 'Rapport · '+s.days+' jours'; }
 const RPR={
   global:s=>{
     const oth=s.other.reduce((a,x)=>a+x.net,0);
@@ -11990,7 +11999,7 @@ const RPR={
     '<div class="tw"><table class="tbl"><thead><tr><th>Entreprise</th><th class="r">Ventes</th><th class="r">Dépenses</th><th class="r">Net</th></tr></thead><tbody>'+
       s.rows.map(r=>'<tr><td><b>'+esc(r.name)+'</b><div class="sub">'+esc(cityName(r.city))+'</div></td><td class="r num">'+eur(r.rev,0)+'</td><td class="r num neg">'+eur(r.exp,0)+'</td><td class="r num '+cls(r.net)+'">'+signed(r.net,0)+'</td></tr>').join('')+
     '</tbody><tfoot><tr><td><b>Total</b></td><td class="r num"><b>'+eur(s.rev,0)+'</b></td><td class="r num neg"><b>'+eur(s.exp,0)+'</b></td><td class="r num '+cls(s.net)+'"><b>'+signed(s.net,0)+'</b></td></tr></tfoot></table></div>',
-  journal:s=>{ const mine=s.journal.filter(x=>x.k!=='news'), j=mine.slice(-10).concat(s.journal.filter(x=>x.k==='news').slice(-Math.max(0,10-Math.min(10,mine.length)))).sort((x,y)=>(y.d-x.d)||((x.k==='news')-(y.k==='news'))); return j.length? '<div class="log">'+j.map(x=>'<div><span class="d">J'+x.d+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':x.k==='club'?'<span class="tag" style="margin-right:6px">Club</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>' : '<div class="sub">Rien à signaler.</div>'; },
+  journal:s=>{ const mine=s.journal.filter(x=>x.k!=='news'), j=mine.slice(-10).concat(s.journal.filter(x=>x.k==='news').slice(-Math.max(0,10-Math.min(10,mine.length)))).sort((x,y)=>(y.d-x.d)||((x.k==='news')-(y.k==='news'))); return j.length? '<div class="log">'+j.map(x=>'<div><span class="d">'+dateS(x.d)+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':x.k==='club'?'<span class="tag" style="margin-right:6px">Club</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>' : '<div class="sub">Rien à signaler.</div>'; },
   fest:s=>{
     const cities=[...new Set(S.biz.map(b=>b.city))];
     const up=[]; cities.forEach(c=>festNext(c).forEach(x=>{ if(!x.on&&x.in<=30) up.push(x); })); up.sort((a,b)=>a.in-b.in);
@@ -12083,7 +12092,7 @@ function vRivals(){
   /* rivaux */
   { const keys=[...new Set(S.biz.filter(b=>b.status==='active').map(rivKey))];
     h+=card('Vos marchés', keys.length? '<div class="stack">'+keys.map(k=>{ const I=intensity(k), nc=ncOn(k);
-      return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:170px"><b>'+esc(keyLabel(k))+'</b><div class="sub">Concurrence : '+intLabel(I)+(nc?' · contrat jusqu’au jour '+S.riv.nc[k]:'')+'</div></div>'+(nc? pill('Protégé','good') : btn('Non-concurrence : '+eur(ncPrice(k),0),'ncbuy',{c:'sm',i:k,dis:S.cash<ncPrice(k)}))+'</div>'; }).join('')+'</div><div class="sub">Un contrat de non-concurrence écarte les rivaux d’un marché pendant 90 jours.</div>' : '<div class="sub">Lancez d’abord une entreprise.</div>'); }
+      return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:170px"><b>'+esc(keyLabel(k))+'</b><div class="sub">Concurrence : '+intLabel(I)+(nc?' · contrat jusqu’au '+dateL(S.riv.nc[k]):'')+'</div></div>'+(nc? pill('Protégé','good') : btn('Non-concurrence : '+eur(ncPrice(k),0),'ncbuy',{c:'sm',i:k,dis:S.cash<ncPrice(k)}))+'</div>'; }).join('')+'</div><div class="sub">Un contrat de non-concurrence écarte les rivaux d’un marché pendant 90 jours.</div>' : '<div class="sub">Lancez d’abord une entreprise.</div>'); }
   h=h.replace(head('Rivaux'),head('Rivaux')+magnatesCard());
   h+=card('Les rivaux','<div class="stack">'+D.RIVALS.filter(r=>!R.rv[r.id].gone).map(r=>{ const v=R.rv[r.id], ks=Object.keys(v.pres).filter(k=>cityVisible(k.split('|')[0])).sort((a,b)=>v.pres[b]-v.pres[a]);
     const mine=new Set(S.biz.map(rivKey));
@@ -12262,18 +12271,18 @@ function modalAsset(cls,id){
   if(os.length) body+='<div class="stack">'+os.map(orderRow).join('')+'</div>';
   return {title:esc(d.n)+' ('+esc(d.id)+')',body,sm:true};
 }
-function orderRow(o){ const a=assetInfo(o.cls,o.aid); return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:6px"><div><b>'+esc(a?a.name:o.aid)+'</b><div class="sub">'+ORDN[o.kind]+' '+eur(o.px,o.px<10?4:2)+(o.kind==='buy'?' · '+eur(o.amt,0):' · '+Math.round(o.amt*100)+' %')+' · jusqu’au jour '+o.exp+'</div></div>'+btn('Annuler','ocancel',{c:'sm ghost',i:o.id})+'</div>'; }
+function orderRow(o){ const a=assetInfo(o.cls,o.aid); return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:6px"><div><b>'+esc(a?a.name:o.aid)+'</b><div class="sub">'+ORDN[o.kind]+' '+eur(o.px,o.px<10?4:2)+(o.kind==='buy'?' · '+eur(o.amt,0):' · '+Math.round(o.amt*100)+' %')+' · jusqu’au '+dateL(o.exp)+'</div></div>'+btn('Annuler','ocancel',{c:'sm ghost',i:o.id})+'</div>'; }
 function ordersCard(cls){ const os=(S.orders||[]).filter(o=>o.cls===cls); return card('Ordres automatiques', os.length? '<div class="stack">'+os.map(orderRow).join('')+'</div>' : '<div class="sub">Touchez le nom d’un actif pour voir son graphique et placer un achat limite, une vente limite ou un stop-loss.</div>'); }
 function saveCard(){ const p=(S.save&&S.save.pct)||0; return card('Épargne automatique','<div class="stack"><div class="sub">Chaque jour, une part du bénéfice de vos entreprises part sur le livret.</div><div class="seg">'+[0,.1,.25,.5].map(x=>'<button class="'+(p===x?'on':'')+'" data-a="saveset" data-v="'+x+'">'+(x?Math.round(x*100)+' %':'Non')+'</button>').join('')+'</div></div>'); }
 function electionCard(){
   if(S.country) return '';
   const E=elecInit();
   let b='<div class="stack">';
-  if(E.ally) b+='<div class="notice good">Gouverneur allié : <b>'+esc(E.ally.name)+'</b> jusqu’au jour '+E.ally.until+'. Contrôles fiscaux réduits.</div>';
+  if(E.ally) b+='<div class="notice good">Gouverneur allié : <b>'+esc(E.ally.name)+'</b> jusqu’au '+dateL(E.ally.until)+'. Contrôles fiscaux réduits.</div>';
   else if(E.last) b+='<div class="sub">Gouverneur actuel : <b>'+esc(E.last.name)+'</b> ('+esc(E.last.party)+').</div>';
-  if(!E.cands.length) b+='<div class="sub">Prochaine élection au jour '+E.next+'. La campagne s’ouvre 45 jours avant.</div>';
+  if(!E.cands.length) b+='<div class="sub">Prochaine élection le '+dateL(E.next)+'. La campagne s’ouvre 45 jours avant.</div>';
   else { const amt=lobbyPresets()[ui.tmp.lob??1];
-    b+='<div class="row sp"><span class="sub">Vote au jour <b>'+E.next+'</b> (dans '+(E.next-S.day)+' j)</span><span class="sub">Don : '+eur(amt,0)+'</span></div>'+E.cands.map(c=>{ const p=pollOf(c);
+    b+='<div class="row sp"><span class="sub">Vote le <b>'+dateL(E.next)+'</b> (dans '+(E.next-S.day)+' j)</span><span class="sub">Don : '+eur(amt,0)+'</span></div>'+E.cands.map(c=>{ const p=pollOf(c);
       return '<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:8px"><div class="row sp"><div><b>'+esc(c.name)+'</b><div class="sub">'+esc(c.party)+'</div></div><b class="num">'+Math.round(p*100)+' %</b></div>'+bar(p,c.lean>0?'g':c.lean<0?'r':'a')+
         '<div class="sub">Programme : '+(c.prog.length? c.prog.map(k=>esc(billDef(k).t)).join(' ; ') : 'statu quo')+'.'+(c.fund+c.offf?' Votre soutien : '+eur(c.fund+c.offf,0)+'.':'')+'</div>'+
         '<div class="row">'+btn('Financer','fund',{c:'sm pri',i:c.id,v:amt,dis:S.cash<amt||!unlocked(1)})+(S.off&&S.off.on?btn('Financer via l’offshore','fundoff',{c:'sm',i:c.id,v:amt,dis:S.off.bal<amt}):'')+'</div></div>'; }).join('');
@@ -12375,11 +12384,11 @@ function vLogi(){
       '<div class="row"><div class="seg"><button class="'+(b.fmode!=='store'?'on':'')+'" data-a="fmode" data-i="'+b.id+'" data-v="sell">Vendre</button><button class="'+(b.fmode==='store'?'on':'')+'" data-a="fmode" data-i="'+b.id+'" data-v="store">Stocker</button></div>'+btn('Vendre le stock','gsell',{c:'sm',i:b.id,dis:st<1})+'</div></div>'; }).join('')+'</div><div class="sub">Une usine en mode vente garde quand même la production nécessaire à vos contrats. Chaque entrepôt de la même ville ajoute 15 jours de stockage par niveau.</div>'
     : '<div class="notice info">Établissez une usine (textile, composants, smartphones) ou une ferme dans un entrepôt ou sur un terrain, depuis Sociétés.</div>');
   if(I.offers.length) h+=card('Contrats proposés','<div class="stack">'+I.offers.map(o=>{ const G=D.GOODS[o.g];
-    return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:180px"><b>'+esc(o.client)+'</b><div class="sub">'+fmtN(o.qty)+' '+G.u+' de '+G.n.toLowerCase()+' à livrer à '+esc(cityName(o.city))+' avant le jour '+o.due+' · '+eur(o.px,2)+' l’unité ('+Math.round((o.px/gPrice(o.g)-1)*100)+' % au-dessus du gros) · total '+eur(o.qty*o.px,0)+'</div></div>'+btn('Accepter','ctacc',{c:'sm pri',i:o.id})+'</div>'; }).join('')+'</div><div class="sub">Pénalité de 15 % et réputation en baisse si le contrat n’est pas livré à temps.</div>');
+    return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:180px"><b>'+esc(o.client)+'</b><div class="sub">'+fmtN(o.qty)+' '+G.u+' de '+G.n.toLowerCase()+' à livrer à '+esc(cityName(o.city))+' avant le '+dateL(o.due)+' · '+eur(o.px,2)+' l’unité ('+Math.round((o.px/gPrice(o.g)-1)*100)+' % au-dessus du gros) · total '+eur(o.qty*o.px,0)+'</div></div>'+btn('Accepter','ctacc',{c:'sm pri',i:o.id})+'</div>'; }).join('')+'</div><div class="sub">Pénalité de 15 % et réputation en baisse si le contrat n’est pas livré à temps.</div>');
   const act=I.active;
   h+=card('Contrats en cours', act.length? '<div class="stack">'+act.map(c=>{ const G=D.GOODS[c.g], sh=I.ship.find(s=>s.cid===c.id);
     const src=S.biz.filter(x=>goodOf(x)===c.g);
-    return '<div class="stack" style="gap:6px;border-bottom:1px solid var(--line);padding-bottom:10px"><div class="row sp"><div><b>'+esc(c.client)+'</b><div class="sub">'+fmtN(c.qty)+' '+G.u+' → '+esc(cityName(c.city))+' · avant le jour '+c.due+' · '+eur(c.qty*c.px,0)+'</div></div>'+(sh?pill('En route, arrivée jour '+sh.arr,'info'):pill(c.due-S.day<0?'En retard':'Dans '+(c.due-S.day)+' j',c.due-S.day<5?'warn':''))+'</div>'+
+    return '<div class="stack" style="gap:6px;border-bottom:1px solid var(--line);padding-bottom:10px"><div class="row sp"><div><b>'+esc(c.client)+'</b><div class="sub">'+fmtN(c.qty)+' '+G.u+' → '+esc(cityName(c.city))+' · avant le '+dateL(c.due)+' · '+eur(c.qty*c.px,0)+'</div></div>'+(sh?pill('En route, arrivée le '+dateS(sh.arr),'info'):pill(c.due-S.day<0?'En retard':'Dans '+(c.due-S.day)+' j',c.due-S.day<5?'warn':''))+'</div>'+
       (sh? '' : '<div class="stack" style="gap:4px">'+src.map(b=>{ const R=route(b.city,c.city);
         return '<div class="row sp"><span class="sub">Depuis '+esc(cityName(b.city))+' : '+R.days+' j, transport '+eur(c.qty*G.v*R.rate,0)+' · stock '+fmtN(b.goods||0)+'</span>'+btn('Expédier','ctship',{c:'sm',i:c.id,j:b.id,dis:(b.goods||0)<c.qty})+'</div>'; }).join('')+'<div class="sub">Expédition automatique dès que le stock suffit, depuis l’usine la plus proche.</div></div>')+'</div>'; }).join('')+'</div>' : '<div class="sub">Aucun contrat.</div>');
   h+=card('Transport','<div class="tw"><table class="tbl"><thead><tr><th>Trajet</th><th class="r">Durée</th><th class="r">Coût</th></tr></thead><tbody>'+
@@ -12442,8 +12451,8 @@ function modalShop(id){
   let body='<div class="sub">'+esc(bd.addr)+', '+esc(distOfB(bd).n)+', '+esc(cityName(sh.city))+'</div>'+
     '<div class="mini"><div><span>Activité</span><b style="font-size:16px">'+esc(d.n)+'</b></div><div><span>Niveau</span><b>'+sh.lvl+'</b></div><div><span>Valeur estimée</span><b class="num">'+eur(v,0)+'</b></div><div><span>Bénéfice / j</span><b class="num">'+eur(shopProfit(sh),0)+'</b></div></div>';
   if(lock) body+='<div class="notice">Activité accessible au palier '+D.TIERS[d.tier].n+'.</div>';
-  else if(sh.counter) body+='<div class="notice info">'+esc(r.n)+' propose <b>'+eur(sh.counter.px,0)+'</b> jusqu’au jour '+sh.counter.exp+'.</div><div class="row sp">'+btn('Refuser','shopno',{c:'ghost',i:sh.id})+btn('Accepter '+eur(sh.counter.px,0),'shopyes',{c:'pri',i:sh.id})+'</div>';
-  else if(sh.cool&&S.day<sh.cool) body+='<div class="notice">'+esc(r.n)+' refuse de négocier avant le jour '+sh.cool+'.</div>';
+  else if(sh.counter) body+='<div class="notice info">'+esc(r.n)+' propose <b>'+eur(sh.counter.px,0)+'</b> jusqu’au '+dateL(sh.counter.exp)+'.</div><div class="row sp">'+btn('Refuser','shopno',{c:'ghost',i:sh.id})+btn('Accepter '+eur(sh.counter.px,0),'shopyes',{c:'pri',i:sh.id})+'</div>';
+  else if(sh.cool&&S.day<sh.cool) body+='<div class="notice">'+esc(r.n)+' refuse de négocier avant le '+dateL(sh.cool)+'.</div>';
   else body+='<div class="tag">Votre offre</div><div class="row">'+[.8,.9,1,1.1,1.25].map(k=>btn(Math.round(k*100)+' % · '+eur(Math.round(v*k/100)*100,0),'shopbid',{c:'sm'+(k===1?' pri':''),i:sh.id,v:Math.round(v*k/100)*100})).join('')+'</div><div class="sub">Une offre trop basse vexe le vendeur (10 jours sans négociation) ; une offre proche de son prix entraîne une contre-offre. L’enseigne rachetée ouvre aussitôt avec son équipe.</div>';
   return {title:'Racheter : '+esc(r.n),body,sm:true};
 }
@@ -12476,7 +12485,7 @@ Object.assign(ACT,{
 function bldExtra(bd){
   const h=bldHeld(bd.id); if(!h) return '';
   const c=consOf(bd.id);
-  if(c) return '<div class="notice info">Chantier : '+D.PLANS[c.k].n+', livraison au jour '+c.end+'.</div>';
+  if(c) return '<div class="notice info">Chantier : '+D.PLANS[c.k].n+', livraison le '+dateL(c.end)+'.</div>';
   if(bd.t==='land'&&h.st==='own'&&!(h.biz&&S.biz.some(b=>b.id===h.biz))) return '<div>'+btn('Construire sur ce terrain','plansopen',{c:'sm',i:bd.id})+'</div>';
   if(bd.t==='home'){ const P=D.PLANS[bd.plan]||D.PLANS.villa; return '<div class="row sp"><span class="sub">'+(h.lease?'Loué : +'+eur(bldValue(bd.id)*0.045/360,0)+' / j, prestige +'+P.pr/2:'Habité : prestige +'+P.pr+'. Location possible : +'+eur(bldValue(bd.id)*0.045/360,0)+' / j')+'</span>'+btn(h.lease?'Arrêter la location':'Louer','lease',{c:'sm',i:bd.id,v:h.lease?0:1})+'</div>'; }
   return '';
@@ -12503,7 +12512,7 @@ function bossPanel(b){
   const x=b.boss;
   let h='<div class="card"><h2>Directeur du site</h2><div class="stack">';
   if(x){
-    h+='<div class="row sp"><div><b>'+esc(x.name)+'</b><div class="sub">En poste depuis le jour '+x.since+' · '+eur(x.sal,0)+' / jour</div></div>'+pill('Moral '+Math.round(x.mood),x.mood<45?'bad':x.mood<60?'warn':'good')+'</div>'+
+    h+='<div class="row sp"><div><b>'+esc(x.name)+'</b><div class="sub">En poste depuis le '+dateL(x.since)+' · '+eur(x.sal,0)+' / jour</div></div>'+pill('Moral '+Math.round(x.mood),x.mood<45?'bad':x.mood<60?'warn':'good')+'</div>'+
       '<div class="crit">'+Object.keys(SKN).map(k=>'<div><span>'+SKN[k]+' '+x.sk[k]+'/10</span>'+bar(x.sk[k]/10,x.sk[k]<4?'r':x.sk[k]<7?'a':'g')+'</div>').join('')+'</div>'+
       '<div class="sub">Vente : ventes '+pctS(0.015*(x.sk.ven-5))+'. Gestion : fatigue de l’équipe. Rigueur : incidents.</div>'+
       '<div class="row">'+Object.keys(SKN).map(k=>btn('Former en '+SKN[k].toLowerCase()+' ('+eur(x.sal*12*x.sk[k]/5,0)+')','btrain',{c:'sm',i:b.id,v:k,dis:S.day-x.tr<30||x.sk[k]>=10})).join('')+'</div>'+
@@ -12592,7 +12601,7 @@ function bizAlertSet(){ const set={}; S.biz.forEach(b=>{ if(b.status!=='active')
 
 function vHome(){
   const t=tierNow(), cur=D.TIERS[t], nx=D.TIERS[t+1];
-  let h=head('Tableau de bord','Jour '+S.day+', '+D.DAYS[wdOf(S.day)].toLowerCase()+'.');
+  let h=head('Tableau de bord',D.DAYS[wdOf(S.day)]+' '+dateL(S.day)+'.');
   if(tutOn()) h+=tutCard();
   else if(!S.biz.length && S.day<15) h+='<div class="notice info">Dans Sociétés, choisissez une ville, un quartier puis un bâtiment pour établir votre première entreprise.<div class="row" style="margin-top:8px">'+btn('Choisir une ville','tab',{c:'pri',i:'biz'})+'</div></div>';
   h+=d100Card();
@@ -12606,7 +12615,7 @@ function vHome(){
   const bd=nwBreakdown(); const pos=Object.entries(bd).filter(e=>e[1]>0.5); const tot=pos.reduce((a,e)=>a+e[1],0)||1;
   h+='<section class="card hero"><div class="row sp"><span class="hl">Valeur nette</span>'+(rows.length?pill((dnet>=0?'▲ ':'▼ ')+signed(dnet,0)+' hier',dnet>=0?'good':'bad'):'')+'</div>'+
     '<b class="hbig num">'+eur(S.nw,0)+'</b>'+
-    lineChart(S.nwH,{h:110,x0:'Jour 1',x1:'Jour '+S.day,label:'Évolution de la valeur nette'})+
+    lineChart(S.nwH,{h:110,x0:dateS(1),x1:dateS(S.day),label:'Évolution de la valeur nette'})+
     (nx? '<div class="hstep"><div class="row sp"><span><b>'+cur.n+'</b> → '+nx.n+'</span><span class="num">'+Math.round(f*100)+' %</span></div>'+bar(f,'a')+'<div class="sub">'+eur(nx.nw,0)+' de patrimoine record pour débloquer : '+esc(nx.d.split(',').slice(0,3).join(','))+'…</div></div>' : '<div class="sub">Palier maximal atteint.</div>')+
     '<details class="hdet"><summary>Répartition du patrimoine</summary><div class="stk" style="margin:8px 0 6px">'+pos.map((e,i)=>'<i style="width:'+(e[1]/tot*100).toFixed(2)+'%;background:'+CATCOL[i%9]+'"></i>').join('')+'</div><div class="legend">'+pos.map((e,i)=>'<span><i style="background:'+CATCOL[i%9]+'"></i>'+e[0]+' '+eur(e[1],0)+'</span>').join('')+(bd.Dettes<0?'<span class="neg">Dettes '+eur(bd.Dettes,0)+'</span>':'')+'</div></details></section>';
   /* mes sociétés */
@@ -12621,7 +12630,7 @@ function vHome(){
   }
   /* bilan compact */
   const tin=rows.reduce((a,r)=>a+r.in,0), tout=rows.reduce((a,r)=>a+r.out,0);
-  h+=card('Bilan du jour '+(S.flLastDay||'—'), rows.length?
+  h+=card('Bilan du '+(S.flLastDay? dateL(S.flLastDay) : 'jour'), rows.length?
     '<div class="flist">'+rows.slice(0,6).map(r=>'<div><span>'+esc(srcName(r.k))+'</span><b class="num '+cls(r.net)+'">'+signed(r.net,0)+'</b></div>').join('')+
     '<div class="ftot"><span>Total'+(rows.length>6?' ('+rows.length+' lignes)':'')+'</span><b class="num '+cls(tin-tout)+'">'+signed(tin-tout,0)+'</b></div></div>'+
     '<div class="row sp"><span class="sub">Entrées '+eur(tin,0)+' · sorties '+eur(tout,0)+'</span><button class="lnk" data-a="tab" data-i="books">Détail ›</button></div>'
@@ -12640,7 +12649,7 @@ function vHome(){
   const ach=card('Objectifs','<div class="row sp"><span class="sub">'+done+' / '+ACH.length+' réalisés</span></div>'+bar(done/ACH.length,'g')+
     '<div class="flist" style="margin-top:8px">'+todo.slice(0,3).map(a=>'<div><span><b>'+a.t+'</b><small>'+a.d+'</small></span></div>').join('')+(todo.length?'':'<div class="sub">Tous les objectifs sont atteints.</div>')+'</div>');
   const jr=S.journal.slice(-8).reverse();
-  const jcard=card('Actualités','<div class="log">'+jr.map(x=>'<div><span class="d">J'+x.d+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':x.k==='club'?'<span class="tag" style="margin-right:6px">Club</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>');
+  const jcard=card('Actualités','<div class="log">'+jr.map(x=>'<div><span class="d">'+dateS(x.d)+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':x.k==='club'?'<span class="tag" style="margin-right:6px">Club</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>');
   return h+'<div class="grid">'+agenda+ach+'</div>'+jcard;
 }
 
@@ -13224,7 +13233,7 @@ ACT.clsignin=async()=>{ try{ CL.st=await clCall('signin'); CL.err=''; }catch(e){
 ACT.clsync=()=>{ clSync(); render(); };
 ACT.clon=el=>{ const on=el.dataset.v==='1'; clSet(p=>{ p.on=on; }); render(); if(on) clSync(); };
 function clCmp(t,m){
-  return '<div class="cl-v"><b>'+esc(t)+'</b><span>Jour '+(m.day||0)+' · '+eur(m.nw||0,0)+'</span><small>'+(m.updated? 'Enregistrée '+svAgo(m.updated) : '')+'</small></div>';
+  return '<div class="cl-v"><b>'+esc(t)+'</b><span>'+dateL(m.day||1)+' · '+eur(m.nw||0,0)+'</span><small>'+(m.updated? 'Enregistrée '+svAgo(m.updated) : '')+'</small></div>';
 }
 ACT.clkeep=async()=>{ const c=CL.conf.shift(); ui.modal=CL.conf.length? {type:'clconf'} : null; render(); if(c){ try{ await clPush(c.slot); }catch(e){ CL.err=e.message; } } clRefresh(); };
 ACT.cltake=async()=>{
@@ -13301,7 +13310,7 @@ function webOpenFile(){
     if(!svValid(st)){ const keep=S; try{ if(await importCode(t)) st=S; }catch(e){} S=keep; }
     if(!svValid(st)){ toast('Ce fichier n’est pas une sauvegarde Idle Business.','bad'); return; }
     const free=tsFree();
-    if(S){ ask('Ouvrir cette sauvegarde ?','La partie en cours est enregistrée, puis « '+esc(st.name||'Partie')+' » (jour '+(st.day||0)+') s’ouvre dans '+(free? 'l’emplacement '+free : 'cet emplacement, à la place de la partie en cours')+'.','Ouvrir',async()=>{ await svFlush(); await webPlace(st,free||SV.slot); }); return; }
+    if(S){ ask('Ouvrir cette sauvegarde ?','La partie en cours est enregistrée, puis « '+esc(st.name||'Partie')+' » ('+dateL(st.day||1)+') s’ouvre dans '+(free? 'l’emplacement '+free : 'cet emplacement, à la place de la partie en cours')+'.','Ouvrir',async()=>{ await svFlush(); await webPlace(st,free||SV.slot); }); return; }
     if(!free){ ui.modal={type:'saves'}; render(); toast('Les 5 emplacements sont pris : supprimez une sauvegarde puis rouvrez le fichier.','bad'); return; }
     await webPlace(st,free);
   };
@@ -13506,7 +13515,7 @@ function metCard(b){
   return '<section class="card met" id="bj-met"><div class="row sp"><h2>Pilotage du métier</h2>'+pill(MET_FAM[m.fam]||'Métier','info')+'</div>'+
     '<div class="met-k">'+k.map(x=>'<div><span>'+esc(x[0])+'</span><b class="num">'+esc(x[1])+'</b>'+(x[2]?'<small>'+esc(x[2])+'</small>':'')+'</div>').join('')+'</div>'+
     '<div class="met-cs">'+c.map(x=>metCtlHtml(b,x)).join('')+'</div>'+
-    (st.log.length? '<div class="met-log"><div class="tag">Journal du métier</div>'+st.log.map(x=>'<div class="'+(x.c==='bad'?'neg':x.c==='good'?'pos':'')+'"><span class="d">J'+x.d+'</span>'+esc(x.t.charAt(0).toUpperCase()+x.t.slice(1))+'</div>').join('')+'</div>' : '')+
+    (st.log.length? '<div class="met-log"><div class="tag">Journal du métier</div>'+st.log.map(x=>'<div class="'+(x.c==='bad'?'neg':x.c==='good'?'pos':'')+'"><span class="d">'+dateS(x.d)+'</span>'+esc(x.t.charAt(0).toUpperCase()+x.t.slice(1))+'</div>').join('')+'</div>' : '')+
     '</section>';
 }
 { const _bh=bizHero; bizHero=function(b){
@@ -14181,7 +14190,7 @@ document.addEventListener('toggle',e=>{ const d=e.target; if(!d||!d.classList||!
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal; if(m&&m.type==='dsnews'){ const D=fcOwn()&&fcOwn().ds, L=(D&&D.unseen)||[];
     const buys=L.filter(x=>/^Recrue/.test(x.t)).length, sells=L.length-buys;
     return {title:'Mercato de votre directeur sportif',sm:true,body:'<div class="sub">Depuis votre dernière visite : '+(buys? buys+' arrivée'+(buys>1?'s':'') : '')+(buys&&sells?' et ':'')+(sells? sells+' départ'+(sells>1?'s':'') : '')+'.</div>'+
-      '<div class="log">'+L.slice().reverse().map(x=>'<div><span class="d">J'+x.d+'</span><span class="'+(/^Recrue/.test(x.t)?'good':'')+'">'+esc(x.t)+'</span></div>').join('')+'</div>'+
+      '<div class="log">'+L.slice().reverse().map(x=>'<div><span class="d">'+dateS(x.d)+'</span><span class="'+(/^Recrue/.test(x.t)?'good':'')+'">'+esc(x.t)+'</span></div>').join('')+'</div>'+
       '<div class="row" style="margin-top:10px">'+btn('Compris','dsnewsok',{c:'pri'})+'</div>'}; }
   return _mc(); }; }
 ACT.dsnewsok=()=>{ const D=fcOwn()&&fcOwn().ds; if(D) D.unseen=[]; ui.modal=null; render(); };
@@ -14609,10 +14618,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.4.7';
+const IB_VER='V1.4.8';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Une icône par activité','Chaque type d’entreprise a désormais son icône : clé pour l’atelier de réparation, voiture pour la concession, navire pour le transport maritime, éolienne pour les énergies renouvelables, serveurs pour le data center, grande roue pour le parc, et ainsi de suite.']
+  ['Service RH chaque jour','Le vivier de l’agence se renouvelle chaque jour, et le service RH pourvoit tous les postes vacants dès qu’un candidat respecte vos critères minimaux, sans limite de nombre. Le lundi, les postes encore vides sont complétés par des profils moyens seulement s’ils respectent aussi vos critères.'],
+  ['Des dates partout','Les échéances, journaux, contrats, élections, sauvegardes et graphiques affichent une date (par exemple 12 mars 2027) au lieu d’un numéro de jour.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -14935,7 +14945,7 @@ MET.renew.html=function(b){
   const avg=m.pxh.reduce((a,x)=>a+x,0)/m.pxh.length, p=Math.round(avg*.97*100)/100;
   h+='<div class="pk-head"><b>Vente de l’électricité</b><span class="sub">Prix moyen des 60 derniers jours : '+avg.toFixed(2).replace('.',',')+'</span></div><div class="pk-pan">';
   h+=rnSpark(m.pxh);
-  h+='<div class="met-c"><b>'+(m.ctr.sh?'Contrat en cours : '+Math.round(m.ctr.sh*100)+' % à '+m.ctr.p.toFixed(2).replace('.',',')+' jusqu’au jour '+m.ctr.until:'Contrat d’un an')+'</b><div class="seg">'+[[0,'Aucun'],[.3,'30 %'],[.6,'60 %'],[.9,'90 %']].map(([v,n])=>'<button class="'+(m.ctr.sh===v?'on':'')+'" data-a="met" data-i="'+b.id+'" data-v="ctr" data-j="'+v+'">'+n+'</button>').join('')+'</div><div class="sub">Un contrat vend une part de la production à prix fixe pendant un an'+(m.ctr.sh?'':' (aujourd’hui : '+String(p).replace('.',',')+')')+'. Il protège des jours bon marché, mais prive des flambées.</div></div></div>';
+  h+='<div class="met-c"><b>'+(m.ctr.sh?'Contrat en cours : '+Math.round(m.ctr.sh*100)+' % à '+m.ctr.p.toFixed(2).replace('.',',')+' jusqu’au '+dateL(m.ctr.until):'Contrat d’un an')+'</b><div class="seg">'+[[0,'Aucun'],[.3,'30 %'],[.6,'60 %'],[.9,'90 %']].map(([v,n])=>'<button class="'+(m.ctr.sh===v?'on':'')+'" data-a="met" data-i="'+b.id+'" data-v="ctr" data-j="'+v+'">'+n+'</button>').join('')+'</div><div class="sub">Un contrat vend une part de la production à prix fixe pendant un an'+(m.ctr.sh?'':' (aujourd’hui : '+String(p).replace('.',',')+')')+'. Il protège des jours bon marché, mais prive des flambées.</div></div></div>';
   return h;
 };
 function rnSpark(L){ const W=320, H=56, mx=Math.max(1.6,...L), mn=Math.min(.5,...L), x=i=>i*W/(L.length-1), y=v=>H-4-(v-mn)/(mx-mn)*(H-8);
@@ -15264,7 +15274,7 @@ const GLOSS = {
   'Valeur nette':'Tout ce que vous possédez (trésorerie, entreprises, biens, placements) moins vos dettes. Elle débloque les paliers de richesse.',
   'Sécurité et assurance':'Contre les vols et les incidents. Le quartier fixe le niveau de risque.',
   'Grand livre':'Revenus, dépenses et résultat net de chaque source depuis les derniers impôts.',
-  'Service RH':'Il recrute seul le lundi et le mercredi selon vos minimums, limite la fatigue et peut soutenir le moral des directeurs.'
+  'Service RH':'Chaque jour, il pourvoit les postes vacants dès qu’un candidat respecte vos critères minimaux, limite la fatigue et peut soutenir le moral des directeurs.'
 };
 function glossApply(){ const root=document.getElementById('app')||document.body; if(!root) return;
   root.querySelectorAll('h2, h3, .met-c > b, .kpi > span, .row.sp > b').forEach(h=>{ if(h.querySelector('.qm')) return; const t=h.textContent.trim(); const k=Object.keys(GLOSS).find(x=>t===x||t.startsWith(x+' :')); if(!k) return;
