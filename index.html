@@ -14119,8 +14119,8 @@ ACT.fcfree=el=>{ const r=fcFreeYouth(el.dataset.i); if(r.ok) ui.modal=null; afte
    État : S.fcfold {sq, acad} (1 ouvert, 0 fermé) ; par défaut l'effectif ouvert, le centre fermé. */
 { const _sq2=fcTabSq; fcTabSq=function(O){ const h0=_sq2(O), F=(S.fcfold=S.fcfold||{}), keys=['sq','prop','acad']; let i=0;
   const np=(O.yprop||[]).length, k1=h0.indexOf('<section class="card',1), pc= typeof ysPropCard==='function'? ysPropCard(O) : '';
-  /* des jeunes à examiner : leur liste passe en tête, sinon elle se range entre l'effectif et le centre */
-  const h= !pc? h0 : np>0? pc+h0 : (k1>0? h0.slice(0,k1)+pc+h0.slice(k1) : h0+pc); if(np>0) keys.splice(0,2,'prop','sq');
+  /* des jeunes à examiner : leur liste passe en tête, sinon elle se range sous le centre de formation */
+  const h= !pc? h0 : np>0? pc+h0 : h0+pc; if(np>0) keys.splice(0,2,'prop','sq'); else keys.splice(1,2,'acad','prop');
   return h.replace(/<section class="card ([^"]*)"><h2><span>([\s\S]*?)<\/span><\/h2>/g,(all,c,t)=>{ const k=keys[i++]||('x'+i), open=k==='prop'? (np>0&&F.prop!==0) : F[k]===undefined? k==='sq' : !!F[k];
     return '<section class="card '+c+' fcd-c"><details class="fcd" data-k="'+k+'"'+(open?' open':'')+'><summary><h2><span>'+t+'</span></h2></summary>'; }).replace(/<\/section>/g,(m,off,str)=>str.lastIndexOf('<details class="fcd"',off)>str.lastIndexOf('</details>',off)? '</details></section>' : m); }; }
 document.addEventListener('toggle',e=>{ const d=e.target; if(!d||!d.classList||!d.classList.contains('fcd')||!S) return; S.fcfold=S.fcfold||{}; S.fcfold[d.dataset.k]=d.open?1:0; },true);
@@ -14563,11 +14563,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.4.1';
+const IB_VER='V1.4.2';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['La date du jour','En haut de l’écran, le bloc bleu affiche maintenant la date du jeu (mois, jour et année) à la place du numéro du jour.'],
-  ['Jeunes proposés bien visibles','Les jeunes repérés par vos recruteurs apparaissent en tête de l’onglet Effectif de Mon club, et l’onglet indique combien attendent votre décision.']
+  ['Jeunes proposés','Quand des jeunes attendent votre décision, leur liste apparaît en tête de l’onglet Effectif. Sans proposition, ce bloc se range sous le centre de formation.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
