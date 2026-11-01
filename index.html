@@ -7620,13 +7620,16 @@ function dlDaily(b){
    ============================================================ */
 function bizMaxHere(b){ if(!b.bld) return MAXLVL; const bd=bldById(b.bld); return bd? bldMaxLvl(bd,b.def) : MAXLVL; }
 function relocCost(b){ return bizBase(b).R0*3*b.lvl; }
-function relocCands(b){ const C=D.CITIES[b.city]; if(!C||!b.bld) return [];
-  const out=[]; C.d.forEach(dd=>bldList(b.city,dd.id).forEach(bd=>{ if(bd.id===b.bld) return; const mx=bldMaxLvl(bd,b.def); if(mx<=b.lvl) return;
-    const h=bldHeld(bd.id); if(h&&h.biz&&S.biz.some(x=>x.id===h.biz)) return; if(rivShopAt(bd.id)||consOf(bd.id)) return; out.push({bd, mx, h}); }));
-  return out.sort((x,y)=>(y.mx-x.mx)||(bldRent(x.bd)-bldRent(y.bd))).slice(0,6); }
+/* V1.4.4 : on peut déménager à tout moment vers un bâtiment libre de la même ville qui accepte le niveau actuel */
+function relocCands(b,all){ const C=D.CITIES[b.city]; if(!C||!b.bld) return []; const sec=bizSec(b.def);
+  const out=[]; C.d.forEach(dd=>bldList(b.city,dd.id).forEach(bd=>{ if(bd.id===b.bld) return; const mx=bldMaxLvl(bd,b.def); if(!mx||mx<b.lvl) return;
+    const h=bldHeld(bd.id); if(h&&h.biz&&S.biz.some(x=>x.id===h.biz)) return; if(rivShopAt(bd.id)||consOf(bd.id)) return;
+    const f=fitLabel(sec,dd), fit=f[0]==='Idéal'?3:f[0]==='Bon choix'?2:f[0]==='Correct'?1:0; out.push({bd, mx, h, f, fit}); }));
+  out.sort((x,y)=>(y.fit-x.fit)||(y.mx-x.mx)||(bldRent(x.bd)-bldRent(y.bd)));
+  return all? out : out.slice(0,8); }
 function relocBiz(b,id){
-  if(!b||b.status!=='active') return err('Entreprise indisponible.'); const bd=bldById(id); if(!bd||bd.city!==b.city) return err('Bâtiment introuvable dans cette ville.');
-  if(!relocCands(b).some(x=>x.bd.id===id)) return err('Ce bâtiment ne convient pas.');
+  if(!b||b.status!=='active') return err('Entreprise indisponible.'); if(b.up) return err('Attendez la fin de l’agrandissement en cours.'); const bd=bldById(id); if(!bd||bd.city!==b.city) return err('Bâtiment introuvable dans cette ville.');
+  if(!relocCands(b,1).some(x=>x.bd.id===id)) return err('Ce bâtiment ne convient pas.');
   const c=relocCost(b); if(availFor(cityOf(b).ccy)<c) return err('Trésorerie insuffisante : '+eur(c,0)+' de déménagement.');
   if(!bldHeld(id)){ const r=rentBuilding(id); if(!r.ok) return r; }
   const old=b.bld, ho=bldHeld(old);
@@ -7635,6 +7638,18 @@ function relocBiz(b,id){
   b.bld=id; b.dist=bd.dist; b.cf=locCostF(b.def,b.city,bd.dist); S.bld[id].biz=b.id; b.closedUntil=Math.max(b.closedUntil||0,S.day+3);
   log('good','« '+b.name+' » déménage au '+bd.addr+' : jusqu’au niveau '+bldMaxLvl(bd,b.def)+' possible. Fermeture de 3 jours.');
   return ok('Déménagement : réouverture dans 3 jours.'); }
+
+/* V1.4.4 : agrandir toutes les entreprises d'un niveau, les moins chères d'abord, tant que la trésorerie suit */
+function upAllInfo(){ const L=[], blk=[];
+  S.biz.forEach(b=>{ if(b.status!=='active'||b.up||b.lvl>=MAXLVL) return; if(bizDef(b).startup&&b.out==='F') return;
+    if(b.bld){ const bd=bldById(b.bld); if(bd&&b.lvl+1>bldMaxLvl(bd,b.def)){ blk.push(b); return; } }
+    L.push({b, c:upgradeCost(b)}); });
+  L.sort((x,y)=>x.c-y.c); let cash=S.cash, n=0, tot=0; L.forEach(x=>{ if(x.c<=cash){ cash-=x.c; n++; tot+=x.c; } });
+  return {L, blk, n, tot, all:L.reduce((a,x)=>a+x.c,0)}; }
+function upgradeAll(){ const I=upAllInfo(); if(!I.L.length) return err(I.blk.length? 'Vos entreprises sont au maximum de leur bâtiment : déménagez-les pour continuer.' : 'Aucune entreprise à agrandir.');
+  let n=0, tot=0; I.L.forEach(x=>{ if(x.c>S.cash) return; const r=upgradeBiz(x.b); if(r&&r.ok){ n++; tot+=x.c; } });
+  if(!n) return err('Trésorerie insuffisante : '+eur(I.L[0].c,0)+' pour la moins chère.');
+  return ok(n+' agrandissement'+(n>1?'s':'')+' lancé'+(n>1?'s':'')+' pour '+eur(tot,0)+(n<I.L.length? ' ; '+(I.L.length-n)+' attendront faute de trésorerie.' : '.')); }
 
 /* ============================================================
    ÉCONOMIE V1.1.2 : compte offshore alimenté chaque jour
@@ -14560,10 +14575,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.4.3';
+const IB_VER='V1.4.4';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Tout en euros','Les dernières mentions de devises ont disparu : loyers et dépôts de garantie des bâtiments, fiches des villes et rapport du jour affichent désormais uniquement des euros. Les prix à l’étranger ne varient plus avec le cours des monnaies.']
+  ['Déménager à tout moment','Dans la fiche d’une entreprise (onglet Finances), vous pouvez la déplacer vers n’importe quel bâtiment libre de la même ville assez grand pour son niveau. Elle garde son niveau et son équipe, avec 3 jours de fermeture.'],
+  ['Tout agrandir','Dans Sociétés, un bouton lance l’agrandissement d’un niveau de toutes vos entreprises, les moins chères d’abord, dans la limite de votre trésorerie.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -15078,11 +15094,21 @@ ACT.fichetab=el=>{ ui.ft=el.dataset.v; const nav=document.querySelector('.ft-tab
 /* les raccourcis (Personnel, Pilotage, Sécurité) ouvrent le bon onglet */
 { const _j=ACT.jump; ACT.jump=el=>{ const id=el.dataset.i; if(ui.modal&&ui.modal.type==='biz'){ const t=document.getElementById(id); if(t&&t.classList.contains('ft-hide')){ ui.ft=ftClassOf(t); render(); } } const t2=document.getElementById(id); if(t2) t2.scrollIntoView({behavior:'smooth',block:'start'}); }; }
 /* carte « Déménager » (onglet Finances) quand l'entreprise est au niveau max de son bâtiment */
-function relocCard(b){ if(!b.bld||b.lvl<bizMaxHere(b)||b.lvl>=MAXLVL) return ''; const L=relocCands(b), c=relocCost(b), co=cityOwned(b.city);
-  return '<div class="card" id="bj-reloc"><h2>Déménager</h2><div class="sub">« '+esc(b.name)+' » a atteint le niveau maximal de ce bâtiment. Dans un plus grand, elle pourra continuer de grandir. Elle garde son niveau et son équipe ; déménagement : '+eur(c,0)+', 3 jours de fermeture.</div>'+
-    (L.length? '<div class="ht-t">'+L.map(x=>'<div class="rs-d"><div><b>'+esc(x.bd.addr)+'</b><small>'+esc(distOfB(x.bd).n)+' · '+D.BT[x.bd.t].n+' de '+fmtN(x.bd.surf)+' m² · jusqu’au niveau '+x.mx+(x.h? ' · déjà à vous' : co? ' · ville à vous' : ' · loyer '+eur(bldRent(x.bd),0)+' / j')+'</small></div><button class="btn sm pri" data-a="reloc" data-i="'+b.id+'" data-v="'+x.bd.id+'"'+(availFor(cityOf(b).ccy)<c?' disabled':'')+'>Déménager</button></div>').join('')+'</div>'
-      : '<div class="sub">Aucun bâtiment libre plus grand dans cette ville pour le moment.</div>')+'</div>'; }
-ACT.reloc=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(!b) return; after(relocBiz(b,el.dataset.v)); };
+function relocCard(b){ if(!b.bld) return ''; const all=ui.rlAll===b.id, LA=relocCands(b,1), L=all? LA : LA.slice(0,8), c=relocCost(b), co=cityOwned(b.city), atMax=b.lvl>=bizMaxHere(b)&&b.lvl<MAXLVL;
+  return '<div class="card" id="bj-reloc"><h2>Déménager</h2><div class="sub">'+(atMax? '« '+esc(b.name)+' » a atteint le niveau maximal de ce bâtiment. Dans un plus grand, elle pourra continuer de grandir. ' : 'Changez d’adresse dans '+esc(cityOf(b).n)+' : le quartier modifie la clientèle et le loyer. ')+'Elle garde son niveau et son équipe ; déménagement : '+eur(c,0)+', 3 jours de fermeture.</div>'+
+    (b.up? '<div class="notice info">Possible une fois l’agrandissement en cours terminé.</div>' :
+    L.length? '<div class="ht-t">'+L.map(x=>'<div class="rs-d"><div><b>'+esc(x.bd.addr)+'</b><small>'+esc(distOfB(x.bd).n)+' · '+x.f[0]+' · '+D.BT[x.bd.t].n+' de '+fmtN(x.bd.surf)+' m² · jusqu’au niveau '+x.mx+(x.h? ' · déjà à vous' : co? ' · ville à vous' : ' · loyer '+eur(bldRent(x.bd),0)+' / j')+'</small></div><button class="btn sm pri" data-a="reloc" data-i="'+b.id+'" data-v="'+x.bd.id+'"'+(availFor(cityOf(b).ccy)<c?' disabled':'')+'>Déménager</button></div>').join('')+'</div>'+
+      (LA.length>8? '<div class="row">'+btn(all?'Moins de bâtiments':'Voir les '+LA.length+' bâtiments','rlall',{c:'sm ghost',i:b.id})+'</div>' : '')
+      : '<div class="sub">Aucun bâtiment libre assez grand dans cette ville pour le moment.</div>')+'</div>'; }
+ACT.rlall=el=>{ const id=+el.dataset.i; ui.rlAll= ui.rlAll===id? null : id; render(); };
+ACT.reloc=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(!b) return; const bd=bldById(el.dataset.v);
+  ask('Déménager '+b.name,'Nouvelle adresse : <b>'+esc(bd?bd.addr:'')+'</b>'+(bd? ' ('+esc(distOfB(bd).n)+')' : '')+'. Coût : <b>'+eur(relocCost(b),0)+'</b>, 3 jours de fermeture. L’ancien bâtiment est libéré.','Déménager',()=>after(relocBiz(b,el.dataset.v))); };
+/* V1.4.4 : bouton « Tout agrandir » dans Sociétés */
+{ const _vbh=vBizHome; vBizHome=function(){ const h=_vbh(); if(!S.biz.length) return h; const I=upAllInfo();
+  const card='<section class="card"><div class="row sp"><div><b>Tout agrandir</b><div class="sub">'+(I.L.length? I.L.length+' entreprise'+(I.L.length>1?'s':'')+' peu'+(I.L.length>1?'vent':'t')+' monter d’un niveau ('+eur(I.all,0)+' en tout).'+(I.n<I.L.length? ' Avec votre trésorerie : '+I.n+' ('+eur(I.tot,0)+'), les moins chères d’abord.' : '') : 'Aucune entreprise ne peut monter de niveau pour le moment.')+(I.blk.length? ' '+I.blk.length+' au maximum de leur bâtiment : déménagez-les.' : '')+'</div></div>'+btn('Tout agrandir','upall',{c:'sm pri',dis:!I.n})+'</div></section>';
+  const k=h.indexOf('<div class="cat-h">Vos sociétés</div>'); return k<0? h+card : h.slice(0,k)+'<div class="cat-h">Vos sociétés</div>'+card+h.slice(k+'<div class="cat-h">Vos sociétés</div>'.length); }; }
+ACT.upall=()=>{ const I=upAllInfo(); if(!I.n) return after(upgradeAll());
+  ask('Tout agrandir','Lancer <b>'+I.n+'</b> agrandissement'+(I.n>1?'s':'')+' d’un niveau pour <b>'+eur(I.tot,0)+'</b>'+(I.n<I.L.length? ' ('+(I.L.length-I.n)+' autres attendront faute de trésorerie)' : '')+'. Les chantiers durent plusieurs jours, l’activité continue pendant ce temps.','Agrandir',()=>after(upgradeAll())); };
 
 /* ============================================================
    V1.2.6 : onglet Métier en blocs repliables
