@@ -1410,11 +1410,8 @@ function srcName(src){
   return {bank:'Banque', mk:'Marchés financiers', immo:'Immobilier', lux:'Luxe', tax:'Impôts', pol:'Politique', debt:'Crédits', gen:'Général', vc:'Capital-risque', country:'Pays', livret:'Livret', fx:'Change'}[src]||src;
 }
 /* Devise du compte qui reçoit ou paie : une entreprise d'une ville étrangère utilise le compte local. Les montants restent exprimés en euros. */
-function srcCcy(src){
-  if(src.charCodeAt(0)===99 && src.charCodeAt(1)===58){ const c=D.CITIES[src.slice(2)]; return c? c.ccy : 'EUR'; }
-  if(src.charCodeAt(0)===98 && src.charCodeAt(1)===58){ const b=S.biz.find(x=>x.id===+src.slice(2)); if(b){ const c=D.CITIES[b.city]; if(c&&c.ccy!=='EUR') return c.ccy; } }
-  return 'EUR';
-}
+/* V1.3.5 : une seule trésorerie, en euros (les comptes en devises ont été supprimés) */
+function srcCcy(src){ return 'EUR'; }
 function credit(src,amt){ const cc=srcCcy(src); if(cc==='EUR') S.cash+=amt; else S.acc[cc]+=amt/S.fx[cc]; }
 /* Flux d'exploitation : comptent dans le bilan du jour. tax: 'corp' ou 'cap' alimente l'assiette fiscale. */
 function pay(src,label,amt,tax){
@@ -1675,25 +1672,11 @@ function convertCcy(from,to,amt,opt){
   return ok('Converti : '+money(to,p.got,2)+' reçus, frais '+eur(p.feeEur,2)+'.');
 }
 /* Solde de fin de journée : un compte local en négatif est renfloué depuis le compte en euros ; un compte en euros négatif puise dans les devises */
+/* V1.3.5 : plus de comptes en devises. Les anciens soldes sont versés une fois en euros, sans frais. */
 function settleAccounts(){
-  D.FOREIGN.forEach(c=>{
-    if(S.acc[c]<0){
-      /* compte local à découvert : change forcé depuis les euros, frais doublés */
-      const eurEq=-S.acc[c]*S.fx[c], fee=2*convFee('EUR',c,eurEq);
-      S.cash-=eurEq*(1+fee); S.acc[c]=0; flowOnly('fx','Change forcé EUR vers '+c+' (frais doublés)',-eurEq*fee);
-      if(S.fxWarn!==S.day){ S.fxWarn=S.day; log('warn','Compte en '+D.CCY[c].n.toLowerCase()+' à découvert : change forcé depuis vos euros, avec des frais doublés. Gardez une réserve dans chaque devise (menu Devises).'); }
-    }
-  });
-  if(S.cash<0){
-    D.FOREIGN.slice().sort((a,b)=>D.CCY[a].fee-D.CCY[b].fee).forEach(c=>{
-      if(S.cash>=0||S.acc[c]<=0) return;
-      const fee=convFee(c,'EUR',-S.cash), needEur=-S.cash, units=Math.min(S.acc[c], needEur/(1-fee)/S.fx[c]);
-      const eurEq=units*S.fx[c]; S.acc[c]-=units; S.cash+=eurEq*(1-fee); flowOnly('fx','Change automatique '+c+' vers EUR (frais)',-eurEq*fee);
-    });
-  }
-  if(S.sweep && wdOf(S.day)===0){
-    D.FOREIGN.forEach(c=>{ if(S.acc[c]>1){ let a=S.acc[c]; if(c==='CNY'){ const q=cnyQuota(); a=Math.min(a,q.left/S.fx.CNY); } if(a>1) convertCcy(c,'EUR',a,{force:true}); } });
-  }
+  if(!S.acc) return; let v=0;
+  D.FOREIGN.forEach(c=>{ const a=S.acc[c]||0; if(Math.abs(a)>1e-9){ v+=a*S.fx[c]; S.acc[c]=0; } });
+  if(Math.abs(v)>.5){ S.cash+=v; log('info','Vos comptes en devises ont été regroupés dans votre trésorerie en euros ('+(v>=0?'+':'')+eur(v,0)+').'); }
 }
 function fxStep(){
   D.FOREIGN.forEach(c=>{
@@ -1891,7 +1874,7 @@ function startCrew(e,frac){
 /* ---------- Création, amélioration, cession ---------- */
 function launchCost(defId,inv,cityId,distId){ const d=D.biz[defId]; return d.cost*(d.startup? [1,1.6,3][inv||0] : 1)*locCostF(defId,cityId||'paris',distId); }
 /* trésorerie propre à chaque devise : on paie dans la monnaie du pays (montant exprimé en euros) */
-const availFor = cc => cc==='EUR'? S.cash : Math.max(0,S.acc[cc]||0)*S.fx[cc];
+const availFor = cc => S.cash;
 const bizCanPay = (b,amt) => availFor(cityOf(b).ccy)>=amt;
 function startupOdds(defId,inv){
   const su=D.biz[defId].startup, add=[0,.07,.14][inv||0];
@@ -4429,7 +4412,7 @@ function computeNW(){
   return v;
 }
 function nwBreakdown(){
-  const o={Trésorerie:S.cash+S.livret.bal, 'Comptes en devises':accValue(), Entreprises:0, Immobilier:0, 'Titres et crypto':holdingsValue('player'), 'Capital-risque':0, Banque:0, Luxe:0, Pays:0, Dettes:-debtTotal()};
+  const o={Trésorerie:S.cash+S.livret.bal, Entreprises:0, Immobilier:0, 'Titres et crypto':holdingsValue('player'), 'Capital-risque':0, Banque:0, Luxe:0, Pays:0, Dettes:-debtTotal()};
   S.biz.forEach(b=>{ o.Entreprises+=bizValue(b); o.Immobilier+=premValue(b); }); o.Villes=empireNW(); o.Immobilier+=bldNW(); o.Offshore=finNW(); o['Stocks d’usine']=goodsNW();
   S.prop.forEach(p=>{ o.Immobilier+=propValue(p); }); S.projects.forEach(p=>{ o.Immobilier+=p.cost*0.9; });
   S.vc.mine.forEach(x=>{ o['Capital-risque']+=vcValue(x); });
@@ -10838,7 +10821,7 @@ function toast(m,k){
 }
 function res(r,okMsg){ if(!r) return r; if(r.ok){ if(r.msg||okMsg) toast(r.msg||okMsg,'good'); } else toast(fxHint(r.msg||'Action impossible.'),'bad'); return r; }
 /* rappel : à l'étranger, on paie avec le compte de la devise du pays */
-function fxHint(m){ try{ const b=ui.modal&&ui.modal.type==='biz'&&S.biz.find(x=>x.id===ui.modal.id), cc= b? cityOf(b).ccy : (ui.bz&&ui.bz.c&&D.CITIES[ui.bz.c]? D.CITIES[ui.bz.c].ccy : 'EUR'); if(/^Trésorerie insuffisante/.test(m)&&cc!=='EUR') return m+' Il faut des fonds en '+D.CCY[cc].n.toLowerCase()+' (solde : '+money(cc,S.acc[cc]||0,0)+') : changez des euros dans Devises.'; }catch(e){} return m; }
+function fxHint(m){ return m; }
 
 /* ---------- graphiques SVG ---------- */
 let chartId=0;
@@ -10995,7 +10978,7 @@ function modalBiz(b){
     body+='<div class="card" style="padding:10px 12px"><div class="tag">Parcours de la start-up</div><div class="row" style="gap:6px;margin-top:6px;flex-wrap:nowrap">'+su.ph.map(p=>{ const a0=acc; acc+=p[1]; const f=clamp((el-a0)/p[1],0,1); return '<div style="flex:'+p[1]+';min-width:0"><div class="sub" style="font-size:11px">'+p[0]+' · '+p[1]+' j</div>'+bar(f)+'</div>'; }).join('')+'</div>'+
       (b.status==='active'?'<div class="sub" style="margin-top:6px">Issue : '+(b.out==='S'?'<b class="pos">succès, croissance en cours</b>':'<b class="mut">traction modeste</b>')+'</div>':'')+'</div>';
   }
-  if((b.arr||0)>0) body+='<div class="notice bad"><b>Loyer impayé depuis '+b.arr+' jour(s).</b> Si votre compte en euros reste négatif, le bailleur vous expulse à '+EVICT_DAYS+' jours et l’entreprise ferme. Acheter les locaux protège de l’expulsion.</div>';
+  if((b.arr||0)>0) body+='<div class="notice bad"><b>Loyer impayé depuis '+b.arr+' jour(s).</b> Si votre trésorerie reste négative, le bailleur vous expulse à '+EVICT_DAYS+' jours et l’entreprise ferme. Acheter les locaux protège de l’expulsion.</div>';
   if(b.status==='build'){ body+='<div class="notice info">Mise en route en cours.</div><div>'+btn('Céder : '+eur(sellPrice(b),0),'sellbiz',{c:'dng',i:b.id})+'</div>'; }
   else{
     body+='<div class="mini"><div><span>Moyenne 30 jours</span><b class="num '+cls(avg)+'">'+signed(avg,0)+'</b></div><div><span>Fidélité moyenne</span><b>'+Math.round(avgLoy(b))+'</b></div></div>';
@@ -11317,7 +11300,7 @@ function barRow(k,s,i,n){
     '<button class="ib" data-a="barside" data-i="'+k+'" aria-label="Passer '+esc(NAVLBL(k))+' de l’autre côté">⇄</button>'+
     '<button class="ib dng" data-a="barrm" data-i="'+k+'" aria-label="Retirer '+esc(NAVLBL(k))+' de la barre">×</button></span></div>';
 }
-const MGROUPS=[['Entreprises',['agency','logi','rivals','cities']],['Finance',['markets','bank','fx','books']],['Immobilier et luxe',['immo','luxe','auction']],['Pouvoir',['pol']],['Aide',['guide','set']]];
+const MGROUPS=[['Entreprises',['agency','logi','rivals','cities']],['Finance',['markets','bank','books']],['Immobilier et luxe',['immo','luxe','auction']],['Pouvoir',['pol']],['Aide',['guide','set']]];
 const MDESC={agency:'Recrutement, RH, directeurs',logi:'Production, contrats, transport',rivals:'Concurrents, rachats, classement',cities:'Achat de villes et de pays',markets:'Bourse, crypto, start-ups',bank:'Votre banque',fx:'Comptes et conversions',books:'Grand livre, impôts, emprunts',immo:'Biens locatifs',luxe:'Voitures, yachts, art, pays',auction:'Enchères et collection',pol:'Lois, élections, offshore',guide:'Toutes les règles',set:'Sauvegardes, affichage'};
 function vPlus(){
   const B=navBar(), used=B.l.concat(B.r), full=used.length>=PINMAX;
@@ -11437,7 +11420,7 @@ function vGuide(){
       '<b>Stock</b> : les commerces, restaurants, usines et boutiques vendent leur stock. Rayons vides : ventes perdues et clients mécontents. Choisissez le stock visé (3, 7 ou 14 jours) ; la commande automatique réapprovisionne chaque jour, livraison le lendemain. À découvert, les fournisseurs suspendent les commandes.',
       '<b>Équipement</b> (4 niveaux) : plus de productivité et de capacité de stockage. <b>Horaires</b> : réduits, normaux ou étendus. <b>Formation</b> : productivité et fidélité en hausse tous les 20 jours. <b>Mutuelle</b> : fidélité, exigée en mode difficile.',
       '<b>Locaux</b> : vous payez un loyer selon le quartier. Acheter les locaux réduit le loyer de 70 % et le bien suit le marché immobilier.',
-      '<b>Expulsion</b> : chaque jour où votre compte en euros est négatif compte comme un loyer impayé pour vos locataires. À 10 jours, le bailleur expulse : l’entreprise ferme, le personnel est licencié et l’activité est liquidée à 40 % de sa valeur. Propriétaire de vos locaux, vous êtes protégé.',
+      '<b>Expulsion</b> : chaque jour où votre trésorerie est négative compte comme un loyer impayé pour vos locataires. À 10 jours, le bailleur expulse : l’entreprise ferme, le personnel est licencié et l’activité est liquidée à 40 % de sa valeur. Propriétaire de vos locaux, vous êtes protégé.',
       'Doubler une même activité réduit la rentabilité (saturation). Certaines activités s’entraident (synergies).',
       'Les lois, la conjoncture, les taux et les événements modifient les ventes. Un incident peut fermer une activité.',
       'Start-ups : le résultat (succès, modeste, échec) est tiré au lancement et révélé à la fin du développement. Un échec rend 5 % de la mise.',
@@ -11453,12 +11436,9 @@ function vGuide(){
       '<b>Acheter un pays</b> : après avoir acheté ses trois villes, au palier Souverain. Plusieurs dizaines à centaines de milliards.',
       '<b>Sécurité</b> (gardiennage, caméras, renforcée) réduit les vols. <b>Assurance</b> réduit les pertes de vol et de catastrophe. Les deux sont réglables dans la fiche de chaque entreprise.'
     ])+D.CITY_ORDER.map(k=>'<h3>'+esc(D.CITIES[k].n)+'</h3><div class="sub">'+esc(D.CITIES[k].txt)+'</div>').join('')),
-    sec('Devises',ul([
-      'Quatre comptes : euro, dollar (Miami), yuan (Pékin), real (Rio). Les ventes et les charges d’une ville passent par son compte.',
-      'Convertissez dans l’écran <b>Devises</b>, avec des frais selon les monnaies et le montant. Si un compte local manque d’argent, vos euros sont convertis automatiquement.',
-      'Le patrimoine total est affiché en haut de <b>Plus</b>.',
-      'Les cours varient chaque jour (le real est le plus instable). Pékin limite chaque année les capitaux rapatriables.',
-      'Difficulté choisie à la création : facile réduit les vols, les incidents et les démissions.'
+    sec('Monnaie',ul([
+      'Une seule trésorerie, en euros : les ventes et les charges de toutes vos villes, en France comme à l’étranger, y passent directement.',
+      'Les prix des villes étrangères sont affichés en euros. Le patrimoine total est en haut de <b>Plus</b>.'
     ])),
     sec('Construction et directeurs',ul([
       '<b>Construire</b> : sur un terrain que vous possédez, lancez un chantier (entrepôt et usine, immeuble de bureaux, villa, manoir, résidence de luxe). Coût et durée selon la surface et la ville ; une société de construction réduit les deux.',
@@ -11561,9 +11541,9 @@ function vGuide(){
    ============================================================ */
 const NAV=[['home','Accueil'],['biz','Sociétés'],['bank','Banque'],['markets','Marchés'],['immo','Immobilier'],['luxe','Luxe'],['pol','Politique'],['agency','Recrutement'],['books','Comptes'],['set','Réglages']];
 const NAVSHORT={logi:'Usines',auction:'Enchères',rivals:'Rivaux',cities:'Villes',fx:'Devises',home:'Accueil',biz:'Sociétés',bank:'Banque',markets:'Marchés',immo:'Immo',luxe:'Luxe',pol:'Politique',agency:'Personnel',guide:'Guide',books:'Comptes',set:'Réglages',plus:'Plus'};
-const MENU=[['bank','Banque',''],['markets','Marchés',''],['immo','Immobilier',''],['luxe','Luxe',''],['pol','Politique',''],['cities','Villes',''],['rivals','Rivaux',''],['auction','Salle des ventes',''],['logi','Usines et logistique',''],['fx','Devises',''],['agency','Personnel',''],['books','Livre de comptes',''],['guide','Guide du jeu',''],['set','Réglages','']];
+const MENU=[['bank','Banque',''],['markets','Marchés',''],['immo','Immobilier',''],['luxe','Luxe',''],['pol','Politique',''],['cities','Villes',''],['rivals','Rivaux',''],['auction','Salle des ventes',''],['logi','Usines et logistique',''],['agency','Personnel',''],['books','Livre de comptes',''],['guide','Guide du jeu',''],['set','Réglages','']];
 const PINMAX=4, BARDEF={l:['markets'],r:['immo']};
-const VIEWS={logi:vLogi,auction:vAuction,rivals:vRivals,cities:vCities,fx:vFx,home:vHome,biz:vBiz,bank:vBank,markets:vMarkets,immo:vImmo,luxe:vLuxe,pol:vPol,agency:vAgency,guide:vGuide,plus:vPlus,books:vBooks,set:vSet};
+const VIEWS={logi:vLogi,auction:vAuction,rivals:vRivals,cities:vCities,fx:()=>{ ui.tab='home'; return vHome(); },home:vHome,biz:vBiz,bank:vBank,markets:vMarkets,immo:vImmo,luxe:vLuxe,pol:vPol,agency:vAgency,guide:vGuide,plus:vPlus,books:vBooks,set:vSet};
 const root=()=>$('#app');
 
 function parseAmt(v){
@@ -11878,7 +11858,6 @@ function modalLaunch(id){
       '<div class="row">'+pill(f[0],f[1])+dots(x.crime)+'<span class="sub">Loyer '+multPct(rf)+'</span></div><div class="sub">'+esc(x.cl)+'</div></button>'; }).join('')+'</div>';
   const fs=festNext(T.lc).slice(0,3);
   if(fs.length) body+='<div class="sub">Fêtes : '+fs.map(x=>esc(x.f.n)+' ('+(x.on?'en cours':'dans '+x.in+' j')+')').join(' · ')+'</div>';
-  if(C.ccy!=='EUR') body+='<div class="notice">Les ventes et les charges de cette ville passent par votre compte en '+D.CCY[C.ccy].n.toLowerCase()+'. Si le solde manque, vos euros sont convertis avec des frais.</div>';
   body+='<div class="row sp">'+btn('Annuler','closemodal',{c:'ghost'})+btn('Lancer pour '+eur(cost,0),'launchgo',{c:'pri',i:id,v:inv,dis:!can})+'</div>';
   if(!can) body+='<div class="sub neg">Il manque '+eur(cost-availFor(C.ccy),0)+'.</div>';
   return {title:'Lancer : '+esc(d.n),body,sm:true};
@@ -11920,13 +11899,12 @@ function wealthCard(){
     '<b class="w-big num">'+eur(S.nw,0)+'</b>'+
     (nx? '<div class="w-bar" role="progressbar" aria-valuenow="'+Math.round(f*100)+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+(f*100).toFixed(1)+'%"></i></div><div class="w-next">'+Math.round(f*100)+' % vers '+nx.n+' ('+eur(nx.nw,0)+')</div>' : '<div class="w-next">Palier maximal atteint</div>')+
     '<div class="w-split"><div><span>Trésorerie</span><b class="num">'+eur(S.cash,0)+'</b></div><div><span>Investi</span><b class="num">'+eur(inv,0)+'</b></div>'+
-    '<button class="w-fx" data-a="tab" data-i="fx">Devises'+(fx.length?' · '+fx.length:'')+' ›</button></div>'+
-    (fx.length? '<div class="w-ccy">'+fx.map(cc=>'<span class="num">'+money(cc,balOf(cc),0)+'</span>').join('')+'</div>' : '')+
+    '</div>'+
   '</section>';
 }
 
 /* ---------- Rapport de période ---------- */
-const RPB={global:'Résultat global',biz:'Par entreprise',journal:'Journal',fest:'Fêtes et événements',alerts:'Alertes',fx:'Villes et devises'};
+const RPB={global:'Résultat global',biz:'Par entreprise',journal:'Journal',fest:'Fêtes et événements',alerts:'Alertes',fx:'Villes'};
 const RPDEF={order:['global','biz','journal','fest','alerts','fx'],off:{fest:1,alerts:1,fx:1},skip1:false};
 function rpPrefs(){
   let p=ui.rp; if(!p||!Array.isArray(p.order)) p=ui.rp=JSON.parse(JSON.stringify(RPDEF));
@@ -11956,7 +11934,7 @@ const RPR={
   fx:s=>{
     const cs=Object.keys(s.byCity);
     const fx=D.FOREIGN.map(c=>{ const h=S.fxH[c], p=h[Math.max(0,h.length-1-s.days)], ch=h[h.length-1]/p-1; return '<div class="row sp"><span>'+D.CCY[c].n+'</span><span class="num '+cls(ch)+'">'+(ch>=0?'+':'')+fmtN(ch*100,1)+' %</span></div>'; }).join('');
-    return (cs.length? '<div class="tw"><table class="tbl"><thead><tr><th>Ville</th><th class="r">Ventes</th><th class="r">Net</th></tr></thead><tbody>'+cs.map(c=>'<tr><td>'+esc(cityName(c))+'</td><td class="r num">'+eur(s.byCity[c].rev,0)+'</td><td class="r num '+cls(s.byCity[c].net)+'">'+signed(s.byCity[c].net,0)+'</td></tr>').join('')+'</tbody></table></div>' : '')+'<div class="stack" style="gap:6px"><div class="tag">Cours des devises sur la période</div>'+fx+'</div>';
+    return (cs.length? '<div class="tw"><table class="tbl"><thead><tr><th>Ville</th><th class="r">Ventes</th><th class="r">Net</th></tr></thead><tbody>'+cs.map(c=>'<tr><td>'+esc(cityName(c))+'</td><td class="r num">'+eur(s.byCity[c].rev,0)+'</td><td class="r num '+cls(s.byCity[c].net)+'">'+signed(s.byCity[c].net,0)+'</td></tr>').join('')+'</tbody></table></div>' : '<div class="sub">Aucune ville en activité.</div>');
   }
 };
 function modalReport(m){
@@ -12082,7 +12060,7 @@ function cityCard(id){
     '<div class="ixs">'+ix.map(x=>'<div><span>'+x[0]+'</span>'+dots(x[1])+'</div>').join('')+'</div>'+
     (fs.length?'<div class="stack" style="gap:6px"><div class="tag">Fêtes et événements</div>'+fs.map(x=>'<div class="row sp"><span>'+esc(x.f.n)+'</span>'+(x.on? pill('En cours','good') : '<span class="sub num">dans '+x.in+' j</span>')+'</div>').join('')+'</div>':'')+
     '<details class="acc"><summary>Quartiers ('+C.d.length+')</summary><div class="tw"><table class="tbl"><thead><tr><th>Quartier</th><th class="r">Prix / m²</th><th class="r">Risque</th></tr></thead><tbody>'+
-    C.d.map(x=>'<tr><td><b>'+esc(x.n)+'</b><div class="sub">'+x.fav.slice(0,3).map(secName).join(', ')+'</div></td><td class="r num">'+money(C.ccy,x.p)+'</td><td class="r">'+dots(x.crime)+'</td></tr>').join('')+'</tbody></table></div></details>'+
+    C.d.map(x=>'<tr><td><b>'+esc(x.n)+'</b><div class="sub">'+x.fav.slice(0,3).map(secName).join(', ')+'</div></td><td class="r num">'+eur(x.p*fxOf(C.ccy),0)+'</td><td class="r">'+dots(x.crime)+'</td></tr>').join('')+'</tbody></table></div></details>'+
     (open? '<div class="row">'+btn('Lancer une activité ici','citygo',{c:'sm',i:id})+'</div>' : '')+prop+'</section>';
 }
 function vCities(){
@@ -12143,7 +12121,7 @@ function vBizCity(cid){
   h+='<div class="sub" style="margin:-6px 0 12px">'+esc(C.txt)+'</div>'+tip('city')+'<div class="grid">'+C.d.map(dd=>{
     const L=bldList(cid,dd.id), rs=L.map(bldRent), lo=Math.min(...rs), hi=Math.max(...rs), mine=S.biz.filter(b=>b.city===cid&&b.dist===dd.id).length, held=L.filter(x=>bldHeld(x.id)).length;
     return '<button class="card bc dist" data-a="bzdist" data-i="'+cid+'" data-j="'+dd.id+'"><div class="hd"><div><b>'+esc(dd.n)+'</b><div class="sub">'+esc(dd.cl)+'</div></div>'+lvlPill(rentLevel(pEur(cid,dd)))+'</div>'+
-      '<div class="row sp"><span class="sub">Loyers de '+eur(lo,0)+' à '+eur(hi,0)+' / j</span><span class="sub">'+money(C.ccy,dd.p)+' / m²</span></div>'+
+      '<div class="row sp"><span class="sub">Loyers de '+eur(lo,0)+' à '+eur(hi,0)+' / j</span><span class="sub">'+eur(dd.p*fxOf(C.ccy),0)+' / m²</span></div>'+
       '<div class="row">'+dots(dd.crime)+'<span class="sub">Idéal : '+dd.fav.slice(0,3).map(secName).join(', ')+'</span></div>'+
       '<div class="sub">'+L.length+' bâtiments'+(held?' · '+held+' à vous':'')+(mine?' · '+mine+' société(s)':'')+'</div></button>'; }).join('')+'</div>';
   return h;
@@ -14488,10 +14466,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.3.4';
+const IB_VER='V1.3.5';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Club : effectif et centre de formation repliables','Dans Mon club, onglet Effectif, l’effectif et le centre de formation sont deux menus déroulants : touchez leur titre pour les ouvrir ou les fermer. Le jeu se souvient de votre choix.']
+  ['Une seule trésorerie','Les comptes en devises sont supprimés : toutes vos villes, en France comme à l’étranger, utilisent directement votre trésorerie en euros. Plus de change ni de frais de conversion. Vos anciens soldes en dollars, yuans ou reals ont été versés en euros, sans frais.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
