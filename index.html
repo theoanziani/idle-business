@@ -14498,10 +14498,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.3.6';
+const IB_VER='V1.3.7';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Vos sociétés sponsorisent le club','Dans Mon club, onglet Finances : mettez n’importe laquelle de vos sociétés sur le maillot, donnez son nom au stade ou faites-en un partenaire officiel (3 au plus). Elle vend plus grâce à la visibilité du club, d’autant plus que le club est connu ; en échange, le club perd une partie de ses sponsors habituels.']
+  ['Sons et vibrations','Des sons discrets et de courtes vibrations accompagnent les moments qui comptent : jour suivant, achats et décisions, erreurs, paliers célébrés, nouveau palier de richesse, coups de sifflet et buts pendant les matchs (vibration plus forte quand votre club marque). Réglages : sons, volume et vibrations peuvent être coupés séparément.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -15260,6 +15260,67 @@ palDef('airline',{col:'#1f7fb8', sticky:1, icon:PI('<path d="M2.5 13.5l7-1.5L13 
   tag:n=>n.ct? (n.ct+1)+' continents' : 'Long-courrier',
   badges:m=>({lh:m.ln.some(l=>alDist(l.a,l.b)>3500)?1:0, ct:Math.max(0,new Set(m.hubs.map(h=>AL_CO[alAp(h).co].ct)).size-1)}),
   ev:{lh:['Votre premier vol long-courrier décolle'], ct:['Votre compagnie s’installe sur un deuxième continent','Un troisième continent rejoint votre réseau','Quatre continents : une compagnie mondiale','Cinq continents desservis','Les six continents : le monde entier est à vous']}});
+
+/* ============================================================
+   SONS ET VIBRATIONS (V1.3.7)
+   Vibrations courtes et rares : jamais sur chaque toucher, seulement sur les moments qui comptent.
+   Dans l'application Android : retour haptique du système (respecte les réglages du téléphone) ;
+   dans le navigateur : navigator.vibrate de quelques millisecondes.
+   Sons de synthèse (Web Audio), discrets, aucun fichier. Réglages : localStorage « idlebiz.fx ».
+   ============================================================ */
+const FX={snd:true, hap:true, vol:.5, ctx:null, last:{}};
+try{ const v=JSON.parse(localStorage.getItem('idlebiz.fx')||'null'); if(v){ FX.snd=v.snd!==false; FX.hap=v.hap!==false; if(v.vol!==undefined) FX.vol=v.vol; } }catch(e){}
+function fxSave(){ try{ localStorage.setItem('idlebiz.fx',JSON.stringify({snd:FX.snd,hap:FX.hap,vol:FX.vol})); }catch(e){} }
+/* anti-répétition : un même effet au plus toutes les « ms » millisecondes */
+function fxGate(k,ms){ const t=Date.now(); if(FX.last[k]&&t-FX.last[k]<ms) return false; FX.last[k]=t; return true; }
+function haptic(kind){ if(!FX.hap||document.hidden||!fxGate('h'+kind,kind==='tick'?120:350)) return;
+  try{ if(window.IBNative&&IBNative.haptic){ IBNative.haptic(kind); return; } }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate({tick:6,confirm:14,reject:[18,40,18],heavy:30}[kind]||8); }catch(e){} }
+function fxCtx(){ if(FX.ctx) return FX.ctx; try{ const A=window.AudioContext||window.webkitAudioContext; if(A) FX.ctx=new A(); }catch(e){} return FX.ctx; }
+/* une note : fréquence, durée, forme, volume relatif, départ décalé */
+function fxTone(c,f,d,type,g,at,f2){ const t=c.currentTime+(at||0), o=c.createOscillator(), v=c.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  v.gain.setValueAtTime(0,t); v.gain.linearRampToValueAtTime(g*FX.vol,t+.01); v.gain.exponentialRampToValueAtTime(.0001,t+d); o.connect(v); v.connect(c.destination); o.start(t); o.stop(t+d+.02); }
+function fxNoise(c,d,g,at,lp){ const t=c.currentTime+(at||0), n=Math.floor(c.sampleRate*d), B=c.createBuffer(1,n,c.sampleRate), x=B.getChannelData(0); for(let i=0;i<n;i++) x[i]=(Math.random()*2-1)*(1-i/n);
+  const s=c.createBufferSource(), f=c.createBiquadFilter(), v=c.createGain(); s.buffer=B; f.type='lowpass'; f.frequency.value=lp||1200; v.gain.setValueAtTime(g*FX.vol,t); v.gain.exponentialRampToValueAtTime(.0001,t+d); s.connect(f); f.connect(v); v.connect(c.destination); s.start(t); }
+const FX_SND={
+  click:c=>fxTone(c,520,.05,'triangle',.08),
+  coin:c=>{ fxTone(c,988,.08,'square',.05); fxTone(c,1319,.18,'square',.05,.07); },
+  ok:c=>{ fxTone(c,660,.09,'sine',.12); fxTone(c,880,.14,'sine',.1,.07); },
+  err:c=>{ fxTone(c,220,.16,'triangle',.12,0,170); },
+  fanfare:c=>{ [523,659,784,1047].forEach((f,i)=>fxTone(c,f,.22+i*.05,'triangle',.13,i*.11)); fxTone(c,1568,.5,'sine',.06,.44); },
+  whistle:c=>{ fxTone(c,2900,.35,'sine',.07,0,2750); fxTone(c,3100,.35,'sine',.03); },
+  goal:c=>{ fxNoise(c,1.4,.22,0,900); fxNoise(c,1.1,.12,.15,2200); fxTone(c,392,.4,'sawtooth',.04,.05); fxTone(c,523,.55,'sawtooth',.04,.3); },
+  warn:c=>{ fxTone(c,440,.12,'square',.05); fxTone(c,349,.2,'square',.05,.14); }
+};
+function sfx(k){ if(!FX.snd||document.hidden||!FX_SND[k]||!fxGate('s'+k,k==='click'?90:250)) return; const c=fxCtx(); if(!c) return; try{ if(c.state==='suspended') c.resume(); FX_SND[k](c); }catch(e){} }
+/* le son ne peut démarrer qu'après un premier toucher */
+document.addEventListener('pointerdown',()=>{ const c=fxCtx(); if(c&&c.state==='suspended') try{ c.resume(); }catch(e){} },{capture:true,passive:true});
+
+/* ---------- Où on les entend ---------- */
+/* résultat d'une action du joueur */
+{ const _af=after; after=function(r,okMsg){ try{ if(r&&r.ok===false&&r.msg){ sfx('err'); haptic('reject'); }
+    else if(r&&r.ok&&r.msg){ /* achats et décisions importantes : petit son de pièce */ if(/achet|acquis|rachet|vendu|encaiss|signe|recrut|ouvert|lanc|obtenu|c’est fait/i.test(r.msg)){ sfx('coin'); haptic('confirm'); } else sfx('click'); } }catch(e){}
+  return _af.apply(this,arguments); }; }
+/* jour suivant : un léger tic */
+{ const _dn=doNext; doNext=function(n,quiet){ if(!quiet){ sfx('click'); haptic('tick'); } const o=_dn.apply(this,arguments); try{ if(S&&S.stop&&!quiet){ sfx('warn'); haptic('reject'); } }catch(e){} return o; }; }
+/* célébrations : paliers, nouveau palier de richesse, victoire */
+try{ new MutationObserver(ms=>{ for(const m of ms) for(const n of m.addedNodes){ if(n.classList&&n.classList.contains('pal-cele')){ sfx('fanfare'); haptic('heavy'); return; } } }).observe(document.body,{childList:true}); }catch(e){}
+{ const _rf=render; let lastM=null; render=function(){ const o=_rf.apply(this,arguments); try{ const t=ui.modal&&ui.modal.type; if(t!==lastM){ lastM=t; if(t==='tier'||t==='win'||t==='d100'){ sfx('fanfare'); haptic('heavy'); } } }catch(e){} return o; }; }
+/* football : coups de sifflet et buts pendant le direct */
+{ const _fe=fmEvent; fmEvent=function(L,e){ const o=_fe.apply(this,arguments); try{
+    if(e.k==='goal'){ sfx('goal'); const O=fcOwn(), mine=O&&((O.id===L.h&&e.s===0)||(O.id===L.a&&e.s===1)); haptic(mine?'heavy':'tick'); }
+    else if(e.k==='ht'||e.k==='ft'){ sfx('whistle'); if(e.k==='ft') haptic('confirm'); } }catch(x){} return o; }; }
+
+/* ---------- Réglages ---------- */
+{ const _vs=vSet; vSet=function(){ const h=_vs.apply(this,arguments);
+  const c=card('Sons et vibrations','<label class="fc-tg"><span>Sons</span><input type="checkbox" data-a="fxsnd" '+(FX.snd?'checked':'')+' aria-label="Sons"></label>'+
+    '<div class="row sp"><span class="sub">Volume</span><div class="seg">'+[[.25,'Faible'],[.5,'Moyen'],[.9,'Fort']].map(([v,t])=>'<button class="'+(Math.abs(FX.vol-v)<.01?'on':'')+'" data-a="fxvol" data-v="'+v+'">'+t+'</button>').join('')+'</div></div>'+
+    '<label class="fc-tg"><span>Vibrations</span><input type="checkbox" data-a="fxhap" '+(FX.hap?'checked':'')+' aria-label="Vibrations"></label>'+
+    '<div class="sub">Les vibrations restent courtes et rares : achats, erreurs, paliers, buts de votre club. Elles suivent aussi les réglages de votre téléphone.</div>');
+  const i=h.lastIndexOf('</div>'); return h+c; }; VIEWS.set=vSet; }
+ACT.fxsnd=()=>{ FX.snd=!FX.snd; fxSave(); render(); if(FX.snd) sfx('ok'); };
+ACT.fxhap=()=>{ FX.hap=!FX.hap; fxSave(); render(); if(FX.hap) haptic('confirm'); };
+ACT.fxvol=el=>{ FX.vol=+el.dataset.v; fxSave(); render(); sfx('ok'); };
 
 
 </script>
