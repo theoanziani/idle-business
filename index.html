@@ -1071,6 +1071,12 @@ details.mf>summary::after{content:'';flex:none;width:10px;height:10px;border-rig
 details.mf[open]>summary::after{transform:rotate(-135deg)}
 details.mf .mf-b{padding-bottom:10px}
 
+/* V1.3.1 compagnie aérienne */
+.al-map .al-l{stroke:#ffd23f;stroke-width:.6;opacity:.9}.al-map .al-l.lg{stroke-dasharray:2 1.4}
+.al-map .al-p{fill:#fff;opacity:.55}.al-map .al-p.hub{fill:#ffd23f;opacity:.9}.al-map .al-p.own{fill:#c8352a;stroke:#fff;stroke-width:.5;opacity:1}
+.al-ty{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.al-seg{flex-wrap:wrap}
+
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -10390,6 +10396,233 @@ function dlAuto(b,mode,q){ const m=b.m; m.aord=1;
 }
 
 /* ============================================================
+   COMPAGNIE AÉRIENNE (V1.3.1) — compagnie traditionnelle
+   - Places dans les tours de contrôle (« plateformes ») : 1 ou 2 grands aéroports par pays,
+     5 pays en Europe, 3 sur chaque autre continent. Chaque place coûte cher et demande une image
+     de marque minimale : tout débloquer prend des années.
+   - Lignes : d'une plateforme vers un aéroport du même pays ou d'un pays voisin ; long-courrier
+     uniquement entre deux de vos plateformes. Les lignes courtes amènent des correspondances.
+   - Flotte : avions achetés (investissement) ou loués (loyer chaque jour). Un avion sert une ligne.
+   - Carburant : prix du kérosène qui varie ; couverture de 90 jours possible.
+   - Classes économique et affaires, programme de fidélité (palier).
+   Événements : grève du contrôle aérien, panne d'un avion, flambée du kérosène, vacances d'été.
+   État b.m (v:1) : hubs[] (aéroports), fl[] {id, t, own, ln, down}, ln[] {id, a, b, p, cab, st},
+   fp (kérosène €/kg), hedge {p, until}, img (image 0-100), fid, sal, mnt, ali, fret, ev, nid, st (dernier jour),
+   acc, accC, pend, pendC, log.
+   ============================================================ */
+D.biz.airline={n:'Compagnie aérienne', sub:'Vols réguliers en Europe et dans le monde', cat:'com', tier:4, cost:8000000, launch:45, payback:300, c:.5, risk:.14, econ:1.3, rate:1, open:'always', wkf:1.1, rep:.8, el:1.2,
+  roles:[['ing',8,150],['cadre',10,95],['manager',3,160],['ouvrier',20,50]], tags:['transport']};
+D.BIZSEC.airline='loisirs';
+D.DEFB.airline={t:['tower','office'],s:2000};
+if(typeof BIZ_NAMES!=='undefined') BIZ_NAMES.airline=['Air {h}','{h} Airlines','Ailes de {v}'];
+if(D.BASKET) D.BASKET.airline=250;
+if(!D.bizOrder.includes('airline')){ D.bizOrder.push('airline'); D.bizOrder.sort((a,b)=>D.biz[a].tier-D.biz[b].tier || D.biz[a].cost-D.biz[b].cost); }
+
+const AL_CT={eu:'Europe', na:'Amérique du Nord', sa:'Amérique du Sud', af:'Afrique', as:'Asie', oc:'Océanie'};
+const AL_CO={
+  fr:{n:'France', ct:'eu', nb:['es','de','it','uk']}, es:{n:'Espagne', ct:'eu', nb:['fr','ma']}, de:{n:'Allemagne', ct:'eu', nb:['fr']},
+  it:{n:'Italie', ct:'eu', nb:['fr']}, uk:{n:'Royaume-Uni', ct:'eu', nb:['fr']},
+  us:{n:'États-Unis', ct:'na', nb:['ca','mx']}, ca:{n:'Canada', ct:'na', nb:['us']}, mx:{n:'Mexique', ct:'na', nb:['us']},
+  br:{n:'Brésil', ct:'sa', nb:['ar','co']}, ar:{n:'Argentine', ct:'sa', nb:['br']}, co:{n:'Colombie', ct:'sa', nb:['br']},
+  za:{n:'Afrique du Sud', ct:'af', nb:[]}, ma:{n:'Maroc', ct:'af', nb:['es']}, eg:{n:'Égypte', ct:'af', nb:[]},
+  cn:{n:'Chine', ct:'as', nb:['jp']}, jp:{n:'Japon', ct:'as', nb:['cn']}, ae:{n:'Émirats arabes unis', ct:'as', nb:[]},
+  au:{n:'Australie', ct:'oc', nb:['nz']}, nz:{n:'Nouvelle-Zélande', ct:'oc', nb:['au','fj']}, fj:{n:'Fidji', ct:'oc', nb:['nz','au']}
+};
+/* aéroports : [code, ville, pays, lat, lon, taille (millions de passagers par an), plateforme ?, loisirs ?] */
+const AL_AP={};
+[['CDG','Paris-Charles-de-Gaulle','fr',49.01,2.55,70,1],['NCE','Nice','fr',43.66,7.21,14,1,1],['ORY','Paris-Orly','fr',48.72,2.38,32],['LYS','Lyon','fr',45.72,5.08,11],['MRS','Marseille','fr',43.44,5.22,10],['TLS','Toulouse','fr',43.63,1.37,9],['BOD','Bordeaux','fr',44.83,-.72,7],
+ ['MAD','Madrid','es',40.47,-3.56,60,1],['BCN','Barcelone','es',41.30,2.08,50,1,1],['AGP','Málaga','es',36.67,-4.50,22,0,1],['PMI','Palma de Majorque','es',39.55,2.74,30,0,1],['SVQ','Séville','es',37.42,-5.90,8],['VLC','Valence','es',39.49,-.48,10],
+ ['FRA','Francfort','de',50.04,8.56,60,1],['MUC','Munich','de',48.35,11.79,40,1],['BER','Berlin','de',52.36,13.50,25],['HAM','Hambourg','de',53.63,9.99,14],['DUS','Düsseldorf','de',51.29,6.77,20],
+ ['FCO','Rome','it',41.80,12.25,45,1],['MXP','Milan','it',45.63,8.72,28,1],['VCE','Venise','it',45.50,12.35,11,0,1],['NAP','Naples','it',40.88,14.29,12,0,1],['CTA','Catane','it',37.47,15.07,10,0,1],
+ ['LHR','Londres-Heathrow','uk',51.47,-.45,80,1],['MAN','Manchester','uk',53.35,-2.28,28,1],['EDI','Édimbourg','uk',55.95,-3.36,14],['BHX','Birmingham','uk',52.45,-1.75,12],['LGW','Londres-Gatwick','uk',51.15,-.18,40],
+ ['JFK','New York-JFK','us',40.64,-73.78,62,1],['LAX','Los Angeles','us',33.94,-118.41,75,1],['ORD','Chicago','us',41.98,-87.90,70],['MIA','Miami','us',25.79,-80.29,50,0,1],['SFO','San Francisco','us',37.62,-122.38,50],['LAS','Las Vegas','us',36.08,-115.15,55,0,1],['BOS','Boston','us',42.36,-71.01,40],
+ ['YYZ','Toronto','ca',43.68,-79.62,45,1],['YVR','Vancouver','ca',49.19,-123.18,25,1],['YUL','Montréal','ca',45.47,-73.74,20],['YYC','Calgary','ca',51.13,-114.01,18],
+ ['MEX','Mexico','mx',19.44,-99.07,48,1],['CUN','Cancún','mx',21.04,-86.87,30,1,1],['GDL','Guadalajara','mx',20.52,-103.31,16],['MTY','Monterrey','mx',25.78,-100.11,12],
+ ['GRU','São Paulo','br',-23.43,-46.47,42,1],['GIG','Rio de Janeiro','br',-22.81,-43.25,15,1,1],['BSB','Brasília','br',-15.87,-47.92,15],['SSA','Salvador','br',-12.91,-38.33,8,0,1],['REC','Recife','br',-8.13,-34.92,9],
+ ['EZE','Buenos Aires','ar',-34.82,-58.54,12,1],['COR','Córdoba','ar',-31.32,-64.21,4],['MDZ','Mendoza','ar',-32.83,-68.79,3],['BRC','Bariloche','ar',-41.15,-71.16,2,0,1],
+ ['BOG','Bogota','co',4.70,-74.15,35,1],['MDE','Medellín','co',6.17,-75.43,12],['CTG','Carthagène','co',10.44,-75.51,7,0,1],['CLO','Cali','co',3.54,-76.38,6],
+ ['JNB','Johannesburg','za',-26.13,28.24,20,1],['CPT','Le Cap','za',-33.97,18.60,10,1,1],['DUR','Durban','za',-29.61,31.12,6],['PLZ','Port Elizabeth','za',-33.98,25.62,2],
+ ['CMN','Casablanca','ma',33.37,-7.59,10,1],['RAK','Marrakech','ma',31.61,-8.04,9,1,1],['AGA','Agadir','ma',30.33,-9.41,3,0,1],['FEZ','Fès','ma',33.93,-4.98,2],['TNG','Tanger','ma',35.73,-5.92,2],
+ ['CAI','Le Caire','eg',30.12,31.41,25,1],['HRG','Hurghada','eg',27.18,33.80,9,0,1],['SSH','Charm el-Cheikh','eg',27.98,34.39,7,0,1],['LXR','Louxor','eg',25.67,32.71,2,0,1],
+ ['PEK','Pékin','cn',40.08,116.58,55,1],['PVG','Shanghai','cn',31.14,121.81,55,1],['CAN','Canton','cn',23.39,113.30,60],['CTU','Chengdu','cn',30.58,103.95,45],['SZX','Shenzhen','cn',22.64,113.81,50],
+ ['HND','Tokyo-Haneda','jp',35.55,139.78,80,1],['KIX','Osaka','jp',34.43,135.24,25,1],['CTS','Sapporo','jp',42.78,141.69,20],['FUK','Fukuoka','jp',33.59,130.45,22],['OKA','Okinawa','jp',26.20,127.65,18,0,1],
+ ['DXB','Dubaï','ae',25.25,55.36,87,1],['AUH','Abou Dabi','ae',24.43,54.65,23,1],['SHJ','Sharjah','ae',25.33,55.52,15],
+ ['SYD','Sydney','au',-33.94,151.18,40,1],['MEL','Melbourne','au',-37.67,144.84,35,1],['BNE','Brisbane','au',-27.38,153.12,23],['PER','Perth','au',-31.94,115.97,14],['CNS','Cairns','au',-16.88,145.75,5,0,1],
+ ['AKL','Auckland','nz',-37.01,174.79,18,1],['WLG','Wellington','nz',-41.33,174.81,6],['CHC','Christchurch','nz',-43.49,172.53,6],['ZQN','Queenstown','nz',-45.02,168.74,2,0,1],
+ ['NAN','Nadi','fj',-17.76,177.44,3,1,1],['SUV','Suva','fj',-18.04,178.56,1]
+].forEach(([id,n,co,lat,lon,sz,hub,lei])=>{ AL_AP[id]={id,n,co,lat,lon,sz,hub:!!hub,lei:!!lei}; });
+/* avions (modèles fictifs) : sièges, rayon d'action (km), vitesse, prix, loyer par jour, kérosène (kg/km), équipage (€/h) */
+const AL_TY={
+  r70:{n:'Aéro R70', d:'Régional', seats:70, rg:1800, v:500, pr:24e6, ls:7000, burn:2.3, crew:700},
+  m180:{n:'Aéro M180', d:'Moyen-courrier', seats:180, rg:6000, v:830, pr:95e6, ls:22000, burn:5.2, crew:1400},
+  l300:{n:'Aéro L300', d:'Long-courrier', seats:300, rg:13000, v:900, pr:280e6, ls:60000, burn:9.2, crew:2800},
+  x450:{n:'Aéro X450', d:'Très gros porteur', seats:450, rg:15000, v:910, pr:420e6, ls:90000, burn:12.6, crew:3600}
+};
+const AL_PRICE=[.8,1,1.2,1.4], AL_CAB=[0,.08,.15];
+const alAp = id => AL_AP[id];
+function alDist(a,b){ const A=alAp(a), B=alAp(b), r=Math.PI/180, dl=(B.lat-A.lat)*r, dn=(B.lon-A.lon)*r, x=Math.sin(dl/2)**2+Math.cos(A.lat*r)*Math.cos(B.lat*r)*Math.sin(dn/2)**2; return Math.round(2*6371*Math.asin(Math.sqrt(x))); }
+/* conditions d'une place dans la tour : prix et image de marque minimale */
+function alHubCost(id){ const A=alAp(id); return Math.round((9e6+A.sz*7.8e5)/1e5)*1e5; }
+function alHubReq(b,id){ const A=alAp(id), home=AL_CO[alHomeCo(b)]; return Math.round(28+A.sz*.35+(home&&AL_CO[A.co].ct!==home.ct?15:0)); }
+function alHomeCo(b){ const cc=b&&b.city, map={paris:'fr',toulouse:'fr',marseille:'fr',madrid:'es',barcelone:'es',seville:'es',miami:'us',newyork:'us',losangeles:'us',rio:'br',saopaulo:'br',salvador:'br',pekin:'cn',shanghai:'cn',shenzhen:'cn'}; return map[cc]||'de'; }
+function alStartHub(b){ return {fr:'CDG',es:'MAD',us:'JFK',br:'GRU',cn:'PEK',de:'FRA'}[alHomeCo(b)]||'FRA'; }
+/* destinations possibles depuis une plateforme */
+function alDests(b,from){ const m=b.m, A=alAp(from), co=AL_CO[A.co], ok=[A.co].concat(co.nb);
+  return Object.values(AL_AP).filter(x=>x.id!==from&&(ok.includes(x.co)||m.hubs.includes(x.id))); }
+function alPlane(b,id){ return b.m.fl.find(p=>p.id===id); }
+function alLine(b,id){ return b.m.ln.find(l=>l.id===id); }
+function alBlock(t,d){ return d/AL_TY[t].v+.75; }
+function alLegs(t,d){ return Math.max(1,Math.floor(13/alBlock(t,d)))&~1 || 2; }
+/* prix moyen d'un billet économique selon la distance */
+function alEco(d){ return d<1500? 76+.064*d : 172+.045*(d-1500); }
+function alFuel(b){ const m=b.m; return m.hedge&&m.hedge.until>=S.day? m.fp*.3+m.hedge.p*.7 : m.fp; }
+function alEv(m,k){ return m.ev&&m.ev.k===k&&m.ev.until>=S.day; }
+function alInit(b){
+  const h=alStartHub(b), A=alAp(h);
+  const m={v:1, hubs:[h], ext:{}, fl:[], ln:[], fp:.8, hedge:null, img:35, fid:0, sal:0, mnt:0, ali:0, fret:0, ev:null, nid:1, st:null, acc:0, accC:0, pend:0, pendC:0, last:null, log:[]};
+  b.m=m; b.stock=0;
+  /* au départ : deux moyen-courriers loués sur deux lignes intérieures */
+  const dests=alDests(b,h).filter(x=>x.co===A.co&&alDist(h,x.id)>=300&&alDist(h,x.id)<=2500).sort((x,y)=>y.sz-x.sz).slice(0,2);
+  dests.forEach(x=>{ const p={id:m.nid++, t:'m180', own:0, ln:0, down:0}; m.fl.push(p); const l={id:m.nid++, a:h, b:x.id, p:1, cab:1}; m.ln.push(l); p.ln=l.id; });
+  return m;
+}
+/* une journée d'une ligne (sim : prévision sans hasard) */
+function alLineDay(b,l,sim){
+  const m=b.m, P=m.fl.filter(p=>p.ln===l.id&&!(p.down>S.day)); if(!P.length) return {pax:0,seats:0,rev:0,cost:0,legs:0,lf:0,net:0};
+  const d=alDist(l.a,l.b), A=alAp(l.a), B=alAp(l.b), long=d>3500;
+  const strike=alEv(m,'gr')&&(A.co===m.ev.co||B.co===m.ev.co);
+  if(strike) return {pax:0,seats:0,rev:0,cost:P.reduce((a,p)=>a+(p.own?0:AL_TY[p.t].ls),0),legs:0,lf:0,net:0,strike:1};
+  /* demande (passagers par jour, deux sens) et part de marché de la compagnie */
+  let dem=+(170)*Math.sqrt(A.sz*B.sz)/(1+d/4000)*(d<350?.6:1);
+  if((A.lei||B.lei)&&alEv(m,'ete')) dem*=1.25;
+  if(long){ const feed=m.ln.filter(x=>x!==l&&(x.a===l.a||x.a===l.b||x.b===l.a||x.b===l.b)&&alDist(x.a,x.b)<=3500).length; dem*=1+Math.min(.4,.04*feed)+(m.ali?.15:0); }
+  const pm=AL_PRICE[l.p]||1, share=clamp(.22+m.img/250+(m.fid?.05:0),.1,.7)*Math.pow(pm,-2.6);
+  /* concurrence : plus la route est grosse, plus d'autres compagnies s'y battent */
+  const want=dem*share*(2500/(2500+dem))*(m.fid?1.08:1), bshare=((long?.12:.06)+(m.sal?.03:0))*(m.fid?1.2:1);
+  /* le planning ajuste la fréquence à la demande (allers-retours), dans la limite des avions */
+  const fuel=alFuel(b)*(alEv(m,'ker')?1.35:1);
+  let seats=0, legs=0, bseats=0, cost=0; const avgS=P.reduce((a,p)=>a+AL_TY[p.t].seats,0)/P.length, need=Math.max(2,2*Math.ceil(want/(2*avgS*.85)));
+  P.forEach(p=>{ const T=AL_TY[p.t], mx=alLegs(p.t,d), lg=Math.min(mx,Math.max(0,need-legs)), cab=p.t==='r70'?0:(AL_CAB[l.cab]||0), bs=Math.round(T.seats*cab/2.5), es=T.seats-Math.round(bs*2.5);
+    legs+=lg; seats+=lg*(es+bs); bseats+=lg*bs; cost+=lg*(T.burn*d*fuel+alBlock(p.t,d)*T.crew+800)+(p.own? T.pr*.00012*(m.mnt?.8:1) : T.ls)+T.ls*.2; });
+  const bwant=want*bshare, bpax=Math.min(bseats,bwant), epax=Math.min(seats-bseats,want-bwant), pax=bpax+epax;
+  const eco=alEco(d)*pm, biz=eco*3.2;
+  let rev=epax*eco+bpax*biz; if(m.fret&&long) rev*=1.08;
+  cost+=pax*12;
+  return {pax, bpax, seats, rev, cost, legs, lf: seats? pax/seats : 0, net:rev-cost, d, want};
+}
+function alDay(b,sim){ const m=b.m; let r={pax:0,seats:0,rev:0,cost:0,legs:0}; m.ln.forEach(l=>{ const x=alLineDay(b,l,sim); l.st=x; ['pax','seats','rev','cost','legs'].forEach(k=>r[k]+=x[k]||0); });
+  /* avions sans ligne : loyer ou entretien quand même */
+  m.fl.filter(p=>!p.ln||!m.ln.some(l=>l.id===p.ln)).forEach(p=>{ const T=AL_TY[p.t]; r.cost+=p.own? T.pr*.00012*(m.mnt?.8:1) : T.ls; });
+  r.lf=r.seats? r.pax/r.seats : 0; return r; }
+MET.airline = {
+  fam:'com', core:true, init:alInit,
+  ranks:[
+    {n:'Programme de fidélité', d:'Les voyageurs fréquents vous restent fidèles : plus de passagers, surtout en classe affaires.'},
+    {n:'Salons à l’aéroport', d:'Des salons pour vos clients affaires : plus de passagers affaires et une meilleure image.'},
+    {n:'Maintenance maison', d:'Votre propre atelier : entretien des avions achetés 20 % moins cher, moins de pannes.'},
+    {n:'Alliance de compagnies', d:'Des partenaires vous amènent des correspondances : +15 % de demande sur le long-courrier.'},
+    {n:'Fret en soute', d:'Des marchandises dans les soutes de vos long-courriers : +8 % de recettes sur ces lignes.'}
+  ],
+  mods(b){ const m=b.m; return {vol:0, cogs:0, rev:m.pend, fixed:m.pendC}; },
+  daily(b,ctx){
+    const m=b.m;
+    if(ctx.open){ m.pend=m.acc; m.pendC=m.accC; m.acc=0; m.accC=0; }
+    if(m.ev&&m.ev.until<S.day) m.ev=null;
+    /* kérosène : marche au hasard autour de 0,80 €/kg */
+    m.fp=clamp(m.fp+(.8-m.fp)*.02+.012*norm(),.45,1.4);
+    if(m.hedge&&m.hedge.until<S.day){ m.hedge=null; metLog(b,'la couverture carburant est terminée.',''); }
+    const d=alDay(b,false); m.st=d; m.acc+=d.rev; m.accC+=d.cost;
+    /* image de marque : réseau, ponctualité, service */
+    if(!m.d0) m.d0=S.day;
+    const tgt=30+Math.min(25,(S.day-m.d0)/360*6)+Math.min(6,m.ln.length*.3)+(m.sal?6:0)+(m.fid?4:0)+(m.ali?4:0)+(d.lf>.75?4:d.lf<.45?-4:0)-(m.ev&&(m.ev.k==='gr'||m.ev.k==='pn')?6:0);
+    m.img=clamp(m.img+(Math.min(95,tgt)-m.img)/400,0,100);
+    /* événements */
+    if(!m.ev){ const r=rnd(), mo=Math.floor(((S.day-1)%360)/30);
+      if(mo===6&&!alEv(m,'ete')&&r<.2){ m.ev={k:'ete', until:S.day+55}; metLog(b,'vacances d’été : 25 % de passagers en plus vers les destinations de loisirs.','good'); }
+      else if(r<.004){ const cos=[...new Set(m.ln.flatMap(l=>[alAp(l.a).co,alAp(l.b).co]))]; if(cos.length){ const co=pick(cos); m.ev={k:'gr', co, until:S.day+2}; metLog(b,'grève du contrôle aérien ('+AL_CO[co].n+') : vols annulés pendant 2 jours.','bad'); } }
+      else if(r<.007&&m.fl.length){ const p=pick(m.fl); p.down=S.day+(m.mnt?3:6); m.ev={k:'pn', until:S.day+1}; metLog(b,AL_TY[p.t].n+' immobilisé après une panne ('+(m.mnt?3:6)+' jours).','bad'); }
+      else if(r<.009){ m.ev={k:'ker', until:S.day+30}; metLog(b,'flambée du kérosène : carburant 35 % plus cher pendant un mois.','bad'); } }
+  },
+  kpis(b){ const m=b.m, d=m.st||alDay(b,true);
+    return [['Passagers / jour', fmtN(Math.round(d.pax)), d.legs+' vols par jour'],
+            ['Remplissage', Math.round(d.lf*100)+' %', m.ln.length+' ligne'+(m.ln.length>1?'s':'')],
+            ['Image de marque', Math.round(m.img)+' / 100', m.hubs.length+' plateforme'+(m.hubs.length>1?'s':'')],
+            ['Kérosène', fmtN(alFuel(b),2)+' € / kg', m.hedge? 'Couvert encore '+(m.hedge.until-S.day)+' j' : 'Non couvert']];
+  },
+  ctl(b){ const m=b.m, d=bizDef(b), out=[];
+    out.push(m.hedge? {k:'buy', act:'hedge', label:'Couverture carburant', owned:true, sub:'70 % du kérosène payé '+fmtN(m.hedge.p,2)+' € / kg jusqu’au jour '+m.hedge.until+'.'} :
+      {k:'btn', act:'hedge', label:'Se couvrir 90 jours au prix du jour', cost:alHedgeCost(b), sub:'70 % du kérosène payé '+fmtN(m.fp*1.03,2)+' € / kg pendant 90 jours, quoi qu’il arrive.'});
+    [['fid',1,1.5,'Programme de fidélité','Plus de passagers, surtout en affaires.'],['sal',2,3,'Salons à l’aéroport','Plus de passagers affaires, meilleure image.'],['mnt',3,5,'Maintenance maison','Entretien −20 %, pannes plus courtes.'],['ali',4,8,'Alliance de compagnies','+15 % de demande long-courrier.'],['fret',5,12,'Fret en soute','+8 % de recettes long-courrier.']].forEach(([k2,rk,f,l,s])=>{
+      if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:d.cost*f, sub:s}); });
+    return out;
+  },
+  acts:{
+    hub:(b,id)=>alBuyHub(b,id),
+    ext:(b,id)=>alExt(b,id),
+    open:(b,arg)=>{ const [a,bb,pid]=String(arg).split(':'); return alOpen(b,a,bb,+pid); },
+    close:(b,id)=>alClose(b,+id),
+    price:(b,arg)=>{ const [id,v]=String(arg).split(':'), l=alLine(b,+id); if(!l) return err('Ligne introuvable.'); l.p=clamp(+v|0,0,3); return ok(''); },
+    cab:(b,arg)=>{ const [id,v]=String(arg).split(':'), l=alLine(b,+id); if(!l) return err('Ligne introuvable.'); l.cab=clamp(+v|0,0,2); return ok(''); },
+    add:(b,arg)=>{ const [id,pid]=String(arg).split(':'); return alAssign(b,+id,+pid); },
+    lease:(b,t)=>alGet(b,t,false),
+    buy:(b,t)=>alGet(b,t,true),
+    drop:(b,id)=>alDrop(b,+id),
+    hedge:(b)=>alHedge(b),
+    fid:(b)=>alBuyR(b,'fid',1.5,'Programme de fidélité',1),
+    sal:(b)=>alBuyR(b,'sal',3,'Salons à l’aéroport',2),
+    mnt:(b)=>alBuyR(b,'mnt',5,'Maintenance maison',3),
+    ali:(b)=>alBuyR(b,'ali',8,'Alliance de compagnies',4),
+    fret:(b)=>alBuyR(b,'fret',12,'Fret en soute',5)
+  },
+  auto: alAuto
+};
+function alBuyR(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizDef(b).cost*f;
+  if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m[k]=1; metLog(b,label.toLowerCase()+' : c’est fait.','good'); return ok(label+' : c’est fait.'); }
+function alBuyHub(b,id,auto){ const m=b.m, A=alAp(id); if(!A||!A.hub) return err('Aéroport inconnu.'); if(m.hubs.includes(id)) return err('Vous y êtes déjà.');
+  const req=alHubReq(b,id); if(m.img<req) return err('Image de marque insuffisante : '+req+' requis ('+Math.round(m.img)+' aujourd’hui).');
+  const c=alHubCost(id); if(!(auto? dlSpend(b,c,'Place dans la tour : '+A.n) : metBuy(b,c,'Place dans la tour de contrôle : '+A.n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  m.hubs.push(id); metLog(b,'place obtenue dans la tour de contrôle de '+A.n+'.','good'); return ok('Vous pouvez maintenant ouvrir des lignes depuis '+A.n+'.'); }
+/* créneaux : 4 lignes au départ de chaque plateforme, +3 par achat de créneaux (3 achats au plus) */
+function alHubCap(b,h){ return 4+3*((b.m.ext&&b.m.ext[h])||0); }
+function alHubUsed(b,h){ return b.m.ln.filter(l=>l.a===h).length; }
+function alExtCost(b,h){ return Math.round(alHubCost(h)*.5*(1+((b.m.ext&&b.m.ext[h])||0))/1e5)*1e5; }
+function alExt(b,h,auto){ const m=b.m; if(!m.hubs.includes(h)) return err('Achetez d’abord une place dans la tour.'); m.ext=m.ext||{}; const n=m.ext[h]||0; if(n>=3) return err('Créneaux au maximum à '+alAp(h).n+'.');
+  const c=alExtCost(b,h); if(!(auto? dlSpend(b,c,'Créneaux : '+alAp(h).n) : metBuy(b,c,'Créneaux supplémentaires : '+alAp(h).n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  m.ext[h]=n+1; metLog(b,'créneaux supplémentaires à '+alAp(h).n+' : '+alHubCap(b,h)+' lignes possibles.','good'); return ok(alHubCap(b,h)+' lignes possibles au départ de '+alAp(h).n+'.'); }
+function alCanLine(b,a,bb){ const m=b.m; if(!m.hubs.includes(a)) return 'Départ depuis une de vos plateformes uniquement.'; if(!alAp(bb)) return 'Aéroport inconnu.';
+  if(alHubUsed(b,a)>=alHubCap(b,a)) return 'Plus de créneau libre à '+alAp(a).n+' ('+alHubCap(b,a)+' lignes) : achetez des créneaux supplémentaires.';
+  if(!alDests(b,a).some(x=>x.id===bb)) return 'Destination hors de portée : même pays, pays voisin, ou une autre de vos plateformes.';
+  if(m.ln.some(l=>(l.a===a&&l.b===bb)||(l.a===bb&&l.b===a))) return 'Cette ligne existe déjà.'; return ''; }
+function alOpen(b,a,bb,pid){ const m=b.m, e=alCanLine(b,a,bb); if(e) return err(e); const p=alPlane(b,pid); if(!p) return err('Choisissez un avion.');
+  if(p.ln&&m.ln.some(l=>l.id===p.ln)) return err('Cet avion vole déjà sur une autre ligne.'); const d=alDist(a,bb); if(AL_TY[p.t].rg<d) return err('Trop loin pour cet avion ('+fmtN(d,0)+' km).');
+  const l={id:m.nid++, a, b:bb, p:1, cab:1}; m.ln.push(l); p.ln=l.id; metLog(b,'nouvelle ligne '+alAp(a).n+' – '+alAp(bb).n+'.','good'); return ok('Ligne ouverte : '+alAp(a).n+' – '+alAp(bb).n+'.'); }
+function alAssign(b,lid,pid){ const m=b.m, l=alLine(b,lid), p=alPlane(b,pid); if(!l||!p) return err('Introuvable.'); if(p.ln&&m.ln.some(x=>x.id===p.ln)) return err('Cet avion vole déjà.');
+  if(AL_TY[p.t].rg<alDist(l.a,l.b)) return err('Trop loin pour cet avion.'); p.ln=l.id; return ok(AL_TY[p.t].n+' ajouté sur la ligne.'); }
+function alClose(b,lid){ const m=b.m, l=alLine(b,lid); if(!l) return err('Ligne introuvable.'); m.ln=m.ln.filter(x=>x!==l); m.fl.forEach(p=>{ if(p.ln===lid) p.ln=0; }); return ok('Ligne fermée ; ses avions sont disponibles.'); }
+function alGet(b,t,own,auto){ const m=b.m, T=AL_TY[t]; if(!T) return err('Modèle inconnu.');
+  if(own){ if(!(auto? dlSpend(b,T.pr,'Achat : '+T.n) : metBuy(b,T.pr,'Achat d’un avion : '+T.n))) return err('Trésorerie insuffisante : '+eur(T.pr,0)+'.'); }
+  else { const dep=T.ls*30; if(availFor(cityOf(b).ccy)<dep) return err('Il faut '+eur(dep,0)+' de dépôt de garantie.'); payCap('b:'+b.id,'Dépôt de garantie : '+T.n,-dep); settleAccounts(); }
+  const p={id:m.nid++, t, own:own?1:0, ln:0, down:0, dep: own?0:T.ls*30}; m.fl.push(p); return ok(T.n+(own?' acheté.':' loué ('+eur(T.ls,0)+' par jour).')); }
+function alDrop(b,pid){ const m=b.m, p=alPlane(b,pid); if(!p) return err('Avion introuvable.'); const T=AL_TY[p.t];
+  if(p.own){ payCap('b:'+b.id,'Revente : '+T.n,T.pr*.7); settleAccounts(); } else if(p.dep){ payCap('b:'+b.id,'Dépôt rendu : '+T.n,p.dep); settleAccounts(); }
+  m.fl=m.fl.filter(x=>x!==p); return ok(p.own? T.n+' revendu '+eur(T.pr*.7,0)+'.' : 'Location de '+T.n+' terminée, dépôt rendu.'); }
+function alHedgeCost(b){ const d=b.m.st||alDay(b,true), fuelDay=b.m.ln.reduce((a,l)=>{ const x=l.st; return a+(x&&x.d? b.m.fl.filter(p=>p.ln===l.id).reduce((s,p)=>s+alLegs(p.t,x.d)*AL_TY[p.t].burn*x.d,0) : 0); },0); return Math.round(fuelDay*90*.7*b.m.fp*.03/1000)*1000+5000; }
+function alHedge(b){ const m=b.m; if(m.hedge) return err('Déjà couvert.'); const c=alHedgeCost(b); if(!metBuy(b,c,'Couverture carburant')) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  m.hedge={p:m.fp*1.03, until:S.day+90}; metLog(b,'couverture carburant : 70 % du kérosène à '+fmtN(m.fp*1.03,2)+' € / kg pendant 90 jours.','good'); return ok('Carburant couvert pour 90 jours.'); }
+/* le directeur : prix des billets, cabines ; en délégation totale, avions et lignes */
+function alAuto(b,mode,q){ const m=b.m;
+  if(S.day%7===0) m.ln.forEach(l=>{ let best=l.p, bv=-1e18; const save=l.p; for(let p=0;p<4;p++){ l.p=p; const x=alLineDay(b,l,true); if(x.net>bv){ bv=x.net; best=p; } } l.p= rnd()<(1-q)*.3? save : best;
+    const save2=l.cab; let bc=l.cab; bv=-1e18; for(let c=0;c<3;c++){ l.cab=c; const x=alLineDay(b,l,true); if(x.net>bv){ bv=x.net; bc=c; } } l.cab=bc; });
+  if(mode!=='full') return;
+  if(S.day%30===0){ if(!m.hedge&&m.fp<.75) alHedge(b);
+    /* une nouvelle ligne intérieure avec un avion loué si elle s'annonce rentable */
+    const h=m.hubs[Math.floor(rnd()*m.hubs.length)], cand=alDests(b,h).filter(x=>!alCanLine(b,h,x.id)).sort((x,y)=>y.sz-x.sz)[0];
+    if(cand){ const d=alDist(h,cand.id), t=d<=1500? 'm180' : d<=6000? 'm180' : 'l300'; if(AL_TY[t].rg>=d&&(b.dlp||0)>AL_TY[t].ls*30){ const r=alGet(b,t,false,true); if(r.ok){ const p=m.fl[m.fl.length-1]; alOpen(b,h,cand.id,p.id); const l=m.ln[m.ln.length-1]; if(l&&alLineDay(b,l,true).net<0){ alClose(b,l.id); alDrop(b,p.id); } } } }
+    for(const [k,f,l,rk] of [['fid',1.5,'Programme de fidélité',1],['sal',3,'Salons à l’aéroport',2],['mnt',5,'Maintenance maison',3],['ali',8,'Alliance de compagnies',4],['fret',12,'Fret en soute',5]]) if(!m[k]&&mxHas(b,rk)&&alBuyR(b,k,f,l,rk,true).ok) break; }
+}
+function alData(){ return {AL_AP, AL_CO, AL_TY}; }
+
+/* ============================================================
    LIENS ENTRE VOS ENTREPRISES ET VOTRE CLUB
    - Ferme → buvettes du stade : à chaque match à domicile, les buvettes vendent ; avec votre
      ferme, ce sont vos produits (recette ×1,5).
@@ -12243,7 +12476,7 @@ Object.assign(ACT,{
 });
 /* Estimation du bénéfice quotidien d'une activité dans un bâtiment (équipe complète, réglages standards) */
 /* bénéfice net moyen observé (en part de R0) pour une activité à moteur métier jouée sans consigne : mesuré par simulation (sim_met.js, 2 parties, jours 120 à 420) */
-const EST_NETK = {repair:.28, ecom:.2, staffing:.74, resto:.35, farm:.71, build:.26, textile:.2, electronics:.15, studio:.28, promo:.29, gallery:.37, couture:.23, renew:.49, dc:.39, park:.56, hotel:.35};
+const EST_NETK = {airline:.3, repair:.28, ecom:.2, staffing:.74, resto:.35, farm:.71, build:.26, textile:.2, electronics:.15, studio:.28, promo:.29, gallery:.37, couture:.23, renew:.49, dc:.39, park:.56, hotel:.35};
 function estNet(def,bd){
   const d=D.biz[def]; if(d.startup) return null;
   if(MET[def]&&MET[def].core&&EST_NETK[def]!==undefined){ try{ const b0={id:-1, def, lvl:1, city:bd.city, dist:bd.dist, bld:bd.id, staff:{}, cf:locCostF(def,bd.city,bd.dist)}; return bizBase(b0).R0*EST_NETK[def]; }catch(e){ return null; } }
@@ -14235,10 +14468,12 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.2.9';
+const IB_VER='V1.3.1';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Rapports des recruteurs dans le rapport du jour','Quand un recruteur de jeunes envoie son rapport, il apparaît dans le rapport du jour (bloc Journal, étiquette Club) avec le nombre de jeunes proposés et le potentiel du meilleur. Dans ce bloc, vos propres événements passent désormais avant les actualités.']
+  ['Nouvelle activité : compagnie aérienne','Une compagnie traditionnelle, l’activité la plus ambitieuse du jeu. Vous démarrez avec une place dans la tour de contrôle d’un grand aéroport de votre pays et deux lignes intérieures.'],
+  ['Tours de contrôle et lignes','Achetez une place dans la tour de 36 grands aéroports (5 pays en Europe, 3 sur chaque autre continent). Depuis chacun, ouvrez des lignes vers le même pays ou un pays voisin ; le long-courrier relie deux de vos plateformes. Chaque place coûte cher et demande une image de marque qui monte lentement : tout débloquer prend des années.'],
+  ['Flotte, carburant, classes','Louez ou achetez quatre modèles d’avions, du régional au très gros porteur. Le kérosène varie : couvrez-vous pour 90 jours. Réglez le prix des billets et la part de classe affaires de chaque ligne ; programme de fidélité, salons, alliance et fret avec les paliers.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -14623,6 +14858,75 @@ ACT.dlbr=el=>{ const id=+el.dataset.i; ui.dlb= ui.dlb===id? null : id; render();
 { const _met=ACT.met; ACT.met=el=>{ const v=el.dataset.v; _met(el); if(v==='brand'&&ui.dlb){ ui.dlb=null; render(); } }; }
 
 /* ============================================================
+   COMPAGNIE AÉRIENNE : réseau, lignes, flotte, tours de contrôle (V1.3.1)
+   ============================================================ */
+const alX=lon=>lon+180, alY=lat=>90-lat;
+function alMap(b){
+  const m=b.m, land=typeof YS_GEO!=='undefined'? '<path class="land" d="'+YS_GEO.land+Object.values(YS_GEO.c).join('')+'"/>' : '';
+  const ln=m.ln.map(l=>{ const A=alAp(l.a), B=alAp(l.b); if(Math.abs(A.lon-B.lon)>180) return ''; return '<line x1="'+alX(A.lon)+'" y1="'+alY(A.lat)+'" x2="'+alX(B.lon)+'" y2="'+alY(B.lat)+'" class="al-l'+(alDist(l.a,l.b)>3500?' lg':'')+'"/>'; }).join('');
+  const dests=new Set(m.ln.flatMap(l=>[l.a,l.b]));
+  const pts=Object.values(AL_AP).filter(a=>a.hub||dests.has(a.id)).map(a=>{ const own=m.hubs.includes(a.id); return '<circle cx="'+alX(a.lon)+'" cy="'+alY(a.lat)+'" r="'+(own?2.2:a.hub?1.4:1)+'" class="al-p'+(own?' own':a.hub?' hub':'')+'"/>'; }).join('');
+  return '<div class="ys-map al-map"><svg viewBox="0 4 360 146" role="img" aria-label="Carte de votre réseau">'+land+ln+pts+'</svg></div><div class="sub">Points pleins : vos plateformes. Petits points : autres grands aéroports. Traits : vos lignes (en pointillé, le long-courrier).</div>';
+}
+function alBt(b,lab,act,arg,o){ return '<button class="btn '+((o&&o.c)||'sm')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o&&o.dis?' disabled':'')+(o&&o.l?' aria-label="'+esc(o.l)+'"':'')+'>'+lab+'</button>'; }
+MET.airline.html=function(b){
+  const m=b.m, can=x=>availFor(cityOf(b).ccy)>=x;
+  let h='<div class="pk-head"><b>Réseau</b><span class="sub">'+m.hubs.length+' plateforme'+(m.hubs.length>1?'s':'')+' · '+m.ln.length+' ligne'+(m.ln.length>1?'s':'')+'</span></div>'+alMap(b);
+  /* lignes */
+  h+='<div class="pk-head"><b>Lignes</b><span class="sub">'+(m.ln.length? m.ln.length+' en service' : 'Aucune ligne')+'</span></div><div class="ht-t">';
+  m.ln.forEach(l=>{ const x=l.st||alLineDay(b,l,true), P=m.fl.filter(p=>p.ln===l.id), d=alDist(l.a,l.b);
+    h+='<div class="rs-d"><div><b>'+esc(alAp(l.a).n)+' – '+esc(alAp(l.b).n)+'</b><small>'+fmtN(d,0)+' km · '+P.map(p=>AL_TY[p.t].n).join(', ')+' · '+(x.legs||0)+' vols par jour · remplissage '+Math.round((x.lf||0)*100)+' %</small>'+
+      '<small>Billet éco '+eur(alEco(d)*(AL_PRICE[l.p]||1),0)+' ('+Math.round((AL_PRICE[l.p]||1)*100)+' % du prix habituel) · affaires : '+['aucune','8 % de la cabine','15 % de la cabine'][l.cab]+' · résultat '+'<b class="num '+cls(x.net||0)+'">'+signed(x.net||0,0)+' / j</b>'+(x.strike?' · grève':'')+'</small>'+
+      '<div class="fm-a">'+alBt(b,'Prix −','price',l.id+':'+Math.max(0,l.p-1),{c:'sm ghost',dis:l.p<=0})+alBt(b,'Prix +','price',l.id+':'+Math.min(3,l.p+1),{c:'sm ghost',dis:l.p>=3})+alBt(b,'Cabine','cab',l.id+':'+((l.cab+1)%3),{c:'sm ghost'})+
+      '<button class="btn sm ghost" data-a="aladd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un avion</button>'+alBt(b,'Fermer','close',l.id,{c:'sm ghost'})+'</div></div></div>'; });
+  h+='</div><div><button class="btn sm pri" data-a="alnew" data-i="'+b.id+'">Ouvrir une ligne</button></div>';
+  /* flotte */
+  const idle=m.fl.filter(p=>!p.ln||!m.ln.some(l=>l.id===p.ln));
+  h+='<div class="pk-head"><b>Flotte</b><span class="sub">'+m.fl.length+' avion'+(m.fl.length>1?'s':'')+(idle.length?' · '+idle.length+' au sol':'')+'</span></div><div class="ht-t">';
+  m.fl.forEach(p=>{ const T=AL_TY[p.t], l=m.ln.find(x=>x.id===p.ln);
+    h+='<div class="rs-d"><div><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+T.seats+' places · '+fmtN(T.rg,0)+' km · '+(p.own?'acheté':'loué '+eur(T.ls,0)+' / j')+'</small><small>'+(p.down>S.day? 'En panne encore '+(p.down-S.day)+' j' : l? 'Sur la ligne '+esc(alAp(l.a).n)+' – '+esc(alAp(l.b).n) : 'Au sol, sans ligne')+'</small>'+
+      '<div class="fm-a">'+alBt(b,p.own?'Revendre ('+eur(T.pr*.7,0)+')':'Rendre','drop',p.id,{c:'sm ghost'})+'</div></div></div>'; });
+  h+='</div><div class="pk-list">'+Object.entries(AL_TY).map(([k,T])=>'<div class="pk-o al-ty"><span><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+T.seats+' places · '+fmtN(T.rg,0)+' km</small></span><span class="row">'+
+    alBt(b,'Louer '+eur(T.ls,0)+' / j','lease',k,{c:'sm',dis:!can(T.ls*30)})+alBt(b,'Acheter '+eur(T.pr,0),'buy',k,{c:'sm ghost',dis:!can(T.pr)})+'</span></div>').join('')+'</div>'+
+    '<div class="sub">Une location demande un dépôt de 30 jours de loyer, rendu à la fin. Un avion acheté ne paie que son entretien et se revend 70 % de son prix.</div>';
+  /* tours de contrôle */
+  h+='<div class="pk-head"><b>Tours de contrôle</b><span class="sub">Image de marque '+Math.round(m.img)+' / 100</span></div>';
+  h+='<div class="sub">Une place dans la tour d’un grand aéroport permet d’en faire partir des lignes vers le même pays ou un pays voisin, et du long-courrier vers vos autres plateformes. L’image de marque monte avec les années, le réseau et le service.</div>';
+  Object.keys(AL_CT).forEach(ct=>{ const L=Object.values(AL_AP).filter(a=>a.hub&&AL_CO[a.co].ct===ct); if(!L.length) return;
+    h+='<div class="tag">'+AL_CT[ct]+'</div><div class="ht-t">'+L.map(a=>{ const own=m.hubs.includes(a.id), req=alHubReq(b,a.id), c=alHubCost(a.id);
+      if(own){ const n=(m.ext&&m.ext[a.id])||0; return '<div class="rs-d"><div><b>'+esc(a.n)+'</b><small>'+esc(AL_CO[a.co].n)+' · '+alHubUsed(b,a.id)+' / '+alHubCap(b,a.id)+' lignes</small><div class="fm-a">'+(n<3? alBt(b,'Créneaux : '+eur(alExtCost(b,a.id),0),'ext',a.id,{c:'sm',dis:!can(alExtCost(b,a.id))}) : pill('Créneaux au maximum','good'))+'</div></div></div>'; }
+      return '<div class="rs-d"><div><b>'+esc(a.n)+'</b><small>'+esc(AL_CO[a.co].n)+' · '+a.sz+' M de passagers par an · image '+req+' requise</small><div class="fm-a">'+alBt(b,'Acheter : '+eur(c,0),'hub',a.id,{c:'sm',dis:m.img<req||!can(c)})+'</div></div></div>'; }).join('')+'</div>'; });
+  return h;
+};
+/* ouvrir une ligne : plateforme, destination, avion */
+ACT.alnew=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(!b) return; ui.modal={type:'alnew', id:b.id, a:b.m.hubs.length===1?b.m.hubs[0]:null, to:null}; render(); };
+ACT.alnewa=el=>{ const m=ui.modal; if(!m) return; m.a=el.dataset.v; m.to=null; render(); };
+ACT.alnewb=el=>{ const m=ui.modal; if(!m) return; m.to=el.dataset.v; render(); };
+ACT.alnewgo=el=>{ const m=ui.modal, b=S.biz.find(x=>x.id===m.id); if(!b) return; let pid=+el.dataset.v;
+  if(el.dataset.t){ const r=alGet(b,el.dataset.t,false); if(!r.ok) return after(r); pid=b.m.fl[b.m.fl.length-1].id; }
+  const r=alOpen(b,m.a,m.to,pid); if(!r.ok&&el.dataset.t) alDrop(b,pid); if(r.ok) ui.modal={type:'biz',id:b.id}; after(r); };
+ACT.aladd=el=>{ ui.modal={type:'aladd', id:+el.dataset.i, l:+el.dataset.j}; render(); };
+ACT.aladdgo=el=>{ const m=ui.modal, b=S.biz.find(x=>x.id===m.id); if(!b) return; let pid=+el.dataset.v;
+  if(el.dataset.t){ const r=alGet(b,el.dataset.t,false); if(!r.ok) return after(r); pid=b.m.fl[b.m.fl.length-1].id; }
+  const r=alAssign(b,m.l,pid); if(!r.ok&&el.dataset.t) alDrop(b,pid); if(r.ok) ui.modal={type:'biz',id:b.id}; after(r); };
+function alPlaneChoice(b,d,act){ const m=b.m, idle=m.fl.filter(p=>(!p.ln||!m.ln.some(l=>l.id===p.ln))&&AL_TY[p.t].rg>=d), can=x=>availFor(cityOf(b).ccy)>=x;
+  return (idle.length? '<div class="tag">Avions au sol</div>'+idle.map(p=>'<button class="pk-o" data-a="'+act+'" data-v="'+p.id+'"><span><b>'+esc(AL_TY[p.t].n)+'</b><small>'+AL_TY[p.t].seats+' places · '+(p.own?'acheté':'loué')+'</small></span></button>').join('') : '')+
+    '<div class="tag">Louer un avion pour cette ligne</div>'+Object.entries(AL_TY).filter(([k,T])=>T.rg>=d).map(([k,T])=>'<button class="pk-o" data-a="'+act+'" data-v="0" data-t="'+k+'"'+(can(T.ls*30)?'':' disabled')+'><span><b>'+esc(T.n)+'</b><small>'+T.seats+' places · '+eur(T.ls,0)+' / j · dépôt '+eur(T.ls*30,0)+'</small></span></button>').join(''); }
+{ const _mc=modalContent; modalContent=function(){ const M=ui.modal;
+  if(M&&M.type==='alnew'){ const b=S.biz.find(x=>x.id===M.id); if(!b||!b.m){ ui.modal=null; return _mc(); } const m=b.m;
+    let body='<button class="back" data-a="bizopen" data-i="'+b.id+'">‹ '+esc(b.name)+'</button>';
+    body+='<div class="tag">Départ</div><div class="seg al-seg">'+m.hubs.map(h=>'<button class="'+(M.a===h?'on':'')+'" data-a="alnewa" data-v="'+h+'">'+esc(alAp(h).n)+' ('+alHubUsed(b,h)+'/'+alHubCap(b,h)+')</button>').join('')+'</div>';
+    if(M.a&&alHubUsed(b,M.a)>=alHubCap(b,M.a)) body+='<div class="notice">Plus de créneau libre à '+esc(alAp(M.a).n)+' : achetez des créneaux dans « Tours de contrôle ».</div>';
+    else if(M.a&&!M.to){ const L=alDests(b,M.a).filter(x=>!alCanLine(b,M.a,x.id)).map(x=>{ const d=alDist(M.a,x.id), l={id:-1,a:M.a,b:x.id,p:1,cab:1}; return {x,d}; }).sort((p,q)=>q.x.sz-p.x.sz);
+      body+='<div class="tag">Destination</div><div class="pk-list">'+(L.length? L.map(({x,d})=>'<button class="pk-o'+(x.hub&&m.hubs.includes(x.id)?' match':'')+'" data-a="alnewb" data-v="'+x.id+'"><span><b>'+esc(x.n)+'</b><small>'+esc(AL_CO[x.co].n)+' · '+fmtN(d,0)+' km · '+x.sz+' M de passagers par an'+(m.hubs.includes(x.id)?' · votre plateforme':'')+(x.lei?' · loisirs':'')+'</small></span></button>').join('') : '<div class="sub">Toutes les destinations possibles sont déjà desservies.</div>')+'</div>'; }
+    else if(M.a&&M.to){ const d=alDist(M.a,M.to);
+      body+='<div class="sub"><b>'+esc(alAp(M.a).n)+' – '+esc(alAp(M.to).n)+'</b> · '+fmtN(d,0)+' km · billet éco environ '+eur(alEco(d),0)+'. <button class="lnk" data-a="alnewb" data-v="">Changer</button></div>'+alPlaneChoice(b,d,'alnewgo'); }
+    return {title:'Ouvrir une ligne',sm:true,body}; }
+  if(M&&M.type==='aladd'){ const b=S.biz.find(x=>x.id===M.id), l=b&&alLine(b,M.l); if(!l){ ui.modal=null; return _mc(); }
+    return {title:'Renforcer la ligne',sm:true,body:'<button class="back" data-a="bizopen" data-i="'+b.id+'">‹ '+esc(b.name)+'</button><div class="sub">'+esc(alAp(l.a).n)+' – '+esc(alAp(l.b).n)+' : un avion de plus augmente la fréquence si la demande suit.</div>'+alPlaneChoice(b,alDist(l.a,l.b),'aladdgo')}; }
+  return _mc(); }; }
+
+/* ============================================================
    LIENS : carte « Vos entreprises et le club » dans les finances du club
    ============================================================ */
 { const _tf=fcTabFin; fcTabFin=function(O){ const h=_tf(O), farm=lkHas('farm'), rn=lkHas('renew'), hc=lkHas('couture'), e=lkPhone();
@@ -14908,6 +15212,12 @@ if(MET.saas&&MET.saas.acts&&MET.saas.acts.ipo){ const _ipo=MET.saas.acts.ipo; ME
 palDef('dealer',{col:'#1f3c88', sticky:1, icon:PI('<path d="M3 15l2-5h14l2 5v3H3z"/><circle cx="7.5" cy="18" r="1.6"/><circle cx="16.5" cy="18" r="1.6"/><path d="M12 2.5l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z"/>'),
   tag:n=>n.grp? 'Groupe de distribution' : 'Objectif atteint',
   badges:m=>({obj:Math.min(1,m.qok||0), grp:m.grp?1:0}), ev:{obj:['Premier objectif constructeur atteint : la marque vous félicite'], grp:['Votre deuxième concession ouvre ses portes']}});
+
+/* V1.3.1 : compagnie aérienne */
+palDef('airline',{col:'#1f7fb8', sticky:1, icon:PI('<path d="M2.5 13.5l7-1.5L13 4.5c.6-1.2 2.2-1.2 2.2.3L14 12l6 1.2c1 .2 1 1.6 0 1.8L14 16l1.2 5.2c0 1.5-1.6 1.5-2.2.3L9.5 18l-7-1.5z" transform="rotate(-35 12 12)"/>'),
+  tag:n=>n.ct? (n.ct+1)+' continents' : 'Long-courrier',
+  badges:m=>({lh:m.ln.some(l=>alDist(l.a,l.b)>3500)?1:0, ct:Math.max(0,new Set(m.hubs.map(h=>AL_CO[alAp(h).co].ct)).size-1)}),
+  ev:{lh:['Votre premier vol long-courrier décolle'], ct:['Votre compagnie s’installe sur un deuxième continent','Un troisième continent rejoint votre réseau','Quatre continents : une compagnie mondiale','Cinq continents desservis','Les six continents : le monde entier est à vous']}});
 
 
 </script>
