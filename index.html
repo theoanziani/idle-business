@@ -1087,6 +1087,11 @@ details.fcd[open]>summary{margin-bottom:8px}
 /* V1.3.9 forme des joueurs en direct */
 .fm-en{display:inline-block;width:46px;height:6px;border-radius:3px;background:rgba(127,127,127,.25);margin:0 6px;vertical-align:middle;position:relative;overflow:hidden}.fm-en::after{content:'';position:absolute;inset:0;width:var(--e);border-radius:3px;background:#2e9e4f}.fm-en.mid::after{background:#c99a06}.fm-en.low::after{background:#cc2e25}
 
+/* V1.4.1 date du jour à la place du compteur */
+.daynum.dated{min-width:64px}
+.daynum.dated small{margin-bottom:2px}
+.daynum.dated small.dy{margin:3px 0 0;font-size:10.5px;letter-spacing:.06em}
+
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -11606,7 +11611,7 @@ function renderTop(){
   const wd=wdOf(S.day), ws=S.day-wd, we=wd>=5, wk=Math.floor((S.day-1)/7)+1;
   const dl=ui.delta;
   const wkc=[0,1,2,3,4,5,6].map(i=>'<div class="wd '+(i>=5?'we ':'')+(i<wd?'past ':'')+(i===wd?'now':'')+'" '+(i===wd?'aria-current="date"':'')+'>'+D.DAYS_SHORT[i]+'<b>'+(ws+i)+'</b></div>').join('');
-  $('#t-day').innerHTML='<div class="brand">Idle Business<i>.</i></div><div class="daynum"><small>Jour</small>'+S.day+'</div><div class="daymeta"><b>'+D.DAYS[wd]+', semaine '+wk+'</b><div class="status">'+
+  $('#t-day').innerHTML='<div class="brand">Idle Business<i>.</i></div><div class="daynum dated" aria-label="'+gameDateLabel(S.day)+', jour '+S.day+'"><small>'+FOOT_MONTHS[footDate(S.day).m-1]+'</small>'+footDate(S.day).d+'<small class="dy">'+footDate(S.day).y+'</small></div><div class="daymeta"><b>'+D.DAYS[wd]+', semaine '+wk+'</b><div class="status">'+
       pill(marketsOpen()?'Bourse ouverte':'Bourse fermée',marketsOpen()?'good':'')+pill(we?'Week-end':'Jour ouvré',we?'warn':'')+'</div></div>';
   $('#t-week').innerHTML=wkc;
   $('#t-kpis').innerHTML=
@@ -11618,6 +11623,8 @@ function renderTop(){
   syncCtrl();
   const h=$('#top').offsetHeight; document.documentElement.style.setProperty('--toph',h+'px');
 }
+/* date du jeu : mois de 30 jours, à partir de janvier 2026 */
+function gameDateLabel(day){ const t=footDate(day); return (t.d===1?'1er':t.d)+' '+FOOT_MONTHS[t.m-1]+' '+t.y; }
 function navBar(){
   const ok=k=>MENU.some(x=>x[0]===k), seen=new Set(), clean=a=>(Array.isArray(a)?a:[]).filter(k=>ok(k)&&!seen.has(k)&&seen.add(k));
   const b=ui.bar||BARDEF, l=clean(b.l), r=clean(b.r);
@@ -13932,7 +13939,7 @@ function vClub(){
   ui.ct=ui.ct&&FC_TABS.some(t=>t[0]===ui.ct)? ui.ct : 'ov';
   const c=footClub(O.id), lid=footLgOf(O.id), L=FOOT_LEAGUES.find(x=>x.id===lid);
   h+='<div class="fc-top">'+footCrest(c,56)+'<div><b>'+esc(c.n)+'</b><small>'+esc(L.n)+' · '+esc(FOOT_NAT[c.nat].n)+'</small></div>'+(function(){ const u=fcUpcoming(O); return u? '<span class="pill info fc-cdp">'+(u.start?'Saison':'Match')+' : '+fcCountdown(u.day).toLowerCase()+'</span>' : ''; })()+'</div>';
-  h+='<div class="ft-nav"><div class="seg">'+FC_TABS.map(([k,t])=>'<button class="'+(ui.ct===k?'on':'')+'" data-a="fctab" data-v="'+k+'">'+t+(k==='mk'&&O.offers.length?' ('+O.offers.length+')':'')+'</button>').join('')+'</div></div>';
+  h+='<div class="ft-nav"><div class="seg">'+FC_TABS.map(([k,t])=>'<button class="'+(ui.ct===k?'on':'')+'" data-a="fctab" data-v="'+k+'">'+t+(k==='mk'&&O.offers.length?' ('+O.offers.length+')':'')+(k==='sq'&&(O.yprop||[]).length?' · '+O.yprop.length+' jeune'+(O.yprop.length>1?'s':''):'')+'</button>').join('')+'</div></div>';
   return h+({ov:fcTabOv,sq:fcTabSq,tac:fcTabTac,mk:fcTabMk,st:fcTabSt,ds:fcTabDs,fin:fcTabFin}[ui.ct])(O);
 }
 VIEWS.club=vClub;
@@ -14110,8 +14117,11 @@ ACT.fcfree=el=>{ const r=fcFreeYouth(el.dataset.i); if(r.ok) ui.modal=null; afte
 
 /* V1.3.4 : onglet Effectif en deux menus déroulants (effectif, centre de formation).
    État : S.fcfold {sq, acad} (1 ouvert, 0 fermé) ; par défaut l'effectif ouvert, le centre fermé. */
-{ const _sq2=fcTabSq; fcTabSq=function(O){ const h=_sq2(O), F=(S.fcfold=S.fcfold||{}), keys=['sq','acad']; let i=0;
-  return h.replace(/<section class="card ([^"]*)"><h2><span>([\s\S]*?)<\/span><\/h2>/g,(all,c,t)=>{ const k=keys[i++]||('x'+i), open=F[k]===undefined? k==='sq' : !!F[k];
+{ const _sq2=fcTabSq; fcTabSq=function(O){ const h0=_sq2(O), F=(S.fcfold=S.fcfold||{}), keys=['sq','prop','acad']; let i=0;
+  const np=(O.yprop||[]).length, k1=h0.indexOf('<section class="card',1), pc= typeof ysPropCard==='function'? ysPropCard(O) : '';
+  /* des jeunes à examiner : leur liste passe en tête, sinon elle se range entre l'effectif et le centre */
+  const h= !pc? h0 : np>0? pc+h0 : (k1>0? h0.slice(0,k1)+pc+h0.slice(k1) : h0+pc); if(np>0) keys.splice(0,2,'prop','sq');
+  return h.replace(/<section class="card ([^"]*)"><h2><span>([\s\S]*?)<\/span><\/h2>/g,(all,c,t)=>{ const k=keys[i++]||('x'+i), open=k==='prop'? (np>0&&F.prop!==0) : F[k]===undefined? k==='sq' : !!F[k];
     return '<section class="card '+c+' fcd-c"><details class="fcd" data-k="'+k+'"'+(open?' open':'')+'><summary><h2><span>'+t+'</span></h2></summary>'; }).replace(/<\/section>/g,(m,off,str)=>str.lastIndexOf('<details class="fcd"',off)>str.lastIndexOf('</details>',off)? '</details></section>' : m); }; }
 document.addEventListener('toggle',e=>{ const d=e.target; if(!d||!d.classList||!d.classList.contains('fcd')||!S) return; S.fcfold=S.fcfold||{}; S.fcfold[d.dataset.k]=d.open?1:0; },true);
 
@@ -14161,7 +14171,7 @@ function ysPropRow(p){
   const free=YS_MAX-O.ysc.length;
   return _st(O)+card('Recruteurs de jeunes ('+O.ysc.length+' sur '+YS_MAX+')','<div class="sub">L’expérience donne le nombre de jeunes proposés (une étoile : 1 ou 2 par mois de mission ; cinq étoiles : 5 à 7). L’expertise relève leur qualité et leur potentiel, sans écarter tous les profils modestes.</div>'+
       O.ysc.map(s=>ysScoutRow(O,s)).join('')+(free>0? '<div class="row" style="margin-top:8px">'+btn('Recruter un recruteur de jeunes','yshire',{c:'sm'})+'</div>' : ''))+
-    card('Jeunes proposés ('+O.yprop.length+')', O.yprop.length? '<div class="sub">Chaque proposition reste valable 30 jours.</div>'+O.yprop.map(ysPropRow).join('') : '<div class="sub">Envoyez un recruteur en mission : il envoie un rapport toutes les deux semaines.</div>');
+    card('Jeunes proposés ('+O.yprop.length+')', O.yprop.length? '<div class="row sp"><span class="sub">Ils sont listés dans l’onglet Effectif.</span>'+btn('Voir les jeunes','fctab',{v:'sq',c:'sm pri'})+'</div>' : '<div class="sub">Envoyez un recruteur en mission : il envoie un rapport toutes les deux semaines.</div>');
 }; }
 ACT.yshire=()=>{ ui.modal={type:'yshire'}; render(); };
 ACT.yshireok=el=>{ const m=ui.modal, r= m&&m.rep? ysReplace(m.rep,el.dataset.i) : ysHire(el.dataset.i); if(r.ok) ui.modal=null; after(r); };
@@ -14192,6 +14202,10 @@ ACT.ysdrop=el=>{ const r=ysDrop(el.dataset.i); if(r.ok) ui.modal=null; after(r);
     return {title:esc(p.n),sm:true,body:'<div class="met-k"><div><span>Poste</span><b>'+FOOT_POS[p.p]+'</b><small>'+p.a+' ans · '+esc(p.cn)+'</small></div><div><span>Note</span><b class="num">'+Math.round(p.o)+'</b><small>Repéré par '+esc(p.sc)+'</small></div><div><span>Indemnité</span><b class="num">'+eur(p.fee,0)+'</b><small>Proposition valable '+fcCountdown(p.until).toLowerCase()+'</small></div></div>'+
       fpBlock(p,false)+fsGrid(p)+'<div class="row" style="margin-top:12px">'+btn('Faire venir au centre','yssign',{i:p.id,c:'pri',dis:S.cash<p.fee})+btn('Écarter','ysdrop',{i:p.id,c:'ghost'})+'</div>'}; }
   return _mc(); }; }
+
+/* V1.4.1 : les jeunes proposés bien visibles dans l'onglet Effectif */
+function ysPropCard(O){ fcYS(O); const L=O.yprop;
+  return card('Jeunes proposés par vos recruteurs ('+L.length+')', L.length? '<div class="sub">Chaque proposition reste valable 30 jours. Touchez un jeune pour voir sa fiche et le faire venir au centre de formation.</div>'+L.map(ysPropRow).join('') : '<div class="sub">Aucun jeune proposé pour le moment. Envoyez un recruteur en mission depuis l’onglet Staff.</div>'); }
 
 /* Football : interface des programmes d'entraînement (V1.2.2) */
 function trSel(ch,i,P,cur,extra){ return '<select class="btn sm tr-sel" data-ch="'+ch+'" data-i="'+esc(String(i))+'" aria-label="Programme">'+(extra||'')+Object.entries(P).map(([k,t])=>'<option value="'+k+'"'+(k===cur?' selected':'')+'>'+t+'</option>').join('')+'</select>'; }
@@ -14549,13 +14563,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.3.9';
+const IB_VER='V1.4.1';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Football : fatigue pendant le match','Vos joueurs se fatiguent au fil du match, moins vite avec un bon physique. L’onglet Compositions du direct montre la forme de chacun ; un joueur fatigué joue moins bien jusqu’à la fin, un remplaçant entre frais.'],
-  ['Football : changements délégués','Onglet Tactique : choisissez « L’entraîneur les fait » pour qu’il remplace les joueurs fatigués vers la 55e, la 65e, la 75e et la 82e minute. Vous pouvez toujours intervenir pendant le direct.'],
-  ['Football : mercato du directeur sportif','Quand votre directeur sportif achète ou vend un joueur, une fenêtre le résume à votre prochain passage dans Mon club.'],
-  ['Corrections','Les noms du onze de départ s’affichent de nouveau dans Tactique, et la fiche d’un joueur est plus courte.']
+  ['La date du jour','En haut de l’écran, le bloc bleu affiche maintenant la date du jeu (mois, jour et année) à la place du numéro du jour.'],
+  ['Jeunes proposés bien visibles','Les jeunes repérés par vos recruteurs apparaissent en tête de l’onglet Effectif de Mon club, et l’onglet indique combien attendent votre décision.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
