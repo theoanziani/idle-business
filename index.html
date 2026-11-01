@@ -1642,12 +1642,8 @@ function festNext(cityId){
 
 /* ---------- Devises et comptes ---------- */
 const fxOf = cc => cc==='EUR'? 1 : S.fx[cc];
-function money(cc,n,dec){
-  if(cc==='EUR') return eur(n,dec);
-  const a=Math.abs(n), s=n<0?'−':''; let t;
-  if(a>=1e9) t=fmtN(a/1e9,2)+' Md'; else if(a>=1e6) t=fmtN(a/1e6,2)+' M'; else t=fmtN(a,dec||0);
-  return s+t+' '+D.CCY[cc].sym;
-}
+/* V1.4.3 : tout s'affiche en euros (un montant local est converti au cours fixe) */
+function money(cc,n,dec){ return eur(cc==='EUR'? n : n*fxOf(cc),dec); }
 function accValue(){ let v=0; D.FOREIGN.forEach(c=>{ v+=(S.acc[c]||0)*S.fx[c]; }); return v; }
 const balOf = cc => cc==='EUR'? S.cash : S.acc[cc];
 function setBal(cc,v){ if(cc==='EUR') S.cash=v; else S.acc[cc]=v; }
@@ -1686,7 +1682,9 @@ function settleAccounts(){
   D.FOREIGN.forEach(c=>{ const a=S.acc[c]||0; if(Math.abs(a)>1e-9){ v+=a*S.fx[c]; S.acc[c]=0; } });
   if(Math.abs(v)>.5){ S.cash+=v; log('info','Vos comptes en devises ont été regroupés dans votre trésorerie en euros ('+(v>=0?'+':'')+eur(v,0)+').'); }
 }
-function fxStep(){
+/* V1.4.3 : plus de devises, les cours restent fixes */
+function fxStep(){ D.FOREIGN.forEach(c=>{ S.fx[c]=D.CCY[c].eur; }); }
+function fxStepOld(){
   D.FOREIGN.forEach(c=>{
     const m=D.CCY[c]; let r=S.fx[c];
     r*=Math.exp(m.vol*norm()+0.012*Math.log(m.eur/r));
@@ -1777,7 +1775,7 @@ function migrateState(s){
   if(!s) return s;
   s.acc=s.acc||{USD:0,CNY:0,BRL:0};
   s.fx=s.fx||{USD:D.CCY.USD.eur,CNY:D.CCY.CNY.eur,BRL:D.CCY.BRL.eur};
-  s.fxH=s.fxH||{USD:[s.fx.USD],CNY:[s.fx.CNY],BRL:[s.fx.BRL]};
+  s.fxH=s.fxH||{USD:[s.fx.USD],CNY:[s.fx.CNY],BRL:[s.fx.BRL]}; ['USD','CNY','BRL'].forEach(c=>{ s.fx[c]=D.CCY[c].eur; });
   s.q=s.q||{y:0,cny:0}; s.diff=s.diff||'hard'; s.dm=s.diff==='easy'?.55:1; s.sweep=!!s.sweep;
   s.citySeen=s.citySeen||{paris:1,zagreb:1,barcelone:1}; s.cities=s.cities||{}; s.bld=s.bld||{}; if(!s.tut) s.tut={off:true}; D.stocks=D.stocks.filter(x=>!x.ipo).concat(s.ipos||[]);
   if(!s.riv){ const t=S; S=s; try{ rivInit(); }finally{ S=t; } }
@@ -11615,7 +11613,7 @@ function renderTop(){
       pill(marketsOpen()?'Bourse ouverte':'Bourse fermée',marketsOpen()?'good':'')+pill(we?'Week-end':'Jour ouvré',we?'warn':'')+'</div></div>';
   $('#t-week').innerHTML=wkc;
   $('#t-kpis').innerHTML=
-      '<div class="kpi"><span>Trésorerie</span><b class="num '+(S.cash<0?'neg':'')+'">'+eur(S.cash,0)+'</b>'+(accValue()>1?'<small class="sub">+ '+eur(accValue(),0)+' en devises</small>':'')+(dl!==null&&dl!==undefined?'<small class="'+cls(dl)+'">'+signed(dl,0)+'</small>':'')+'</div>'+
+      '<div class="kpi"><span>Trésorerie</span><b class="num '+(S.cash<0?'neg':'')+'">'+eur(S.cash,0)+'</b>'+(dl!==null&&dl!==undefined?'<small class="'+cls(dl)+'">'+signed(dl,0)+'</small>':'')+'</div>'+
       '<div class="kpi"><span>Valeur nette</span><b class="num">'+eur(S.nw,0)+'</b></div>'+
       '<div class="kpi"><span>Réputation</span><b class="num">'+Math.round(S.rep)+'</b></div>'+
       '<div class="kpi"><span>Influence</span><b class="num">'+fmtN(S.infl,0)+'</b></div>'+
@@ -11896,7 +11894,7 @@ function modalLaunch(id){
       '<div class="row">'+pill('Succès '+Math.round(od.pS*100)+' %','good')+pill('Modeste '+Math.round(od.pM*100)+' %','')+pill('Échec '+Math.round(od.pF*100)+' %','bad')+'</div></div>';
   }
   body+='<div class="stack"><div class="tag">Ville</div><div class="chips">'+D.CITY_ORDER.filter(cityVisible).map(cid=>{ const c=D.CITIES[cid], open=cityUnlocked(cid);
-    return '<button class="chip '+(cid===T.lc?'on':'')+'" data-a="lcity" data-v="'+cid+'"'+(open?'':' disabled')+'>'+esc(c.n)+'<small>'+(open? D.CCY[c.ccy].sym+' · '+c.country : (c.parent? 'via '+D.CITIES[c.parent].n : 'dès '+eur(c.unlock,0)))+'</small></button>'; }).join('')+'</div>'+
+    return '<button class="chip '+(cid===T.lc?'on':'')+'" data-a="lcity" data-v="'+cid+'"'+(open?'':' disabled')+'>'+esc(c.n)+'<small>'+(open? c.country : (c.parent? 'via '+D.CITIES[c.parent].n : 'dès '+eur(c.unlock,0)))+'</small></button>'; }).join('')+'</div>'+
     '<div class="sub">'+esc(C.txt)+'</div></div>';
   body+='<div class="stack"><div class="tag">Quartier</div>'+C.d.map(x=>{ const f=fitLabel(sec,x), c=launchCost(id,inv,T.lc,x.id), rf=rentFactorFor(sec,C,x);
     return '<button class="opt '+(x.id===T.ld?'on':'')+'" data-a="ldist" data-v="'+x.id+'"><div class="row sp"><b>'+esc(x.n)+'</b><span class="num"><b>'+eur(c,0)+'</b></span></div>'+
@@ -11961,7 +11959,7 @@ const RPR={
   global:s=>{
     const oth=s.other.reduce((a,x)=>a+x.net,0);
     return '<div class="mini"><div><span>Ventes brutes</span><b class="num">'+eur(s.rev,0)+'</b></div><div><span>Dépenses</span><b class="num neg">'+eur(s.exp,0)+'</b></div><div><span>Résultat net</span><b class="num '+cls(s.net)+'">'+signed(s.net,0)+'</b></div><div><span>Valeur nette</span><b class="num '+cls(s.nw1-s.nw0)+'">'+signed(s.nw1-s.nw0,0)+'</b></div></div>'+
-      (Math.abs(oth)>1?'<div class="sub">Hors entreprises (impôts, intérêts, marchés, change) : <b class="num '+cls(oth)+'">'+signed(oth,0)+'</b></div>':'');
+      (Math.abs(oth)>1?'<div class="sub">Hors entreprises (impôts, intérêts, marchés) : <b class="num '+cls(oth)+'">'+signed(oth,0)+'</b></div>':'');
   },
   biz:s=>!s.rows.length? '<div class="sub">Aucune entreprise en activité.</div>' :
     '<div class="tw"><table class="tbl"><thead><tr><th>Entreprise</th><th class="r">Ventes</th><th class="r">Dépenses</th><th class="r">Net</th></tr></thead><tbody>'+
@@ -11978,7 +11976,6 @@ const RPR={
   alerts:s=>s.alerts.length? '<div class="stack" style="gap:6px">'+s.alerts.map(a=>'<div class="notice '+a.k+'">'+esc(a.m)+'</div>').join('')+'</div>' : '<div class="notice good">Aucune alerte.</div>',
   fx:s=>{
     const cs=Object.keys(s.byCity);
-    const fx=D.FOREIGN.map(c=>{ const h=S.fxH[c], p=h[Math.max(0,h.length-1-s.days)], ch=h[h.length-1]/p-1; return '<div class="row sp"><span>'+D.CCY[c].n+'</span><span class="num '+cls(ch)+'">'+(ch>=0?'+':'')+fmtN(ch*100,1)+' %</span></div>'; }).join('');
     return (cs.length? '<div class="tw"><table class="tbl"><thead><tr><th>Ville</th><th class="r">Ventes</th><th class="r">Net</th></tr></thead><tbody>'+cs.map(c=>'<tr><td>'+esc(cityName(c))+'</td><td class="r num">'+eur(s.byCity[c].rev,0)+'</td><td class="r num '+cls(s.byCity[c].net)+'">'+signed(s.byCity[c].net,0)+'</td></tr>').join('')+'</tbody></table></div>' : '<div class="sub">Aucune ville en activité.</div>');
   }
 };
@@ -12100,7 +12097,7 @@ function cityCard(id){
     const p=cityPriceEur(id), can=availFor(D.CITIES[id].ccy)>=p;
     prop='<div class="row sp" style="border-top:1px solid var(--line);padding-top:10px"><div><b>Acheter toute la ville</b><div class="sub">Tous les bâtiments des '+C.d.length+' quartiers, loués à des concurrents.</div></div>'+btn(eur(p,0),'citybuy',{c:'sm pri',i:id,dis:!can})+'</div>';
   }
-  return '<section class="card bc '+(open?'':'lock')+'">'+cityBanner(id,'top')+'<div class="hd"><div><b>'+esc(C.n)+'</b><div class="sub">'+(C.parent?'Ville secondaire · ':'')+D.CCY[C.ccy].n+'</div></div>'+(own? pill('Propriétaire','good') : open? (mine? pill(mine+' activité(s)','info') : pill('Disponible','good')) : pill('Verrouillée','warn'))+'</div>'+
+  return '<section class="card bc '+(open?'':'lock')+'">'+cityBanner(id,'top')+'<div class="hd"><div><b>'+esc(C.n)+'</b><div class="sub">'+(C.parent?'Ville secondaire · ':'')+esc(C.country)+'</div></div>'+(own? pill('Propriétaire','good') : open? (mine? pill(mine+' activité(s)','info') : pill('Disponible','good')) : pill('Verrouillée','warn'))+'</div>'+
     lockTxt+'<div class="sub">'+esc(C.txt)+'</div>'+
     '<div class="ixs">'+ix.map(x=>'<div><span>'+x[0]+'</span>'+dots(x[1])+'</div>').join('')+'</div>'+
     (fs.length?'<div class="stack" style="gap:6px"><div class="tag">Fêtes et événements</div>'+fs.map(x=>'<div class="row sp"><span>'+esc(x.f.n)+'</span>'+(x.on? pill('En cours','good') : '<span class="sub num">dans '+x.in+' j</span>')+'</div>').join('')+'</div>':'')+
@@ -14563,10 +14560,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.4.2';
+const IB_VER='V1.4.3';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Jeunes proposés','Quand des jeunes attendent votre décision, leur liste apparaît en tête de l’onglet Effectif. Sans proposition, ce bloc se range sous le centre de formation.']
+  ['Tout en euros','Les dernières mentions de devises ont disparu : loyers et dépôts de garantie des bâtiments, fiches des villes et rapport du jour affichent désormais uniquement des euros. Les prix à l’étranger ne varient plus avec le cours des monnaies.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
