@@ -1091,6 +1091,10 @@ details.fcd[open]>summary{margin-bottom:8px}
 .daynum.dated{min-width:64px}
 .daynum.dated small{margin-bottom:2px}
 .daynum.dated small.dy{margin:3px 0 0;font-size:10.5px;letter-spacing:.06em}
+/* V1.4.6 menus déroulants de l'agence */
+details.ag-f .ag-s{display:flex;flex-direction:column;min-width:0;gap:2px}
+details.ag-f .ag-s small{color:var(--ink-3);font-size:13px;font-weight:600}
+details.ag-f .ag-s small.warn-t{color:var(--amber)}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -14581,10 +14585,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.4.5';
+const IB_VER='V1.4.6';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Recruteurs de jeunes','La fiche d’un recruteur en mission n’annonce plus de rapport après son retour : elle indique le prochain rapport, « Dernier rapport à son retour » ou « Tous ses rapports sont rendus ». Les missions de six mois livrent bien leurs treize rapports, le dernier le jour du retour.']
+  ['Agence plus lisible','À partir de 5 entreprises concernées, les listes Postes à pourvoir, Directeurs de site et Planning des équipes deviennent des menus déroulants. Fermés, ils affichent un résumé (postes ouverts, directeurs au moral bas ou fragile, fatigue moyenne).']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -15159,6 +15163,22 @@ function mfApply(){
 }
 { const _r=render; render=function(){ const o=_r.apply(this,arguments); try{ mfApply(); }catch(e){ console.error(e); } return o; }; }
 document.addEventListener('toggle',e=>{ const d=e.target; if(!d||!d.classList||!d.classList.contains('mf')) return; if(!S) return; S.mfold=S.mfold||{}; if(d.open) S.mfold[d.dataset.k]=1; else delete S.mfold[d.dataset.k]; },true);
+
+/* V1.4.6 : dans l'agence, les listes qui grandissent avec le nombre d'entreprises deviennent des menus déroulants
+   à partir de AG_FOLD lignes ; repliées par défaut, l'état est retenu (S.fcfold, clés ag_*) */
+const AG_FOLD=5;
+function agFoldInfo(){ const A=S.biz.filter(b=>b.status==='active'), vac=agencyVacancies(), ents=[...new Set(vac.map(v=>v.e))], np=vac.reduce((a,v)=>a+v.free,0);
+  const low=A.filter(b=>b.boss&&b.boss.mood<45).length, mid=A.filter(b=>b.boss&&b.boss.mood>=45&&b.boss.mood<60).length, none=A.filter(b=>!b.boss).length, pl=A.filter(b=>planOn(b));
+  return {
+    'Postes à pourvoir':{k:'ag_vac', n:ents.length, s: np? np+' poste'+(np>1?'s':'')+' dans '+ents.length+' société'+(ents.length>1?'s':'') : 'Tous pourvus'},
+    'Directeurs de site':{k:'ag_boss', n:A.length, s: A.length+' directeur'+(A.length>1?'s':'')+(low? ' · '+low+' au moral bas' : '')+(mid? ' · '+mid+' fragile'+(mid>1?'s':'') : '')+(none? ' · '+none+' poste'+(none>1?'s':'')+' vacant'+(none>1?'s':'') : '')+(!low&&!mid&&!none? ' · moral correct partout' : '')},
+    'Planning des équipes':{k:'ag_plan', n:pl.length, s: pl.length+' entreprise'+(pl.length>1?'s':'')+' en équipes · fatigue moyenne '+Math.round(pl.reduce((a,b)=>a+fatOf(b),0)/Math.max(1,pl.length))}
+  }; }
+function agFold(h){ let I; try{ I=agFoldInfo(); }catch(e){ return h; } const F=S.fcfold||{};
+  return h.replace(/<section class="card ([^"]*)"><h2><span>([^<]*)<\/span><\/h2>([\s\S]*?)<\/section>/g,(all,c,t,body)=>{ const x=I[t]; if(!x||x.n<AG_FOLD) return all;
+    const open=!!F[x.k], bad=t==='Directeurs de site'&&/moral bas|vacant/.test(x.s)||t==='Postes à pourvoir'&&x.s!=='Tous pourvus';
+    return '<section class="card '+c+' fcd-c"><details class="fcd ag-f" data-k="'+x.k+'"'+(open?' open':'')+'><summary><span class="ag-s"><h2><span>'+t+'</span></h2><small class="'+(bad?'warn-t':'')+'">'+esc(x.s)+'</small></span></summary>'+body+'</details></section>'; }); }
+{ const _va=VIEWS.agency; VIEWS.agency=function(){ return agFold(_va.apply(this,arguments)); }; }
 
 /* ============================================================
    JEU PLUS INTUITIF (V1.1.4)
