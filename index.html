@@ -8533,7 +8533,7 @@ function htAuto(b,mode,q){
 /* ============================================================
    FERME AGROALIMENTAIRE : le calendrier des parcelles
    Chaque parcelle porte une culture (semis, croissance, récolte, selon la saison),
-   un verger ou une vigne (plusieurs années avant la première récolte) ou un élevage
+   un verger ou une vigne (V1.7.1 : première récolte dès la saison de plantation, à 60 % pour de jeunes plants) ou un élevage
    (production chaque jour). Les récoltes rejoignent le stock de la ferme (caisses de produits
    alimentaires), vendu au grossiste ou gardé pour les contrats, comme une usine.
    Systèmes : transformation (moulin, fromagerie, chai), machines, conversion en bio sur trois ans,
@@ -8551,8 +8551,8 @@ const FM_CROP = [
   {id:'mais', n:'Maïs', k:'cult', a:90, z:140, g:150, y:89, c:.24, dry:2},
   {id:'tourn', n:'Tournesol', k:'cult', a:100, z:150, g:130, y:68, c:.21, dry:.4},
   {id:'leg', n:'Légumes', k:'cult', a:60, z:270, g:60, y:26, c:.17, dry:1.5, hail:1.5},
-  {id:'verger', n:'Verger de pommiers', k:'per', first:360, hd:240, y:94, c:.10, dry:.8, hail:1.3, plant:.4},
-  {id:'vigne', n:'Vigne', k:'per', first:720, hd:255, y:144, c:.16, dry:.5, hail:1.2, plant:.6, tr:'chai'},
+  {id:'verger', n:'Verger de pommiers', k:'per', first:30, hd:240, y:94, c:.10, dry:.8, hail:1.3, plant:.4},
+  {id:'vigne', n:'Vigne', k:'per', first:30, hd:255, y:144, c:.16, dry:.5, hail:1.2, plant:.6, tr:'chai'},
   {id:'vaches', n:'Vaches laitières', k:'elev', d:.30, c:.12, tr:'from', plant:.5},
   {id:'poules', n:'Poules pondeuses', k:'elev', d:.19, c:.08, plant:.2}
 ];
@@ -8617,7 +8617,8 @@ MET.farm = {
     m.p.forEach((x,i)=>{ if(!x) return; const c=fmCrop(x.c); if(!c) return; const f=fmMult(b,c);
       if(c.k==='elev'){ add+=c.d*f*(m.ev&&m.ev.k==='mal'?.6:1); return; }
       if(drought&&c.k!=='elev') x.dmg=Math.min(.8,(x.dmg||0)+.02*(c.dry||1));
-      if(c.k==='per'){ if(S.day>=x.first&&doy===c.hd){ const v=c.y*f*(1-(x.dmg||0)); add+=v; x.dmg=0; metLog(b,'récolte : « '+c.n+' » ('+eur(v*R0,0)+').','good'); } return; }
+      if(c.k==='per'){ if(x.first-x.s>c.first){ x.first=x.s+c.first; } /* V1.7.1 : anciennes plantations ramenées à la nouvelle règle */
+        if(S.day>=x.first&&doy===c.hd){ const v=c.y*f*(1-(x.dmg||0))*(x.h1?1:.6); x.h1=1; add+=v; x.dmg=0; metLog(b,'récolte : « '+c.n+' » ('+eur(v*R0,0)+').','good'); } return; }
       if(x.h&&S.day>=x.h){ const v=c.y*f*(1-(x.dmg||0)); add+=v; metLog(b,'récolte : « '+c.n+' » ('+eur(v*R0,0)+').','good'); m.p[i]= x.auto? {c:x.c, wait:1, auto:1} : null; }
     });
     /* resemis automatique quand la saison le permet */
@@ -15494,7 +15495,7 @@ MET.hotel.html=function(b){
 function fmSel(b){ return ui.fm&&ui.fm.b===b.id? ui.fm.i : -1; }
 function fmStage(b,x){ const c=fmCrop(x.c), R0=metR0(b);
   if(c.k==='elev') return {t:'Production chaque jour : '+eur(c.d*fmMult(b,c)*R0*(b.m.ev&&b.m.ev.k==='mal'?.6:1),0), p:1};
-  if(c.k==='per'){ if(S.day<x.first) return {t:'Jeunes plants : première récolte dans '+(x.first-S.day)+' jours', p:(S.day-x.s)/(x.first-x.s)};
+  if(c.k==='per'){ if(!x.h1){ const nx=fmNextDoy(c.hd,Math.max(S.day,x.first)-1); return {t:'Jeunes plants : première récolte le '+footDateLabel(nx,{noY:1})+' (60 % d’une récolte normale)', p:clamp((S.day-x.s)/Math.max(1,nx-x.s),0,1)}; }
     const nx=fmNextDoy(c.hd,S.day); return {t:'Prochaine récolte le '+footDateLabel(nx,{noY:1}), p:1-(nx-S.day)/360}; }
   if(x.wait) return {t:'Récolté. Resemis à partir du '+footDateLabel(c.a+1,{noY:1}), p:0};
   const pr=clamp((S.day-x.s)/(x.h-x.s),0,1); return {t:(pr<.15?'Semis':pr<.85?'Croissance':'Bientôt la récolte')+' · récolte le '+footDateLabel(x.h,{noY:1}), p:pr}; }
@@ -15511,7 +15512,7 @@ MET.farm.html=function(b){
   if(fmOwn(b)<12){ const pc=fmPlotCost(b), lock=fmOwn(b)>=8&&!mxHas(b,5); h+='<div class="row sp"><span class="sub">'+(lock?'Palier 5 requis pour agrandir encore le domaine.':'Agrandir le domaine d’une parcelle.')+'</span>'+B('Acheter : '+eur(pc,0),'plot','',{c:'sm',dis:lock||!can(pc)})+'</div>'; }
   if(sel>=0&&!m.p[sel]){
     h+='<div class="pk-pan"><div class="row sp"><b>Parcelle '+(sel+1)+'</b><button class="btn sm ghost" data-a="fmsel" data-i="'+b.id+'" data-v="-1">Fermer</button></div><div class="pk-list">'+FM_CROP.map(c=>{ const ok=fmCanSow(b,c), cost=bizDef(b).cost*(c.plant||0), v=fmScore(b,c)*R0;
-      const info= c.k==='cult'? 'Semis du '+footDateLabel(c.a+1,{noY:1})+' au '+footDateLabel(c.z+1,{noY:1})+' · récolte '+Math.round(c.g/30)+' mois après' : c.k==='per'? 'Première récolte après '+Math.round(c.first/360)+' an'+(c.first>360?'s':'')+', puis chaque année' : 'Production chaque jour';
+      const info= c.k==='cult'? 'Semis du '+footDateLabel(c.a+1,{noY:1})+' au '+footDateLabel(c.z+1,{noY:1})+' · récolte '+Math.round(c.g/30)+' mois après' : c.k==='per'? 'Première récolte dès la saison de plantation (vers le '+footDateLabel(c.hd+1,{noY:1})+', 60 % pour de jeunes plants), puis chaque année' : 'Production chaque jour';
       return '<button class="pk-o" data-a="met" data-i="'+b.id+'" data-v="sow" data-j="'+sel+':'+c.id+'"'+(!ok||!can(cost)?' disabled':'')+'><span><b>'+esc(c.n)+'</b><small>'+esc(ok? info+' · environ '+eur(v,0)+' net / jour' : 'Hors saison · '+info)+'</small></span><em class="num">'+(cost? eur(cost,0) : 'Gratuit')+'</em></button>'; }).join('')+'</div></div>';
   }
   return h;
@@ -15578,10 +15579,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.6.9';
+const IB_VER='V1.7.1';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Vibrations sur iPhone','Dans Safari sur iPhone (iOS 18 et plus), le jeu vibre désormais aussi : un léger tic sur la barre du bas et à chaque toucher, plus marqué pour le jour suivant, les achats, les erreurs et les paliers. Réglage dans Paramètres, « Sons et vibrations ».']
+  ['Ferme : récoltes plus rapides','Vergers et vignes donnent leur première récolte dès la saison de plantation (s’ils sont plantés au moins un mois avant), à 60 % pour de jeunes plants, puis une récolte pleine chaque année. Les plantations en cours profitent aussi de la nouvelle règle.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
