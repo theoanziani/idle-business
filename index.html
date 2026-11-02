@@ -1831,7 +1831,7 @@ function bizDef(b){ return D.biz[b.def]; }
 function bizInvested(b){ return bizDef(b).cost*(Math.pow(2.5,b.lvl)-1)/1.5; }
 function bizBase(b){
   const k=b.def+':'+b.lvl; if(baseCache[k]) return baseCache[k];
-  const d=bizDef(b), L=b.lvl, inv=bizInvested(b), pb=d.payback*Math.pow(1.12,L-1), net=inv/pb;
+  const d=bizDef(b), L=b.lvl, inv=bizInvested(b)*(d.cost0? d.cost0/d.cost : 1), pb=d.payback*Math.pow(1.12,L-1), net=inv/pb;   /* recettes calculées sur le prix de référence */
   const sm=Math.pow(1.5,L-1), wm=Math.pow(1.1,L-1);
   let W=0; d.roles.forEach(([r,n,w])=>{ W+=Math.max(1,Math.round(n*sm))*w*wm; });
   const up=inv*0.0004, al=d.open==='always', sh=D.SECT[bizSec(b.def)].rs;
@@ -11349,20 +11349,18 @@ function spSet(slot,bid){ const O=fcOwn(); if(!O) return err('Vous n’avez pas 
   if(lost>0) fcPay('spons','Club : sponsors remplacés par vos sociétés',-base*lost); }; }
 
 /* ============================================================
-   V1.5.9 : prix des entreprises en progression géométrique : du moins cher au plus cher, chacune coûte
-   le double de la précédente (2 400 € pour la première). D.biz[k].cost0 garde l'ancien prix,
-   D.biz[k].pf le rapport nouveau / ancien.
+   V1.6.1 : toutes les entreprises coûtent 20 % de plus (création, agrandissements, options), sans
+   changer leurs recettes : chacune met 20 % de temps en plus à se rembourser. D.biz[k].cost0 garde
+   le prix de référence qui sert au calcul des recettes. (Le doublement de la V1.5.9 est abandonné : pf = 1.)
    ============================================================ */
-(function(){ const L=Object.keys(D.biz).filter(k=>!D.biz[k].retired&&D.bizOrder.includes(k)).sort((a,b)=>(D.biz[a].cost0||D.biz[a].cost)-(D.biz[b].cost0||D.biz[b].cost));
-  L.forEach((k,i)=>{ const d=D.biz[k]; if(d.cost0===undefined) d.cost0=d.cost; d.cost=2400*Math.pow(2,i); d.pf=d.cost/d.cost0; });
-  D.bizOrder.sort((a,b)=>D.biz[a].tier-D.biz[b].tier||D.biz[a].cost-D.biz[b].cost);
+(function(){ Object.keys(D.biz).forEach(k=>{ const d=D.biz[k]; if(d.cost0===undefined) d.cost0=d.cost; d.cost=Math.round(d.cost0*1.2); d.pf=1; });
   if(typeof baseCache!=='undefined') Object.keys(baseCache).forEach(k=>delete baseCache[k]); })();
 /* Aérien, maritime, bureaux et concession calculent en vrais prix (billets, conteneurs, loyers, navires) :
    tout l'argent de leur métier est multiplié par le même rapport que leur prix (mfac), à l'affichage comme
    dans les comptes. Passagers, conteneurs, m² et voitures restent des quantités réelles. */
 const MF_DEFS=['airline','shipping','office'];
 const mfac = b => b&&MF_DEFS.includes(b.def)&&D.biz[b.def].pf? D.biz[b.def].pf : 1;
-const bizCost0 = b => { const d=bizDef(b); return d.cost0||d.cost; };
+const bizCost0 = b => bizDef(b).cost;
 function mPayCap(b,label,amt){ return payCap('b:'+b.id,label,amt*mfac(b)); }
 const mAvail = b => availFor(cityOf(b).ccy)/mfac(b);
 const mDlp = b => dlBudget(b)/mfac(b);
@@ -15288,10 +15286,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.5.9';
+const IB_VER='V1.6.1';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Progression plus lente','Du moins cher au plus cher, chaque type d’entreprise coûte désormais le double du précédent : de 2 400 € pour l’atelier de réparation à environ 5 milliards pour la compagnie aérienne. Les recettes suivent, la rentabilité reste la même.']
+  ['Progression un peu plus lente','Les prix doublés de la version précédente sont abandonnés. À la place, créer, agrandir et équiper une entreprise coûte 20 % de plus, pour les mêmes recettes : chacune met un peu plus de temps à se rembourser.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
