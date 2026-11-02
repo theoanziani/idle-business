@@ -10969,7 +10969,7 @@ function ofBd(b,id){ return b.m.bd.find(x=>x.id===id); }
 function ofM2f(B){ return B.m2/B.nf; }
 /* loyer de marché d'un immeuble (€/m² par an) */
 function ofMkt(b,B){ const dd=ofDist(b,B.dist), C=D.CITIES[b.city], m=b.m;
-  return dd.p*fxOf(C.ccy)*.055*(OF_STDF[B.std]||1)*(B.lbl?1.08:1)*(m.pre&&B.std>=5?1.1:1)*m.mk*(.8+.4*B.cond/100); }
+  return dd.p*fxOf(C.ccy)*.066*(OF_STDF[B.std]||1)*(B.lbl?1.08:1)*(m.pre&&B.std>=5?1.1:1)*m.mk*(.8+.4*B.cond/100); }
 function ofFree(B){ return B.fl.map((t,i)=>t?-1:i).filter(i=>i>=0); }
 function ofWorks(B){ return B.wk&&B.wk.until>S.day; }
 function ofNewBd(b,dist,nf,m2,std,cond,name){ const m=b.m; const B={id:m.nid++, n:name, dist, nf, m2:Math.round(m2), std, cond, lbl:0, srv:{}, fl:Array(nf).fill(0), wk:null}; return B; }
@@ -10979,7 +10979,7 @@ function ofLeave(b,t,why){ const m=b.m, B=ofBd(b,t.bd); if(B) B.fl=B.fl.map(x=>x
 function ofProspect(b,gc){ const m=b.m, k=gc? 5+Math.floor(rnd()*4) : 1+Math.floor(rnd()*rnd()*4), sec=pick(['tech','bureaux','immo','media','luxe']);
   return {id:m.nid++, n:pick(OF_NAMES), sec, k, std:gc? 3 : 1+Math.floor(rnd()*3), mult:gc? 1.12+rnd()*.12 : .86+rnd()*.26, yrs:pick(gc?[6,9]:[3,3,6,9]), risk:gc?0:pick([0,0,1,1,2]), exp:S.day+(gc?14:10+Math.floor(rnd()*10)), gc:gc?1:0}; }
 function ofInit(b){
-  const m={v:1, bd:[], tn:[], pr:[], bo:[], mk:1, brk:1, ev:[], nid:1, st:null, acc:0, accC:0, pend:0, pendC:0, log:[]};
+  const m={v:1, r20:1, bd:[], tn:[], pr:[], bo:[], mk:1, brk:1, ev:[], nid:1, st:null, acc:0, accC:0, pend:0, pendC:0, log:[]};
   b.m=m; b.stock=0;
   const bd=b.bld&&bldById(b.bld), surf=bd? bd.surf : 7000, nf=clamp(Math.round(surf/700),4,22);
   const B=ofNewBd(b,b.dist||D.CITIES[b.city].d[0].id,nf,surf,bd? clamp(Math.round(bd.q*2),1,4) : 2,72,bd? bd.addr : 'Votre immeuble'); B.main=1; m.bd.push(B);
@@ -11003,7 +11003,7 @@ function ofBdDay(b,B){ const m=b.m, m2f=ofM2f(B), T=m.tn.filter(t=>t.bd===B.id);
   cost+=vac*m2f*48/360*chg + B.m2*9/360*chg;                 /* charges des étages vides, frais non récupérables */
   if(!B.main) cost+=B.m2*14/360;                              /* taxe foncière des immeubles rachetés */
   Object.keys(OF_SRV).forEach(k=>{ if(!ofSrvOn(B,k)) return; const S0=OF_SRV[k]; cost+=S0.d*B.nf;
-    if(k==='reu') rev+=occF*38; if(k==='park') rev+=B.m2/45*9; });
+    if(k==='reu') rev+=occF*46; if(k==='park') rev+=B.m2/45*11; });
   return {rev, cost, occ:occF, nf:B.nf, net:rev-cost}; }
 function ofDay(b){ const m=b.m; let r={rev:0,cost:0,occ:0,nf:0}; m.bd.forEach(B=>{ const x=ofBdDay(b,B); B.st=x; r.rev+=x.rev; r.cost+=x.cost; r.occ+=x.occ; r.nf+=x.nf; });
   r.lf=r.nf? r.occ/r.nf : 0; return r; }
@@ -11022,6 +11022,8 @@ MET.office={
   mods(b){ const m=b.m; return {vol:0, cogs:0, rev:m.pend, fixed:m.pendC}; },
   daily(b,ctx){
     const m=b.m;
+    /* V1.5.3 : revenus +20 % ; les baux déjà signés sont revalorisés une fois */
+    if(!m.r20){ m.r20=1; (m.tn||[]).forEach(t=>t.r=Math.round(t.r*1.2)); }
     if(ctx.open){ m.pend=m.acc; m.pendC=m.accC; m.acc=0; m.accC=0; }
     m.ev=(m.ev||[]).filter(e=>e.until>=S.day);
     m.mk=clamp(m.mk+(1-m.mk)*.01+.006*norm(),.8,1.2)*(1)+0;
@@ -15075,11 +15077,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.5.2';
+const IB_VER='V1.5.3';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Immeuble de bureaux : un vrai métier','Louez vos étages aux entreprises qui se présentent (au loyer proposé ou en négociant), suivez leurs baux et leur satisfaction, ouvrez des services (restaurant, salles de réunion, conciergerie, parking) et lancez des travaux : rafraîchissement, rénovation lourde, label énergie.'],
-  ['Un portefeuille d’immeubles','Rachetez d’autres immeubles de la ville (jusqu’à huit). Un mandat d’agence peut louer seul les étages vides. Attention aux faillites, pannes d’ascenseur et vagues de télétravail, et guettez les grands comptes.']
+  ['Bureaux mieux payés','L’immeuble de bureaux rapporte 20 % de plus : loyers de marché, salles de réunion et parking sont revalorisés, et les baux déjà signés aussi.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
