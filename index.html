@@ -10450,13 +10450,13 @@ function dlInit(b){
 }
 /* commande de voitures neuves : payée à la commande, livrée en 7 jours (plus en cas de pénurie) */
 function dlOrder(b,n,auto){ const m=b.m, B=dlBr(b), c=B.p*(1-B.mg), cost=c*n;
-  if(availFor(cityOf(b).ccy)<cost) return err('Trésorerie insuffisante : '+eur(cost,0)+'.');
-  payCap('b:'+b.id,'Commande de '+n+' voiture'+(n>1?'s':'')+' neuve'+(n>1?'s':'')+' : '+b.name,-cost); settleAccounts();
+  if(mAvail(b)<cost) return err('Trésorerie insuffisante : '+eur(cost,0)+'.');
+  mPayCap(b,'Commande de '+n+' voiture'+(n>1?'s':'')+' neuve'+(n>1?'s':'')+' : '+b.name,-cost); settleAccounts();
   m.ord.push({n, c, d:S.day+7+(dlEv(m,'pen')?20:0)}); return ok(n+' voiture'+(n>1?'s':'')+' '+B.n+' commandée'+(n>1?'s':'')+(auto?' automatiquement':'')+', livraison dans '+(7+(dlEv(m,'pen')?20:0))+' jours.'); }
 /* achat d'occasions aux enchères professionnelles */
 function dlAuction(b){ const m=b.m, R=rnd, L=[]; let cost=0; for(let i=0;i<3;i++){ const mv=Math.round(10000+R()*12000); L.push({mv, c:mv*.86, d:S.day, rec:0}); cost+=mv*.86; }
-  if(availFor(cityOf(b).ccy)<cost) return err('Trésorerie insuffisante : '+eur(cost,0)+'.');
-  payCap('b:'+b.id,'Achat d’occasions aux enchères : '+b.name,-cost); settleAccounts(); m.oc=m.oc.concat(L); return ok('3 occasions achetées aux enchères ('+eur(cost,0)+'), à remettre en état.'); }
+  if(mAvail(b)<cost) return err('Trésorerie insuffisante : '+eur(cost,0)+'.');
+  mPayCap(b,'Achat d’occasions aux enchères : '+b.name,-cost); settleAccounts(); m.oc=m.oc.concat(L); return ok('3 occasions achetées aux enchères ('+eur(cost,0)+'), à remettre en état.'); }
 function dlRecCap(b){ const m=b.m; return (.9+.4*m.atl)*dlK(b)*(m.carr?1.5:1); }
 function dlRepairLink(){ return S.biz.some(x=>x.def==='repair'&&x.status==='active'); }
 /* une journée de concession (sim : prévision sans hasard ni changement d'état) */
@@ -10503,7 +10503,7 @@ MET.dealer = {
     while(nN>0&&m.nw.length){ const l=m.nw[0], t=Math.min(l.n,nN); l.n-=t; nN-=t; m.acc+=t*d.priceN; m.accC+=t*l.c; if(l.n<=0) m.nw.shift();
       m.q.sold+=t; m.q.ca+=t*d.priceN; m.park+=t;
       /* reprises */
-      for(let i=0;i<t;i++) if(rnd()<RP.t){ const mv=Math.round(B.p*(.25+rnd()*.3)), c=mv*RP.buy; m.oc.push({mv, c, d:S.day, rec:0}); payCap('b:'+b.id,'Reprise d’une voiture : '+b.name,-c); } }
+      for(let i=0;i<t;i++) if(rnd()<RP.t){ const mv=Math.round(B.p*(.25+rnd()*.3)), c=mv*RP.buy; m.oc.push({mv, c, d:S.day, rec:0}); mPayCap(b,'Reprise d’une voiture : '+b.name,-c); } }
     /* ventes d'occasions : les voitures remises en état d'abord */
     let nU=d.nU; m.oc.sort((x,y)=>(y.rec-x.rec)||(x.d-y.d));
     while(nU>0&&m.oc.length){ const x=m.oc.shift(); nU--; const pr=x.mv*(1+d.mk)*(x.rec? (m.vo?1.05:1) : .85); m.acc+=pr; m.accC+=x.c; m.park+=.5; }
@@ -10573,15 +10573,15 @@ function dlBuy(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('P
   if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m[k]=1; metLog(b,label.toLowerCase()+' : c’est fait.','good'); return ok(label+' : c’est fait.'); }
 /* changer de marque : contrat payé, le stock neuf de l'ancienne marque est soldé */
 function dlSwitch(b,id){ const m=b.m, B=DL_BR[id]; if(!B) return err('Marque inconnue.'); if(m.br===id) return err('C’est déjà votre marque.'); if(B.rk&&!mxHas(b,B.rk)) return err('Palier '+B.rk+' requis.');
-  const fee=bizDef(b).cost*.3; if(availFor(cityOf(b).ccy)<fee) return err('Il faut '+eur(fee,0)+' pour le nouveau contrat.');
-  payCap('b:'+b.id,'Contrat de concession '+B.n+' : '+b.name,-fee); settleAccounts();
+  const fee=bizDef(b).cost*.3; if(mAvail(b)<fee) return err('Il faut '+eur(fee,0)+' pour le nouveau contrat.');
+  mPayCap(b,'Contrat de concession '+B.n+' : '+b.name,-fee); settleAccounts();
   const left=m.nw.reduce((a,l)=>a+l.n*l.c,0)+m.ord.reduce((a,o)=>a+o.n*o.c,0); if(left>0){ m.acc+=left*.92; m.accC+=left; }
   m.nw=[]; m.ord=[]; m.br=id; m.bt=50; dlQuarter(b); metLog(b,'nouvelle marque : '+B.n+(left>0?' ; le stock de l’ancienne marque est soldé à 92 %.':'.'),'');
   return ok('Vous distribuez maintenant '+B.n+'.'); }
 /* commande de flotte : livrée sur le stock ou commandée, remise de 8 %, compte pour l'objectif */
 function dlFleet(b){ const m=b.m, F=m.fo; if(!F) return err('Aucune offre en cours.'); const B=dlBr(b), c=B.p*(1-B.mg)*F.n, pr=B.p*.92*F.n;
-  if(availFor(cityOf(b).ccy)<c) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
-  payCap('b:'+b.id,'Commande de flotte : '+b.name,-c); settleAccounts(); m.acc+=pr; m.accC+=c; m.q.sold+=F.n; m.q.ca+=pr; m.park+=F.n; m.fo=null;
+  if(mAvail(b)<c) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  mPayCap(b,'Commande de flotte : '+b.name,-c); settleAccounts(); m.acc+=pr; m.accC+=c; m.q.sold+=F.n; m.q.ca+=pr; m.park+=F.n; m.fo=null;
   metLog(b,'flotte de '+F.n+' voitures livrée ('+eur(pr,0)+').','good'); return ok('Flotte de '+F.n+' voitures vendue.'); }
 /* le directeur du site : commandes, remise en fin de trimestre, achats aux enchères, paliers */
 function dlAuto(b,mode,q){ const m=b.m; m.aord=1;
@@ -10591,7 +10591,7 @@ function dlAuto(b,mode,q){ const m=b.m; m.aord=1;
     m.mk=1; m.rp='nor';
     if(m.fo) dlFleet(b); }
   if(mode!=='full') return;
-  if(S.day%14===0){ if(m.oc.length<4*dlK(b)&&(b.dlp||0)>3e5) dlAuction(b);
+  if(S.day%14===0){ if(m.oc.length<4*dlK(b)&&mDlp(b)>3e5) dlAuction(b);
     if(m.atl<3&&dlSpend(b,bizDef(b).cost*.4*(m.atl+1),'Agrandissement de l’atelier')){ m.atl++; metLog(b,'atelier agrandi par le directeur (niveau '+m.atl+').','good'); }
     for(const [k,f,l,rk] of [['vo',1.2,'Occasions certifiées',1],['carr',2.5,'Carrosserie',2],['shw',5,'Vitrine haut de gamme',3],['flt',8,'Flottes d’entreprise',4],['grp',15,'Groupe de distribution',5]]) if(!m[k]&&mxHas(b,rk)&&dlBuy(b,k,f,l,rk,true).ok) break; }
 }
@@ -10732,7 +10732,7 @@ MET.airline = {
     /* kérosène : marche au hasard autour de 0,80 €/kg */
     m.fp=clamp(m.fp+(.8-m.fp)*.02+.012*norm(),.45,1.4);
     if(m.hedge&&m.hedge.until<S.day){ m.hedge=null; metLog(b,'la couverture carburant est terminée.',''); }
-    const d=alDay(b,false); m.st=d; m.acc+=d.rev; m.accC+=d.cost;
+    const d=alDay(b,false); m.st=d; m.acc+=d.rev; m.accC+=(d.cost0||d.cost);
     /* image de marque : réseau, ponctualité, service */
     if(!m.d0) m.d0=S.day;
     const tgt=30+Math.min(25,(S.day-m.d0)/360*6)+Math.min(6,m.ln.length*.3)+(m.sal?6:0)+(m.fid?4:0)+(m.ali?4:0)+(d.lf>.75?4:d.lf<.45?-4:0)-(m.ev&&(m.ev.k==='gr'||m.ev.k==='pn')?6:0);
@@ -10754,7 +10754,7 @@ MET.airline = {
     out.push(m.hedge? {k:'buy', act:'hedge', label:'Couverture carburant', owned:true, sub:'70 % du kérosène payé '+fmtN(m.hedge.p,2)+' € / kg jusqu’au '+dateL(m.hedge.until)+'.'} :
       {k:'btn', act:'hedge', label:'Se couvrir 90 jours au prix du jour', cost:alHedgeCost(b), sub:'70 % du kérosène payé '+fmtN(m.fp*1.03,2)+' € / kg pendant 90 jours, quoi qu’il arrive.'});
     [['fid',1,1.5,'Programme de fidélité','Plus de passagers, surtout en affaires.'],['sal',2,3,'Salons à l’aéroport','Plus de passagers affaires, meilleure image.'],['mnt',3,5,'Maintenance maison','Entretien −20 %, pannes plus courtes.'],['ali',4,8,'Alliance de compagnies','+15 % de demande long-courrier.'],['fret',5,12,'Fret en soute','+8 % de recettes long-courrier.']].forEach(([k2,rk,f,l,s])=>{
-      if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:d.cost*f, sub:s}); });
+      if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:(d.cost0||d.cost)*f, sub:s}); });
     return out;
   },
   acts:{
@@ -10777,7 +10777,7 @@ MET.airline = {
   },
   auto: alAuto
 };
-function alBuyR(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizDef(b).cost*f;
+function alBuyR(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizCost0(b)*f;
   if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m[k]=1; metLog(b,label.toLowerCase()+' : c’est fait.','good'); return ok(label+' : c’est fait.'); }
 function alBuyHub(b,id,auto){ const m=b.m, A=alAp(id); if(!A||!A.hub) return err('Aéroport inconnu.'); if(m.hubs.includes(id)) return err('Vous y êtes déjà.');
   const req=alHubReq(b,id); if(m.img<req) return err('Image de marque insuffisante : '+req+' requis ('+Math.round(m.img)+' aujourd’hui).');
@@ -10802,10 +10802,10 @@ function alAssign(b,lid,pid){ const m=b.m, l=alLine(b,lid), p=alPlane(b,pid); if
 function alClose(b,lid){ const m=b.m, l=alLine(b,lid); if(!l) return err('Ligne introuvable.'); m.ln=m.ln.filter(x=>x!==l); m.fl.forEach(p=>{ if(p.ln===lid) p.ln=0; }); return ok('Ligne fermée ; ses avions sont disponibles.'); }
 function alGet(b,t,own,auto){ const m=b.m, T=AL_TY[t]; if(!T) return err('Modèle inconnu.');
   if(own){ if(!(auto? dlSpend(b,T.pr,'Achat : '+T.n) : metBuy(b,T.pr,'Achat d’un avion : '+T.n))) return err('Trésorerie insuffisante : '+eur(T.pr,0)+'.'); }
-  else { const dep=T.ls*30; if(availFor(cityOf(b).ccy)<dep) return err('Il faut '+eur(dep,0)+' de dépôt de garantie.'); payCap('b:'+b.id,'Dépôt de garantie : '+T.n,-dep); settleAccounts(); }
+  else { const dep=T.ls*30; if(mAvail(b)<dep) return err('Il faut '+eur(dep,0)+' de dépôt de garantie.'); mPayCap(b,'Dépôt de garantie : '+T.n,-dep); settleAccounts(); }
   const p={id:m.nid++, t, own:own?1:0, ln:0, down:0, dep: own?0:T.ls*30}; m.fl.push(p); return ok(T.n+(own?' acheté.':' loué ('+eur(T.ls,0)+' par jour).')); }
 function alDrop(b,pid){ const m=b.m, p=alPlane(b,pid); if(!p) return err('Avion introuvable.'); const T=AL_TY[p.t];
-  if(p.own){ payCap('b:'+b.id,'Revente : '+T.n,T.pr*.7); settleAccounts(); } else if(p.dep){ payCap('b:'+b.id,'Dépôt rendu : '+T.n,p.dep); settleAccounts(); }
+  if(p.own){ mPayCap(b,'Revente : '+T.n,T.pr*.7); settleAccounts(); } else if(p.dep){ mPayCap(b,'Dépôt rendu : '+T.n,p.dep); settleAccounts(); }
   m.fl=m.fl.filter(x=>x!==p); return ok(p.own? T.n+' revendu '+eur(T.pr*.7,0)+'.' : 'Location de '+T.n+' terminée, dépôt rendu.'); }
 function alHedgeCost(b){ const d=b.m.st||alDay(b,true), fuelDay=b.m.ln.reduce((a,l)=>{ const x=l.st; return a+(x&&x.d? b.m.fl.filter(p=>p.ln===l.id).reduce((s,p)=>s+alLegs(p.t,x.d)*AL_TY[p.t].burn*x.d,0) : 0); },0); return Math.round(fuelDay*90*.7*b.m.fp*.03/1000)*1000+5000; }
 function alHedge(b){ const m=b.m; if(m.hedge) return err('Déjà couvert.'); const c=alHedgeCost(b); if(!metBuy(b,c,'Couverture carburant')) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
@@ -10819,7 +10819,7 @@ function alAuto(b,mode,q){ const m=b.m;
   if(S.day%30===0){ if(!m.hedge&&m.fp<.75) alHedge(b);
     /* une nouvelle ligne intérieure avec un avion loué si elle s'annonce rentable */
     const h=m.hubs[Math.floor(rnd()*m.hubs.length)], cand=alDests(b,h).filter(x=>!alCanLine(b,h,x.id)).sort((x,y)=>y.sz-x.sz)[0];
-    if(cand){ const d=alDist(h,cand.id), t=d<=1500? 'm180' : d<=6000? 'm180' : 'l300'; if(AL_TY[t].rg>=d&&(b.dlp||0)>AL_TY[t].ls*30){ const r=alGet(b,t,false,true); if(r.ok){ const p=m.fl[m.fl.length-1]; alOpen(b,h,cand.id,p.id); const l=m.ln[m.ln.length-1]; if(l&&alLineDay(b,l,true).net<0){ alClose(b,l.id); alDrop(b,p.id); } } } }
+    if(cand){ const d=alDist(h,cand.id), t=d<=1500? 'm180' : d<=6000? 'm180' : 'l300'; if(AL_TY[t].rg>=d&&mDlp(b)>AL_TY[t].ls*30){ const r=alGet(b,t,false,true); if(r.ok){ const p=m.fl[m.fl.length-1]; alOpen(b,h,cand.id,p.id); const l=m.ln[m.ln.length-1]; if(l&&alLineDay(b,l,true).net<0){ alClose(b,l.id); alDrop(b,p.id); } } } }
     for(const [k,f,l,rk] of [['fid',1.5,'Programme de fidélité',1],['sal',3,'Salons à l’aéroport',2],['mnt',5,'Maintenance maison',3],['ali',8,'Alliance de compagnies',4],['fret',12,'Fret en soute',5]]) if(!m[k]&&mxHas(b,rk)&&alBuyR(b,k,f,l,rk,true).ok) break; }
 }
 /* V1.5.8 : en délégation totale, la réserve achète aussi des places dans les tours et remplace les avions loués des lignes rentables */
@@ -10827,7 +10827,7 @@ function alNextHub(b){ const m=b.m; return Object.values(AL_AP).filter(a=>a.hub&
 function alLeasedOnGood(b){ const m=b.m; return m.fl.filter(p=>!p.own&&p.ln).map(p=>({p,l:alLine(b,p.ln)})).filter(x=>x.l&&(x.l.st||alLineDay(b,x.l,true)).net>0).sort((x,y)=>AL_TY[x.p.t].pr-AL_TY[y.p.t].pr)[0]; }
 function alInvest(b){ const m=b.m, H=alNextHub(b);
   if(H&&alBuyHub(b,H.id,true).ok) return;
-  const x=alLeasedOnGood(b); if(!x||dlBudget(b)<AL_TY[x.p.t].pr) return;
+  const x=alLeasedOnGood(b); if(!x||mDlp(b)<AL_TY[x.p.t].pr) return;
   const r=alGet(b,x.p.t,true,true); if(!r.ok) return; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; alDrop(b,x.p.id); metLog(b,'le directeur achète l’'+AL_TY[n.t].n+' de la ligne '+alAp(x.l.a).n+' – '+alAp(x.l.b).n+' au lieu de le louer.',''); }
 MET.airline.goal=function(b){ const H=alNextHub(b); if(H) return {n:'Place dans la tour : '+H.n, c:alHubCost(H.id)}; const x=alLeasedOnGood(b); return x? {n:AL_TY[x.p.t].n+' acheté', c:AL_TY[x.p.t].pr} : null; };
 function alData(){ return {AL_AP, AL_CO, AL_TY}; }
@@ -10996,7 +10996,7 @@ MET.shipping={
     m.fl.forEach(p=>{ if(p.yard&&p.yard<=S.day){ p.yard=0; metLog(b,SH_TY[p.t].n+' livré par le chantier naval.','good'); }
       if(p.ch&&p.ch.end<=S.day){ m.chn=(m.chn||0)+1; metLog(b,'voyage d’affrètement terminé ('+p.ch.c+', '+shPt(p.ch.a).n+' – '+shPt(p.ch.b).n+').','good'); p.ch=null; } });
     if(S.day%7===0) shOffers(b);
-    const d=shDay(b); d.rev+=m.uf||0; m.uf=0; m.st=d; m.acc+=d.rev; m.accC+=d.cost;
+    const d=shDay(b); d.rev+=(m.uf||0)/mfac(b); m.uf=0; m.st=d; m.acc+=d.rev; m.accC+=(d.cost0||d.cost);
     /* réputation : années, réseau, terminaux, fiabilité */
     if(!m.d0) m.d0=S.day;
     const inc=(m.ev||[]).filter(e=>e.k==='pir'||e.k==='av').length;
@@ -11014,7 +11014,7 @@ MET.shipping={
     out.push({k:'tog', act:'usn', label:'Transporter les marchandises de vos usines', val:m.usn?1:0, sub:'Expéditions vers un autre pays : délais −40 %, coût −50 %, payé à votre compagnie (au moins une ligne requise).'});
     out.push({k:'tog', act:'ins', label:'Assurance de la flotte', val:m.ins?1:0, sub:(m.ins?'':'Environ ')+eur(shInsCost(b),0)+' par jour : rançons de piraterie et réparations d’avaries couvertes.'});
     [['plan',1,1.5,'Planification des escales','Rotations plus courtes.'],['ali',2,3,'Alliance maritime','+15 % de demande intercontinentale.'],['eco',3,5,'Navires économes','−15 % de fioul.'],['esc',4,6,'Sûreté et escortes','Piraterie bien plus rare, assurance −30 %.'],['d2d',5,10,'Logistique porte-à-porte','+10 % par conteneur.']].forEach(([k2,rk,f,l,s])=>{
-      if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:d.cost*f, sub:s}); });
+      if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:(d.cost0||d.cost)*f, sub:s}); });
     return out; },
   acts:{
     tm:(b,id)=>shBuyTm(b,id),
@@ -11039,7 +11039,7 @@ MET.shipping={
   },
   auto: shAuto
 };
-function shBuyR(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizDef(b).cost*f;
+function shBuyR(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizCost0(b)*f;
   if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m[k]=1; metLog(b,label.toLowerCase()+' : c’est fait.','good'); return ok(label+' : c’est fait.'); }
 function shBuyTm(b,id,auto){ const m=b.m, P=shPt(id); if(!P||!P.tm) return err('Port inconnu.'); if(m.tm.includes(id)) return err('Vous y avez déjà un terminal.');
   const req=shTmReq(b,id); if(m.img<req) return err('Réputation insuffisante : '+req+' requis ('+Math.round(m.img)+' aujourd’hui).');
@@ -11061,13 +11061,13 @@ function shUnassign(b,pid){ const m=b.m, p=shShip(b,pid); if(!p||!p.ln) return e
 function shClose(b,lid){ const m=b.m, l=shLine(b,lid); if(!l) return err('Ligne introuvable.'); m.ln=m.ln.filter(x=>x!==l); m.fl.forEach(p=>{ if(p.ln===lid) p.ln=0; }); return ok('Ligne fermée ; ses navires sont disponibles.'); }
 function shGet(b,t,how,auto){ const m=b.m, T=SH_TY[t]; if(!T) return err('Modèle inconnu.'); const lab={lease:'Location',occ:'Achat d’occasion',new:'Commande au chantier'}[how]; if(!lab) return err('Mode inconnu.');
   const c= how==='lease'? T.ls*30 : how==='occ'? T.pr*SH_OCC : T.pr;
-  if(how==='lease'){ if(availFor(cityOf(b).ccy)<c) return err('Il faut '+eur(c,0)+' de dépôt de garantie.'); payCap('b:'+b.id,'Dépôt de garantie : '+T.n,-c); settleAccounts(); }
+  if(how==='lease'){ if(mAvail(b)<c) return err('Il faut '+eur(c,0)+' de dépôt de garantie.'); mPayCap(b,'Dépôt de garantie : '+T.n,-c); settleAccounts(); }
   else if(!(auto? dlSpend(b,c,lab+' : '+T.n) : metBuy(b,c,lab+' : '+T.n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
   const p={id:m.nid++, t, own:how==='lease'?0:1, occ:how==='occ'?1:0, ln:0, down:0, dep:how==='lease'?c:0, yard:how==='new'? S.day+SH_YARD : 0}; m.fl.push(p);
   return ok(how==='lease'? T.n+' loué ('+eur(T.ls,0)+' par jour).' : how==='occ'? T.n+' d’occasion acheté.' : T.n+' commandé : livraison le '+dateL(p.yard)+'.'); }
 function shResale(p){ const T=SH_TY[p.t]; return T.pr*(p.occ? .35 : .65); }
 function shDrop(b,pid){ const m=b.m, p=shShip(b,pid); if(!p) return err('Navire introuvable.'); if(p.ch) return err('Ce navire est en voyage d’affrètement.'); if(p.yard>S.day) return err('Ce navire est encore au chantier.'); const T=SH_TY[p.t];
-  if(p.own){ payCap('b:'+b.id,'Revente : '+T.n,shResale(p)); settleAccounts(); } else if(p.dep){ payCap('b:'+b.id,'Dépôt rendu : '+T.n,p.dep); settleAccounts(); }
+  if(p.own){ mPayCap(b,'Revente : '+T.n,shResale(p)); settleAccounts(); } else if(p.dep){ mPayCap(b,'Dépôt rendu : '+T.n,p.dep); settleAccounts(); }
   m.fl=m.fl.filter(x=>x!==p); return ok(p.own? T.n+' revendu '+eur(shResale(p),0)+'.' : 'Location de '+T.n+' terminée, dépôt rendu.'); }
 function shCharter(b,oid,pid){ const m=b.m, o=m.off.find(x=>x.id===oid); if(!o) return err('Offre expirée.'); const p=shShip(b,pid); if(!p) return err('Choisissez un navire.');
   const T=SH_TY[p.t]; if(T.k!==o.k) return err(o.k==='bulk'? 'Il faut un vraquier.' : 'Il faut un pétrolier.'); if(T.cap<o.q) return err('Capacité insuffisante.'); if(!shFree(m,p)) return err('Ce navire n’est pas disponible.');
@@ -11106,7 +11106,7 @@ function shAuto(b,mode,q){ const m=b.m;
   if(S.day%30===0){
     /* une ligne nouvelle avec un navire loué si elle s'annonce rentable */
     const h=m.tm[Math.floor(rnd()*m.tm.length)], cand=shDests(b,h).filter(x=>!shCanLine(b,h,x.id)).sort((x,y)=>y.sz-x.sz)[0];
-    if(cand&&(b.dlp||0)>SH_TY.p5.ls*30){ const r=shGet(b,'p5','lease',true); if(r.ok){ const p=m.fl[m.fl.length-1]; shOpen(b,h,cand.id,p.id); const l=m.ln[m.ln.length-1]; if(l&&shLineDay(b,l).net<0){ shClose(b,l.id); shDrop(b,p.id); } } }
+    if(cand&&mDlp(b)>SH_TY.p5.ls*30){ const r=shGet(b,'p5','lease',true); if(r.ok){ const p=m.fl[m.fl.length-1]; shOpen(b,h,cand.id,p.id); const l=m.ln[m.ln.length-1]; if(l&&shLineDay(b,l).net<0){ shClose(b,l.id); shDrop(b,p.id); } } }
     for(const [k,f,l,rk] of [['plan',1.5,'Planification des escales',1],['ali',3,'Alliance maritime',2],['eco',5,'Navires économes',3],['esc',6,'Sûreté et escortes',4],['d2d',10,'Logistique porte-à-porte',5]]) if(!m[k]&&mxHas(b,rk)&&shBuyR(b,k,f,l,rk,true).ok) break; }
 }
 /* V1.5.8 : en délégation totale, la réserve achète aussi des terminaux et remplace les navires loués des lignes rentables */
@@ -11114,7 +11114,7 @@ function shNextTm(b){ const m=b.m; return Object.values(SH_PT).filter(a=>a.tm&&!
 function shLeasedOnGood(b){ const m=b.m; return m.fl.filter(p=>!p.own&&p.ln&&SH_TY[p.t].k==='box').map(p=>({p,l:shLine(b,p.ln)})).filter(x=>x.l&&(x.l.st||shLineDay(b,x.l)).net>0).sort((x,y)=>SH_TY[x.p.t].pr-SH_TY[y.p.t].pr)[0]; }
 function shInvest(b){ const m=b.m, T=shNextTm(b);
   if(T&&shBuyTm(b,T.id,true).ok) return;
-  const x=shLeasedOnGood(b); if(!x) return; const c=SH_TY[x.p.t].pr*SH_OCC; if(dlBudget(b)<c) return;
+  const x=shLeasedOnGood(b); if(!x) return; const c=SH_TY[x.p.t].pr*SH_OCC; if(mDlp(b)<c) return;
   const r=shGet(b,x.p.t,'occ',true); if(!r.ok) return; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; shDrop(b,x.p.id); metLog(b,'le directeur rachète d’occasion le '+SH_TY[n.t].n+' de la ligne '+shPt(x.l.a).n+' – '+shPt(x.l.b).n+'.',''); }
 MET.shipping.goal=function(b){ const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id)}; const x=shLeasedOnGood(b); return x? {n:SH_TY[x.p.t].n+' d’occasion', c:SH_TY[x.p.t].pr*SH_OCC} : null; };
 function shData(){ return {SH_PT, SH_TY, SH_RG, SH_NB}; }
@@ -11218,7 +11218,7 @@ MET.office={
     /* mandat d'agence : un étage vide se loue seul, 8 % sous le marché, commission d'un mois de loyer */
     if(m.brk) m.bd.forEach(B=>{ if(ofWorks(B)) return; const fr=ofFree(B); if(!fr.length||rnd()>.06) return; const P=ofProspect(b,false); const k=Math.min(P.k,fr.length), fl=fr.slice(0,k), r=ofMkt(b,B)*.92;
       const t=ofTenant(b,B,P,fl,r,true); m.accC+=r*ofM2f(B)*k/12*(m.com?.5:1); metLog(b,'l’agence installe '+t.n+' dans '+B.n+' ('+k+' étage'+(k>1?'s':'')+').',''); });
-    const d=ofDay(b); m.st=d; m.acc+=d.rev; m.accC+=d.cost;
+    const d=ofDay(b); m.st=d; m.acc+=d.rev; m.accC+=(d.cost0||d.cost);
     ofRisks(b);
   },
   kpis(b){ const m=b.m, d=m.st||ofDay(b), T=m.tn, avg=T.length? T.reduce((a,t)=>a+t.r,0)/T.length : 0, sat=T.length? T.reduce((a,t)=>a+t.sat,0)/T.length : 0;
@@ -11230,7 +11230,7 @@ MET.office={
   ctl(b){ const m=b.m, d=bizDef(b), out=[];
     out.push({k:'tog', act:'brk', label:'Mandat d’agence', val:m.brk?1:0, sub:'L’agence loue seule les étages vides, 8 % sous le marché, contre une commission d’un mois de loyer'+(m.com?' (divisée par deux)':'')+'.'});
     [['chg',1,1,'Gestion des charges','−15 % de charges.'],['com',2,2,'Commercialisation','Plus de prospects, commission ÷ 2.'],['bl',3,3,'Baux longs','Renouvellements plus fréquents.'],['fm',4,4,'Facility management','Usure ÷ 2, pannes moins chères.'],['pre',5,6,'Immeubles de prestige','Standing « Signature » possible, +10 % de loyers.']].forEach(([k2,rk,f,l,s])=>{
-      if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:d.cost*f, sub:s}); });
+      if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:(d.cost0||d.cost)*f, sub:s}); });
     return out; },
   acts:{
     lease:(b,arg)=>{ const [pid,bid,neg]=String(arg).split(':'); return ofSign(b,+pid,+bid,+neg||0); },
@@ -11248,7 +11248,7 @@ MET.office={
   },
   auto: ofAuto
 };
-function ofBuyR(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizDef(b).cost*f;
+function ofBuyR(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizCost0(b)*f;
   if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m[k]=1; metLog(b,label.toLowerCase()+' : c’est fait.','good'); return ok(label+' : c’est fait.'); }
 /* installer un prospect (négociation : +8 % de loyer, mais une chance sur deux qu'il renonce) */
 function ofSign(b,pid,bid,neg){ const m=b.m, P=m.pr.find(x=>x.id===pid), B=ofBd(b,bid); if(!P) return err('Cette entreprise a trouvé ailleurs.'); if(!B) return err('Immeuble introuvable.');
@@ -11273,7 +11273,7 @@ function ofBuyBd(b,id,auto){ const m=b.m, o=m.bo.find(x=>x.id===id); if(!o) retu
   for(let i=0;i<o.occ;){ const P=ofProspect(b,false), k=Math.min(P.k,o.occ-i), fl=[]; for(let j=0;j<k;j++) fl.push(i+j); i+=k; const t=ofTenant(b,B,P,fl,ofMkt(b,B)*P.mult,true); t.until=S.day+90+Math.floor(rnd()*900); }
   metLog(b,'achat de '+B.n+' ('+ofDist(b,B.dist).n+', '+B.nf+' étages).','good'); return ok(B.n+' rejoint votre portefeuille.'); }
 function ofSellBd(b,id){ const m=b.m, B=ofBd(b,id); if(!B) return err('Immeuble introuvable.'); if(B.main) return err('C’est le siège de l’entreprise.'); if(ofWorks(B)) return err('Attendez la fin des travaux.');
-  const v=ofValue(b,B)*.95; m.tn.filter(t=>t.bd===B.id).forEach(t=>ofLeave(b,t)); m.bd=m.bd.filter(x=>x!==B); payCap('b:'+b.id,'Vente de l’immeuble '+B.n,v); settleAccounts(); return ok(B.n+' vendu '+eur(v,0)+'.'); }
+  const v=ofValue(b,B)*.95; m.tn.filter(t=>t.bd===B.id).forEach(t=>ofLeave(b,t)); m.bd=m.bd.filter(x=>x!==B); mPayCap(b,'Vente de l’immeuble '+B.n,v); settleAccounts(); return ok(B.n+' vendu '+eur(v,0)+'.'); }
 /* événements */
 function ofRisks(b){ const m=b.m, r=rnd();
   if(r<.0012&&!ofEv(m,'tt')){ m.ev.push({k:'tt',until:S.day+90}); m.mk=Math.max(.8,m.mk-.06); metLog(b,'vague de télétravail : les entreprises cherchent moins de bureaux pendant trois mois.','bad'); }
@@ -11285,7 +11285,7 @@ function ofAuto(b,mode,q){ const m=b.m;
   if(S.day%3===0) m.pr.slice().sort((x,y)=>y.mult-x.mult).forEach(P=>{ const B=m.bd.filter(B=>!ofWorks(B)&&B.std>=P.std&&ofFree(B).length>=P.k).sort((x,y)=>ofMkt(b,y)-ofMkt(b,x))[0]; if(B&&(P.mult>=.9||rnd()<q)) ofSign(b,P.id,B.id,0); });
   if(mode!=='full'||S.day%30) return;
   m.bd.forEach(B=>{ if(!ofWorks(B)&&B.cond<55) ofWork(b,B.id,'ref',true); ['conc','reu','rest'].forEach(k=>{ if(!ofSrvOn(B,k)&&B.fl.filter(Boolean).length>=B.nf*.6) ofSrv(b,B.id,k,true); }); });
-  const o=m.bo.slice().sort((x,y)=>x.price/x.m2-y.price/y.m2)[0]; if(o&&(b.dlp||0)>o.price*1.1) ofBuyBd(b,o.id,true);
+  const o=m.bo.slice().sort((x,y)=>x.price/x.m2-y.price/y.m2)[0]; if(o&&mDlp(b)>o.price*1.1) ofBuyBd(b,o.id,true);
   for(const [k,f,l,rk] of [['chg',1,'Gestion des charges',1],['com',2,'Commercialisation',2],['bl',3,'Baux longs',3],['fm',4,'Facility management',4],['pre',6,'Immeubles de prestige',5]]) if(!m[k]&&mxHas(b,rk)&&ofBuyR(b,k,f,l,rk,true).ok) break; }
 function ofData(){ return {OF_SRV, OF_WORK, OF_STD}; }
 
@@ -11347,6 +11347,36 @@ function spSet(slot,bid){ const O=fcOwn(); if(!O) return err('Vous n’avez pas 
   /* le smartphone garde son propre calcul (plus haut) quand il est sur le maillot */
   const kitPhone=O.phSp&&lkPhone()&&P.kit===lkPhone().id, lost=(P.kit!==null&&!kitPhone? SP_SLOT.kit.cost : 0)+(P.std!==null? SP_SLOT.std.cost : 0)+P.part.length*SP_SLOT.part.cost;
   if(lost>0) fcPay('spons','Club : sponsors remplacés par vos sociétés',-base*lost); }; }
+
+/* ============================================================
+   V1.5.9 : prix des entreprises en progression géométrique : du moins cher au plus cher, chacune coûte
+   le double de la précédente (2 400 € pour la première). D.biz[k].cost0 garde l'ancien prix,
+   D.biz[k].pf le rapport nouveau / ancien.
+   ============================================================ */
+(function(){ const L=Object.keys(D.biz).filter(k=>!D.biz[k].retired&&D.bizOrder.includes(k)).sort((a,b)=>(D.biz[a].cost0||D.biz[a].cost)-(D.biz[b].cost0||D.biz[b].cost));
+  L.forEach((k,i)=>{ const d=D.biz[k]; if(d.cost0===undefined) d.cost0=d.cost; d.cost=2400*Math.pow(2,i); d.pf=d.cost/d.cost0; });
+  D.bizOrder.sort((a,b)=>D.biz[a].tier-D.biz[b].tier||D.biz[a].cost-D.biz[b].cost);
+  if(typeof baseCache!=='undefined') Object.keys(baseCache).forEach(k=>delete baseCache[k]); })();
+/* Aérien, maritime, bureaux et concession calculent en vrais prix (billets, conteneurs, loyers, navires) :
+   tout l'argent de leur métier est multiplié par le même rapport que leur prix (mfac), à l'affichage comme
+   dans les comptes. Passagers, conteneurs, m² et voitures restent des quantités réelles. */
+const MF_DEFS=['airline','shipping','office'];
+const mfac = b => b&&MF_DEFS.includes(b.def)&&D.biz[b.def].pf? D.biz[b.def].pf : 1;
+const bizCost0 = b => { const d=bizDef(b); return d.cost0||d.cost; };
+function mPayCap(b,label,amt){ return payCap('b:'+b.id,label,amt*mfac(b)); }
+const mAvail = b => availFor(cityOf(b).ccy)/mfac(b);
+const mDlp = b => dlBudget(b)/mfac(b);
+let EUR_F=1;
+{ const _e=eur; eur=function(n,dec){ return _e(EUR_F===1? n : n*EUR_F,dec); }; }
+function mfRun(b,fn){ const f=mfac(b); if(f===1) return fn(); const o=EUR_F; EUR_F=f; try{ return fn(); } finally{ EUR_F=o; } }
+{ const _mb=metBuy; metBuy=function(b,cost,label){ return _mb(b,cost*mfac(b),label); };
+  const _ds=dlSpend; dlSpend=function(b,cost,label){ const f=mfac(b); if(f===1) return _ds(b,cost,label); const c=cost*f; if(c>dlBudget(b)) return false; if(!metBuy(b,cost,label)) return false; b.dlp=dlBudget(b)-c; return true; };
+  const _mc=metCtl; metCtl=function(b){ const r=mfRun(b,()=>_mc(b)), f=mfac(b); if(f!==1) r.forEach(c=>{ if(c.cost) c.cost*=f; if(c.gain) c.gain*=f; }); return r; }; }
+MF_DEFS.forEach(k=>{ const M=MET[k]; if(!M) return;
+  const _mods=M.mods; M.mods=function(b){ const r=_mods.call(this,b), f=mfac(b); if(f!==1){ if(r.rev) r.rev*=f; if(r.fixed) r.fixed*=f; } return r; };
+  ['daily','auto','kpis','ctl'].forEach(fn=>{ const o=M[fn]; if(typeof o==='function') M[fn]=function(b){ const a=arguments; return mfRun(b,()=>o.apply(this,a)); }; });
+  if(M.goal){ const g=M.goal; M.goal=function(b){ const r=mfRun(b,()=>g.call(this,b)); if(r) r.c*=mfac(b); return r; }; }
+  Object.keys(M.acts||{}).forEach(a=>{ const o=M.acts[a]; M.acts[a]=function(b){ const x=arguments; return mfRun(b,()=>o.apply(this,x)); }; }); });
 
 /* ============================================================
    SAUVEGARDES : 5 emplacements sur l'appareil.
@@ -15258,11 +15288,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.5.8';
+const IB_VER='V1.5.9';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Directeurs plus entreprenants','En délégation totale, la réserve d’investissement peut monter jusqu’à trois ans de mise de côté, ou jusqu’au prix de l’achat visé. La fiche indique ce que le directeur vise et où il en est.'],
-  ['De nouveaux achats délégués','Restaurant : table du chef et émission. Start-up : publicité financée par la réserve. Compagnies maritime et aérienne : terminaux, places dans les tours, et rachat des navires ou avions loués sur les lignes rentables.']
+  ['Progression plus lente','Du moins cher au plus cher, chaque type d’entreprise coûte désormais le double du précédent : de 2 400 € pour l’atelier de réparation à environ 5 milliards pour la compagnie aérienne. Les recettes suivent, la rentabilité reste la même.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -15620,7 +15649,7 @@ MET.dc.html=function(b){
    CONCESSION AUTOMOBILE : marque, stock neuf, occasions dans la fiche (V1.2.7)
    ============================================================ */
 MET.dealer.html=function(b){
-  const m=b.m, B=dlBr(b), Q=m.q, open=ui.dlb===b.id, can=x=>availFor(cityOf(b).ccy)>=x;
+  const m=b.m, B=dlBr(b), Q=m.q, open=ui.dlb===b.id, can=x=>mAvail(b)>=x;
   const Bt=(lab,act,arg,o)=>'<button class="btn '+((o&&o.c)||'sm')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o&&o.dis?' disabled':'')+'>'+lab+'</button>';
   let h='<div class="pk-head"><b>Votre marque</b><span class="sub">'+esc(B.n)+' · objectif '+Q.sold+' / '+Q.obj+'</span></div>';
   h+='<div class="rs-d"><div><b>'+esc(B.n)+'</b><small>'+esc(B.d)+' · prix moyen '+eur(B.p,0)+' · marge '+Math.round(B.mg*100)+' %</small>'+
@@ -15659,7 +15688,7 @@ function alMap(b){
 }
 function alBt(b,lab,act,arg,o){ return '<button class="btn '+((o&&o.c)||'sm')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o&&o.dis?' disabled':'')+(o&&o.l?' aria-label="'+esc(o.l)+'"':'')+'>'+lab+'</button>'; }
 MET.airline.html=function(b){
-  const m=b.m, can=x=>availFor(cityOf(b).ccy)>=x;
+  const m=b.m, can=x=>mAvail(b)>=x;
   let h='<div class="pk-head"><b>Réseau</b><span class="sub">'+m.hubs.length+' plateforme'+(m.hubs.length>1?'s':'')+' · '+m.ln.length+' ligne'+(m.ln.length>1?'s':'')+'</span></div>'+alMap(b);
   /* lignes */
   h+='<div class="pk-head"><b>Lignes</b><span class="sub">'+(m.ln.length? m.ln.length+' en service' : 'Aucune ligne')+'</span></div><div class="ht-t">';
@@ -15698,7 +15727,7 @@ ACT.aladd=el=>{ ui.modal={type:'aladd', id:+el.dataset.i, l:+el.dataset.j}; rend
 ACT.aladdgo=el=>{ const m=ui.modal, b=S.biz.find(x=>x.id===m.id); if(!b) return; let pid=+el.dataset.v;
   if(el.dataset.t){ const r=alGet(b,el.dataset.t,false); if(!r.ok) return after(r); pid=b.m.fl[b.m.fl.length-1].id; }
   const r=alAssign(b,m.l,pid); if(!r.ok&&el.dataset.t) alDrop(b,pid); if(r.ok) ui.modal={type:'biz',id:b.id}; after(r); };
-function alPlaneChoice(b,d,act){ const m=b.m, idle=m.fl.filter(p=>(!p.ln||!m.ln.some(l=>l.id===p.ln))&&AL_TY[p.t].rg>=d), can=x=>availFor(cityOf(b).ccy)>=x;
+function alPlaneChoice(b,d,act){ const m=b.m, idle=m.fl.filter(p=>(!p.ln||!m.ln.some(l=>l.id===p.ln))&&AL_TY[p.t].rg>=d), can=x=>mAvail(b)>=x;
   return (idle.length? '<div class="tag">Avions au sol</div>'+idle.map(p=>'<button class="pk-o" data-a="'+act+'" data-v="'+p.id+'"><span><b>'+esc(AL_TY[p.t].n)+'</b><small>'+AL_TY[p.t].seats+' places · '+(p.own?'acheté':'loué')+'</small></span></button>').join('') : '')+
     '<div class="tag">Louer un avion pour cette ligne</div>'+Object.entries(AL_TY).filter(([k,T])=>T.rg>=d).map(([k,T])=>'<button class="pk-o" data-a="'+act+'" data-v="0" data-t="'+k+'"'+(can(T.ls*30)?'':' disabled')+'><span><b>'+esc(T.n)+'</b><small>'+T.seats+' places · '+eur(T.ls,0)+' / j · dépôt '+eur(T.ls*30,0)+'</small></span></button>').join(''); }
 { const _mc=modalContent; modalContent=function(){ const M=ui.modal;
@@ -15733,7 +15762,7 @@ function shBt(b,lab,act,arg,o){ return '<button class="btn '+((o&&o.c)||'sm')+'"
 function shShipState(m,p){ const l=p.ln&&m.ln.find(x=>x.id===p.ln);
   return p.yard>S.day? 'Au chantier naval, livré le '+dateL(p.yard) : p.down>S.day? 'Immobilisé encore '+(p.down-S.day)+' j' : p.ch? 'Affrètement : '+p.ch.c+', '+esc(shPt(p.ch.a).n)+' – '+esc(shPt(p.ch.b).n)+', retour le '+dateL(p.ch.end) : l? 'Sur la ligne '+esc(shPt(l.a).n)+' – '+esc(shPt(l.b).n) : 'À quai, sans emploi'; }
 MET.shipping.html=function(b){
-  const m=b.m, can=x=>availFor(cityOf(b).ccy)>=x;
+  const m=b.m, can=x=>mAvail(b)>=x;
   let h='<div class="pk-head"><b>Réseau</b><span class="sub">'+m.tm.length+' terminal'+(m.tm.length>1?'s':'')+' · '+m.ln.length+' ligne'+(m.ln.length>1?'s':'')+'</span></div>'+shMap(b);
   /* événements en cours */
   const EV={suez:'Canal de Suez fermé : détour par le cap de Bonne-Espérance.', pan:'Canal de Panama restreint : détour par le cap Horn.', fuel:'Fioul 30 % plus cher.'};
@@ -15789,7 +15818,7 @@ ACT.shchgo=el=>{ const m=ui.modal, b=S.biz.find(x=>x.id===m.id); if(!b) return; 
 function shPreview(b,a,bb,t,lid){ const m=b.m, saveL=m.ln, saveF=m.fl; let x;
   try{ const l= lid? Object.assign({},m.ln.find(z=>z.id===lid)) : {id:-9, a, b:bb, p:1}; const id=l.id;
     m.fl=saveF.filter(p=>p.ln===id).concat([{id:-8, t, own:0, ln:id, down:0}]); m.ln=[l]; x=shLineDay(b,l); } finally { m.ln=saveL; m.fl=saveF; } return x; }
-function shShipChoice(b,a,bb,act,lid){ const m=b.m, idle=m.fl.filter(p=>shFree(m,p)&&SH_TY[p.t].k==='box'), can=x=>availFor(cityOf(b).ccy)>=x;
+function shShipChoice(b,a,bb,act,lid){ const m=b.m, idle=m.fl.filter(p=>shFree(m,p)&&SH_TY[p.t].k==='box'), can=x=>mAvail(b)>=x;
   const row=(t,extra,data,dis)=>{ const x=shPreview(b,a,bb,t,lid); return '<button class="pk-o" data-a="'+act+'" '+data+(dis?' disabled':'')+'><span><b>'+esc(SH_TY[t].n)+'</b><small>'+extra+' · prévision '+signed(x.net,0)+' / j pour la ligne · remplissage '+Math.round(x.lf*100)+' %</small></span></button>'; };
   return (idle.length? '<div class="tag">Navires sans emploi</div>'+idle.map(p=>row(p.t,(p.own?'à vous':'loué'),'data-v="'+p.id+'"',false)).join('') : '')+
     '<div class="tag">Louer un navire pour cette ligne</div>'+Object.entries(SH_TY).filter(([k,T])=>T.k==='box').map(([k,T])=>row(k,fmtN(T.cap,0)+' EVP · '+eur(T.ls,0)+' / j · dépôt '+eur(T.ls*30,0),'data-v="0" data-t="'+k+'"',!can(T.ls*30))).join(''); }
@@ -15818,7 +15847,7 @@ function ofBt(b,lab,act,arg,o){ return '<button class="btn '+((o&&o.c)||'sm')+'"
 const OF_RISK=['Solide','Correct','Fragile'];
 function ofStrip(b,B){ const m=b.m; return '<div class="of-strip" aria-label="'+B.fl.filter(Boolean).length+' étages loués sur '+B.nf+'">'+B.fl.map((t,i)=>{ const T=t&&m.tn.find(x=>x.id===t); return '<i class="'+(T? (T.sat<40?'bad':'on') : '')+'" title="Étage '+(i+1)+(T?' : '+esc(T.n):' : libre')+'"></i>'; }).join('')+'</div>'; }
 MET.office.html=function(b){
-  const m=b.m, can=x=>availFor(cityOf(b).ccy)>=x;
+  const m=b.m, can=x=>mAvail(b)>=x;
   /* immeubles */
   let h='<div class="pk-head"><b>Immeubles</b><span class="sub">'+m.bd.length+' immeuble'+(m.bd.length>1?'s':'')+' · '+m.bd.reduce((a,B)=>a+B.nf,0)+' étages</span></div><div class="ht-t">';
   m.bd.forEach(B=>{ const x=B.st||ofBdDay(b,B), wk=ofWorks(B)? OF_WORK[B.wk.k].n+' jusqu’au '+dateL(B.wk.until) : '';
@@ -15994,6 +16023,10 @@ function bzGroupOf(b){ const s=bizSec(b.def); const g=BZ_GRP.find(x=>x[2].includ
     const tot=L.reduce((a,b)=>a+(b.last?b.last.net:0),0), nb=L.filter(b=>bad[b.id]).length, key='bz_'+g, open= F[key]===undefined? !many : !!F[key];
     return '<section class="card fcd-c bzg"><details class="fcd ag-f" data-k="'+key+'"'+(open?' open':'')+'><summary><span class="ag-s"><h2><span>'+n+'</span></h2><small>'+L.length+' société'+(L.length>1?'s':'')+' · <b class="num '+cls(tot)+'">'+signed(tot,0)+' / j</b>'+(nb? ' · <span class="warn-t">'+nb+' à surveiller</span>' : '')+'</small></span></summary><div class="grid">'+L.map(bizCard).join('')+'</div></details></section>'; }).join('');
   return h.slice(0,k)+groups; }; }
+
+/* V1.5.9 : écrans propres à l'aérien, au maritime et aux bureaux : montants multipliés comme leur prix (voir biz_prices.js) */
+MF_DEFS.forEach(k=>{ const M=MET[k]; if(M&&M.html){ const o=M.html; M.html=function(b){ const a=arguments; return mfRun(b,()=>o.apply(this,a)); }; } });
+{ const _mc2=modalContent; modalContent=function(){ const M=ui.modal; const b=M&&M.type!=='biz'&&M.id!==undefined&&S.biz.find(x=>x.id===M.id); return b? mfRun(b,()=>_mc2()) : _mc2(); }; }
 
 /* ============================================================
    JEU PLUS INTUITIF (V1.1.4)
