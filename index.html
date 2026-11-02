@@ -11657,7 +11657,7 @@ function modalBiz(b){
     /* pilotage */
     body+='<div class="card" id="bj-pil"><h2>Pilotage</h2><div class="grid">'+
       (pqOn(b)? '<div class="stack"><b>Qualité du produit</b><div class="seg">'+PQN.map((n,k)=>'<button class="'+(pqOf(b)===k?'on':'')+'" data-a="setpq" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div><div class="sub">Coût des marchandises : '+(PQC[pqOf(b)]>1?'+'+Math.round((PQC[pqOf(b)]-1)*100)+' %':'normal')+'. Une meilleure qualité fait monter la satisfaction des clients, donc les ventes.</div></div>' : '')+
-      '<div class="stack"><label for="sl-pol"><b>Politique salariale</b> : <span id="lb-pol" class="num">'+Math.round(b.pol*100)+' %</span></label><input type="range" id="sl-pol" min="80" max="140" step="5" value="'+Math.round(b.pol*100)+'" data-live="lb-pol" data-fmt="pct" data-ch="setpol" data-i="'+b.id+'"></div>'+
+      '<div class="stack"><div class="row" style="gap:0"><label for="sl-pol"><b>Politique salariale</b> : <span id="lb-pol" class="num">'+Math.round(b.pol*100)+' %</span></label><button class="qm" type="button" data-a="gloss" data-v="Politique salariale" aria-label="Explication : politique salariale">i</button></div><input type="range" id="sl-pol" min="80" max="140" step="5" value="'+Math.round(b.pol*100)+'" data-live="lb-pol" data-fmt="pct" data-ch="setpol" data-i="'+b.id+'"></div>'+
       (isFact(b)? factPilot(b) : '<div class="stack"><label for="sl-price"><b>Prix de vente</b> : <span id="lb-price" class="num">'+Math.round(b.price*100)+' %</span></label><input type="range" id="sl-price" min="80" max="130" step="5" value="'+Math.round(b.price*100)+'" data-live="lb-price" data-fmt="pct" data-ch="setprice" data-i="'+b.id+'"></div>')+
       '<div class="stack"><b>Marketing</b><div class="seg">'+[0,1,2,3].map(k=>'<button class="'+(b.mkt===k?'on':'')+'" data-a="setmkt" data-i="'+b.id+'" data-v="'+k+'">'+['Aucun','Léger','Soutenu','Intense'][k]+'</button>').join('')+'</div><div class="sub">Coût : '+eur(base.R0*MKT_PCT[b.mkt],0)+' / jour ouvré. Ventes '+multPct(MKT_BOOST[b.mkt])+'.</div></div>'+
       (d.open==='always'? '<div class="stack"><b>Week-end</b><div class="sub">Ouvert chaque jour</div></div>'
@@ -15214,11 +15214,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.5.4';
+const IB_VER='V1.5.5';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Avis clients en étoiles','Chaque société a une note sur 5, moyenne des avis des 30 derniers jours (prix, service, qualité, adresse). Votre réputation générale s’affiche aussi sur 5. Répondez aux avis ou lancez une promotion pour calmer un bad buzz.'],
-  ['Service RH plus réactif','Dès que le moral d’un directeur passe sous le seuil que vous avez choisi, le service RH l’augmente de 10 % (contrôle chaque jour), au lieu d’une fois par mois au plus.']
+  ['Politique salariale expliquée','Un bouton « i » à côté de la jauge de politique salariale explique son effet sur la qualité, la fidélité et le moral.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -16011,6 +16010,7 @@ const GLOSS = {
   'Valeur nette':'Tout ce que vous possédez (trésorerie, entreprises, biens, placements) moins vos dettes. Elle débloque les paliers de richesse.',
   'Sécurité et assurance':'Contre les vols et les incidents. Le quartier fixe le niveau de risque.',
   'Grand livre':'Revenus, dépenses et résultat net de chaque source depuis les derniers impôts.',
+  'Politique salariale':'Salaires de l’équipe par rapport au marché. Au-dessus de 100 %, qualité, fidélité et moral montent ; en dessous, ils baissent. Qualité maximale à partir de 115 %, avec un produit Premium quand l’activité le propose.',
   'Service RH':'Chaque jour, il pourvoit les postes vacants dès qu’un candidat respecte vos critères minimaux, limite la fatigue et peut soutenir le moral des directeurs.'
 };
 function glossApply(){ const root=document.getElementById('app')||document.body; if(!root) return;
