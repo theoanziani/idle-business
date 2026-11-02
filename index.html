@@ -7717,8 +7717,8 @@ hrStep=function(){
       if(agencyHire(c.id,v.key).ok){ left--; n++; free--; } else break; }
     if(mon&&avgOk&&free>0){ const r=hireFill(v.e,v.role,free); if(r&&r.ok){ avg+=free; n+=free; } } });
   if(n) log('info','Service RH : '+n+' recrutement(s)'+(avg? ', dont '+avg+' profil'+(avg>1?'s':'')+' moyen'+(avg>1?'s':'')+' faute de candidat dans le vivier' : '')+'.');
-  /* moral des directeurs : augmentation de 10 % sous le seuil choisi (une fois par mois au plus) */
-  if(H.boss) S.biz.forEach(b=>{ const x=b.boss; if(!x||b.status!=='active'||x.mood>=HR_BOSS[H.boss]||S.day-(x.hrr||-99)<30) return;
+  /* moral des directeurs : augmentation de 10 % dès que le moral passe sous le seuil choisi (contrôle chaque jour, plus de délai mensuel) */
+  if(H.boss) S.biz.forEach(b=>{ const x=b.boss; if(!x||b.status!=='active'||x.mood>=HR_BOSS[H.boss]||x.hrr===S.day) return;
     x.sal*=1.1; x.mood=clamp(x.mood+15,0,100); x.hrr=S.day; log('info','Service RH : '+x.name+' (« '+b.name+' ») est augmenté de 10 % pour remonter son moral.'); });
 };
 function hrSetK(k,i){ const H=hrSet(), L={prod:HR_PROD,rel:HR_REL,loy:HR_LOY,boss:HR_BOSS}[k]; if(!L||!(+i>=0&&+i<L.length)) return err('Réglage inconnu.'); H[k]=+i; return ok(''); }
@@ -11919,7 +11919,7 @@ function hrCard(){
   if(L){ const H=hrSet(), seg=(k,Lst,f)=>'<div class="seg">'+Lst.map((v,i)=>'<button class="'+(H[k]===i?'on':'')+'" data-a="hrset" data-j="'+k+'" data-v="'+i+'">'+(i?f(v):'Peu importe')+'</button>').join('')+'</div>';
     body+='<div class="stack"><b>Profils visés</b><div class="sub">Chaque jour, le service RH embauche dans le vivier tous les candidats au-dessus de vos minimums, jusqu’à pourvoir tous les postes. Le lundi, s’il reste des postes vides, il complète avec des profils moyens, seulement s’ils respectent aussi vos minimums.</div>'+
       '<span class="sub">Productivité minimale (sur 100)</span>'+seg('prod',HR_PROD,v=>String(v))+'<span class="sub">Fiabilité minimale</span>'+seg('rel',HR_REL,v=>v+' %')+'<span class="sub">Fidélité minimale (sur 100)</span>'+seg('loy',HR_LOY,v=>String(v))+
-      '<b>Moral des directeurs</b><div class="sub">Sous ce seuil, le service RH augmente le directeur de 10 % (une fois par mois au plus).</div>'+seg('boss',HR_BOSS,v=>'Moral < '+v)+'</div>'; }
+      '<b>Moral des directeurs</b><div class="sub">Dès que le moral d’un directeur passe sous ce seuil, le service RH l’augmente de 10 % (contrôle chaque jour).</div>'+seg('boss',HR_BOSS,v=>'Moral < '+v)+'</div>'; }
   return card(L? 'Service RH : '+HR.names[L] : 'Service RH', body+'</div>');
 }
 
@@ -15077,10 +15077,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.5.3';
+const IB_VER='V1.5.4';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Bureaux mieux payés','L’immeuble de bureaux rapporte 20 % de plus : loyers de marché, salles de réunion et parking sont revalorisés, et les baux déjà signés aussi.']
+  ['Service RH plus réactif','Dès que le moral d’un directeur passe sous le seuil que vous avez choisi, le service RH l’augmente de 10 % (contrôle chaque jour), au lieu d’une fois par mois au plus.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
