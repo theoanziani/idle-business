@@ -4203,11 +4203,31 @@ function countryStep(){
   const rev=c.gdp/360*c.rate*e, cost=c.gdp/360*c.spend;
   pay('country','Recettes fiscales de '+c.name,rev,'corp'); pay('country','Dépenses publiques de '+c.name,-cost,'corp');
   c.revenue=rev-cost;
-  const tgt=55+180*(c.spend-0.22)-160*(c.rate-0.25)+30*(e-1);
+  ctyProj(c);
+  /* V1.6.6 : croissance du PIB (base 1,5 % par an, plus les dépenses publiques et les projets) ; la valeur du pays suit */
+  const g=(0.015+0.05*(c.spend-0.22)-0.03*Math.max(0,c.rate-0.35)+(c.bg||0))/360; c.gdp*=1+g; c.price*=1+g;
+  const tgt=55+180*(c.spend-0.22)-160*(c.rate-0.25)+30*(e-1)+(c.bs||0);
   c.sat=clamp(c.sat+(tgt-c.sat)*0.05,0,100);
   c.low = c.sat<20? c.low+1:0;
   if(c.low>=15){ const back=c.price*0.3; payCap('country','Indemnité après le coup d’État',back); log('crit','Coup d’État à '+c.name+' : vous perdez le pays (indemnité '+eur(back)+').'); S.country=null; S.won=false; }
 }
+/* V1.6.6 : grands projets nationaux, un à la fois, financés par votre trésorerie */
+const CTY_PJ={
+  inf:{n:'Grands travaux d’infrastructure',c:.03,d:240,t:'PIB +6 % et croissance +0,3 point par an.'},
+  edu:{n:'Plan éducation',c:.02,d:300,t:'Croissance +0,5 point par an et satisfaction +3.'},
+  hea:{n:'Hôpitaux publics',c:.02,d:180,t:'Satisfaction +6.'},
+  tou:{n:'Promotion touristique',c:.01,d:120,t:'Vos sociétés dans le pays : ventes +4 %.'},
+  zf:{n:'Zone franche',c:.01,d:90,t:'Vos sociétés dans le pays : coûts −5 %. Satisfaction −2.'}
+};
+function ctyProj(c){ c.done=c.done||[]; const p=c.pj; if(!p||S.day<p.until) return; c.pj=null; c.done.push(p.k);
+  if(p.k==='inf'){ c.gdp*=1.06; c.price*=1.06; c.bg=(c.bg||0)+.003; } else if(p.k==='edu'){ c.bg=(c.bg||0)+.005; c.bs=(c.bs||0)+3; }
+  else if(p.k==='hea') c.bs=(c.bs||0)+6; else if(p.k==='zf') c.bs=(c.bs||0)-2;
+  log('good','Projet national terminé à '+c.name+' : '+CTY_PJ[p.k].n.toLowerCase()+'.'); }
+const ctyHas = k => !!(S.country&&(S.country.done||[]).includes(k));
+const ctyIn = b => !!(S.country&&S.country.cities&&S.country.cities.includes(b.city));
+function ctyStart(k){ const c=S.country, P=CTY_PJ[k]; if(!c) return err('Aucun pays.'); if(!P) return err('Projet inconnu.'); if(c.pj) return err('Un projet est déjà en cours.');
+  if((c.done||[]).includes(k)) return err('Projet déjà réalisé.'); const cost=c.gdp*P.c; if(S.cash<cost) return err('Trésorerie insuffisante : '+eur(cost,0)+'.');
+  payCap('country','Projet national : '+P.n,-cost); c.pj={k,since:S.day,until:S.day+P.d}; return ok(P.n+' lancé, fin le '+dateL(S.day+P.d)+'.'); }
 function setCountry(k,v){ if(!S.country) return err('Aucun pays.'); S.country[k]=clamp(v,k==='rate'?0.05:0,k==='rate'?0.6:0.6); return ok(); }
 function sellCountry(){ if(!S.country) return err('Aucun pays.'); const p=S.country.price*0.7; payCap('country','Cession de '+S.country.name,p); S.country=null; return ok('Pays cédé pour '+eur(p)+'.'); }
 
@@ -4686,7 +4706,7 @@ function nextDay(){
   politicsStep();
   computeNW();
   if(S.day%(S.nwStep||1)===0){ S.nwH.push(Math.round(S.nw)); if(S.nwH.length>1200){ S.nwH=S.nwH.filter((x,i)=>i%2===0); S.nwStep=(S.nwStep||1)*2; } }
-  checkAch(); checkChal();
+  checkAch(); checkChal(); criStep();
   Object.keys(D.CITIES).forEach(id=>{ if(!D.CITIES[id].parent && !S.citySeen[id] && S.peakNW>=D.CITIES[id].unlock){ S.citySeen[id]=1; log('good','Nouvelle ville accessible : '+D.CITIES[id].n+'. Ouvrez-y des sociétés depuis l’onglet Sociétés.'); } });
   const t=tierNow();
   if(t>S.tierSeen){ S.tierSeen=t; S.flashTier=t; log('good','Nouveau palier : '+D.TIERS[t].n+' ! '+D.TIERS[t].d); }
@@ -7831,7 +7851,9 @@ function dlDaily(b){
   const mode=dlMode(b); if(mode==='me') return;
   if(mode==='full'&&b.last){ const add=DL_BUD[b.dlb||0]*Math.max(0,b.last.net0!==undefined? b.last.net0 : b.last.net), g=dlGoal(b);
     /* V1.5.8 : réserve plafonnée à trois ans de mise de côté, ou au prix du prochain achat visé s'il est plus cher */
-    b.dlp=Math.min(dlBudget(b)+add, Math.max(dlBudget(b),add*1080,g? g.c*1.05 : 0)); }
+    b.dlp=Math.min(dlBudget(b)+add, Math.max(dlBudget(b),add*1080,g? g.c*1.05 : 0));
+    /* V1.6.6 : plus rien à acheter : la réserve ne garde que trois mois de mise de côté */
+    if(!g) b.dlp=Math.min(b.dlp,add*90); }
   try{ m.auto(b,mode,dlQuality(b)); }catch(e){ console.error(e); }
 }
 { const _ns=nextDay; nextDay=function(){ const ok=_ns(); if(ok){ try{ bizRetireStep(); S.biz.forEach(b=>{ mxDaily(b); dlDaily(b); }); }catch(e){ console.error(e); } } return ok; }; }
@@ -11042,7 +11064,7 @@ MET.shipping={
     m.fl.forEach(p=>{ if(p.yard&&p.yard<=S.day){ p.yard=0; metLog(b,SH_TY[p.t].n+' livré par le chantier naval.','good'); }
       if(p.ch&&p.ch.end<=S.day){ m.chn=(m.chn||0)+1; metLog(b,'voyage d’affrètement terminé ('+p.ch.c+', '+shPt(p.ch.a).n+' – '+shPt(p.ch.b).n+').','good'); p.ch=null; } });
     if(S.day%7===0) shOffers(b);
-    const d=shDay(b); d.rev+=(m.uf||0)/mfac(b); m.uf=0; m.st=d; m.acc+=d.rev; m.accC+=(d.cost0||d.cost);
+    const d=shDay(b); d.rev+=(m.uf||0); m.uf=0; m.st=d; m.acc+=d.rev; m.accC+=(d.cost0||d.cost);
     /* réputation : années, réseau, terminaux, fiabilité */
     if(!m.d0) m.d0=S.day;
     const inc=(m.ev||[]).filter(e=>e.k==='pir'||e.k==='av').length;
@@ -11150,9 +11172,13 @@ function shAuto(b,mode,q){ const m=b.m;
   if(mode!=='full') return;
   if(S.day%30===15) shInvest(b);
   if(S.day%30===0){
-    /* une ligne nouvelle avec un navire loué si elle s'annonce rentable */
-    const h=m.tm[Math.floor(rnd()*m.tm.length)], cand=shDests(b,h).filter(x=>!shCanLine(b,h,x.id)).sort((x,y)=>y.sz-x.sz)[0];
-    if(cand&&mDlp(b)>SH_TY.p5.ls*30){ const r=shGet(b,'p5','lease',true); if(r.ok){ const p=m.fl[m.fl.length-1]; shOpen(b,h,cand.id,p.id); const l=m.ln[m.ln.length-1]; if(l&&shLineDay(b,l).net<0){ shClose(b,l.id); shDrop(b,p.id); } } }
+    /* une ligne nouvelle avec un navire loué : il essaie plusieurs destinations et garde la plus rentable (V1.6.6) */
+    const cands=[]; m.tm.forEach(h=>shDests(b,h).filter(x=>!shCanLine(b,h,x.id)).forEach(x=>cands.push([h,x]))); cands.sort((x,y)=>y[1].sz-x[1].sz);
+    if(cands.length&&mDlp(b)>SH_TY.p5.ls*30){ const r=shGet(b,'p5','lease',true); if(r.ok){ const p=m.fl[m.fl.length-1]; let best=null, bv=0;
+      cands.slice(0,6).forEach(([h,x])=>{ const l={id:-1, a:h, b:x.id, p:1}; m.ln.push(l); p.ln=-1; const v=shLineDay(b,l).net; if(v>bv){ bv=v; best=[h,x.id]; } m.ln.pop(); p.ln=0; });
+      if(best){ shOpen(b,best[0],best[1],p.id); } else shDrop(b,p.id); } }
+    /* quais pleins partout : il agrandit le terminal le plus fréquenté */
+    if(!cands.length&&m.tm.length){ const h=m.tm.slice().sort((x,y)=>shTmUsed(b,y)-shTmUsed(b,x))[0]; if(mDlp(b)>=shExtCost(b,h)) shExt(b,h,true); }
     for(const [k,f,l,rk] of [['plan',1.5,'Planification des escales',1],['ali',3,'Alliance maritime',2],['eco',5,'Navires économes',3],['esc',6,'Sûreté et escortes',4],['d2d',10,'Logistique porte-à-porte',5]]) if(!m[k]&&mxHas(b,rk)&&shBuyR(b,k,f,l,rk,true).ok) break; }
 }
 /* V1.5.8 : en délégation totale, la réserve achète aussi des terminaux et remplace les navires loués des lignes rentables */
@@ -11162,7 +11188,7 @@ function shInvest(b){ const m=b.m, T=shNextTm(b);
   if(T&&shBuyTm(b,T.id,true).ok) return;
   const x=shLeasedOnGood(b); if(!x) return; const c=SH_TY[x.p.t].pr*SH_OCC; if(mDlp(b)<c) return;
   const r=shGet(b,x.p.t,'occ',true); if(!r.ok) return; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; shDrop(b,x.p.id); metLog(b,'le directeur rachète d’occasion le '+SH_TY[n.t].n+' de la ligne '+shPt(x.l.a).n+' – '+shPt(x.l.b).n+'.',''); }
-MET.shipping.goal=function(b){ const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id)}; const x=shLeasedOnGood(b); return x? {n:SH_TY[x.p.t].n+' d’occasion', c:SH_TY[x.p.t].pr*SH_OCC} : null; };
+MET.shipping.goal=function(b){ const m=b.m; if(m.tm.length&&m.tm.every(h=>shTmUsed(b,h)>=shTmCap(b,h))){ const h=m.tm[0]; if((m.ext&&m.ext[h]||0)<3) return {n:'Quais à '+shPt(h).n, c:shExtCost(b,h)}; } const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id)}; const x=shLeasedOnGood(b); return x? {n:SH_TY[x.p.t].n+' d’occasion', c:SH_TY[x.p.t].pr*SH_OCC} : null; };
 function shData(){ return {SH_PT, SH_TY, SH_RG, SH_NB}; }
 
 /* ============================================================
@@ -11544,6 +11570,8 @@ function lkList(b){ const d=b.def, L=[];
   if(d==='staffing'&&lkAny('office')) L.push(['office','Vos locataires de bureaux','ventes +8 %']);
   if(d!=='build'&&lkAny('build')) L.push(['build','Votre société de construction','agrandissements −10 %']);
   if(mgrOn('ceo')) L.push(['ceo','Directeur général','salaires et frais fixes −4 %']);
+  if(ctyIn(b)&&ctyHas('tou')) L.push(['cty','Promotion touristique de votre pays','ventes +4 %']);
+  if(ctyIn(b)&&ctyHas('zf')) L.push(['cty','Zone franche de votre pays','coûts −5 %']);
   return L; }
 function lkRentF(b){ return b&&b.def==='saas'&&lkCity('office',b.city)? 0 : 1; }
 { const _mm=metMods; metMods=function(b){ const z=_mm(b); if(!b||b.status!=='active') return z;
@@ -11553,8 +11581,45 @@ function lkRentF(b){ return b&&b.def==='saas'&&lkCity('office',b.city)? 0 : 1; }
   if(d==='hotel'&&lkAirCity(b.city)) up(1.08);
   if(d==='staffing'&&lkAny('office')) up(1.08);
   if(mgrOn('ceo')){ z.wage*=.96; z.fixed*=.96; }
+  if(ctyIn(b)){ if(ctyHas('tou')) up(1.04); if(ctyHas('zf')){ z.cogs*=.95; z.fixed*=.95; z.wage*=.95; } }
   return z; }; }
 { const _uc=upgradeCost; upgradeCost=function(b){ const c=_uc(b); return b&&b.def!=='build'&&lkAny('build')? c*.9 : c; }; }
+
+/* ============================================================
+   V1.6.6 : crises de groupe. Une crise touche toutes vos sociétés d'un même type pendant quelques
+   semaines. Une société liée (centrales, studio, cybersécurité, service de livraison) l'atténue ;
+   sinon vous pouvez payer une parade. État : S.cri {k, since, until, mit, cost} ou null ; S.criN
+   (premier jour possible de la prochaine crise, 200 par défaut).
+   ============================================================ */
+const CRI={
+  nrj:{n:'Pénurie d’énergie', d:20, eff:'frais fixes +25 % et production +10 %', par:'Contrat d’énergie de secours', has:()=>lkAny('renew'), hasN:'vos centrales d’énergie',
+    t:b=>isFact(b)||['dc','warehouse'].includes(b.def)},
+  tou:{n:'Krach du tourisme', d:30, eff:'ventes −20 %', par:'Campagne de promotion', has:()=>lkAny('studio'), hasN:'votre studio vidéo',
+    t:b=>['hotel','park','resto','fastfood','airline'].includes(b.def)},
+  grv:{n:'Grève des transports', d:15, eff:'ventes −15 %', par:'Prime aux transporteurs', has:()=>mgrOn('del'), hasN:'votre service de livraison',
+    t:b=>['super','ecom','warehouse','shipping','repair'].includes(b.def)},
+  cyb:{n:'Cyberattaque en série', d:10, eff:'ventes −25 %', par:'Cellule de crise informatique', has:()=>lkAny('cyber'), hasN:'votre société de cybersécurité',
+    t:b=>['saas','dc','ecom','ai','agency'].includes(b.def)}
+};
+const criOn = () => !!(S.cri&&S.day<=S.cri.until);
+const criHit = b => criOn()&&b.status==='active'&&CRI[S.cri.k].t(b);
+function criCost(k){ return Math.round(S.biz.filter(b=>b.status==='active'&&CRI[k].t(b)).reduce((a,b)=>a+Math.max(0,b.last?b.last.rev:0),0)*CRI[k].d*.12); }
+function criStep(){
+  if(S.cri&&S.day>S.cri.until){ log('info','Fin de la crise : '+CRI[S.cri.k].n.toLowerCase()+'.'); S.cri=null; S.criN=S.day+150; return; }
+  if(S.cri||S.day<(S.criN||200)||rnd()>=1/120) return;
+  const ks=Object.keys(CRI).filter(k=>S.biz.filter(b=>b.status==='active'&&CRI[k].t(b)).length>=2); if(!ks.length) return;
+  const k=ks[Math.floor(rnd()*ks.length)], C=CRI[k], mit=C.has()?1:0;
+  S.cri={k, since:S.day, until:S.day+C.d, mit, cost:criCost(k)};
+  if(mit) log('warn',C.n+' : '+C.hasN+' limite les dégâts pour vos sociétés touchées pendant '+C.d+' jours.');
+  else { log('crit',C.n+' : '+C.eff+' pour vos sociétés touchées pendant '+C.d+' jours.'); S.flashCri=true; }
+}
+function criMit(){ if(!criOn()) return err('Aucune crise en cours.'); if(S.cri.mit) return err('Déjà atténuée.'); const c=S.cri.cost;
+  if(S.cash<c) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); payCap('gen',CRI[S.cri.k].par,-c); S.cri.mit=1; return ok(CRI[S.cri.k].par+' : les effets de la crise sont réduits.'); }
+{ const _mm=metMods; metMods=function(b){ const z=_mm(b); if(!b||!criHit(b)) return z; const f=S.cri.mit? .4 : 1;
+  if(S.cri.k==='nrj'){ z.fixed*=1+.25*f; z.cogs*=1+.1*f; }
+  else { const dr={tou:.2,grv:.15,cyb:.25}[S.cri.k]*f; z.vol*=1-dr; z.rev*=1-dr; }
+  return z; }; }
+{ const _ll=lkList; lkList=function(b){ const L=_ll(b); if(criHit(b)) L.unshift(['cri',CRI[S.cri.k].n+' jusqu’au '+dateL(S.cri.until),(S.cri.mit?'atténuée : ':'')+CRI[S.cri.k].eff+(S.cri.mit?' (effets réduits de 60 %)':''),1]); return L; }; }
 
 /* ============================================================
    V1.6.1 : toutes les entreprises coûtent 20 % de plus (création, agrandissements, options), sans
@@ -11563,26 +11628,12 @@ function lkRentF(b){ return b&&b.def==='saas'&&lkCity('office',b.city)? 0 : 1; }
    ============================================================ */
 (function(){ Object.keys(D.biz).forEach(k=>{ const d=D.biz[k]; if(d.cost0===undefined) d.cost0=d.cost; d.cost=Math.round(d.cost0*1.2); d.pf=1; });
   if(typeof baseCache!=='undefined') Object.keys(baseCache).forEach(k=>delete baseCache[k]); })();
-/* Aérien, maritime, bureaux et concession calculent en vrais prix (billets, conteneurs, loyers, navires) :
-   tout l'argent de leur métier est multiplié par le même rapport que leur prix (mfac), à l'affichage comme
-   dans les comptes. Passagers, conteneurs, m² et voitures restent des quantités réelles. */
-const MF_DEFS=['airline','shipping','office'];
-const mfac = b => b&&MF_DEFS.includes(b.def)&&D.biz[b.def].pf? D.biz[b.def].pf : 1;
+/* V1.6.6 : le mécanisme de prix multipliés (mfac) est retiré ; ces aides restent pour les métiers
+   qui paient en vrais prix (aérien, maritime, bureaux). */
 const bizCost0 = b => bizDef(b).cost;
-function mPayCap(b,label,amt){ return payCap('b:'+b.id,label,amt*mfac(b)); }
-const mAvail = b => availFor(cityOf(b).ccy)/mfac(b);
-const mDlp = b => dlBudget(b)/mfac(b);
-let EUR_F=1;
-{ const _e=eur; eur=function(n,dec){ return _e(EUR_F===1? n : n*EUR_F,dec); }; }
-function mfRun(b,fn){ const f=mfac(b); if(f===1) return fn(); const o=EUR_F; EUR_F=f; try{ return fn(); } finally{ EUR_F=o; } }
-{ const _mb=metBuy; metBuy=function(b,cost,label){ return _mb(b,cost*mfac(b),label); };
-  const _ds=dlSpend; dlSpend=function(b,cost,label){ const f=mfac(b); if(f===1) return _ds(b,cost,label); const c=cost*f; if(c>dlBudget(b)) return false; if(!metBuy(b,cost,label)) return false; b.dlp=dlBudget(b)-c; return true; };
-  const _mc=metCtl; metCtl=function(b){ const r=mfRun(b,()=>_mc(b)), f=mfac(b); if(f!==1) r.forEach(c=>{ if(c.cost) c.cost*=f; if(c.gain) c.gain*=f; }); return r; }; }
-MF_DEFS.forEach(k=>{ const M=MET[k]; if(!M) return;
-  const _mods=M.mods; M.mods=function(b){ const r=_mods.call(this,b), f=mfac(b); if(f!==1){ if(r.rev) r.rev*=f; if(r.fixed) r.fixed*=f; } return r; };
-  ['daily','auto','kpis','ctl'].forEach(fn=>{ const o=M[fn]; if(typeof o==='function') M[fn]=function(b){ const a=arguments; return mfRun(b,()=>o.apply(this,a)); }; });
-  if(M.goal){ const g=M.goal; M.goal=function(b){ const r=mfRun(b,()=>g.call(this,b)); if(r) r.c*=mfac(b); return r; }; }
-  Object.keys(M.acts||{}).forEach(a=>{ const o=M.acts[a]; M.acts[a]=function(b){ const x=arguments; return mfRun(b,()=>o.apply(this,x)); }; }); });
+function mPayCap(b,label,amt){ return payCap('b:'+b.id,label,amt); }
+const mAvail = b => availFor(cityOf(b).ccy);
+const mDlp = b => dlBudget(b);
 
 /* ============================================================
    SAUVEGARDES : 5 emplacements sur l'appareil.
@@ -12141,8 +12192,11 @@ function vLuxe(){
     h+=card('Gouvernance de '+esc(c.name),
       '<div class="grid"><div class="stack"><label for="sl-ctax"><b>Taux d’imposition</b> : <span id="lb-ctax" class="num">'+Math.round(c.rate*100)+' %</span></label><input type="range" id="sl-ctax" min="5" max="60" step="1" value="'+Math.round(c.rate*100)+'" data-live="lb-ctax" data-fmt="pct0" data-ch="ctax"></div>'+
       '<div class="stack"><label for="sl-cspend"><b>Dépenses publiques</b> : <span id="lb-cspend" class="num">'+Math.round(c.spend*100)+' %</span></label><input type="range" id="sl-cspend" min="0" max="60" step="1" value="'+Math.round(c.spend*100)+'" data-live="lb-cspend" data-fmt="pct0" data-ch="cspend"></div></div>'+
-      '<div class="mini" style="margin-top:10px"><div><span>Solde public / jour</span><b class="num '+cls(c.revenue)+'">'+signed(c.revenue,0)+'</b></div><div><span>Satisfaction</span><b>'+Math.round(c.sat)+' / 100</b></div><div><span>Depuis le jour</span><b>'+c.since+'</b></div></div>'+bar(c.sat/100,c.sat<30?'r':c.sat<50?'a':'g')+
-      '<div class="sub" style="margin-top:6px"></div><div style="margin-top:8px">'+btn('Céder le pays : '+eur(c.price*0.7,0),'sellcountry',{c:'sm dng'})+'</div>');
+      '<div class="mini" style="margin-top:10px"><div><span>Solde public / jour</span><b class="num '+cls(c.revenue)+'">'+signed(c.revenue,0)+'</b></div><div><span>Satisfaction</span><b>'+Math.round(c.sat)+' / 100</b></div><div><span>Souverain depuis le</span><b>'+dateS(c.since)+'</b></div><div><span>PIB</span><b class="num">'+eur(c.gdp,0)+'</b></div></div>'+bar(c.sat/100,c.sat<30?'r':c.sat<50?'a':'g')+
+      '<div class="tag" style="margin-top:10px">Projets nationaux</div>'+(c.pj? '<div class="sub">En cours : <b>'+esc(CTY_PJ[c.pj.k].n)+'</b>, fin le '+dateL(c.pj.until)+'.</div>'+bar((S.day-c.pj.since)/Math.max(1,c.pj.until-c.pj.since),'g') : '')+
+      '<div class="ht-t">'+Object.keys(CTY_PJ).map(k=>{ const P=CTY_PJ[k], done=(c.done||[]).includes(k), cost=c.gdp*P.c;
+        return '<div class="rs-d"><div><b>'+esc(P.n)+(done?' · réalisé':'')+'</b><small>'+esc(P.t)+(done?'':' · '+P.d+' jours')+'</small>'+(done?'':'<div class="fm-a">'+btn('Lancer : '+eur(cost,0),'ctypj',{c:'sm',v:k,dis:!!c.pj||S.cash<cost})+'</div>')+'</div></div>'; }).join('')+'</div>'+
+      '<div style="margin-top:8px">'+btn('Céder le pays : '+eur(c.price*0.7,0),'sellcountry',{c:'sm dng'})+'</div>');
   } else {
     h+='<div class="grid">'+D.COUNTRIES.map(c=>{ const lock=!unlocked(c.tier), miss=c.cities.filter(x=>!cityOwned(x));
       return '<section class="card bc '+(lock?'lock':'')+'"><div class="hd"><div><b>'+esc(c.n)+'</b><div class="sub">'+c.pop+' · villes : '+c.cities.filter(cityVisible).map(x=>(cityOwned(x)?'✓ ':'')+esc(D.CITIES[x].n)).join(', ')+(c.cities.some(x=>!cityVisible(x))?' + '+c.cities.filter(x=>!cityVisible(x)).length+' à découvrir':'')+'</div></div></div><div class="row sp"><div><div class="tag">Prix</div><div class="num"><b>'+eur(c.price,0)+'</b></div></div>'+(lock?'<span class="sub">Palier '+D.TIERS[c.tier].n+'</span>':(miss.length?'<span class="sub">Il manque '+miss.length+' ville(s)</span>':btn('Acheter','buycountry',{c:'sm pri',i:c.id,dis:S.cash<c.price})))+'</div><div class="sub"></div></section>'; }).join('')+'</div>';
@@ -12393,7 +12447,9 @@ function vGuide(){
       'Les résidences se louent (4,5 % de leur valeur par an) ou se gardent pour le prestige.',
       '<b>Directeurs</b> (Agence) : directeur général (salaires et frais fixes −4 % partout, prix et marketing ajustés chaque semaine), directeur financier (rembourse les emprunts, place l’excédent sur le livret), gestionnaire immobilier (loyers −5 %, baux vides résiliés), responsable des contrats (accepte les contrats faisables), service de livraison (livraisons plus rapides et moins chères).',
       '<b>Directeur de site</b> : chaque entreprise a un directeur nommé avec trois compétences (gestion, vente, rigueur) sur 10, un trait (prudent, commercial ou gestionnaire), un salaire et un moral. Tous les 120 jours en poste, sa compétence la plus faible progresse. Formez-le (une fois par mois), augmentez-le ou remplacez-le. Au moral bas, il démissionne ou se fait débaucher par un rival.',
-      '<b>Liens entre sociétés</b> : ferme → restaurants, fast-foods, supermarchés et hôtels (marchandises moins chères) ; énergies renouvelables → usines, data centers et entrepôts ; construction → agrandissements −10 % ; studio vidéo → e-commerce, couture et compagnie aérienne (ventes +5 %) ; compagnie aérienne → hôtels des villes desservies (+8 %) ; immeuble de bureaux → loyer offert à votre start-up SaaS de la même ville et ventes +8 % pour l’agence de recrutement. La fiche de chaque société liste ses liens actifs.'
+      '<b>Liens entre sociétés</b> : ferme → restaurants, fast-foods, supermarchés et hôtels (marchandises moins chères) ; énergies renouvelables → usines, data centers et entrepôts ; construction → agrandissements −10 % ; studio vidéo → e-commerce, couture et compagnie aérienne (ventes +5 %) ; compagnie aérienne → hôtels des villes desservies (+8 %) ; immeuble de bureaux → loyer offert à votre start-up SaaS de la même ville et ventes +8 % pour l’agence de recrutement. La fiche de chaque société liste ses liens actifs. Sociétés résume toutes les synergies, actives ou à débloquer.',
+      '<b>Crises de groupe</b> : de temps en temps, une pénurie d’énergie, un krach du tourisme, une grève des transports ou une cyberattaque touche toutes vos sociétés d’un même type pendant quelques semaines. Une société liée l’atténue d’office (centrales, studio, service de livraison, cybersécurité) ; sinon, vous pouvez payer une parade qui réduit les effets de 60 %.',
+      '<b>Pays acheté</b> : réglez impôts et dépenses, lancez des projets nationaux (infrastructures, éducation, santé, tourisme, zone franche). Le PIB croît chaque jour, et la valeur du pays avec lui.'
     ])),
     sec('Concurrence',ul([
       'Six rivaux IA, chacun avec ses secteurs, ses villes, sa puissance et son agressivité. Plus ils sont présents sur votre marché (ville et secteur), plus vos ventes baissent. Ils grandissent, s’implantent près de vous et reculent.',
@@ -12696,6 +12752,7 @@ const ACT={
   build:el=>after(startBuild(el.dataset.i),'Chantier lancé.'),
   buylux:el=>after(buyLux(el.dataset.i),'Acquisition réussie.'), sellux:el=>after(sellLux(el.dataset.i)),
   buycountry:el=>{ const c=D.COUNTRIES.find(x=>x.id===el.dataset.i); ask('Acheter '+c.n,'Prix : <b>'+eur(c.price,0)+'</b>. Vous deviendrez le souverain de ce pays.','Acheter',()=>{ const r=buyCountry(c.id); if(r.ok&&S.flashWin){ ui.modal={type:'win'}; S.flashWin=false; } after(r); }); },
+  ctypj:el=>after(ctyStart(el.dataset.v)),
   sellcountry:()=>ask('Céder le pays','Vous le revendez à 70 % de sa valeur.','Céder',()=>after(sellCountry())),
   /* politique */
   lobpre:el=>{ ui.tmp.lob=+el.dataset.v; render(); },
@@ -13416,7 +13473,7 @@ function bossPanel(b){
   return h+'</div></div>'+lkPanel(b);
 }
 function lkPanel(b){ const L=b.status==='active'?lkList(b):[]; if(!L.length) return '';
-  return '<div class="card"><h2>Liens avec vos sociétés</h2><div class="ht-t">'+L.map(x=>'<div class="rs-d"><div><b>'+esc(x[1])+'</b><small>'+esc(x[2])+'</small></div>'+pill('Actif','good')+'</div>').join('')+'</div></div>';
+  return '<div class="card"><h2>Liens et crises</h2><div class="ht-t">'+L.map(x=>'<div class="rs-d"><div><b>'+esc(x[1])+'</b><small>'+esc(x[2])+'</small></div>'+(x[3]?pill('Crise','bad'):pill('Actif','good'))+'</div>').join('')+'</div></div>';
 }
 Object.assign(ACT,{
   plansopen:el=>{ ui.modal={type:'plans',id:el.dataset.i}; render(); },
@@ -15307,7 +15364,7 @@ function dlHtml(b){
     (x? '<div class="sub">'+esc(x.name)+' · compétence moyenne '+bossAvg(x).toFixed(1)+' / 10. Un meilleur directeur prend de meilleures décisions.</div>' : '<div class="sub">Aucun directeur : recrutez-en un dans la section « Directeur de site » de cette fiche.</div>')+
     '<div class="seg">'+Object.keys(DL_MODES).map(k=>'<button class="'+(md===k?'on':'')+'" data-a="dlset" data-i="'+b.id+'" data-v="'+k+'"'+(k!=='me'&&!x?' disabled':'')+'>'+DL_MODES[k].n+'</button>').join('')+'</div>'+
     '<div class="sub">'+DL_MODES[md].d+'</div>'+
-    (md==='full'? '<div class="row"><span class="sub">Investissement</span><div class="seg">'+['10 %','25 %','50 %'].map((n,k)=>'<button class="'+((b.dlb||0)===k?'on':'')+'" data-a="dlbud" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div></div><div class="sub">Part des bénéfices mise de côté chaque jour pour ses investissements. Réserve actuelle : '+eur(dlBudget(b),0)+'.'+(()=>{ const g=dlGoal(b); return g? ' Il vise : '+esc(g.n.charAt(0).toLowerCase()+g.n.slice(1))+', '+eur(g.c,0)+(dlBudget(b)>=g.c?' (prochain achat).':' ('+Math.min(99,Math.round(dlBudget(b)/g.c*100))+' %).') : ' Aucun achat en vue pour le moment.'; })()+'</div>' : '')+
+    (md==='full'? '<div class="row"><span class="sub">Investissement</span><div class="seg">'+['10 %','25 %','50 %'].map((n,k)=>'<button class="'+((b.dlb||0)===k?'on':'')+'" data-a="dlbud" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div></div><div class="sub">Part des bénéfices mise de côté chaque jour pour ses investissements. Réserve actuelle : '+eur(dlBudget(b),0)+'.'+(()=>{ const g=dlGoal(b); return g? ' Il vise : '+esc(g.n.charAt(0).toLowerCase()+g.n.slice(1))+', '+eur(g.c,0)+(dlBudget(b)>=g.c?' (prochain achat).':' ('+Math.min(99,Math.round(dlBudget(b)/g.c*100))+' %).') : ' Aucun achat en vue pour le moment : la réserve reste limitée à trois mois de mise de côté.'; })()+'</div>' : '')+
     '</div>';
 }
 ACT.dlset=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b) after(setDelegation(b,el.dataset.v)); };
@@ -15519,11 +15576,13 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.6.5';
+const IB_VER='V1.6.6';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Directeurs revus','Le directeur général réduit de 4 % les salaires et frais fixes de toutes vos sociétés. Nouveau : le directeur financier rembourse vos emprunts et place l’excédent sur le livret. Les directeurs de site ont un trait et progressent avec l’expérience.'],
-  ['Nouveaux liens entre sociétés','Ferme → restaurants, fast-foods, supermarchés et hôtels ; construction → agrandissements −10 % ; studio vidéo → e-commerce, couture et compagnie aérienne ; compagnie aérienne → hôtels des villes desservies ; immeuble de bureaux → start-up SaaS et agence de recrutement ; énergies renouvelables → entrepôts. Chaque fiche liste ses liens actifs.']
+  ['Synergies','Sociétés affiche une carte « Synergies » : les liens actifs entre vos entreprises et ce qu’il manque pour débloquer les autres.'],
+  ['Crises de groupe','Pénurie d’énergie, krach du tourisme, grève des transports, cyberattaque : une crise peut toucher plusieurs de vos sociétés à la fois. Une société liée l’atténue, sinon une parade payante réduit les effets.'],
+  ['Gouverner un pays','Le PIB de votre pays croît désormais, et cinq projets nationaux (infrastructures, éducation, santé, tourisme, zone franche) font progresser l’économie et vos sociétés sur place.'],
+  ['Directeurs plus malins','En délégation totale, la compagnie maritime ouvre de nouvelles lignes en testant plusieurs destinations et agrandit ses terminaux. Sans achat en vue, la réserve reste limitée.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -16280,9 +16339,40 @@ function bzGroupOf(b){ const s=bizSec(b.def); const g=BZ_GRP.find(x=>x[2].includ
     return '<section class="card fcd-c bzg"><details class="fcd ag-f" data-k="'+key+'"'+(open?' open':'')+'><summary><span class="ag-s"><h2><span>'+n+'</span></h2><small>'+L.length+' société'+(L.length>1?'s':'')+' · <b class="num '+cls(tot)+'">'+signed(tot,0)+' / j</b>'+(nb? ' · <span class="warn-t">'+nb+' à surveiller</span>' : '')+'</small></span></summary><div class="grid">'+L.map(bizCard).join('')+'</div></details></section>'; }).join('');
   return h.slice(0,k)+groups; }; }
 
-/* V1.5.9 : écrans propres à l'aérien, au maritime et aux bureaux : montants multipliés comme leur prix (voir biz_prices.js) */
-MF_DEFS.forEach(k=>{ const M=MET[k]; if(M&&M.html){ const o=M.html; M.html=function(b){ const a=arguments; return mfRun(b,()=>o.apply(this,a)); }; } });
-{ const _mc2=modalContent; modalContent=function(){ const M=ui.modal; const b=M&&M.type!=='biz'&&M.id!==undefined&&S.biz.find(x=>x.id===M.id); return b? mfRun(b,()=>_mc2()) : _mc2(); }; }
+
+/* V1.6.6 : synergies entre vos sociétés (liens actifs et liens à débloquer) */
+const SYN=[
+  ['farm',['resto','fastfood','super','hotel'],'Marchandises moins chères : −15 %, hôtels −10 %.'],
+  ['renew',null,'Énergie −40 % pour les usines, data centers et entrepôts, selon votre production.'],
+  ['build','*','Agrandissements −10 % pour toutes vos autres sociétés.'],
+  ['studio',['ecom','couture','airline'],'Publicités maison : ventes +5 %.'],
+  ['airline',['hotel'],'Hôtels des villes desservies par vos lignes : clients +8 %.'],
+  ['office',['saas','staffing'],'Loyer offert à la start-up SaaS de la même ville, ventes +8 % pour l’agence de recrutement.'],
+  ['warehouse','fact','Vos usines de la même ville gardent leur stock plus longtemps.'],
+  ['shipping','fact','Vos usines expédient leur production par vos navires.']
+];
+function synTgt(k,t,b){ if(t==='*') return b.def!==k; if(t==='fact') return isFact(b); if(!t) return renewEligible(b)||b.def==='warehouse'; return t.includes(b.def); }
+function synTgtN(k,t){ if(t==='*') return 'toutes vos autres sociétés'; if(t==='fact') return 'une usine'; if(!t) return 'une usine, un data center ou un entrepôt'; return t.map(d=>D.biz[d]?D.biz[d].n.toLowerCase():d).join(', '); }
+function synCard(){
+  const act=S.biz.filter(b=>b.status==='active'); let on=0;
+  const rows=SYN.filter(([k])=>D.biz[k]).map(([k,t,d])=>{ const src=act.some(b=>b.def===k), T=act.filter(b=>synTgt(k,t,b)); const ok=src&&T.length; if(ok) on++;
+    const st= ok? T.length+' société'+(T.length>1?'s':'')+' en profite'+(T.length>1?'nt':'')+' : '+T.slice(0,4).map(b=>esc(b.name)).join(', ')+(T.length>4?'…':'')
+      : src? 'Il manque : '+esc(synTgtN(k,t))+'.' : 'Il manque : '+esc(D.biz[k].n.toLowerCase())+'.';
+    return [ok,'<div class="rs-d"><div><b>'+esc(D.biz[k].n)+'</b><small>'+esc(d)+'</small><small>'+st+'</small></div>'+pill(ok?'Actif':'Inactif',ok?'good':'info')+'</div>']; })
+    .sort((x,y)=>y[0]-x[0]).map(x=>x[1]);
+  const F=S.fcfold||{}, open=!!F.bz_syn;
+  return '<section class="card fcd-c"><details class="fcd ag-f" data-k="bz_syn"'+(open?' open':'')+'><summary><span class="ag-s"><h2><span>Synergies</span></h2><small>'+on+' lien'+(on>1?'s':'')+' actif'+(on>1?'s':'')+' sur '+rows.length+'</small></span></summary><div class="ht-t">'+rows.join('')+'</div></details></section>';
+}
+{ const _vbh3=vBizHome; vBizHome=function(){ const h=_vbh3(); return S.biz.length? h+synCard() : h; }; }
+
+/* V1.6.6 : fenêtre de crise de groupe */
+{ const _dn=doNext; doNext=function(n,q){ _dn(n,q); if(S&&S.flashCri){ S.flashCri=false; if(criOn()&&!S.cri.mit){ pushModal({type:'cri'}); render(); } } }; }
+{ const _mc3=modalContent; modalContent=function(){ const m=ui.modal; if(!(m&&m.type==='cri')) return _mc3();
+  if(!criOn()) return {title:'Crise',sm:true,body:'<div class="sub">La crise est terminée.</div><div>'+btn('Fermer','closemodal',{c:'pri'})+'</div>'};
+  const C=CRI[S.cri.k], L=S.biz.filter(criHit);
+  return {title:C.n,sm:true,body:'<div class="stack"><div class="notice bad">'+esc(C.eff)+' jusqu’au '+dateL(S.cri.until)+'.</div><div class="sub">Sociétés touchées : '+L.map(b=>esc(b.name)).join(', ')+'.</div>'+
+    '<div class="sub">Avec '+esc(C.hasN)+', la prochaine crise de ce type sera atténuée d’office.</div><div class="row sp">'+btn('Subir','closemodal',{c:'ghost'})+btn(C.par+' : '+eur(S.cri.cost,0),'crimit',{c:'pri',dis:S.cash<S.cri.cost})+'</div><div class="sub">La parade réduit les effets de 60 %.</div></div>'}; }; }
+ACT.crimit=()=>{ const r=criMit(); if(r.ok) ui.modal=null; after(r); };
 
 /* ============================================================
    JEU PLUS INTUITIF (V1.1.4)
