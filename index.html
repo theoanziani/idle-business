@@ -2477,6 +2477,8 @@ const clientsOf = b => b.last&&b.last.rev? b.last.rev/(D.BASKET[b.def]||100) : 0
      acts           actions déclenchées par ces décisions : acts.x(b,arg) -> ok()/err()
    Familles : resto (restauration et loisirs). Les autres familles arrivent à l'étape 2.
    ============================================================ */
+/* V1.6.7 : les notes des critiques (0 à 100 en interne) s’affichent sur 5, comme les avis clients */
+function note5(v){ return (Math.round(v/2)/10).toFixed(1).replace('.',','); }
 const MET = {};
 const MET_FAM = { resto:'Restauration et loisirs' };
 function metOf(b){ return (b&&MET[b.def])||null; }
@@ -2545,7 +2547,7 @@ MET.resto = {
   },
   kpis(b){ const m=b.m, l=b.last, ticket=52*b.price*(1+.05*m.stars);
     return [['Couverts / jour', l&&l.open? fmtN(Math.round(l.rev/ticket)) : '—', 'Ticket moyen '+eur(ticket,0)],
-            ['Note des critiques', Math.round(m.crit)+' / 100', m.crit>=72?'Digne d’une étoile':m.crit>=55?'Bonne réputation':'À améliorer'],
+            ['Note des critiques', note5(m.crit)+' / 5', m.crit>=72?'Digne d’une étoile':m.crit>=55?'Bonne réputation':'À améliorer'],
             ['Étoiles', m.stars? '★'.repeat(m.stars) : 'Aucune', 'Prochain passage du guide : '+Math.max(0,m.guide-S.day)+' j'],
             ['Pertes', Math.round(m.waste*100)+' %', 'Produits jetés']];
   },
@@ -8271,7 +8273,7 @@ MET.resto = {
     {n:'Chaîne de bistrots', d:'Ouvrez des bistrots à votre nom, qui profitent de la réputation de la maison.'},
     {n:'Chef à la télévision', d:'Une émission et un livre de recettes : la marque devient célèbre.'}
   ],
-  rankSub:b=>{ const m=b.m, r=mxRank(b); if(r<3) return 'Les paliers 1 à 3 sont les étoiles du guide : il faut une note des critiques de '+RS_STAR[r+1]+' pour la '+(r?'prochaine':'première')+' étoile. Le guide passe tous les 45 jours.';
+  rankSub:b=>{ const m=b.m, r=mxRank(b); if(r<3) return 'Les paliers 1 à 3 sont les étoiles du guide : il faut une note des critiques de '+note5(RS_STAR[r+1])+' sur 5 pour la '+(r?'prochaine':'première')+' étoile. Le guide passe tous les 45 jours.';
     if(r<5) return 'Avec trois étoiles obtenues, la maîtrise ('+Math.round(b.mx||0)+' / '+MX_STEPS[r===3?4:5]+') ouvre le palier suivant.'; return ''; },
   rank(b){ const m=b.m, x=b.mx||0, s=m.best||0; if(s<3) return s; return x>=MX_STEPS[5]? 5 : x>=MX_STEPS[4]? 4 : 3; },
   mods(b){ rsFix(b); const m=b.m; m.pm=clamp(m.pm,RS_PMIN,RS_PMAX); const p=rsCalc(b);
@@ -8306,20 +8308,20 @@ MET.resto = {
   },
   kpis(b){ rsFix(b); const m=b.m, p=rsCalc(b), l=b.last, tk=m.pm+p.ws, cov=l&&l.open? Math.round((l.rev-(this.mods(b).rev||0))/tk) : 0;
     return [['Couverts / jour', cov>0? fmtN(cov) : '—', 'Menu '+eur(m.pm,0)+(p.ws?', vins '+eur(p.ws,0):'')],
-            ['Note des critiques', Math.round(m.crit)+' / 100', m.stars<3? 'Étoile suivante : '+RS_STAR[m.stars+1] : 'Trois étoiles'],
+            ['Note des critiques', note5(m.crit)+' / 5', m.stars<3? 'Étoile suivante : '+note5(RS_STAR[m.stars+1]) : 'Trois étoiles'],
             ['Étoiles', m.stars? '★'.repeat(m.stars) : 'Aucune', 'Passage du guide dans '+Math.max(0,m.guide-S.day)+' j'],
             ['Saison', RS_SEAS[p.se], Math.max(0,Math.round(p.inS*100))+' % de plats de saison']];
   },
   ctl(b){ rsFix(b); const m=b.m, d=bizDef(b), R0=metR0(b), out=[], p=rsCalc(b);
     out.push({k:'seg', act:'pm', label:'Prix du menu : '+eur(m.pm,0), val:'x', opts:[[-5,'−5 €'],[-1,'−1 €'],[1,'+1 €'],[5,'+5 €']], sub:'Valeur perçue de votre carte : environ '+eur(p.V,0)+'. Au-dessus, la salle se vide.'});
     out.push({k:'seg', act:'srv', label:'Services', val:m.srv, opts:[[0,'Le soir seulement'],[1,'Midi et soir']], sub:m.srv? 'Deux services : plus de couverts, toute l’équipe mobilisée.' : 'Un seul service : 38 % de couverts en moins, salaires réduits de 20 %.'});
-    out.push({k:'tog', act:'resa', label:'Sur réservation uniquement', val:m.resa, sub:'Moins de pertes (−2 points) et les critiques apprécient (+3), mais 4 % de clients en moins.'});
+    out.push({k:'tog', act:'resa', label:'Sur réservation uniquement', val:m.resa, sub:'Moins de pertes (−2 points) et les critiques apprécient, mais 4 % de clients en moins.'});
     out.push({k:'btn', act:'cave', label:'Cave : vins de la maison', cost:R0*.9, sub:(m.cave>0? 'Stock pour '+m.cave+' jours de service.' : 'Cave vide.')+' Les accords mets-vins rapportent 12 € de plus par couvert.'});
     out.push({k:'tog', act:'acc', label:'Accords mets-vins', val:m.acc, sub:m.cave>0? 'Proposés à chaque table tant que la cave est remplie.' : 'Remplissez d’abord la cave.'});
     if(mxHas(b,1)){ const v=m.gc.reduce((a,g)=>a+g.v,0), c=m.gc.reduce((a,g)=>a+g.c,0);
       out.push({k:'btn', act:'gc', label:'Acheter une caisse de grand cru', cost:d.cost*.25, sub:'Un grand cru prend environ 7 % de valeur par an. '+(m.gc.length? m.gc.length+' caisse'+(m.gc.length>1?'s':'')+' en cave, achetées '+eur(c,0)+'.' : 'Aucune caisse en cave.')});
       if(m.gc.length) out.push({k:'btn', act:'gcsell', label:'Vendre les grands crus aux collectionneurs', gain:v, sub:'Plus-value : '+eur(v-c,0)+'.'}); }
-    if(mxHas(b,2)){ out.push({k:'tog', act:'deg', label:'Menu dégustation', val:m.deg||0, sub:'Valeur perçue +25 % et critiques +2, matières +20 %.'});
+    if(mxHas(b,2)){ out.push({k:'tog', act:'deg', label:'Menu dégustation', val:m.deg||0, sub:'Valeur perçue +25 % et critiques en hausse, matières +20 %.'});
       out.push(m.tab? {k:'buy', act:'tab', label:'Table du chef', owned:true, sub:'Quelques couverts en cuisine, réservés des mois à l’avance.'} : {k:'buy', act:'tab', label:'Table du chef', cost:d.cost*.5, sub:'Quelques couverts en cuisine, très chers : environ '+eur(R0*.06,0)+' de plus par jour.'}); }
     if(mxHas(b,4)){ const c=rsBisCost(b);
       out.push({k:'btn', act:'bis', label:'Ouvrir un bistrot ('+m.bis+' ouvert'+(m.bis>1?'s':'')+')', cost:c, dis:m.bis>=30, sub:'Chaque bistrot coûte 10 % de plus que le précédent, au plus 50 % de plus que le premier. Il rapporte environ '+eur(R0*.22*clamp(m.crit/70,.4,1.3),0)+' par jour, selon la note des critiques de la maison mère.'}); }
@@ -10124,8 +10126,8 @@ function hcShow(b,city,auto){ const m=b.m, C=m.col; if(!C||C.left>0) return err(
   m.cur={n:C.n, sty:C.sty, sc, d:S.day, city}; m.last={sc, city, n:C.n, sty:C.sty, d:S.day}; m.col=null; m.idle=0;
   if(m.fw&&city===b.city) m.acc+=R0*8*(.5+m.pres/100);
   if(m.da){ m.da.mood=clamp(m.da.mood+(sc-60)/2,0,100); }
-  if(trium){ for(let i=0;i<3;i++) hcOrder(b); metLog(b,'défilé triomphal à '+D.CITIES[city].n+' : la critique donne '+sc+' / 100, les commandes affluent.','good'); }
-  else metLog(b,'défilé « '+C.n+' » à '+D.CITIES[city].n+(auto?' (organisé par l’équipe)':'')+' : la critique donne '+sc+' / 100.',sc>=70?'good':sc<45?'bad':'');
+  if(trium){ for(let i=0;i<3;i++) hcOrder(b); metLog(b,'défilé triomphal à '+D.CITIES[city].n+' : la critique donne '+note5(sc)+' / 5, les commandes affluent.','good'); }
+  else metLog(b,'défilé « '+C.n+' » à '+D.CITIES[city].n+(auto?' (organisé par l’équipe)':'')+' : la critique donne '+note5(sc)+' / 5.',sc>=70?'good':sc<45?'bad':'');
   return ok(''); }
 function hcOrder(b){ const m=b.m, R0=metR0(b); m.ord.push({id:m.nid++, n:pick(['Une princesse','Une actrice','Une héritière','Une chanteuse','Une collectionneuse','Une cheffe d’entreprise']), v:R0*(3+5*rnd())*(.6+m.pres/100), w:30, done:0}); }
 function hcBuy(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizDef(b).cost*f;
@@ -10169,7 +10171,7 @@ MET.couture = {
   },
   kpis(b){ const m=b.m, R0=metR0(b), C=m.col;
     return [['Prestige', Math.round(m.pres)+' / 100', (m.lic.acc||m.lic.par)? 'Les licences l’usent chaque jour' : m.eg>S.day? 'Votre égérie le fait monter' : 'Il revient doucement vers 40'],
-            ['Collection en vente', m.cur? m.cur.n : '—', m.cur? 'Note '+m.cur.sc+' / 100 · '+HC_STY[m.cur.sty] : ''],
+            ['Collection en vente', m.cur? m.cur.n : '—', m.cur? 'Note '+note5(m.cur.sc)+' / 5 · '+HC_STY[m.cur.sty] : ''],
             ['Prochaine collection', C? (C.left>0? 'Prête dans '+C.left+' j' : 'Prête pour le défilé') : 'À lancer', C? HC_STY[C.sty]+' · '+HC_LOOK[C.look].n.toLowerCase() : 'Choisissez le style'],
             ['Sur mesure', m.ord.length+' commande'+(m.ord.length>1?'s':''), m.art+' artisans à l’atelier']];
   },
@@ -15576,13 +15578,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.6.6';
+const IB_VER='V1.6.7';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Synergies','Sociétés affiche une carte « Synergies » : les liens actifs entre vos entreprises et ce qu’il manque pour débloquer les autres.'],
-  ['Crises de groupe','Pénurie d’énergie, krach du tourisme, grève des transports, cyberattaque : une crise peut toucher plusieurs de vos sociétés à la fois. Une société liée l’atténue, sinon une parade payante réduit les effets.'],
-  ['Gouverner un pays','Le PIB de votre pays croît désormais, et cinq projets nationaux (infrastructures, éducation, santé, tourisme, zone franche) font progresser l’économie et vos sociétés sur place.'],
-  ['Directeurs plus malins','En délégation totale, la compagnie maritime ouvre de nouvelles lignes en testant plusieurs destinations et agrandit ses terminaux. Sans achat en vue, la réserve reste limitée.']
+  ['Notes sur 5','Les notes des critiques (restaurants, haute couture) s’affichent désormais sur 5, comme les avis des clients. Exemple : première étoile du guide à 3,4 sur 5.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -15859,7 +15858,7 @@ MET.couture.html=function(b){
     if(!cs.includes(P.city)) P.city=b.city;
     h+='<div class="pk-head"><b>Défilé « '+esc(C.n)+' »</b><span class="sub">La collection est prête</span></div><div class="pk-pan">';
     h+=S1('Ville du défilé','city',cs.map(c=>[c,D.CITIES[c].n]),P.city);
-    h+='<div class="row sp"><div><b>Note attendue : '+Math.round(hcExp(b,C,P.city))+' / 100</b><div class="sub">'+(P.city===b.city?'Dans votre ville'+(m.fw?', pendant votre semaine de la mode.':'.'):'Déplacement : '+eur(R0*5,0)+'.')+' La critique tranche le jour même.</div></div><button class="btn sm pri" data-a="met" data-i="'+b.id+'" data-v="show" data-j="'+P.city+'">Lancer le défilé</button></div></div>';
+    h+='<div class="row sp"><div><b>Note attendue : '+note5(hcExp(b,C,P.city))+' / 5</b><div class="sub">'+(P.city===b.city?'Dans votre ville'+(m.fw?', pendant votre semaine de la mode.':'.'):'Déplacement : '+eur(R0*5,0)+'.')+' La critique tranche le jour même.</div></div><button class="btn sm pri" data-a="met" data-i="'+b.id+'" data-v="show" data-j="'+P.city+'">Lancer le défilé</button></div></div>';
   } else {
     const C={sty:P.sty, look:P.look, mat:P.mat}, cost=hcColCost(b,C);
     h+='<div class="pk-head"><b>Nouvelle collection</b><span class="sub">'+HC_SEAS[(m.seas+1)%3]+'</span></div><div class="pk-pan">';
@@ -15867,9 +15866,9 @@ MET.couture.html=function(b){
     h+=S1('Ampleur','look',HC_LOOK.map((x,i)=>[i,x.n]),P.look);
     h+=S1('Tissus','mat',Object.keys(HC_MAT).map(k=>[k,HC_MAT[k].n,k==='own'&&!hcTex()]),P.mat);
     if(!hcTex()) h+='<div class="sub">Avec une entreprise textile, vos propres filatures fournissent des tissus 20 % moins chers et de meilleure qualité.</div>';
-    h+='<div class="row sp"><div><b class="num">'+eur(cost,0)+'</b><div class="sub">Note attendue dans votre ville : '+Math.round(hcExp(b,C,b.city))+' / 100'+(d&&d.aff!==P.sty?'. '+esc(d.n)+' préférerait le style '+HC_STY[d.aff].toLowerCase()+'.':'.')+' Création en 50 jours.</div></div><button class="btn sm pri" data-a="met" data-i="'+b.id+'" data-v="create" data-j="'+P.sty+':'+P.look+':'+P.mat+'"'+(!d||cash<cost*.3?' disabled':'')+'>Créer la collection</button></div></div>';
+    h+='<div class="row sp"><div><b class="num">'+eur(cost,0)+'</b><div class="sub">Note attendue dans votre ville : '+note5(hcExp(b,C,b.city))+' / 5'+(d&&d.aff!==P.sty?'. '+esc(d.n)+' préférerait le style '+HC_STY[d.aff].toLowerCase()+'.':'.')+' Création en 50 jours.</div></div><button class="btn sm pri" data-a="met" data-i="'+b.id+'" data-v="create" data-j="'+P.sty+':'+P.look+':'+P.mat+'"'+(!d||cash<cost*.3?' disabled':'')+'>Créer la collection</button></div></div>';
   }
-  if(m.last) h+='<div class="sub" style="margin-top:6px">Dernier défilé : « '+esc(m.last.n)+' » à '+esc(D.CITIES[m.last.city].n)+', note '+m.last.sc+' / 100.</div>';
+  if(m.last) h+='<div class="sub" style="margin-top:6px">Dernier défilé : « '+esc(m.last.n)+' » à '+esc(D.CITIES[m.last.city].n)+', note '+note5(m.last.sc)+' / 5.</div>';
   /* commandes */
   if(m.ord.length) h+='<div class="pk-head"><b>Commandes sur mesure</b><span class="sub">'+m.art+' artisans</span></div><div class="ht-t">'+m.ord.slice(0,6).map(o=>'<div class="rs-d"><div><b>'+esc(o.n)+'</b><small>Robe sur mesure</small>'+bar(o.done/o.w,'g')+'</div><small class="num">'+eur(o.v,0)+'</small></div>').join('')+'</div>';
   return h;
