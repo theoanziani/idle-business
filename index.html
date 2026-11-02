@@ -15578,10 +15578,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.6.8';
+const IB_VER='V1.6.9';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Usines : textes corrigés','Composants et smartphones ne forment plus qu’une usine électronique : les textes d’Usines et de l’aide le disent désormais, et les smartphones (vendus directement aux clients) quittent le marché de gros.']
+  ['Vibrations sur iPhone','Dans Safari sur iPhone (iOS 18 et plus), le jeu vibre désormais aussi : un léger tic sur la barre du bas et à chaque toucher, plus marqué pour le jour suivant, les achats, les erreurs et les paliers. Réglage dans Paramètres, « Sons et vibrations ».']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -16607,7 +16607,16 @@ const HAP_ALIAS={tick:'sel', confirm:'success', reject:'error'};
 const HAP_WEB={sel:6, light:10, medium:18, heavy:30, success:[12,70,20], warning:[20,60,20], error:[20,45,20,45,32]};
 function haptic(kind){ kind=HAP_ALIAS[kind]||kind; if(!FX.hap||document.hidden||!HAP_WEB[kind]||!fxGate('h'+kind,kind==='sel'?45:kind==='light'?70:220)) return;
   try{ if(window.IBNative&&IBNative.haptic){ IBNative.haptic(kind); return; } }catch(e){}
-  try{ if(navigator.vibrate) navigator.vibrate(HAP_WEB[kind]); }catch(e){} }
+  try{ if(navigator.vibrate){ navigator.vibrate(HAP_WEB[kind]); return; } }catch(e){}
+  hapIOS(kind); }
+/* V1.6.9 : Safari sur iPhone n'a pas navigator.vibrate ; basculer un interrupteur natif
+   (<input type="checkbox" switch>, iOS 18 et plus) déclenche le retour haptique du système.
+   Il ne fonctionne que pendant un toucher : les vibrations différées (doubles) n'en gardent qu'une. */
+let HAP_SW=null;
+function hapIOS(kind){ try{ if(!/iP(hone|ad|od)/.test(navigator.userAgent)&&!(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)) return;
+  if(!HAP_SW){ const l=document.createElement('label'), i=document.createElement('input'); i.type='checkbox'; i.setAttribute('switch',''); i.tabIndex=-1; l.setAttribute('aria-hidden','true');
+    l.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none'; l.appendChild(i); document.body.appendChild(l); HAP_SW=l; }
+  HAP_SW.click(); if(kind==='heavy'||kind==='error'||kind==='success'||kind==='warning') setTimeout(()=>{ try{ HAP_SW.click(); }catch(e){} },70); }catch(e){} }
 function fxCtx(){ if(FX.ctx) return FX.ctx; try{ const A=window.AudioContext||window.webkitAudioContext; if(A) FX.ctx=new A(); }catch(e){} return FX.ctx; }
 /* une note : fréquence, durée, forme, volume relatif, départ décalé */
 function fxTone(c,f,d,type,g,at,f2){ const t=c.currentTime+(at||0), o=c.createOscillator(), v=c.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+d);
