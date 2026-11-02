@@ -13461,7 +13461,7 @@ function vHome(){
     '<details class="hdet"><summary>Répartition du patrimoine</summary><div class="stk" style="margin:8px 0 6px">'+pos.map((e,i)=>'<i style="width:'+(e[1]/tot*100).toFixed(2)+'%;background:'+CATCOL[i%9]+'"></i>').join('')+'</div><div class="legend">'+pos.map((e,i)=>'<span><i style="background:'+CATCOL[i%9]+'"></i>'+e[0]+' '+eur(e[1],0)+'</span>').join('')+(bd.Dettes<0?'<span class="neg">Dettes '+eur(bd.Dettes,0)+'</span>':'')+'</div></details></section>';
   /* mes sociétés */
   if(S.biz.length){
-    const bad=bizAlertSet(), list=S.biz.slice().sort((a,b)=>(b.last?b.last.net:0)-(a.last?a.last.net:0)), MAX=8;
+    const bad=bizAlertSet(), list=S.biz.slice().sort((a,b)=>(b.last?b.last.net:0)-(a.last?a.last.net:0)), MAX=S.biz.length;
     h+='<div class="sech"><h2>Mes sociétés</h2><button class="lnk" data-a="tab" data-i="biz">Tout voir ('+S.biz.length+') ›</button></div><div class="btiles">'+
       list.slice(0,MAX).map(b=>{ const d=bizDef(b), n=b.last?b.last.net:0;
         return '<button class="btile" data-a="bizopen" data-i="'+b.id+'">'+(bad[b.id]?'<span class="bdot" aria-label="À surveiller"></span>':'')+bizIco(b.def)+'<b>'+esc(b.name)+'</b><small>'+esc(d.n)+' · niv. '+b.lvl+'</small>'+
@@ -15464,11 +15464,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.6.3';
+const IB_VER='V1.6.4';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Défis par palier','Chaque palier de richesse propose trois défis (entreprises, villes, bénéfice sur 30 jours) avec une prime à la clé. Retrouvez-les dans Objectifs, sous « Plus de détails ».'],
-  ['Retour plus lisible','Après une absence, le rapport du gérant commence par un résumé : résultat de la période et entreprises qui ont le plus rapporté.']
+  ['Accueil : toutes vos sociétés','La rubrique « Mes sociétés » de l’accueil affiche désormais toutes vos entreprises, classées de la plus rentable à la moins rentable.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
