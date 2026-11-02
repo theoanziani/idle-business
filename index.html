@@ -2077,7 +2077,7 @@ function processBiz(b){
   const C=cityOf(b), dd=distOf(b), sec=bizSec(b.def), dm=S.dm||1;
   let upkeep=base.up*progMult();
   const bdg=b.bld&&bldById(b.bld);
-  const rent=(bdg? bldRent(bdg) : base.rent0*rentFactor(b)*progMult()*(S.laws.rentCap?.88:1))*(1-0.7*ownShare(b));
+  const rent=(bdg? bldRent(bdg) : base.rent0*rentFactor(b)*progMult()*(S.laws.rentCap?.88:1))*(1-0.7*ownShare(b))*lkRentF(b);
   const secc=base.R0*SECC[b.sec||0], insc=b.ins? base.R0*0.006*insRisk(C) : 0;
   if(open){
     const pr=bizProjection(b);
@@ -3739,9 +3739,10 @@ function setLease(id,v){ const h=bldHeld(id), m=S.bldMod&&S.bldMod[id]; if(!h||!
 
 /* ---------- Directeurs spécialisés ---------- */
 D.MGR={
-  ceo:{n:'Directeur général', hire:50000, day:600, txt:'Ajuste chaque semaine les prix et le marketing de toutes vos sociétés pour améliorer leur résultat.'},
+  ceo:{n:'Directeur général', hire:50000, day:600, txt:'Réduit de 4 % les salaires et les frais fixes de toutes vos sociétés, et ajuste chaque semaine les prix et le marketing des commerces classiques.'},
   prop:{n:'Gestionnaire immobilier', hire:20000, day:250, txt:'Négocie vos loyers (−5 %) et résilie les baux des locaux vides depuis 10 jours.'},
   cont:{n:'Responsable des contrats', hire:15000, day:200, txt:'Accepte seul les contrats que vos usines peuvent livrer à temps.'},
+  fin:{n:'Directeur financier', hire:30000, day:350, txt:'Chaque lundi, rembourse vos emprunts les plus chers puis place sur le livret la trésorerie qui dépasse un mois de dépenses ; reprend sur le livret si la trésorerie baisse trop.'},
   del:{n:'Service de livraison', hire:8000, day:120, txt:'Marchandises livrées le jour même dans vos boutiques, expéditions nationales plus rapides et 30 % moins chères.'}
 };
 const mgrOn = k => !!(S.mgr&&S.mgr[k]);
@@ -3759,28 +3760,42 @@ function mgrStep(){
   /* Gestionnaire immobilier : résiliation des baux vides */
   if(S.mgr.prop&&S.bld) Object.keys(S.bld).forEach(id=>{ const h=S.bld[id]; if(h.st!=='rent') return; const used=h.biz&&S.biz.some(b=>b.id===h.biz);
     h.vac=used?0:(h.vac||0)+1; if(h.vac>=10){ const bd=bldById(id); leaveBuilding(id); log('info','Gestionnaire immobilier : bail résilié pour le local vide du '+(bd?bd.addr:'')+'.'); } });
+  /* Directeur financier (V1.6.5) */
+  if(S.mgr.fin&&wdOf(S.day)===0) finStep();
   /* Responsable des contrats */
   if(S.mgr.cont&&S.ind) S.ind.offers.slice().forEach(o=>{ if(S.ind.active.length>=5) return;
     let rate=0; S.biz.forEach(b=>{ if(goodOf(b)===o.g&&b.status==='active') rate+=factRate(b); });
     if(rate*(o.due-S.day-9)*0.8>=o.qty){ const r=acceptContract(o.id); if(r.ok) log('info','Responsable des contrats : contrat accepté avec '+o.client+'.'); } });
 }
 
+function finBuf(){ let e=0; S.biz.forEach(b=>{ if(b.status==='active'&&b.last) e+=Math.max(0,b.last.rev-b.last.net); }); return Math.max(20000*progMult(),e*30); }
+function finStep(){ const buf=finBuf(); let ex=S.cash-buf, rp=0, dp=0;
+  S.debts.slice().sort((a,b)=>b.r-a.r).forEach(d=>{ if(ex<=1) return; const a=Math.min(ex,d.p); if(repay(d.id,a).ok){ ex-=a; rp+=a; } });
+  if(ex>1&&!S.debts.length&&livretMove(Math.floor(ex)).ok) dp=Math.floor(ex);
+  if(S.cash<buf*.5&&S.livret.bal>0){ const w=Math.min(S.livret.bal,buf-S.cash); livretMove(-w); log('info','Directeur financier : '+eur(w,0)+' repris sur le livret.'); }
+  if(rp>0) log('info','Directeur financier : '+eur(rp,0)+' d’emprunts remboursés.'); if(dp>=1000*progMult()) log('info','Directeur financier : '+eur(dp,0)+' placés sur le livret.'); }
+
 /* ---------- Directeurs de site nommés ---------- */
+const BTT={pru:{n:'Prudent',d:'incidents −15 %'},com:{n:'Commercial',d:'ventes +2 %'},ges:{n:'Gestionnaire',d:'fatigue −10 %'}};
+const bossTT = x => BTT[x.tt]? BTT[x.tt].n+' ('+BTT[x.tt].d+')' : '';
 const BOSSF=['Camille','Julien','Sarah','Mehdi','Laura','Thomas','Amina','Nicolas','Chloé','Yanis','Emma','Lucas','Jade','Rayan','Manon','Hugo'];
 const BOSSL=['Bernard','Petit','Robert','Richard','Durand','Leroy','Moreau','Simon','Laurent','Michel','Garcia','David','Bertrand','Roux','Vincent','Fournier'];
 const SKN={ges:'Gestion',ven:'Vente',rig:'Rigueur'};
 function bossBase(b){ return bizBase(b).R0*0.05*progMult(); }
 function genBoss(b,bonus){ const sk={}; Object.keys(SKN).forEach(k=>{ sk[k]=clamp(Math.round(5+1.6*norm()+(bonus||0)),1,10); });
-  const avg=(sk.ges+sk.ven+sk.rig)/3; return {name:pick(BOSSF)+' '+pick(BOSSL), sk, mood:65, sal:bossBase(b)*(0.6+0.08*avg), since:S.day, tr:-99}; }
+  const avg=(sk.ges+sk.ven+sk.rig)/3; return {name:pick(BOSSF)+' '+pick(BOSSL), sk, tt:pick(Object.keys(BTT)), xd:S.day, mood:65, sal:bossBase(b)*(0.6+0.08*avg), since:S.day, tr:-99}; }
 const bossAvg = x => (x.sk.ges+x.sk.ven+x.sk.rig)/3;
-const bossSales = b => b.boss===undefined? 1 : b.boss? 1+0.015*(b.boss.sk.ven-5) : 0.96;
-const bossRisk = b => b.boss? clamp(1-0.06*(b.boss.sk.rig-5),.6,1.4) : 1.1;
-const bossFat = b => b.boss? clamp(1-0.04*(b.boss.sk.ges-5),.7,1.3) : 1.1;
+const bossSales = b => b.boss===undefined? 1 : b.boss? 1+0.015*(b.boss.sk.ven-5)+(b.boss.tt==='com'?.02:0) : 0.96;
+const bossRisk = b => b.boss? clamp(1-0.06*(b.boss.sk.rig-5),.6,1.4)*(b.boss.tt==='pru'?.85:1) : 1.1;
+const bossFat = b => b.boss? clamp(1-0.04*(b.boss.sk.ges-5),.7,1.3)*(b.boss.tt==='ges'?.9:1) : 1.1;
 const bossExtra = b => b.boss? Math.max(0,b.boss.sal-bossBase(b)*(0.6+0.08*5)) : 0;
 function bossStep(){
   S.biz.forEach(b=>{ if(b.status!=='active') return;
     if(b.boss===undefined){ b.boss=genBoss(b); return; }
     const x=b.boss; if(!x) return;
+    if(!x.tt) x.tt=Object.keys(BTT)[(x.name.length+b.id)%3]; if(x.xd===undefined) x.xd=Math.max(x.since,S.day-60);
+    /* expérience : tous les 120 jours en poste, sa compétence la plus faible progresse d’un point */
+    if(S.day-x.xd>=120){ x.xd=S.day; const k=Object.keys(SKN).sort((p,q)=>x.sk[p]-x.sk[q])[0]; if(x.sk[k]<10){ x.sk[k]++; x.sal*=1.04; log('good',x.name+' gagne en expérience à la tête de « '+b.name+' » : '+SKN[k].toLowerCase()+' '+x.sk[k]+'/10.'); } }
     const tgt=55+20*(x.sal/(bossBase(b)*(0.6+0.08*bossAvg(x)))-1)*3-(b.fat||0)*.3+(hrLvl()*3)+(b.hc?5:0);
     x.mood=clamp(x.mood+(tgt-x.mood)*0.03,0,100);
     if(x.mood<45&&intensity(rivKey(b))>0&&rnd()<0.003*(S.dm||1)){ const r=pick(rivAlive()); b.boss=null; log('bad',r.n+' débauche '+x.name+', directeur de « '+b.name+' ». Recrutez un remplaçant dans la fiche de l’entreprise.'); }
@@ -10222,7 +10237,7 @@ function rnCanBuild(b,t,r){ const R=RN_REG[r], m=b.m; if(!R) return 'Région inc
   if(t==='hyd'&&m.pl.filter(p=>p.r===r&&p.t==='hyd').length>=2) return 'Les deux sites hydrauliques de la région sont équipés.';
   if(m.pl.filter(p=>p.r===r).length>=6) return 'La région est pleine (6 sites).'; return ''; }
 /* économie sur l'énergie de vos autres entreprises (industrie, data center) */
-function renewEligible(b){ const d=bizDef(b); return b.status==='active'&&(b.def==='dc'||(d.tags||[]).includes('industry')); }
+function renewEligible(b){ const d=bizDef(b); return b.status==='active'&&(b.def==='dc'||b.def==='warehouse'||(d.tags||[]).includes('industry')); }
 function renewSaving(b){ if(!renewEligible(b)) return 0; const R=S.biz.filter(x=>x.def==='renew'&&x.status==='active'&&x.m&&x.m.pl); if(!R.length) return 0;
   const prod=R.reduce((a,x)=>a+x.m.pl.reduce((c,p)=>c+RN_T[p.t].k*p.sz,0)*metR0(x),0), need=S.biz.filter(renewEligible).reduce((a,x)=>a+metR0(x)*.1,0);
   return metR0(b)*.1*.4*Math.min(1,prod/Math.max(1,need)); }
@@ -11506,6 +11521,42 @@ function spSet(slot,bid){ const O=fcOwn(); if(!O) return err('Vous n’avez pas 
   if(lost>0) fcPay('spons','Club : sponsors remplacés par vos sociétés',-base*lost); }; }
 
 /* ============================================================
+   V1.6.5 : liens entre vos entreprises
+   - Ferme → restaurants, fast-foods, supermarchés : marchandises −15 % ; hôtels : −10 % et frais −5 %.
+   - Énergies renouvelables : l’entrepôt rejoint les usines et data centers (énergie −40 %, renewSaving).
+   - Société de construction → agrandissements de vos autres sociétés −10 %.
+   - Studio vidéo → e-commerce, haute couture, compagnie aérienne : publicités maison, ventes +5 %.
+   - Compagnie aérienne → hôtels des villes desservies par vos lignes : clients +8 %.
+   - Immeuble de bureaux → start-up SaaS de la même ville : loyer offert ; agence de recrutement : ventes +8 %.
+   - Directeur général : salaires et frais fixes −4 % partout.
+   ============================================================ */
+function lkAny(def){ return S.biz.some(x=>x.def===def&&x.status==='active'); }
+function lkCity(def,city){ return S.biz.some(x=>x.def===def&&x.status==='active'&&x.city===city); }
+function lkAirCity(city){ const cn=(D.CITIES[city]||{}).n; if(!cn) return false;
+  return S.biz.some(a=>a.def==='airline'&&a.status==='active'&&a.m&&((a.m.ln||[]).some(l=>[l.a,l.b].some(id=>{ const A=AL_AP[id]; return A&&A.n.indexOf(cn)===0; }))||(a.m.hubs||[]).some(id=>AL_AP[id]&&AL_AP[id].n.indexOf(cn)===0))); }
+function lkList(b){ const d=b.def, L=[];
+  if(['resto','fastfood','super'].includes(d)&&lkAny('farm')) L.push(['farm','Produits de votre ferme','marchandises −15 %']);
+  if(d==='hotel'&&lkAny('farm')) L.push(['farm','Produits de votre ferme','marchandises −10 %, frais −5 %']);
+  if(renewEligible(b)&&lkAny('renew')) L.push(['renew','Énergie de vos centrales','énergie −40 %, selon votre production']);
+  if(['ecom','couture','airline'].includes(d)&&lkAny('studio')) L.push(['studio','Publicités de votre studio','ventes +5 %']);
+  if(d==='hotel'&&lkAirCity(b.city)) L.push(['airline','Vols de votre compagnie','clients +8 %']);
+  if(d==='saas'&&lkCity('office',b.city)) L.push(['office','Siège dans votre immeuble','loyer offert']);
+  if(d==='staffing'&&lkAny('office')) L.push(['office','Vos locataires de bureaux','ventes +8 %']);
+  if(d!=='build'&&lkAny('build')) L.push(['build','Votre société de construction','agrandissements −10 %']);
+  if(mgrOn('ceo')) L.push(['ceo','Directeur général','salaires et frais fixes −4 %']);
+  return L; }
+function lkRentF(b){ return b&&b.def==='saas'&&lkCity('office',b.city)? 0 : 1; }
+{ const _mm=metMods; metMods=function(b){ const z=_mm(b); if(!b||b.status!=='active') return z;
+  const d=b.def, up=(f)=>{ z.vol*=f; z.rev*=f; };
+  if(lkAny('farm')){ if(['resto','fastfood','super'].includes(d)) z.cogs*=.85; else if(d==='hotel'){ z.cogs*=.9; z.fixed*=.95; } }
+  if(['ecom','couture','airline'].includes(d)&&lkAny('studio')) up(1.05);
+  if(d==='hotel'&&lkAirCity(b.city)) up(1.08);
+  if(d==='staffing'&&lkAny('office')) up(1.08);
+  if(mgrOn('ceo')){ z.wage*=.96; z.fixed*=.96; }
+  return z; }; }
+{ const _uc=upgradeCost; upgradeCost=function(b){ const c=_uc(b); return b&&b.def!=='build'&&lkAny('build')? c*.9 : c; }; }
+
+/* ============================================================
    V1.6.1 : toutes les entreprises coûtent 20 % de plus (création, agrandissements, options), sans
    changer leurs recettes : chacune met 20 % de temps en plus à se rembourser. D.biz[k].cost0 garde
    le prix de référence qui sert au calcul des recettes. (Le doublement de la V1.5.9 est abandonné : pf = 1.)
@@ -12340,8 +12391,9 @@ function vGuide(){
     sec('Construction et directeurs',ul([
       '<b>Construire</b> : sur un terrain que vous possédez, lancez un chantier (entrepôt et usine, immeuble de bureaux, villa, manoir, résidence de luxe). Coût et durée selon la surface et la ville ; une société de construction réduit les deux.',
       'Les résidences se louent (4,5 % de leur valeur par an) ou se gardent pour le prestige.',
-      '<b>Directeurs</b> (Agence) : directeur général (prix et marketing ajustés chaque semaine), gestionnaire immobilier (loyers −5 %, baux vides résiliés), responsable des contrats (accepte les contrats faisables), service de livraison (livraisons plus rapides et moins chères).',
-      '<b>Directeur de site</b> : chaque entreprise a un directeur nommé avec trois compétences (gestion, vente, rigueur) sur 10, un salaire et un moral. Formez-le (une fois par mois), augmentez-le ou remplacez-le. Au moral bas, il démissionne ou se fait débaucher par un rival.'
+      '<b>Directeurs</b> (Agence) : directeur général (salaires et frais fixes −4 % partout, prix et marketing ajustés chaque semaine), directeur financier (rembourse les emprunts, place l’excédent sur le livret), gestionnaire immobilier (loyers −5 %, baux vides résiliés), responsable des contrats (accepte les contrats faisables), service de livraison (livraisons plus rapides et moins chères).',
+      '<b>Directeur de site</b> : chaque entreprise a un directeur nommé avec trois compétences (gestion, vente, rigueur) sur 10, un trait (prudent, commercial ou gestionnaire), un salaire et un moral. Tous les 120 jours en poste, sa compétence la plus faible progresse. Formez-le (une fois par mois), augmentez-le ou remplacez-le. Au moral bas, il démissionne ou se fait débaucher par un rival.',
+      '<b>Liens entre sociétés</b> : ferme → restaurants, fast-foods, supermarchés et hôtels (marchandises moins chères) ; énergies renouvelables → usines, data centers et entrepôts ; construction → agrandissements −10 % ; studio vidéo → e-commerce, couture et compagnie aérienne (ventes +5 %) ; compagnie aérienne → hôtels des villes desservies (+8 %) ; immeuble de bureaux → loyer offert à votre start-up SaaS de la même ville et ventes +8 % pour l’agence de recrutement. La fiche de chaque société liste ses liens actifs.'
     ])),
     sec('Concurrence',ul([
       'Six rivaux IA, chacun avec ses secteurs, ses villes, sa puissance et son agressivité. Plus ils sont présents sur votre marché (ville et secteur), plus vos ventes baissent. Ils grandissent, s’implantent près de vous et reculent.',
@@ -13351,17 +13403,20 @@ function bossPanel(b){
   const x=b.boss;
   let h='<div class="card"><h2>Directeur du site</h2><div class="stack">';
   if(x){
-    h+='<div class="row sp"><div><b>'+esc(x.name)+'</b><div class="sub">En poste depuis le '+dateL(x.since)+' · '+eur(x.sal,0)+' / jour</div></div>'+pill('Moral '+Math.round(x.mood),x.mood<45?'bad':x.mood<60?'warn':'good')+'</div>'+
+    h+='<div class="row sp"><div><b>'+esc(x.name)+'</b><div class="sub">En poste depuis le '+dateL(x.since)+' · '+eur(x.sal,0)+' / jour'+(x.tt?' · '+bossTT(x):'')+'</div></div>'+pill('Moral '+Math.round(x.mood),x.mood<45?'bad':x.mood<60?'warn':'good')+'</div>'+
       '<div class="crit">'+Object.keys(SKN).map(k=>'<div><span>'+SKN[k]+' '+x.sk[k]+'/10</span>'+bar(x.sk[k]/10,x.sk[k]<4?'r':x.sk[k]<7?'a':'g')+'</div>').join('')+'</div>'+
-      '<div class="sub">Vente : ventes '+pctS(0.015*(x.sk.ven-5))+'. Gestion : fatigue de l’équipe. Rigueur : incidents.</div>'+
+      '<div class="sub">Vente : ventes '+pctS(0.015*(x.sk.ven-5))+'. Gestion : fatigue de l’équipe. Rigueur : incidents. Avec l’expérience, sa compétence la plus faible gagne un point tous les 120 jours'+(x.xd!==undefined?' (prochain le '+dateL(x.xd+120)+')':'')+'.</div>'+
       '<div class="row">'+Object.keys(SKN).map(k=>btn('Former en '+SKN[k].toLowerCase()+' ('+eur(x.sal*12*x.sk[k]/5,0)+')','btrain',{c:'sm',i:b.id,v:k,dis:S.day-x.tr<30||x.sk[k]>=10})).join('')+'</div>'+
       (S.day-x.tr<30?'<div class="sub">Prochaine formation dans '+(30-(S.day-x.tr))+' jours.</div>':'')+
       '<div class="row">'+btn('Augmenter de 15 %','braise',{c:'sm'})+btn(ui.tmp.bc===b.id?'Masquer les candidats':'Remplacer','bcand',{c:'sm ghost',i:b.id})+'</div>';
     { const T=S.biz.filter(o=>o!==b&&o.status==='active').sort((p,q)=>(!!p.boss-!!q.boss)); if(T.length) h+='<div class="row"><label class="sub" for="sel-mv">Muter vers</label><select class="btn sm" id="sel-mv-'+b.id+'">'+T.map(o=>'<option value="'+o.id+'">'+esc(o.name)+(o.boss?' (échange avec '+esc(o.boss.name)+')':' (poste vacant)')+'</option>').join('')+'</select><button class="btn sm" data-a="bmove" data-i="'+b.id+'">Muter</button></div>'; }
     h=h.replace("data-a=\"braise\"","data-a=\"braise\" data-i=\""+b.id+"\"");
   } else h+='<div class="notice bad">Poste vacant : ventes −4 %, plus d’incidents et de fatigue.</div>';
-  if(!x||ui.tmp.bc===b.id) h+='<div class="stack">'+bossCands(b).map((c,i)=>'<div class="row sp" style="border-top:1px solid var(--line);padding-top:6px"><div><b>'+esc(c.name)+'</b><div class="sub">Gestion '+c.sk.ges+' · Vente '+c.sk.ven+' · Rigueur '+c.sk.rig+' · '+eur(c.sal,0)+' / j</div></div>'+btn('Recruter ('+eur(c.sal*10,0)+')','bhire',{c:'sm pri',i:b.id,v:i,dis:S.cash<c.sal*10})+'</div>').join('')+'</div>';
-  return h+'</div></div>';
+  if(!x||ui.tmp.bc===b.id) h+='<div class="stack">'+bossCands(b).map((c,i)=>'<div class="row sp" style="border-top:1px solid var(--line);padding-top:6px"><div><b>'+esc(c.name)+'</b><div class="sub">Gestion '+c.sk.ges+' · Vente '+c.sk.ven+' · Rigueur '+c.sk.rig+(c.tt?' · '+bossTT(c):'')+' · '+eur(c.sal,0)+' / j</div></div>'+btn('Recruter ('+eur(c.sal*10,0)+')','bhire',{c:'sm pri',i:b.id,v:i,dis:S.cash<c.sal*10})+'</div>').join('')+'</div>';
+  return h+'</div></div>'+lkPanel(b);
+}
+function lkPanel(b){ const L=b.status==='active'?lkList(b):[]; if(!L.length) return '';
+  return '<div class="card"><h2>Liens avec vos sociétés</h2><div class="ht-t">'+L.map(x=>'<div class="rs-d"><div><b>'+esc(x[1])+'</b><small>'+esc(x[2])+'</small></div>'+pill('Actif','good')+'</div>').join('')+'</div></div>';
 }
 Object.assign(ACT,{
   plansopen:el=>{ ui.modal={type:'plans',id:el.dataset.i}; render(); },
@@ -15464,10 +15519,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.6.4';
+const IB_VER='V1.6.5';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Accueil : toutes vos sociétés','La rubrique « Mes sociétés » de l’accueil affiche désormais toutes vos entreprises, classées de la plus rentable à la moins rentable.']
+  ['Directeurs revus','Le directeur général réduit de 4 % les salaires et frais fixes de toutes vos sociétés. Nouveau : le directeur financier rembourse vos emprunts et place l’excédent sur le livret. Les directeurs de site ont un trait et progressent avec l’expérience.'],
+  ['Nouveaux liens entre sociétés','Ferme → restaurants, fast-foods, supermarchés et hôtels ; construction → agrandissements −10 % ; studio vidéo → e-commerce, couture et compagnie aérienne ; compagnie aérienne → hôtels des villes desservies ; immeuble de bureaux → start-up SaaS et agence de recrutement ; énergies renouvelables → entrepôts. Chaque fiche liste ses liens actifs.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
