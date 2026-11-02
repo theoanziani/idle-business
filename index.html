@@ -7776,10 +7776,19 @@ function setDelegation(b,mode,bud){
 /* réserve d'investissement du directeur : une part des bénéfices de chaque jour, plafonnée à un an de cette part */
 function dlBudget(b){ return Math.max(0,b.dlp||0); }
 function dlSpend(b,cost,label){ if(cost>dlBudget(b)) return false; if(!metBuy(b,cost,label)) return false; b.dlp=dlBudget(b)-cost; return true; }
+/* prochain achat visé par le directeur : le moins cher des investissements encore possibles */
+function dlGoal(b){ const mm=metOf(b); if(!mm||b.status!=='active') return null; let best=null;
+  try{ metCtl(b).forEach(c=>{ if(c.k==='buy'&&!c.owned&&!c.dis&&c.cost>0&&(!best||c.cost<best.c)) best={n:c.label, c:c.cost}; });
+    if(mm.goal){ const g=mm.goal(b); if(g&&(!best||g.c<best.c)) best=g; } }catch(e){}
+  return best; }
+/* achat d'une action métier payée sur la trésorerie, décomptée de la réserve */
+function dlAct(b,cost,fn){ if(!(cost>0)||dlBudget(b)<cost) return false; const r=fn(); if(r&&r.ok){ b.dlp=dlBudget(b)-cost; return true; } return false; }
 function dlDaily(b){
   const m=metOf(b); if(!m||!m.auto||b.status!=='active') return;
   const mode=dlMode(b); if(mode==='me') return;
-  if(mode==='full'&&b.last){ const add=DL_BUD[b.dlb||0]*Math.max(0,b.last.net); b.dlp=Math.min(dlBudget(b)+add, Math.max(dlBudget(b),add*360)); }
+  if(mode==='full'&&b.last){ const add=DL_BUD[b.dlb||0]*Math.max(0,b.last.net0!==undefined? b.last.net0 : b.last.net), g=dlGoal(b);
+    /* V1.5.8 : réserve plafonnée à trois ans de mise de côté, ou au prix du prochain achat visé s'il est plus cher */
+    b.dlp=Math.min(dlBudget(b)+add, Math.max(dlBudget(b),add*1080,g? g.c*1.05 : 0)); }
   try{ m.auto(b,mode,dlQuality(b)); }catch(e){ console.error(e); }
 }
 { const _ns=nextDay; nextDay=function(){ const ok=_ns(); if(ok){ try{ bizRetireStep(); S.biz.forEach(b=>{ mxDaily(b); dlDaily(b); }); }catch(e){ console.error(e); } } return ok; }; }
@@ -8303,6 +8312,8 @@ function rsAuto(b,mode,q){
   const cs=rsCands(b), better=cs.map((c,i)=>[c,i]).filter(([c])=>c.lvl>m.chef.lvl).sort((a,c)=>a[0].lvl-c[0].lvl)[0];
   if(better&&rsChefFee(b,better[0])<=dlBudget(b)){ rsHire(b,better[1],true); return; }
   if(mxHas(b,4)) rsBistro(b,true);
+  /* V1.5.8 : la table du chef puis l'émission, payées sur la réserve */
+  const m2=b.m, dc=bizDef(b).cost; if(mxHas(b,2)&&!m2.tab&&dlAct(b,dc*.5,()=>MET.resto.acts.tab(b))) return; if(mxHas(b,5)&&!m2.tv) dlAct(b,dc*3,()=>MET.resto.acts.tv(b));
 }
 
 /* ============================================================
@@ -9139,6 +9150,9 @@ function saAuto(b,mode,q){ const m=b.m;
   if(!m.dev){ const order=['mob','dash','col','int','sso','api','sec','intl','ia']; const id=order.find(i=>{ const f=SA_FEAT.find(x=>x.id===i); return !m.feat[i]&&(!f.rk||mxHas(b,f.rk)||(i==='ia'&&m.ai))&&(i!=='ia'||m.ai); }); if(id) m.dev={id,p:0}; }
   if(S.day%7===0){ const tam=saTam(b); m.mk= m.F<tam*.5? 2 : m.F<tam*.8? 1 : 0; if(m.cash<=0&&b.last&&b.last.net<0) m.mk=Math.min(m.mk,1);
     m.pp=clamp(Math.round(8+4*saQual(b)+(1-q)*4*(rnd()-.5)),5,40); m.pe=clamp(Math.round((250+120*saMul(b,'ce'))/10)*10,100,2000); }
+  /* V1.5.8 : en délégation totale, la réserve finance une publicité massive tant qu'il reste des clients à gagner */
+  if(S.day%7===0) m.mkB=m.mk;
+  if(mode==='full'){ const base=m.mkB===undefined? m.mk : m.mkB; if(base<3&&m.F<saTam(b)*.8){ const need=metR0(b)*(SA_MK[3]-SA_MK[base]); if(dlBudget(b)>=need*7){ b.dlp-=need; m.mk=3; } else m.mk=base; } }
   if(mode!=='full'||S.day%14!==0) return;
   if(m.ai&&!m.tr){ for(const s of [16,4,1]){ if(saTrain(b,s,true).ok) break; } }
 }
@@ -10801,12 +10815,21 @@ function alAuto(b,mode,q){ const m=b.m;
   if(S.day%7===0) m.ln.forEach(l=>{ let best=l.p, bv=-1e18; const save=l.p; for(let p=0;p<4;p++){ l.p=p; const x=alLineDay(b,l,true); if(x.net>bv){ bv=x.net; best=p; } } l.p= rnd()<(1-q)*.3? save : best;
     const save2=l.cab; let bc=l.cab; bv=-1e18; for(let c=0;c<3;c++){ l.cab=c; const x=alLineDay(b,l,true); if(x.net>bv){ bv=x.net; bc=c; } } l.cab=bc; });
   if(mode!=='full') return;
+  if(S.day%30===15) alInvest(b);
   if(S.day%30===0){ if(!m.hedge&&m.fp<.75) alHedge(b);
     /* une nouvelle ligne intérieure avec un avion loué si elle s'annonce rentable */
     const h=m.hubs[Math.floor(rnd()*m.hubs.length)], cand=alDests(b,h).filter(x=>!alCanLine(b,h,x.id)).sort((x,y)=>y.sz-x.sz)[0];
     if(cand){ const d=alDist(h,cand.id), t=d<=1500? 'm180' : d<=6000? 'm180' : 'l300'; if(AL_TY[t].rg>=d&&(b.dlp||0)>AL_TY[t].ls*30){ const r=alGet(b,t,false,true); if(r.ok){ const p=m.fl[m.fl.length-1]; alOpen(b,h,cand.id,p.id); const l=m.ln[m.ln.length-1]; if(l&&alLineDay(b,l,true).net<0){ alClose(b,l.id); alDrop(b,p.id); } } } }
     for(const [k,f,l,rk] of [['fid',1.5,'Programme de fidélité',1],['sal',3,'Salons à l’aéroport',2],['mnt',5,'Maintenance maison',3],['ali',8,'Alliance de compagnies',4],['fret',12,'Fret en soute',5]]) if(!m[k]&&mxHas(b,rk)&&alBuyR(b,k,f,l,rk,true).ok) break; }
 }
+/* V1.5.8 : en délégation totale, la réserve achète aussi des places dans les tours et remplace les avions loués des lignes rentables */
+function alNextHub(b){ const m=b.m; return Object.values(AL_AP).filter(a=>a.hub&&!m.hubs.includes(a.id)&&alHubReq(b,a.id)<=m.img).sort((x,y)=>y.sz-x.sz)[0]; }
+function alLeasedOnGood(b){ const m=b.m; return m.fl.filter(p=>!p.own&&p.ln).map(p=>({p,l:alLine(b,p.ln)})).filter(x=>x.l&&(x.l.st||alLineDay(b,x.l,true)).net>0).sort((x,y)=>AL_TY[x.p.t].pr-AL_TY[y.p.t].pr)[0]; }
+function alInvest(b){ const m=b.m, H=alNextHub(b);
+  if(H&&alBuyHub(b,H.id,true).ok) return;
+  const x=alLeasedOnGood(b); if(!x||dlBudget(b)<AL_TY[x.p.t].pr) return;
+  const r=alGet(b,x.p.t,true,true); if(!r.ok) return; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; alDrop(b,x.p.id); metLog(b,'le directeur achète l’'+AL_TY[n.t].n+' de la ligne '+alAp(x.l.a).n+' – '+alAp(x.l.b).n+' au lieu de le louer.',''); }
+MET.airline.goal=function(b){ const H=alNextHub(b); if(H) return {n:'Place dans la tour : '+H.n, c:alHubCost(H.id)}; const x=alLeasedOnGood(b); return x? {n:AL_TY[x.p.t].n+' acheté', c:AL_TY[x.p.t].pr} : null; };
 function alData(){ return {AL_AP, AL_CO, AL_TY}; }
 
 /* ============================================================
@@ -11079,12 +11102,21 @@ function shAuto(b,mode,q){ const m=b.m;
   m.fl.filter(p=>SH_TY[p.t].k!=='box'&&shFree(m,p)).forEach(p=>{ const T=SH_TY[p.t]; const o=m.off.filter(o=>o.k===T.k&&o.q<=T.cap).map(o=>{ const days=Math.ceil(2*o.d/(T.kn*1.852*24)+5); return {o, v:o.pay/days}; }).sort((x,y)=>y.v-x.v)[0];
     if(o&&o.v>shMaint(m,p)+T.crew+T.fuel*shBunk(m)*.85) shCharter(b,o.o.id,p.id); });
   if(mode!=='full') return;
+  if(S.day%30===15) shInvest(b);
   if(S.day%30===0){
     /* une ligne nouvelle avec un navire loué si elle s'annonce rentable */
     const h=m.tm[Math.floor(rnd()*m.tm.length)], cand=shDests(b,h).filter(x=>!shCanLine(b,h,x.id)).sort((x,y)=>y.sz-x.sz)[0];
     if(cand&&(b.dlp||0)>SH_TY.p5.ls*30){ const r=shGet(b,'p5','lease',true); if(r.ok){ const p=m.fl[m.fl.length-1]; shOpen(b,h,cand.id,p.id); const l=m.ln[m.ln.length-1]; if(l&&shLineDay(b,l).net<0){ shClose(b,l.id); shDrop(b,p.id); } } }
     for(const [k,f,l,rk] of [['plan',1.5,'Planification des escales',1],['ali',3,'Alliance maritime',2],['eco',5,'Navires économes',3],['esc',6,'Sûreté et escortes',4],['d2d',10,'Logistique porte-à-porte',5]]) if(!m[k]&&mxHas(b,rk)&&shBuyR(b,k,f,l,rk,true).ok) break; }
 }
+/* V1.5.8 : en délégation totale, la réserve achète aussi des terminaux et remplace les navires loués des lignes rentables */
+function shNextTm(b){ const m=b.m; return Object.values(SH_PT).filter(a=>a.tm&&!m.tm.includes(a.id)&&shTmReq(b,a.id)<=m.img).sort((x,y)=>shTmCost(x.id)-shTmCost(y.id))[0]; }
+function shLeasedOnGood(b){ const m=b.m; return m.fl.filter(p=>!p.own&&p.ln&&SH_TY[p.t].k==='box').map(p=>({p,l:shLine(b,p.ln)})).filter(x=>x.l&&(x.l.st||shLineDay(b,x.l)).net>0).sort((x,y)=>SH_TY[x.p.t].pr-SH_TY[y.p.t].pr)[0]; }
+function shInvest(b){ const m=b.m, T=shNextTm(b);
+  if(T&&shBuyTm(b,T.id,true).ok) return;
+  const x=shLeasedOnGood(b); if(!x) return; const c=SH_TY[x.p.t].pr*SH_OCC; if(dlBudget(b)<c) return;
+  const r=shGet(b,x.p.t,'occ',true); if(!r.ok) return; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; shDrop(b,x.p.id); metLog(b,'le directeur rachète d’occasion le '+SH_TY[n.t].n+' de la ligne '+shPt(x.l.a).n+' – '+shPt(x.l.b).n+'.',''); }
+MET.shipping.goal=function(b){ const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id)}; const x=shLeasedOnGood(b); return x? {n:SH_TY[x.p.t].n+' d’occasion', c:SH_TY[x.p.t].pr*SH_OCC} : null; };
 function shData(){ return {SH_PT, SH_TY, SH_RG, SH_NB}; }
 
 /* ============================================================
@@ -15014,7 +15046,7 @@ function dlHtml(b){
     (x? '<div class="sub">'+esc(x.name)+' · compétence moyenne '+bossAvg(x).toFixed(1)+' / 10. Un meilleur directeur prend de meilleures décisions.</div>' : '<div class="sub">Aucun directeur : recrutez-en un dans la section « Directeur de site » de cette fiche.</div>')+
     '<div class="seg">'+Object.keys(DL_MODES).map(k=>'<button class="'+(md===k?'on':'')+'" data-a="dlset" data-i="'+b.id+'" data-v="'+k+'"'+(k!=='me'&&!x?' disabled':'')+'>'+DL_MODES[k].n+'</button>').join('')+'</div>'+
     '<div class="sub">'+DL_MODES[md].d+'</div>'+
-    (md==='full'? '<div class="row"><span class="sub">Investissement</span><div class="seg">'+['10 %','25 %','50 %'].map((n,k)=>'<button class="'+((b.dlb||0)===k?'on':'')+'" data-a="dlbud" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div></div><div class="sub">Part des bénéfices mise de côté chaque jour pour ses investissements. Réserve actuelle : '+eur(dlBudget(b),0)+'.</div>' : '')+
+    (md==='full'? '<div class="row"><span class="sub">Investissement</span><div class="seg">'+['10 %','25 %','50 %'].map((n,k)=>'<button class="'+((b.dlb||0)===k?'on':'')+'" data-a="dlbud" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div></div><div class="sub">Part des bénéfices mise de côté chaque jour pour ses investissements. Réserve actuelle : '+eur(dlBudget(b),0)+'.'+(()=>{ const g=dlGoal(b); return g? ' Il vise : '+esc(g.n.charAt(0).toLowerCase()+g.n.slice(1))+', '+eur(g.c,0)+(dlBudget(b)>=g.c?' (prochain achat).':' ('+Math.min(99,Math.round(dlBudget(b)/g.c*100))+' %).') : ' Aucun achat en vue pour le moment.'; })()+'</div>' : '')+
     '</div>';
 }
 ACT.dlset=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b) after(setDelegation(b,el.dataset.v)); };
@@ -15226,11 +15258,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.5.7';
+const IB_VER='V1.5.8';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Plus de pertes entre deux ventes','Galerie, agence de recrutement, ferme, usine textile, studio, haute couture, promotion immobilière et construction : un jour sans vente affiche 0 €. Les frais sont mis de côté et déduits des ventes suivantes (au plus tard après 60 jours). Même chose pour les jours de fermeture du week-end. Le bénéfice sur la durée ne change pas.'],
-  ['Haute couture rééquilibrée','Le prêt-à-porter rapporte davantage et une collection ratée ne fait plus s’effondrer les ventes : la maison est rentable sur l’année.']
+  ['Directeurs plus entreprenants','En délégation totale, la réserve d’investissement peut monter jusqu’à trois ans de mise de côté, ou jusqu’au prix de l’achat visé. La fiche indique ce que le directeur vise et où il en est.'],
+  ['De nouveaux achats délégués','Restaurant : table du chef et émission. Start-up : publicité financée par la réserve. Compagnies maritime et aérienne : terminaux, places dans les tours, et rachat des navires ou avions loués sur les lignes rentables.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
