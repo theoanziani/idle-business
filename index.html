@@ -175,6 +175,23 @@ select.btn{padding-right:10px}
 .cat-h::after{content:"";flex:1;height:1px;background:var(--line)}
 .dots{display:inline-flex;gap:2px;vertical-align:middle} .dots i{width:6px;height:6px;border-radius:50%;background:var(--line)} .dots i.on{background:var(--amber)}
 
+/* ---------- Étoiles et avis clients (refonte du 2 novembre) ---------- */
+.stars{--v:0;display:inline-block;vertical-align:middle;font-size:17px;line-height:1;letter-spacing:1px;white-space:nowrap}
+.stars::before{content:'★★★★★';background:linear-gradient(90deg,#FFB300 calc(var(--v)/5*100%),var(--line) calc(var(--v)/5*100%));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.stars.big{font-size:24px}
+.rvn{font-family:var(--f-display);font-size:24px;vertical-align:middle}
+.rvbox{display:flex;flex-direction:column;gap:10px}
+.rvl{display:flex;flex-direction:column}
+.rvl>div{display:grid;grid-template-columns:78px 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.rvl>div:last-child{border-bottom:0}
+.rvs .stars{font-size:13px;letter-spacing:0}
+.rvcr>div{display:grid;grid-template-columns:72px auto 1fr;gap:10px;align-items:center;padding:5px 0;font-size:13px}
+.rvcr>div>span{font-weight:700;color:var(--ink-2)}
+.rvcr .stars{font-size:15px;letter-spacing:0}
+.rvpt>div{display:flex;flex-direction:column;align-items:flex-start;gap:5px;padding:10px 14px;border-radius:16px;margin-bottom:8px;font-size:13px}
+.rvpt.g>div{background:var(--green-soft)} .rvpt.b>div{background:var(--red-soft)}
+.rvpt b{font-size:13px}
+
 /* ---------- Marchés ---------- */
 .asset{display:grid;grid-template-columns:minmax(140px,1.3fr) 110px minmax(90px,1fr) minmax(120px,1.1fr) auto;gap:8px 14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .asset:last-child{border-bottom:0}
@@ -2132,6 +2149,119 @@ function csCrit(b){
 }
 const csOf = b => b.cs===undefined? 65 : b.cs;
 const csMult = b => clamp(1+0.3*(csOf(b)/100-.65),.88,1.12);
+
+/* ---------- Avis clients, étoiles et réputation /5 ---------- */
+const RV_W=30;                                   /* fenêtre glissante de la note : 30 jours */
+const starsOf = b => 1+4*csOf(b)/100;            /* note de la société, de 1 à 5 */
+const repNote = r => clamp(1+4*r/100,1,5);       /* réputation générale ramenée sur 5 */
+const fmtStar = v => v.toFixed(1).replace('.',',');
+const RV_CRIT=['price','service','quality','addr'], RV_WT=[.3,.3,.2,.2];
+const RV_TXT={
+  price:{lo:['Beaucoup trop cher pour ce que c’est.','Les prix sont abusifs, je ne reviendrai pas.','Rapport qualité-prix décevant.'], hi:['Des prix très corrects.','Franchement pas cher pour la qualité.','Bon rapport qualité-prix, je recommande.']},
+  service:{lo:['Beaucoup trop d’attente, l’équipe est débordée.','Personnel épuisé et peu aimable.','On a attendu longtemps, ça manque de monde.'], hi:['Équipe souriante et efficace.','Service rapide, on se sent bien accueilli.','Un personnel au top, merci !']},
+  quality:{lo:['La qualité a baissé, je suis déçu.','Produits moyens, on a vu mieux.','Ça manque de soin, dommage.'], hi:['Qualité irréprochable.','Des produits soignés, un vrai plaisir.','On sent le travail bien fait.']},
+  addr:{lo:['L’emplacement est peu pratique.','Quartier peu passant, difficile à trouver.','Pas très bien situé, j’hésite à revenir.'], hi:['Très bien situé, facile d’accès.','Un emplacement idéal.','Adresse incontournable du quartier.']}
+};
+const RV_MID=['Correct, sans plus.','Rien d’exceptionnel mais ça fait le travail.','Moyen, peut mieux faire.','Pas mal, je reviendrai peut-être.'];
+const RV_OUT=['Rupture de stock : impossible d’acheter ce que je voulais.','Rayons vides, très décevant.'];
+function rvAvg(b,days){ const w=(b.rvw||[]).slice(-days); if(!w.length) return starsOf(b); return w.reduce((a,x)=>a+x.s,0)/w.length; }
+function rvDaily(b){
+  if(!b.rvw){ b.rvw=[]; b.rvl=[]; b.rv0=1+4*(b.cs===undefined?65:b.cs)/100; }
+  const cr=csCrit(b), x=b.rvx||0, buzz=b.buzz>0?(b.buzzV||-0.7):0;
+  const n=clamp(1+Math.round(Math.sqrt(Math.max(1,b.lvl||1))*1.5)+rint(0,2),2,9);
+  let sum=0;
+  for(let i=0;i<n;i++){
+    let r=rnd(),k=0; while(k<3&&r>RV_WT[k]){ r-=RV_WT[k]; k++; }
+    const mean=1+4*(0.5*cr[RV_CRIT[k]]+0.5*cr.idx)-x+buzz;
+    const s=clamp(Math.round(mean+(rnd()+rnd()+rnd()-1.5)*1.6),1,5);
+    sum+=s;
+    if(i<2||s===1||s===5){
+      const outRecent=(b.rvOut||-9)>=S.day-1 && s<=2;
+      const t=outRecent&&rnd()<.5? pick(RV_OUT) : s<=2? pick(RV_TXT[RV_CRIT[k]].lo) : s>=4? pick(RV_TXT[RV_CRIT[k]].hi) : pick(RV_MID);
+      if(b.rvl.length&&b.rvl[0].d===S.day&&b.rvl.filter(v=>v.d===S.day).length>=3&&s>1&&s<5) continue;
+      b.rvl.unshift({d:S.day,s,t,k:RV_CRIT[k]});
+    }
+  }
+  if(b.rvl.length>40) b.rvl.length=40;
+  b.rvw.push({d:S.day,s:sum/n,n}); if(b.rvw.length>RV_W) b.rvw.shift();
+  const avg=(b.rvw.reduce((a,v)=>a+v.s,0)+(RV_W-b.rvw.length)*b.rv0)/RV_W;
+  b.cs=clamp((avg-1)*25,0,100);
+  b.rvx=Math.abs(x)<.02? 0 : x*0.85;
+  if(b.buzz>0) b.buzz--;
+  /* événements liés aux avis */
+  const a7=rvAvg(b,7), R0=bizBase(b).R0;
+  if(b.rvw.length>=7&&!b.buzz){
+    if(a7<=2.4&&rnd()<.05){ b.buzz=10; b.buzzV=-0.7; log('bad','Bad buzz : des avis très négatifs sur « '+b.name+' » circulent. Une réponse publique peut calmer la situation.'); }
+    else if(a7>=4.4&&rnd()<.03){ b.buzz=10; b.buzzV=0.4; log('good','Un influenceur parle de « '+b.name+' » : les avis sont élogieux ces jours-ci.'); }
+  }
+  if(b.rvw.length>=14&&avg<=2.3&&rnd()<.012){
+    const f=R0*2; pay('b:'+b.id,'Amende de l’inspection',-f); S.rep=clamp(S.rep-1,0,100);
+    log('bad','Inspection chez « '+b.name+' » : mauvais avis répétés, amende de '+eur(f,0)+'.');
+  }
+}
+function rvReply(b){
+  if(b.status!=='active') return err('Disponible une fois l’entreprise ouverte.');
+  if((b.rvAct||-99)>S.day-10) return err('Une réponse aux avis tous les 10 jours.');
+  const c=bizBase(b).R0*3; if(!bizCanPay(b,c)) return err('Trésorerie insuffisante : '+eur(c,0)+' requis.');
+  pay('b:'+b.id,'Réponse aux avis clients',-c); b.rvAct=S.day;
+  if(b.buzz>0&&(b.buzzV||0)<0){ b.buzz=0; b.rvx=(b.rvx||0)-0.2; return ok('Vous répondez publiquement : le bad buzz retombe.'); }
+  b.rvx=clamp((b.rvx||0)-0.4,-1,1.6); return ok('Vous répondez aux clients : les prochains avis seront meilleurs.');
+}
+function rvPromo(b){
+  if(b.status!=='active') return err('Disponible une fois l’entreprise ouverte.');
+  if((b.rvPr||-99)>S.day-10) return err('Une promotion tous les 10 jours.');
+  const c=bizBase(b).R0*2; if(!bizCanPay(b,c)) return err('Trésorerie insuffisante : '+eur(c,0)+' requis.');
+  pay('b:'+b.id,'Promotion clients',-c); b.rvPr=S.day; b.rvx=clamp((b.rvx||0)-0.6,-1,1.6);
+  return ok('Promotion lancée : les clients laisseront de meilleurs avis quelques jours.');
+}
+/* Note moyenne des sociétés ouvertes, pondérée par leur taille (pour la réputation générale) */
+function repClients(){
+  let w=0,t=0; S.biz.forEach(b=>{ if(b.status!=='active') return; const p=Math.max(1,bizBase(b).R0)*Math.max(1,b.lvl||1); w+=p; t+=p*csOf(b); });
+  return w? t/w : null;
+}
+function starsHTML(v,big){ v=clamp(v,0,5); return '<span class="stars'+(big?' big':'')+'" style="--v:'+v.toFixed(2)+'" role="img" aria-label="'+fmtStar(v)+' sur 5"></span>'; }
+/* Diagnostic clair : étoiles par critère + mot, points forts, points à corriger avec action */
+const RV_NAMES={price:'Prix',service:'Service',quality:'Qualité',addr:'Adresse'};
+const RV_GOOD={price:'Des prix attractifs pour les clients.',service:'Une équipe complète et en forme.',quality:'Des produits et des salaires de qualité.',addr:'Une très bonne adresse, bien passante.'};
+function rvVerdict(k,v){
+  const w=k==='price'?['Trop cher','Cher','Dans la moyenne','Abordable','Très abordable']:['Très faible','Faible','Correct','Bon','Excellent'];
+  return w[v<.2?0:v<.4?1:v<.6?2:v<.8?3:4];
+}
+function rvCause(b,k){
+  const roles=entRoles(b).reduce((a,r)=>a+r[1],0), miss=Math.max(0,roles-headcount(b)), fat=fatOf(b);
+  if(k==='price'){ const p=Math.round((b.price-1)*100);
+    return {t:'Vos prix sont '+p+' % au-dessus du marché : les clients trouvent ça cher.', a:(!isFact(b)&&b.price>0.81)?['Baisser les prix de 5 %','rvprice',b.id]:null}; }
+  if(k==='service'){
+    if(miss>0) return {t:'Il manque '+miss+' employé'+(miss>1?'s':'')+' : l’attente s’allonge.', a:['Recruter','jump','bj-eq']};
+    if(fat>40) return {t:'L’équipe est fatiguée ('+Math.round(fat)+' / 100) et travaille moins vite.', a:['Voir l’équipe','jump','bj-eq']};
+    return {t:'L’équipe est trop juste pour l’affluence.', a:['Voir l’équipe','jump','bj-eq']};
+  }
+  if(k==='quality'){
+    if(pqOn(b)&&pqOf(b)<2) return {t:'Produit de qualité « '+PQN[pqOf(b)]+' » : les clients attendent mieux.', a:['Améliorer la qualité','jump','bj-pil']};
+    if(b.pol<1) return {t:'Salaires sous la moyenne : l’équipe est moins motivée.', a:['Revoir les salaires','jump','bj-pil']};
+    return {t:'Qualité jugée moyenne.', a:['Voir le pilotage','jump','bj-pil']};
+  }
+  return {t:'Cette adresse attire peu de passants.', a:['Plus de marketing','jump','bj-pil']};
+}
+function rvDiag(b){
+  const cr=csCrit(b), W={price:.3,service:.3,quality:.2,addr:.2};
+  const rows=RV_CRIT.map(k=>({k,v:cr[k]}));
+  let h='<div class="rvcr">'+rows.map(r=>'<div><span>'+RV_NAMES[r.k]+'</span>'+starsHTML(1+4*r.v)+'<b class="'+(r.v<.4?'neg':r.v>=.6?'pos':'mut')+'">'+rvVerdict(r.k,r.v)+'</b></div>').join('')+'</div>';
+  const good=rows.filter(r=>r.v>=.65).sort((a,c)=>c.v-a.v).slice(0,2);
+  const bad=rows.filter(r=>r.v<.45).sort((a,c)=>W[c.k]*(.65-c.v)-W[a.k]*(.65-a.v)).slice(0,2);
+  h+='<h3>Ce que les clients aiment</h3>'+(good.length? '<div class="rvpt g">'+good.map(r=>'<div><b>'+RV_NAMES[r.k]+'</b><span>'+RV_GOOD[r.k]+'</span></div>').join('')+'</div>' : '<div class="sub">Rien ne ressort encore.</div>');
+  h+='<h3>Ce qui les fait fuir</h3>'+(bad.length? '<div class="rvpt b">'+bad.map(r=>{ const c=rvCause(b,r.k); return '<div><b>'+RV_NAMES[r.k]+'</b><span>'+c.t+'</span>'+(c.a?btn(c.a[0],c.a[1],{c:'sm',i:c.a[2]}):'')+'</div>'; }).join('')+'</div>' : '<div class="sub">Aucun reproche majeur pour l’instant.</div>');
+  return h;
+}
+function rvCard(b){
+  const a7=rvAvg(b,7), a30=starsOf(b), l=(b.rvl||[]).slice(0,8), tr=a7-a30;
+  let h='<div class="rvbox"><div class="row sp"><span>'+starsHTML(a30,1)+' <b class="num rvn">'+fmtStar(a30)+'</b><small class="mut"> / 5 · '+(b.rvw?b.rvw.length:0)+' j</small></span><span class="num '+(tr>0.05?'pos':tr<-0.05?'neg':'mut')+'">'+(tr>0.05?'▲':tr<-0.05?'▼':'■')+' 7 j : '+fmtStar(a7)+'</span></div>';
+  if(b.buzz>0) h+='<div class="notice '+((b.buzzV||0)<0?'bad':'good')+'">'+((b.buzzV||0)<0?'Bad buzz en cours : avis dégradés encore '+b.buzz+' j.':'Buzz positif en cours : avis élogieux encore '+b.buzz+' j.')+'</div>';
+  h+='<div class="rvl">'+(l.length? l.map(v=>'<div><span class="rvs">'+starsHTML(v.s)+'</span><span>'+esc(v.t)+'</span><small class="dim">j'+v.d+'</small></div>').join('') : '<div class="sub">Aucun avis pour l’instant : les clients commencent à écrire dès l’ouverture.</div>')+'</div>';
+  const rdy=(k)=>(b[k]||-99)<=S.day-10;
+  h+='<div class="row">'+btn('Répondre aux avis : '+eur(bizBase(b).R0*3,0),'rvreply',{c:'sm',i:b.id,dis:!rdy('rvAct')})+btn('Promotion : '+eur(bizBase(b).R0*2,0),'rvpromo',{c:'sm',i:b.id,dis:!rdy('rvPr')})+'</div></div>';
+  return h;
+}
 /* Mise à jour quotidienne (appelée à la fin de processBiz) */
 function opsDaily(b,open,we){
   const L=hrLvl(), fill=staffFill(b);
@@ -2140,7 +2270,8 @@ function opsDaily(b,open,we){
   if(open){ f+=((fill<.85? (0.85-fill)*8 : 0)+(b.wk&&we&&bizDef(b).open!=='always'?1.2:0)+Math.max(0,planEff(b).F))*HR.fat[L]*bossFat(b); f-=0.3+0.2*L-Math.min(0,planEff(b).F); }
   else f-=2.5;
   b.fat=clamp(f,0,100);
-  if(open){ const t=100*csCrit(b).idx; b.cs=clamp(b.cs+(t-b.cs)*0.03,0,100); }
+  if(open) rvDaily(b);
+  else if(b.rvx){ b.rvx*=0.85; if(Math.abs(b.rvx)<.02) b.rvx=0; }
 }
 /* Approvisionnement */
 function setStk(b,v){ b.stk=clamp(v|0,0,2); }
@@ -2268,7 +2399,7 @@ function stockDay(b,need,open){
   if(open&&need>0){
     if(b.stock>=need) b.stock-=need;
     else { frac=b.stock/need; b.stock=0; }
-    if(frac<.98){ b.cs=clamp(csOf(b)-4*(1-frac),0,100); b.soDays=(b.soDays||0)+1; if(b.soDays===1) log('warn','Rupture de stock chez « '+b.name+' » : '+Math.round((1-frac)*100)+' % des ventes perdues. Commandez ou augmentez le stock visé.'); }
+    if(frac<.98){ b.rvx=clamp((b.rvx||0)+0.5*(1-frac),-1,1.6); b.rvOut=S.day; b.soDays=(b.soDays||0)+1; if(b.soDays===1) log('warn','Rupture de stock chez « '+b.name+' » : '+Math.round((1-frac)*100)+' % des ventes perdues. Commandez ou augmentez le stock visé.'); }
     else b.soDays=0;
   }
   if(b.auto!==false){
@@ -2435,13 +2566,13 @@ MET.fastfood = {
     return [{k:'buy', act:'bornes', label:'Bornes de commande', owned:m.bornes, cost:d.cost*.18, sub:'Moins d’attente, +4 % de clients et 5 % de salaires en moins.'},
             {k:'buy', act:'drive', label:'Drive', owned:m.drive, cost:d.cost*.35, dis:b.lvl<2&&!m.drive, sub: b.lvl<2? 'Disponible à partir du niveau 2.' : '+10 % de clients, servis depuis leur voiture.'},
             {k:'btn', act:'menu', label:'Lancer un menu du moment', cost:R0*3, sub:'Relance l’intérêt des clients (jusqu’à +8 %). L’effet s’use en deux semaines environ.'},
-            {k:'btn', act:'franchise', label:'Vendre une franchise', gain:d.cost*.4*(1+.1*C.fr), dis:m.fr>=frMax||csOf(b)<55, sub: m.fr>=frMax? 'Maximum atteint pour ce niveau ('+frMax+').' : csOf(b)<55? 'La satisfaction doit atteindre 55 pour attirer des franchisés.' : 'Un entrepreneur ouvre un restaurant sous votre marque : il paie un droit d’entrée puis une redevance chaque jour. Si la qualité baisse, il peut partir.'}];
+            {k:'btn', act:'franchise', label:'Vendre une franchise', gain:d.cost*.4*(1+.1*C.fr), dis:m.fr>=frMax||csOf(b)<55, sub: m.fr>=frMax? 'Maximum atteint pour ce niveau ('+frMax+').' : csOf(b)<55? 'La note doit atteindre 3,2 étoiles pour attirer des franchisés.' : 'Un entrepreneur ouvre un restaurant sous votre marque : il paie un droit d’entrée puis une redevance chaque jour. Si la qualité baisse, il peut partir.'}];
   },
   acts:{
     bornes:b=>{ if(b.m.bornes) return err('Déjà installées.'); const c=bizDef(b).cost*.18; if(!metBuy(b,c,'Bornes de commande')) return err('Trésorerie insuffisante : '+eur(c,0)+' requis.'); b.m.bornes=true; return ok('Bornes installées.'); },
     drive:b=>{ if(b.m.drive) return err('Déjà construit.'); if(b.lvl<2) return err('Niveau 2 requis.'); const c=bizDef(b).cost*.35; if(!metBuy(b,c,'Drive')) return err('Trésorerie insuffisante : '+eur(c,0)+' requis.'); b.m.drive=true; return ok('Drive ouvert.'); },
     menu:b=>{ const c=metR0(b)*3; if(availFor(cityOf(b).ccy)<c) return err('Trésorerie insuffisante.'); pay('b:'+b.id,'Menu du moment',-c); b.m.nov=1; b.m.menus++; return ok('Nouveau menu lancé.'); },
-    franchise:b=>{ const m=b.m; if(m.fr>=2*b.lvl) return err('Maximum atteint pour ce niveau.'); if(csOf(b)<55) return err('Satisfaction insuffisante.'); const g=bizDef(b).cost*.4*(1+.1*m.fr); payCap('b:'+b.id,'Droit d’entrée franchise : '+b.name,g); m.fr++; metLog(b,'nouveau franchisé ('+m.fr+') : '+eur(g,0)+' encaissés.','good'); return ok('Franchise vendue.'); }
+    franchise:b=>{ const m=b.m; if(m.fr>=2*b.lvl) return err('Maximum atteint pour ce niveau.'); if(csOf(b)<55) return err('Note insuffisante : 3,2 étoiles requises.'); const g=bizDef(b).cost*.4*(1+.1*m.fr); payCap('b:'+b.id,'Droit d’entrée franchise : '+b.name,g); m.fr++; metLog(b,'nouveau franchisé ('+m.fr+') : '+eur(g,0)+' encaissés.','good'); return ok('Franchise vendue.'); }
   }
 };
 
@@ -4131,7 +4262,7 @@ function bankFail(){
   pay('bank','Amende de faillite bancaire',-Math.max(0,S.nw)*0.02);
   S.rep=clamp(S.rep-35,0,100); B.lic=false; B.dep=0; B.loans=[]; B.res=0; B.apps=[]; B.run={d:0,f:0}; B.cb=0; B.failed++;
   S.pf.bank={stock:{},bond:{},crypto:{}}; B.ent.staff={};
-  log('crit','Faillite de votre banque : licence retirée, déposants lésés. Réputation -35.');
+  log('crit','Faillite de votre banque : licence retirée, déposants lésés. Votre réputation s’effondre.');
 }
 function bankLiquidity(){
   const B=S.bank;
@@ -4310,6 +4441,7 @@ function socialStep(){
   let t=50+Math.min(12,emp/25)+25*(ap-1)+0.3*Math.sqrt(Math.max(0,S.prestige))-0.2*S.susp;
   if(S.bank.lic) t+=(S.bank.rep-50)*0.12;
   if(S.cash<0) t-=10;
+  const rc=repClients(); if(rc!==null) t+=(rc-65)*0.45;   /* avis des clients : la note moyenne des sociétés pèse sur la réputation générale */
   S.rep=clamp(S.rep+(clamp(t,5,95)-S.rep)*0.02,0,100);
   const media=S.biz.filter(b=>b.status==='active');
   let inf=0; media.forEach(b=>{ if(b.def==='studio') inf+=0.02*b.lvl; if(b.def==='gallery') inf+=0.01*b.lvl; });
@@ -4328,7 +4460,7 @@ function socialStep(){
     const fine=Math.max(500,1.2*(S.lobbyRecent||0));
     pay('pol','Amende : scandale de corruption',-fine);
     S.rep=clamp(S.rep-12,0,100); S.infl*=0.6; G.pop=clamp(G.pop-4,0,100); S.susp=10;
-    log('crit','Scandale : la presse révèle vos financements politiques. Amende de '+eur(fine)+', réputation -12, influence réduite.');
+    log('crit','Scandale : la presse révèle vos financements politiques. Amende de '+eur(fine)+', forte baisse de réputation, influence réduite.');
   }
 }
 function politicsStep(){
@@ -4470,7 +4602,7 @@ const ACH=[
 ];
 function checkAch(){
   ACH.forEach(a=>{
-    if(!S.ach[a.id] && a.ok()){ S.ach[a.id]=S.day; S.rep=clamp(S.rep+2,0,100); log('good','Objectif atteint : « '+a.t+' ». Réputation +2.'); }
+    if(!S.ach[a.id] && a.ok()){ S.ach[a.id]=S.day; S.rep=clamp(S.rep+2,0,100); log('good','Objectif atteint : « '+a.t+' ». Votre réputation progresse.'); }
   });
 }
 
@@ -11539,9 +11671,11 @@ function modalBiz(b){
     { const cr=csCrit(b), fat=fatOf(b), sh=ownShare(b), full=premPrice(b), left=Math.max(0,full-premValue(b)), rentD=base.rent0*rentFactor(b)*progMult();
       const crit=[['Prix',cr.price],['Service',cr.service],['Qualité',cr.quality],['Adresse',cr.addr]];
       body+='<div class="card"><h2>Clients et équipe</h2><div class="stack">'+
-        '<div class="row sp"><b>Satisfaction des clients</b><span class="num"><b>'+Math.round(csOf(b))+' / 100</b> · ventes '+multPct(csMult(b))+'</span></div>'+
-        '<div class="crit">'+crit.map(x=>'<div><span>'+x[0]+'</span>'+bar(x[1],x[1]<.35?'r':x[1]<.6?'a':'g')+'</div>').join('')+'</div>'+
-        '<div class="sub">Le prix bas, un effectif complet, la qualité (salaires, qualité du produit) et la bonne adresse font monter la satisfaction. Elle évolue lentement.</div>'+
+        '<div class="row sp"><b>Avis des clients</b><span class="num">ventes '+multPct(csMult(b))+'</span></div>'+
+        rvCard(b)+
+        '<h3>Ce qui fait la note</h3>'+
+        rvDiag(b)+
+        '<div class="sub">La note est la moyenne des avis des 30 derniers jours : elle évolue lentement.</div>'+
         '<div class="row sp"><b>Fatigue de l’équipe</b><span class="num"><b>'+Math.round(fat)+' / 100</b></span></div>'+bar(fat/100,fat>60?'r':fat>30?'a':'g')+
         '<div class="sub">'+(fat>30?'Ventes '+multPct(fatF(b))+' et départs plus fréquents. ':'')+'Elle monte quand des postes manquent ou que le week-end est travaillé, et baisse les jours de repos'+(hrLvl()?' (aidée par votre service RH).':'.')+'</div>'+
         (isStock(b)? (function(){ const cap=stockCap(b), st=b.stock||0, pend=pendingOf(b), cr=cogsRef(b);
@@ -11950,7 +12084,7 @@ function vGuide(){
       'Coût de lancement, mise en route, puis ouverture avec une équipe de départ à compléter.',
       'Niveaux 1 à '+MAXLVL+' : chaque agrandissement coûte 2,5 fois plus et augmente les ventes, les postes et les salaires.',
       'Pilotage : <b>politique salariale</b> (fidélité, productivité), <b>prix de vente</b> (marge ou volume), <b>marketing</b> (ventes contre coût quotidien), <b>ouverture le week-end</b> (+50 % de salaires).',
-      '<b>Clients et équipe</b> : la satisfaction des clients (prix, service, qualité, adresse) module les ventes. La fatigue de l’équipe baisse les ventes et la fidélité quand des postes manquent ou que le week-end est travaillé.',
+      '<b>Clients et équipe</b> : chaque société a une note en étoiles, moyenne des avis des 30 derniers jours (prix, service, qualité, adresse). Elle module les ventes, et la note moyenne de vos sociétés pèse sur votre réputation générale, affichée sur 5. Répondez aux avis ou lancez une promotion pour calmer un bad buzz. La fatigue de l’équipe baisse les ventes et la fidélité quand des postes manquent ou que le week-end est travaillé.',
       '<b>Stock</b> : les commerces, restaurants, usines et boutiques vendent leur stock. Rayons vides : ventes perdues et clients mécontents. Choisissez le stock visé (3, 7 ou 14 jours) ; la commande automatique réapprovisionne chaque jour, livraison le lendemain. À découvert, les fournisseurs suspendent les commandes.',
       '<b>Équipement</b> (4 niveaux) : plus de productivité et de capacité de stockage. <b>Horaires</b> : réduits, normaux ou étendus. <b>Formation</b> : productivité et fidélité en hausse tous les 20 jours. <b>Mutuelle</b> : fidélité, exigée en mode difficile.',
       '<b>Locaux</b> : vous payez un loyer selon le quartier. Acheter les locaux réduit le loyer de 70 % et le bien suit le marché immobilier.',
@@ -12108,7 +12242,7 @@ function renderTop(){
   $('#t-kpis').innerHTML=
       '<div class="kpi"><span>Trésorerie</span><b class="num '+(S.cash<0?'neg':'')+'">'+eur(S.cash,0)+'</b>'+(dl!==null&&dl!==undefined?'<small class="'+cls(dl)+'">'+signed(dl,0)+'</small>':'')+'</div>'+
       '<div class="kpi"><span>Valeur nette</span><b class="num">'+eur(S.nw,0)+'</b></div>'+
-      '<div class="kpi"><span>Réputation</span><b class="num">'+Math.round(S.rep)+'</b></div>'+
+      '<div class="kpi"><span>Réputation</span><b class="num">'+fmtStar(repNote(S.rep))+'<small class="mut">/5</small></b></div>'+
       '<div class="kpi"><span>Influence</span><b class="num">'+fmtN(S.infl,0)+'</b></div>'+
       '<div class="kpi"><span>Palier</span><b>'+D.TIERS[tierNow()].n+'</b></div>';
   syncCtrl();
@@ -12507,6 +12641,9 @@ Object.assign(ACT,{
   sethrs:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); setHrs(b,+el.dataset.v); after(); },
   upeq:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); after(upgradeEq(b)); },
   train:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); after(trainTeam(b)); },
+  rvreply:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b) after(rvReply(b)); },
+  rvprice:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b&&!isFact(b)){ setPrice(b,Math.round((b.price-0.05)*100)/100); after(ok('Prix baissés de 5 % : les clients le verront dans les prochains avis.')); } },
+  rvpromo:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b) after(rvPromo(b)); },
   trainall:()=>after(trainAll()),
   sethc:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); setHc(b,el.dataset.v==='1'); after(); },
   setproc:el=>after(setProc(el.dataset.v==='1')),
@@ -13121,7 +13258,7 @@ function bizHero(b){
   if(b.status!=='active') return h;
   const cs=csOf(b), fat=fatOf(b), roles=entRoles(b).reduce((a,r)=>a+r[1],0);
   h+='<div class="bstats"><div><span>Profit / j</span><b class="num '+cls(l?l.net:0)+'">'+(l?signed(l.net,0):'—')+'</b></div><div><span>Clients / j</span><b class="num">'+fmtN(clientsOf(b),clientsOf(b)<10?1:0)+'</b></div><div><span>Employés</span><b>'+headcount(b)+' / '+roles+'</b></div></div>';
-  let g='<div class="gauge"><div class="row sp"><b>Satisfaction</b><b class="num">'+Math.round(cs)+'</b></div>'+bar(cs/100,cs<40?'r':cs<60?'a':'g')+'</div>'+
+  let g='<div class="gauge"><div class="row sp"><b>Avis clients</b><span>'+starsHTML(starsOf(b))+' <b class="num">'+fmtStar(starsOf(b))+'</b></span></div></div>'+
     '<div class="gauge"><div class="row sp"><b>Fatigue de l’équipe</b><b class="num">'+Math.round(fat)+'</b></div>'+bar(fat/100,fat>60?'r':fat>30?'a':'g')+'</div>';
   if(isStock(b)){ const cr=cogsRef(b), dd=(b.stock||0)/cr; g+='<div class="gauge"><div class="row sp"><b>Stock</b><b class="num">'+dd.toFixed(1)+' j</b></div>'+bar((b.stock||0)/stockCap(b),dd<1.5?'r':dd<3?'a':'g')+'</div>'; }
   h+='<section class="card" style="padding:14px 16px"><div class="stack">'+g+'</div></section>';
@@ -15080,6 +15217,7 @@ MET.textile.html=function(b){
 const IB_VER='V1.5.4';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
+  ['Avis clients en étoiles','Chaque société a une note sur 5, moyenne des avis des 30 derniers jours (prix, service, qualité, adresse). Votre réputation générale s’affiche aussi sur 5. Répondez aux avis ou lancez une promotion pour calmer un bad buzz.'],
   ['Service RH plus réactif','Dès que le moral d’un directeur passe sous le seuil que vous avez choisi, le service RH l’augmente de 10 % (contrôle chaque jour), au lieu d’une fois par mois au plus.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
