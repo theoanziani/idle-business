@@ -1124,6 +1124,12 @@ details.ag-f .ag-s small .warn-t{color:var(--amber)}
 .of-strip i{width:14px;height:10px;border-radius:3px;background:var(--line)}
 .of-strip i.on{background:var(--green)}
 .of-strip i.bad{background:var(--amber)}
+/* V1.6.2 accueil épuré */
+details.hmore>summary{list-style:none;cursor:pointer;display:flex;justify-content:center;align-items:center;min-height:48px;border-radius:16px;background:var(--card);box-shadow:0 3px 0 var(--sh);font-weight:800;color:var(--ink-2)}
+details.hmore>summary::-webkit-details-marker{display:none}
+details.hmore>summary::after{content:'';width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-left:10px;margin-bottom:4px;opacity:.6}
+details.hmore[open]>summary::after{transform:rotate(-135deg);margin-bottom:-2px}
+details.hmore .hm-b{display:flex;flex-direction:column;gap:18px;margin-top:18px}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -9154,6 +9160,9 @@ function saAuto(b,mode,q){ const m=b.m;
   if(S.day%7===0) m.mkB=m.mk;
   if(mode==='full'){ const base=m.mkB===undefined? m.mk : m.mkB; if(base<3&&m.F<saTam(b)*.8){ const need=metR0(b)*(SA_MK[3]-SA_MK[base]); if(dlBudget(b)>=need*7){ b.dlp-=need; m.mk=3; } else m.mk=base; } }
   if(mode!=='full'||S.day%14!==0) return;
+  /* V1.6.2 : le directeur lève des fonds dès que le chiffre d'affaires le permet (c'est ce qui fait monter les paliers), puis pivote vers l'IA sur la réserve */
+  { const R=SA_ROUND[m.rounds]; if(R&&!m.obj&&saMRR(b)/30>=R.need*metR0(b)&&saRaise(b).ok) metLog(b,'le directeur boucle une levée de fonds.','good'); }
+  if(mxHas(b,3)&&!m.ai&&D.biz.ai) dlAct(b,D.biz.ai.cost,()=>MET.saas.acts.pivot(b));
   if(m.ai&&!m.tr){ for(const s of [16,4,1]){ if(saTrain(b,s,true).ok) break; } }
 }
 
@@ -11290,6 +11299,132 @@ function ofAuto(b,mode,q){ const m=b.m;
 function ofData(){ return {OF_SRV, OF_WORK, OF_STD}; }
 
 /* ============================================================
+   ENTREPÔT LOGISTIQUE (V1.6.2)
+   - Capacité en emplacements de palettes (selon le niveau), rayonnages hauts pour l'augmenter.
+   - Contrats de stockage : des clients (e-commerce, industrie, grande distribution, pharmacie…) louent des
+     emplacements à un prix par palette et par jour, plus la manutention (entrées et sorties). Durée de 3 à
+     12 mois ; à l'échéance, un client satisfait renouvelle. Négocier : +8 %, une chance sur deux de refus.
+   - Équipement : transpalettes, chariots élévateurs, puis entrepôt automatisé (manutention moins chère et
+     plus rapide). Logiciel de gestion : moins d'erreurs. Zone frigorifique : contrats sous température.
+   - Camions : livraison des colis de vos clients (revenus selon leurs mouvements).
+   - Vos usines de la même ville gardent leur stock plus longtemps (déjà en place).
+   - Événements : pic de fin d'année, grève des transports, client en faillite, panne des chariots.
+   État b.m (v:1) : ct[] {id, n, sec, pal, p, rot, fr, until, sat}, off[], eq (0-2), wms, fr (zone froide),
+   rk (rayonnages), tr (camions), mk (marché), ev[], nid, st, acc, accC, pend, pendC, log.
+   ============================================================ */
+D.biz.warehouse.sub='Stockage, manutention et livraison pour vos clients';
+const WH_CL=[['Colibri Shop','e-commerce'],['Maison Ardent','grande distribution'],['Novapharm','pharmacie'],['Atelier Brume','mode'],['Ferrandi Industrie','industrie'],['Bio Vallée','alimentaire'],['Pixel Store','e-commerce'],['Mécaplus','industrie'],['Cave Saint-Clair','boissons'],['Glacier Polaire','alimentaire'],['TechNord','électronique'],['Jouets Lutin','jouets'],['Verdure & Co','jardinage'],['Opti Santé','pharmacie'],['Sport Élan','sport']];
+const WH_EQ=[{n:'Transpalettes', h:2.4, sp:1},{n:'Chariots élévateurs', h:1.5, sp:1.25, c:4},{n:'Entrepôt automatisé', h:.8, sp:1.6, c:14, rk:3}];
+const WH_P0=1.05;          /* prix moyen d'une palette stockée, € par jour */
+const whK = b => metR0(b)/3454;
+function whCap(b){ const m=b.m; return Math.round(1700*whK(b)*(1+.3*(m.rk||0))); }
+function whUsed(b){ return b.m.ct.reduce((a,c)=>a+c.pal,0); }
+function whFrCap(b){ return b.m.fr? Math.round(whCap(b)*.25) : 0; }
+function whFrUsed(b){ return b.m.ct.filter(c=>c.fr).reduce((a,c)=>a+c.pal,0); }
+function whEv(m,k){ return (m.ev||[]).some(e=>e.k===k&&e.until>=S.day); }
+function whPeak(){ const mo=footDate(S.day).m; return mo===11||mo===12; }
+function whOffer(b,big){ const m=b.m, c=pick(WH_CL), cap=whCap(b), fr=!!m.fr&&(c[1]==='pharmacie'||c[1]==='alimentaire')&&rnd()<.7;
+  const pal=Math.max(20,Math.round(cap*(big? .3+rnd()*.15 : .04+rnd()*rnd()*.22)/10)*10), rot=+(c[1]==='e-commerce'? .18+rnd()*.12 : .04+rnd()*.1).toFixed(2);
+  const p=+(WH_P0*m.mk*(fr?1.7:1)*(big?1.15:1)*(m.hub?1.12:1)*(.85+rnd()*.3)).toFixed(2);
+  return {id:m.nid++, n:c[0], sec:c[1], pal, p, rot, fr, mo:pick(big?[12]:[3,6,6,12]), exp:S.day+8+Math.floor(rnd()*8), big:big?1:0}; }
+function whInit(b){ const m={v:1, brk:1, ct:[], off:[], eq:0, wms:0, fr:0, rk:0, tr:0, mk:1, ev:[], nid:1, st:null, acc:0, accC:0, pend:0, pendC:0, log:[]};
+  b.m=m; b.stock=0;
+  /* l'entrepôt démarre à moitié plein, avec des contrats de durées variées */
+  let used=0; const cap=whCap(b); while(used<cap*.55){ const o=whOffer(b,false); if(o.fr) continue; const c=whSign(b,o,true); c.until=S.day+30+Math.floor(rnd()*300); used+=c.pal; }
+  for(let i=0;i<3;i++) m.off.push(whOffer(b,false));
+  return m; }
+function whSign(b,o,silent){ const m=b.m, c={id:m.nid++, n:o.n, sec:o.sec, pal:o.pal, p:o.p, rot:o.rot, fr:o.fr, until:S.day+o.mo*30, sat:65, big:o.big};
+  m.ct.push(c); if(o.big) m.bign=(m.bign||0)+1; if(!silent) metLog(b,c.n+' confie '+fmtN(c.pal,0)+' palettes à l’entrepôt ('+fmtN(c.p,2)+' € par palette et par jour).','good'); return c; }
+/* une journée (sans hasard) */
+function whDay(b){ const m=b.m, E=WH_EQ[m.eq], k=whK(b); let rev=0, cost=0, mv=0, sto=0;
+  const peak=whPeak()? 1.4 : 1, brk=whEv(m,'pan');
+  m.ct.forEach(c=>{ const x=c.pal*c.rot*peak; mv+=x; sto+=c.pal*c.p; rev+=c.pal*c.p+x*3.2; if(c.fr) cost+=c.pal*.16; });
+  const capMv=1700*k*.35*E.sp*(brk?.5:1), done=Math.min(mv,capMv), late=mv-done;
+  cost+=done*E.h*(m.wms?.9:1)+late*E.h*2;                  /* manutention ; les retards coûtent double (heures supplémentaires) */
+  /* camions : chacun livre 140 colis par jour, 3,8 € le colis ; payés même à l'arrêt */
+  const strike=whEv(m,'gr'), want=mv*.6, cap=m.tr*140, del=strike? 0 : Math.min(want,cap);
+  rev+=del*3.8*(m.exp?1.25:1); cost+=m.tr*290;
+  const used=whUsed(b), cap0=whCap(b);
+  cost+=Math.max(0,cap0-used)*.05;                          /* emplacements vides : éclairage, gardiennage */
+  return {rev, sto, cost, net:rev-cost, mv, done, late, del, occ:cap0? used/cap0 : 0, used, cap:cap0}; }
+MET.warehouse={
+  fam:'ind', core:true, init:whInit,
+  ranks:[
+    {n:'Logiciel de gestion', d:'Chaque palette est suivie : moins d’erreurs, clients plus satisfaits, manutention −10 %.'},
+    {n:'Zone frigorifique', d:'Un quart de l’entrepôt sous température : contrats alimentaires et pharmaceutiques mieux payés.'},
+    {n:'Entrepôt automatisé', d:'Robots et convoyeurs : manutention deux fois moins chère et beaucoup plus rapide.'},
+    {n:'Livraison express', d:'Vos camions livrent en 24 heures : +25 % par colis.'},
+    {n:'Plateforme multimodale', d:'Rail, route et port : des clients plus gros et mieux payés (+12 %).'}
+  ],
+  mods(b){ const m=b.m; return {vol:0, cogs:0, rev:m.pend, fixed:m.pendC}; },
+  daily(b,ctx){ const m=b.m;
+    if(ctx.open){ m.pend=m.acc; m.pendC=m.accC; m.acc=0; m.accC=0; }
+    m.ev=(m.ev||[]).filter(e=>e.until>=S.day);
+    m.mk=clamp(m.mk+(1-m.mk)*.01+.006*norm(),.8,1.2);
+    const d=whDay(b); m.st=d; if(ctx.open){ m.acc+=d.rev; m.accC+=d.cost; } else { m.acc+=d.sto; m.accC+=d.cost*.35; }   /* le week-end, le stockage reste payé */
+    /* satisfaction : retards, erreurs, prix */
+    m.ct.slice().forEach(c=>{ const tgt=clamp(70-(d.mv? d.late/d.mv : 0)*120+(m.wms?8:0)-(m.eq===0?6:0)-Math.max(0,c.p/(WH_P0*m.mk*(c.fr?1.7:1))-1)*60,0,100); c.sat=clamp(c.sat+(tgt-c.sat)/40,0,100);
+      if(c.until<=S.day){ if(rnd()<clamp(c.sat/100*1.15-.1,.05,.95)){ c.p=+((c.p*.5+WH_P0*m.mk*(c.fr?1.7:1)*.5)).toFixed(2); c.until=S.day+pick([3,6,12])*30; metLog(b,c.n+' renouvelle son contrat ('+fmtN(c.pal,0)+' palettes).','good'); }
+        else { m.ct=m.ct.filter(x=>x!==c); metLog(b,c.n+' ne renouvelle pas et retire ses '+fmtN(c.pal,0)+' palettes.','warn'); } } });
+    /* commercial : sans consigne, il remplit les emplacements vides avec des clients moyens, 8 % sous le prix du marché */
+    if(m.brk&&rnd()<.07){ const o=whOffer(b,false); if(!o.fr&&whUsed(b)+o.pal<=whCap(b)){ o.p=+(o.p*.92).toFixed(2); whSign(b,o,true); metLog(b,'le commercial signe '+o.n+' ('+fmtN(o.pal,0)+' palettes).',''); } }
+    m.off=m.off.filter(o=>o.exp>S.day); if(m.off.length<(whPeak()?6:4)&&rnd()<.25) m.off.push(whOffer(b,false));
+    whRisks(b);
+  },
+  kpis(b){ const m=b.m, d=m.st||whDay(b);
+    return [['Occupation', Math.round(d.occ*100)+' %', fmtN(d.used,0)+' palettes sur '+fmtN(d.cap,0)],
+            ['Mouvements / jour', fmtN(Math.round(d.mv)), d.late>1? fmtN(Math.round(d.late))+' en retard' : 'Tout est traité à temps'],
+            ['Clients', String(m.ct.length), whPeak()? 'Pic de fin d’année' : 'Activité normale'],
+            ['Camions', String(m.tr), m.tr? fmtN(Math.round(d.del))+' colis livrés par jour' : 'Aucun camion']];
+  },
+  ctl(b){ const m=b.m, d=bizDef(b), out=[], R0=metR0(b);
+    out.push({k:'tog', act:'brk', label:'Commercial', val:m.brk?1:0, sub:'Il remplit seul les emplacements vides, 8 % sous le prix du marché.'});
+    const nx=WH_EQ[m.eq+1]; if(nx&&(!nx.rk||mxHas(b,nx.rk))) out.push({k:'buy', act:'eq', label:nx.n, cost:R0*nx.c, sub:'Manutention moins chère et plus rapide.'});
+    else out.push({k:'buy', act:'eq', label:WH_EQ[m.eq].n, owned:true, sub:'Équipement actuel.'});
+    out.push({k:'btn', act:'rk', label:'Rayonnages hauts ('+(m.rk||0)+' / 3)', cost:R0*3*(1+(m.rk||0)), dis:(m.rk||0)>=3, sub:'+30 % d’emplacements à chaque fois.'});
+    out.push({k:'btn', act:'tr', label:'Acheter un camion ('+m.tr+')', cost:R0*5, sub:'140 colis livrés par jour pour vos clients, 290 € de frais quotidiens.'});
+    if(m.tr) out.push({k:'btn', act:'trs', label:'Revendre un camion', gain:R0*3, sub:'Un camion de moins.'});
+    [['wms',1,.6,'Logiciel de gestion','Moins d’erreurs, manutention −10 %.'],['fr',2,1.5,'Zone frigorifique','Un quart des emplacements sous température.'],['exp',4,2,'Livraison express','+25 % par colis livré.'],['hub',5,4,'Plateforme multimodale','Clients plus gros, +12 % de prix.']].forEach(([k2,rk,f,l,s])=>{
+      if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:d.cost*f, sub:s}); });
+    return out; },
+  acts:{
+    brk:(b,v)=>{ b.m.brk= v===undefined? (b.m.brk?0:1) : (+v?1:0); return ok(b.m.brk? 'Le commercial remplit l’entrepôt.' : 'Vous choisissez vos clients.'); },
+    sign:(b,arg)=>{ const [oid,neg]=String(arg).split(':'); return whTake(b,+oid,+neg||0); },
+    end:(b,id)=>{ const m=b.m, c=m.ct.find(x=>x.id===+id); if(!c) return err('Contrat introuvable.'); const pen=c.pal*c.p*30; if(!metBuy(b,pen,'Rupture de contrat : '+c.n)) return err('Il faut '+eur(pen,0)+' d’indemnité (un mois).'); m.ct=m.ct.filter(x=>x!==c); return ok('Contrat rompu : '+fmtN(c.pal,0)+' palettes libérées.'); },
+    eq:(b)=>{ const m=b.m, nx=WH_EQ[m.eq+1]; if(!nx) return err('Équipement au maximum.'); if(nx.rk&&!mxHas(b,nx.rk)) return err('Palier '+nx.rk+' requis.'); const c=metR0(b)*nx.c; if(!metBuy(b,c,nx.n)) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m.eq++; metLog(b,'nouvel équipement : '+nx.n.toLowerCase()+'.','good'); return ok(nx.n+' en service.'); },
+    rk:(b)=>{ const m=b.m; if((m.rk||0)>=3) return err('Rayonnages au maximum.'); const c=metR0(b)*3*(1+(m.rk||0)); if(!metBuy(b,c,'Rayonnages hauts')) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m.rk=(m.rk||0)+1; return ok(fmtN(whCap(b),0)+' emplacements.'); },
+    tr:(b)=>{ const c=metR0(b)*5; if(!metBuy(b,c,'Achat d’un camion')) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); b.m.tr++; return ok('Camion en service.'); },
+    trs:(b)=>{ const m=b.m; if(!m.tr) return err('Aucun camion.'); m.tr--; payCap('b:'+b.id,'Revente d’un camion',metR0(b)*3); settleAccounts(); return ok('Camion revendu.'); },
+    wms:(b)=>whBuyR(b,'wms',.6,'Logiciel de gestion',1),
+    fr:(b)=>whBuyR(b,'fr',1.5,'Zone frigorifique',2),
+    exp:(b)=>whBuyR(b,'exp',2,'Livraison express',4),
+    hub:(b)=>whBuyR(b,'hub',4,'Plateforme multimodale',5)
+  },
+  auto: whAuto
+};
+function whBuyR(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizDef(b).cost*f;
+  if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m[k]=1; metLog(b,label.toLowerCase()+' : c’est fait.','good'); return ok(label+' : c’est fait.'); }
+function whTake(b,oid,neg){ const m=b.m, o=m.off.find(x=>x.id===oid); if(!o) return err('Ce client a trouvé ailleurs.');
+  if(o.fr&&(!m.fr||whFrUsed(b)+o.pal>whFrCap(b))) return err('Il faut de la place en zone frigorifique.');
+  if(whUsed(b)+o.pal>whCap(b)) return err('Pas assez d’emplacements libres ('+fmtN(whCap(b)-whUsed(b),0)+').');
+  if(neg){ if(rnd()<.5){ m.off=m.off.filter(x=>x!==o); return err(o.n+' refuse vos conditions et s’en va.'); } o.p=+(o.p*1.08).toFixed(2); }
+  m.off=m.off.filter(x=>x!==o); const c=whSign(b,o); return ok(c.n+' signe pour '+o.mo+' mois.'); }
+function whRisks(b){ const m=b.m, r=rnd();
+  if(r<.002&&!whEv(m,'gr')&&m.tr){ m.ev.push({k:'gr',until:S.day+3}); metLog(b,'grève des transports : vos camions restent à quai trois jours.','bad'); }
+  else if(r<.0035&&!whEv(m,'pan')){ m.ev.push({k:'pan',until:S.day+4}); metLog(b,'panne des chariots : la manutention tourne au ralenti quatre jours.','bad'); }
+  else if(r<.0055){ m.off.push(whOffer(b,true)); metLog(b,'un grand compte cherche de la place pour un an : offre valable une semaine.','good'); }
+  const F=m.ct.filter(c=>c.sec==='mode'||c.sec==='jouets'); if(F.length&&rnd()<.0004*F.length){ const c=pick(F); m.ct=m.ct.filter(x=>x!==c); metLog(b,c.n+' fait faillite : ses palettes sont vendues aux enchères, le dernier mois est perdu.','bad'); } }
+/* le directeur : signe les clients qui tiennent dans l'entrepôt ; en délégation totale, équipe et achète des camions */
+function whAuto(b,mode,q){ const m=b.m;
+  if(S.day%2===0) m.off.slice().sort((x,y)=>y.p*y.pal-x.p*x.pal).forEach(o=>{ if(o.p>=WH_P0*m.mk*(o.fr?1.7:1)*.85||rnd()<q) whTake(b,o.id,0); });
+  if(mode!=='full'||S.day%30) return;
+  const d=m.st||whDay(b), R0=metR0(b), nx=WH_EQ[m.eq+1];
+  if(nx&&(!nx.rk||mxHas(b,nx.rk))&&d.late>0&&dlSpend(b,R0*nx.c,nx.n)){ m.eq++; return; }
+  if(d.occ>.9&&(m.rk||0)<3&&dlSpend(b,R0*3*(1+(m.rk||0)),'Rayonnages hauts')){ m.rk=(m.rk||0)+1; return; }
+  if(d.mv*.6>m.tr*140+140&&dlSpend(b,R0*5,'Achat d’un camion')){ m.tr++; return; }
+  for(const [k,f,l,rk] of [['wms',.6,'Logiciel de gestion',1],['fr',1.5,'Zone frigorifique',2],['exp',2,'Livraison express',4],['hub',4,'Plateforme multimodale',5]]) if(!m[k]&&mxHas(b,rk)&&whBuyR(b,k,f,l,rk,true).ok) break; }
+
+/* ============================================================
    LIENS ENTRE VOS ENTREPRISES ET VOTRE CLUB
    - Ferme → buvettes du stade : à chaque match à domicile, les buvettes vendent ; avec votre
      ferme, ce sont vos produits (recette ×1,5).
@@ -11729,7 +11864,7 @@ function modalBiz(b){
     /* pilotage */
     body+='<div class="card" id="bj-pil"><h2>Pilotage</h2><div class="grid">'+
       (pqOn(b)? '<div class="stack"><b>Qualité du produit</b><div class="seg">'+PQN.map((n,k)=>'<button class="'+(pqOf(b)===k?'on':'')+'" data-a="setpq" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div><div class="sub">Coût des marchandises : '+(PQC[pqOf(b)]>1?'+'+Math.round((PQC[pqOf(b)]-1)*100)+' %':'normal')+'. Une meilleure qualité fait monter la satisfaction des clients, donc les ventes.</div></div>' : '')+
-      '<div class="stack"><div class="row" style="gap:0"><label for="sl-pol"><b>Politique salariale</b> : <span id="lb-pol" class="num">'+Math.round(b.pol*100)+' %</span></label><button class="qm" type="button" data-a="gloss" data-v="Politique salariale" aria-label="Explication : politique salariale">i</button></div><input type="range" id="sl-pol" min="80" max="140" step="5" value="'+Math.round(b.pol*100)+'" data-live="lb-pol" data-fmt="pct" data-ch="setpol" data-i="'+b.id+'"></div>'+
+      '<div class="stack"><div class="row" style="gap:0"><label for="sl-pol"><b>Politique salariale</b> : <span id="lb-pol" class="num">'+Math.round(b.pol*100)+' %</span></label><button class="qm" type="button" data-a="gloss" data-v="Politique salariale" aria-label="Explication : politique salariale">?</button></div><input type="range" id="sl-pol" min="80" max="140" step="5" value="'+Math.round(b.pol*100)+'" data-live="lb-pol" data-fmt="pct" data-ch="setpol" data-i="'+b.id+'"></div>'+
       (isFact(b)? factPilot(b) : '<div class="stack"><label for="sl-price"><b>Prix de vente</b> : <span id="lb-price" class="num">'+Math.round(b.price*100)+' %</span></label><input type="range" id="sl-price" min="80" max="130" step="5" value="'+Math.round(b.price*100)+'" data-live="lb-price" data-fmt="pct" data-ch="setprice" data-i="'+b.id+'"></div>')+
       '<div class="stack"><b>Marketing</b><div class="seg">'+[0,1,2,3].map(k=>'<button class="'+(b.mkt===k?'on':'')+'" data-a="setmkt" data-i="'+b.id+'" data-v="'+k+'">'+['Aucun','Léger','Soutenu','Intense'][k]+'</button>').join('')+'</div><div class="sub">Coût : '+eur(base.R0*MKT_PCT[b.mkt],0)+' / jour ouvré. Ventes '+multPct(MKT_BOOST[b.mkt])+'.</div></div>'+
       (d.open==='always'? '<div class="stack"><b>Week-end</b><div class="sub">Ouvert chaque jour</div></div>'
@@ -13282,7 +13417,9 @@ function vHome(){
   const f=nx? clamp((S.peakNW-cur.nw)/(nx.nw-cur.nw),0,1) : 1;
   const bd=nwBreakdown(); const pos=Object.entries(bd).filter(e=>e[1]>0.5); const tot=pos.reduce((a,e)=>a+e[1],0)||1;
   h+='<section class="card hero"><div class="row sp"><span class="hl">Valeur nette</span>'+(rows.length?pill((dnet>=0?'▲ ':'▼ ')+signed(dnet,0)+' hier',dnet>=0?'good':'bad'):'')+'</div>'+
-    '<b class="hbig num">'+eur(S.nw,0)+'</b>'+
+    '<b class="hbig num">'+eur(S.nw,0)+'</b></section>';
+  /* V1.6.2 : accueil épuré ; le reste passe dans « Plus de détails » */
+  let hd='<section class="card hero">'+
     lineChart(S.nwH,{h:110,x0:dateS(1),x1:dateS(S.day),label:'Évolution de la valeur nette'})+
     (nx? '<div class="hstep"><div class="row sp"><span><b>'+cur.n+'</b> → '+nx.n+'</span><span class="num">'+Math.round(f*100)+' %</span></div>'+bar(f,'a')+'<div class="sub">'+eur(nx.nw,0)+' de patrimoine record pour débloquer : '+esc(nx.d.split(',').slice(0,3).join(','))+'…</div></div>' : '<div class="sub">Palier maximal atteint.</div>')+
     '<details class="hdet"><summary>Répartition du patrimoine</summary><div class="stk" style="margin:8px 0 6px">'+pos.map((e,i)=>'<i style="width:'+(e[1]/tot*100).toFixed(2)+'%;background:'+CATCOL[i%9]+'"></i>').join('')+'</div><div class="legend">'+pos.map((e,i)=>'<span><i style="background:'+CATCOL[i%9]+'"></i>'+e[0]+' '+eur(e[1],0)+'</span>').join('')+(bd.Dettes<0?'<span class="neg">Dettes '+eur(bd.Dettes,0)+'</span>':'')+'</div></details></section>';
@@ -13298,7 +13435,7 @@ function vHome(){
   }
   /* bilan compact */
   const tin=rows.reduce((a,r)=>a+r.in,0), tout=rows.reduce((a,r)=>a+r.out,0);
-  h+=card('Bilan du '+(S.flLastDay? dateL(S.flLastDay) : 'jour'), rows.length?
+  hd+=card('Bilan du '+(S.flLastDay? dateL(S.flLastDay) : 'jour'), rows.length?
     '<div class="flist">'+rows.slice(0,6).map(r=>'<div><span>'+esc(srcName(r.k))+'</span><b class="num '+cls(r.net)+'">'+signed(r.net,0)+'</b></div>').join('')+
     '<div class="ftot"><span>Total'+(rows.length>6?' ('+rows.length+' lignes)':'')+'</span><b class="num '+cls(tin-tout)+'">'+signed(tin-tout,0)+'</b></div></div>'+
     '<div class="row sp"><span class="sub">Entrées '+eur(tin,0)+' · sorties '+eur(tout,0)+'</span><button class="lnk" data-a="tab" data-i="books">Détail ›</button></div>'
@@ -13318,7 +13455,9 @@ function vHome(){
     '<div class="flist" style="margin-top:8px">'+todo.slice(0,3).map(a=>'<div><span><b>'+a.t+'</b><small>'+a.d+'</small></span></div>').join('')+(todo.length?'':'<div class="sub">Tous les objectifs sont atteints.</div>')+'</div>');
   const jr=S.journal.slice(-8).reverse();
   const jcard=card('Actualités','<div class="log">'+jr.map(x=>'<div><span class="d">'+dateS(x.d)+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':x.k==='club'?'<span class="tag" style="margin-right:6px">Club</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>');
-  return h+'<div class="grid">'+agenda+ach+'</div>'+jcard;
+  hd+='<div class="grid">'+agenda+ach+'</div>'+jcard;
+  const F=S.fcfold||{};
+  return h+'<details class="fcd hmore" data-k="hm"'+(F.hm?' open':'')+'><summary><span class="hm-s">Plus de détails</span></summary><div class="hm-b">'+hd+'</div></details>';
 }
 
 /* En-tête de la fiche société */
@@ -15286,10 +15425,12 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.6.1';
+const IB_VER='V1.6.2';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Progression un peu plus lente','Les prix doublés de la version précédente sont abandonnés. À la place, créer, agrandir et équiper une entreprise coûte 20 % de plus, pour les mêmes recettes : chacune met un peu plus de temps à se rembourser.']
+  ['L’entrepôt devient un vrai métier','Signez des clients qui louent vos emplacements de palettes, suivez la manutention, équipez-vous (chariots puis robots), ajoutez des rayonnages, une zone frigorifique et des camions de livraison.'],
+  ['Start-up : directeur plus ambitieux','En délégation totale, il lève des fonds dès que possible, ce qui fait monter les paliers, puis pivote vers l’IA.'],
+  ['Écrans plus épurés','L’accueil garde l’essentiel, le reste passe dans « Plus de détails ». Les lignes aériennes et maritimes s’ouvrent avec « Gérer », et les longues explications passent derrière des boutons « ? ».']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -15682,7 +15823,7 @@ function alMap(b){
   const ln=m.ln.map(l=>{ const A=alAp(l.a), B=alAp(l.b); if(Math.abs(A.lon-B.lon)>180) return ''; return '<line x1="'+alX(A.lon)+'" y1="'+alY(A.lat)+'" x2="'+alX(B.lon)+'" y2="'+alY(B.lat)+'" class="al-l'+(alDist(l.a,l.b)>3500?' lg':'')+'"/>'; }).join('');
   const dests=new Set(m.ln.flatMap(l=>[l.a,l.b]));
   const pts=Object.values(AL_AP).filter(a=>a.hub||dests.has(a.id)).map(a=>{ const own=m.hubs.includes(a.id); return '<circle cx="'+alX(a.lon)+'" cy="'+alY(a.lat)+'" r="'+(own?2.2:a.hub?1.4:1)+'" class="al-p'+(own?' own':a.hub?' hub':'')+'"/>'; }).join('');
-  return '<div class="ys-map al-map"><svg viewBox="0 4 360 146" role="img" aria-label="Carte de votre réseau">'+land+ln+pts+'</svg></div><div class="sub">Points pleins : vos plateformes. Petits points : autres grands aéroports. Traits : vos lignes (en pointillé, le long-courrier).</div>';
+  return '<div class="ys-map al-map"><svg viewBox="0 4 360 146" role="img" aria-label="Carte de votre réseau">'+land+ln+pts+'</svg></div><div class="sub">Comment ça marche'+helpQ('Carte des lignes aériennes','Points pleins : vos plateformes. Petits points : autres grands aéroports. Traits : vos lignes (en pointillé, le long-courrier).')+'</div>';
 }
 function alBt(b,lab,act,arg,o){ return '<button class="btn '+((o&&o.c)||'sm')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o&&o.dis?' disabled':'')+(o&&o.l?' aria-label="'+esc(o.l)+'"':'')+'>'+lab+'</button>'; }
 MET.airline.html=function(b){
@@ -15693,8 +15834,8 @@ MET.airline.html=function(b){
   m.ln.forEach(l=>{ const x=l.st||alLineDay(b,l,true), P=m.fl.filter(p=>p.ln===l.id), d=alDist(l.a,l.b);
     h+='<div class="rs-d"><div><b>'+esc(alAp(l.a).n)+' – '+esc(alAp(l.b).n)+'</b><small>'+fmtN(d,0)+' km · '+P.map(p=>AL_TY[p.t].n).join(', ')+' · '+(x.legs||0)+' vols par jour · remplissage '+Math.round((x.lf||0)*100)+' %</small>'+
       '<small>Billet éco '+eur(alEco(d)*(AL_PRICE[l.p]||1),0)+' ('+Math.round((AL_PRICE[l.p]||1)*100)+' % du prix habituel) · affaires : '+['aucune','8 % de la cabine','15 % de la cabine'][l.cab]+' · résultat '+'<b class="num '+cls(x.net||0)+'">'+signed(x.net||0,0)+' / j</b>'+(x.strike?' · grève':'')+'</small>'+
-      '<div class="fm-a">'+alBt(b,'Prix −','price',l.id+':'+Math.max(0,l.p-1),{c:'sm ghost',dis:l.p<=0})+alBt(b,'Prix +','price',l.id+':'+Math.min(3,l.p+1),{c:'sm ghost',dis:l.p>=3})+alBt(b,'Cabine','cab',l.id+':'+((l.cab+1)%3),{c:'sm ghost'})+
-      '<button class="btn sm ghost" data-a="aladd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un avion</button>'+alBt(b,'Fermer','close',l.id,{c:'sm ghost'})+'</div></div></div>'; });
+      (ui.lnG!==l.id? '<div class="fm-a"><button class="btn sm" data-a="lng" data-i="'+l.id+'">Gérer</button></div>' : '<div class="fm-a">'+alBt(b,'Prix −','price',l.id+':'+Math.max(0,l.p-1),{c:'sm ghost',dis:l.p<=0})+alBt(b,'Prix +','price',l.id+':'+Math.min(3,l.p+1),{c:'sm ghost',dis:l.p>=3})+alBt(b,'Cabine','cab',l.id+':'+((l.cab+1)%3),{c:'sm ghost'})+
+      '<button class="btn sm ghost" data-a="aladd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un avion</button>'+alBt(b,'Fermer la ligne','close',l.id,{c:'sm ghost'})+'<button class="btn sm" data-a="lng" data-i="0">Terminé</button></div>')+'</div></div>'; });
   h+='</div><div><button class="btn sm pri" data-a="alnew" data-i="'+b.id+'">Ouvrir une ligne</button></div>';
   /* flotte */
   const idle=m.fl.filter(p=>!p.ln||!m.ln.some(l=>l.id===p.ln));
@@ -15704,10 +15845,10 @@ MET.airline.html=function(b){
       '<div class="fm-a">'+alBt(b,p.own?'Revendre ('+eur(T.pr*.7,0)+')':'Rendre','drop',p.id,{c:'sm ghost'})+'</div></div></div>'; });
   h+='</div><div class="pk-list">'+Object.entries(AL_TY).map(([k,T])=>'<div class="pk-o al-ty"><span><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+T.seats+' places · '+fmtN(T.rg,0)+' km</small></span><span class="row">'+
     alBt(b,'Louer '+eur(T.ls,0)+' / j','lease',k,{c:'sm',dis:!can(T.ls*30)})+alBt(b,'Acheter '+eur(T.pr,0),'buy',k,{c:'sm ghost',dis:!can(T.pr)})+'</span></div>').join('')+'</div>'+
-    '<div class="sub">Une location demande un dépôt de 30 jours de loyer, rendu à la fin. Un avion acheté ne paie que son entretien et se revend 70 % de son prix.</div>';
+    '<div class="sub">Comment ça marche'+helpQ('Avions : louer ou acheter','Une location demande un dépôt de 30 jours de loyer, rendu à la fin. Un avion acheté ne paie que son entretien et se revend 70 % de son prix.')+'</div>';
   /* tours de contrôle */
   h+='<div class="pk-head"><b>Tours de contrôle</b><span class="sub">Image de marque '+Math.round(m.img)+' / 100</span></div>';
-  h+='<div class="sub">Une place dans la tour d’un grand aéroport permet d’en faire partir des lignes vers le même pays ou un pays voisin, et du long-courrier vers vos autres plateformes. L’image de marque monte avec les années, le réseau et le service.</div>';
+  h+='<div class="sub">Comment ça marche'+helpQ('Places dans les tours','Une place dans la tour d’un grand aéroport permet d’en faire partir des lignes vers le même pays ou un pays voisin, et du long-courrier vers vos autres plateformes. L’image de marque monte avec les années, le réseau et le service.')+'</div>';
   Object.keys(AL_CT).forEach(ct=>{ const L=Object.values(AL_AP).filter(a=>a.hub&&AL_CO[a.co].ct===ct); if(!L.length) return;
     h+='<div class="tag">'+AL_CT[ct]+'</div><div class="ht-t">'+L.map(a=>{ const own=m.hubs.includes(a.id), req=alHubReq(b,a.id), c=alHubCost(a.id);
       if(own){ const n=(m.ext&&m.ext[a.id])||0; return '<div class="rs-d"><div><b>'+esc(a.n)+'</b><small>'+esc(AL_CO[a.co].n)+' · '+alHubUsed(b,a.id)+' / '+alHubCap(b,a.id)+' lignes</small><div class="fm-a">'+(n<3? alBt(b,'Créneaux : '+eur(alExtCost(b,a.id),0),'ext',a.id,{c:'sm',dis:!can(alExtCost(b,a.id))}) : pill('Créneaux au maximum','good'))+'</div></div></div>'; }
@@ -15754,7 +15895,7 @@ function shMap(b){
   const chs=m.fl.filter(p=>p.ch).map(p=>'<g class="sh-l ch">'+shPoly(shPath(p.ch.a,p.ch.b,m,!SH_TY[p.t].pan).pts)+'</g>').join('');
   const used=new Set(m.ln.flatMap(l=>[l.a,l.b]));
   const pts=Object.values(SH_PT).map(a=>{ const own=m.tm.includes(a.id); return '<circle cx="'+shX(a.lon)+'" cy="'+shY(a.lat)+'" r="'+(own?2.2:used.has(a.id)?1.5:1)+'" class="al-p'+(own?' own':a.tm?' hub':'')+'"/>'; }).join('');
-  return '<div class="ys-map al-map"><svg viewBox="0 4 360 146" role="img" aria-label="Carte de votre réseau maritime">'+land+ln+chs+pts+'</svg></div><div class="sub">Points pleins : vos terminaux. Traits pleins : vos lignes (en pointillé, l’intercontinental). Traits fins : voyages d’affrètement en cours.</div>';
+  return '<div class="ys-map al-map"><svg viewBox="0 4 360 146" role="img" aria-label="Carte de votre réseau maritime">'+land+ln+chs+pts+'</svg></div><div class="sub">Comment ça marche'+helpQ('Carte du réseau maritime','Points pleins : vos terminaux. Traits pleins : vos lignes (en pointillé, l’intercontinental). Traits fins : voyages d’affrètement en cours.')+'</div>';
 }
 function shBt(b,lab,act,arg,o){ return '<button class="btn '+((o&&o.c)||'sm')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o&&o.dis?' disabled':'')+'>'+lab+'</button>'; }
 function shShipState(m,p){ const l=p.ln&&m.ln.find(x=>x.id===p.ln);
@@ -15770,13 +15911,13 @@ MET.shipping.html=function(b){
   m.ln.forEach(l=>{ const x=l.st||shLineDay(b,l), P=m.fl.filter(p=>p.ln===l.id), path=shPath(l.a,l.b,m,false);
     h+='<div class="rs-d"><div><b>'+esc(shPt(l.a).n)+' – '+esc(shPt(l.b).n)+'</b><small>'+fmtN(x.d||path.d,0)+' km'+(path.canal? ' · canal de '+(path.canal==='suez'?'Suez':'Panama') : '')+(path.aden?' · golfe d’Aden':'')+' · '+(P.length? P.map(p=>SH_TY[p.t].n).join(', ') : 'aucun navire')+'</small>'+
       '<small>'+fmtN(Math.round(x.teu||0))+' EVP par jour sur '+fmtN(Math.round(x.cap||0))+' · remplissage '+Math.round((x.lf||0)*100)+' % · demande '+fmtN(Math.round(x.want||0))+' · prix '+Math.round((SH_PRICE[l.p]||1)*100)+' % · résultat <b class="num '+cls(x.net||0)+'">'+signed(x.net||0,0)+' / j</b></small>'+
-      '<div class="fm-a">'+shBt(b,'Prix −','price',l.id+':'+Math.max(0,l.p-1),{c:'sm ghost',dis:l.p<=0})+shBt(b,'Prix +','price',l.id+':'+Math.min(3,l.p+1),{c:'sm ghost',dis:l.p>=3})+
-      '<button class="btn sm ghost" data-a="shadd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un navire</button>'+(P.length>1? shBt(b,'Retirer un navire','off',P[P.length-1].id,{c:'sm ghost'}) : '')+shBt(b,'Fermer','close',l.id,{c:'sm ghost'})+'</div></div></div>'; });
+      (ui.lnG!==l.id? '<div class="fm-a"><button class="btn sm" data-a="lng" data-i="'+l.id+'">Gérer</button></div>' : '<div class="fm-a">'+shBt(b,'Prix −','price',l.id+':'+Math.max(0,l.p-1),{c:'sm ghost',dis:l.p<=0})+shBt(b,'Prix +','price',l.id+':'+Math.min(3,l.p+1),{c:'sm ghost',dis:l.p>=3})+
+      '<button class="btn sm ghost" data-a="shadd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un navire</button>'+(P.length>1? shBt(b,'Retirer un navire','off',P[P.length-1].id,{c:'sm ghost'}) : '')+shBt(b,'Fermer la ligne','close',l.id,{c:'sm ghost'})+'<button class="btn sm" data-a="lng" data-i="0">Terminé</button></div>')+'</div></div>'; });
   h+='</div><div><button class="btn sm pri" data-a="shnew" data-i="'+b.id+'">Ouvrir une ligne</button></div>';
   /* affrètement */
   const bulk=m.fl.filter(p=>SH_TY[p.t].k!=='box');
   h+='<div class="pk-head"><b>Affrètement</b><span class="sub">Indice du vrac '+Math.round(m.bi*100)+' · '+bulk.filter(p=>p.ch).length+' voyage(s) en cours</span></div>';
-  h+='<div class="sub">Des chargeurs cherchent un navire pour un voyage. Le prix suit l’indice du fret ; les offres changent chaque semaine. Il faut un vraquier ou un pétrolier libre.</div><div class="ht-t">';
+  h+='<div class="sub">Comment ça marche'+helpQ('Fonctionnement de l’affrètement','Des chargeurs cherchent un navire pour un voyage. Le prix suit l’indice du fret ; les offres changent chaque semaine. Il faut un vraquier ou un pétrolier libre.')+'</div><div class="ht-t">';
   h+=m.off.slice().sort((x,y)=>y.pay/y.days-x.pay/x.days).map(o=>{ const ok=m.fl.some(p=>SH_TY[p.t].k===o.k&&SH_TY[p.t].cap>=o.q&&shFree(m,p));
     return '<div class="rs-d"><div><b>'+esc(o.c.charAt(0).toUpperCase()+o.c.slice(1))+' : '+esc(shPt(o.a).n)+' – '+esc(shPt(o.b).n)+'</b><small>'+fmtN(o.q,0)+' t · '+(o.k==='bulk'?'vraquier':'pétrolier')+' · environ '+o.days+' jours · '+eur(o.pay,0)+' (≈ '+eur(o.pay/o.days,0)+' / j) · jusqu’au '+dateS(o.exp)+'</small>'+
       '<div class="fm-a"><button class="btn sm'+(ok?' pri':'')+'" data-a="shch" data-i="'+b.id+'" data-j="'+o.id+'"'+(ok?'':' disabled')+'>'+(ok?'Accepter':'Aucun navire libre')+'</button></div></div></div>'; }).join('')+'</div>';
@@ -15788,10 +15929,10 @@ MET.shipping.html=function(b){
       (p.ch||p.yard>S.day? '' : '<div class="fm-a">'+shBt(b,p.own?'Revendre ('+eur(shResale(p),0)+')':'Rendre','drop',p.id,{c:'sm ghost'})+'</div>')+'</div></div>'; });
   h+='</div><div class="pk-list">'+Object.entries(SH_TY).map(([k,T])=>'<div class="pk-o al-ty"><span><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+(T.k==='box'? fmtN(T.cap,0)+' EVP' : fmtN(T.cap,0)+' t')+' · '+T.kn+' nœuds</small></span><span class="row">'+
     shBt(b,'Louer '+eur(T.ls,0)+' / j','lease',k,{c:'sm',dis:!can(T.ls*30)})+shBt(b,'Occasion '+eur(T.pr*SH_OCC,0),'occ',k,{c:'sm ghost',dis:!can(T.pr*SH_OCC)})+shBt(b,'Neuf '+eur(T.pr,0),'yard',k,{c:'sm ghost',dis:!can(T.pr)})+'</span></div>').join('')+'</div>'+
-    '<div class="sub">Location : dépôt de 30 jours de loyer, rendu à la fin. Occasion : disponible tout de suite, entretien plus cher, revente 35 %. Neuf : livré par le chantier naval en '+SH_YARD+' jours, revente 65 %.</div>';
+    '<div class="sub">Comment ça marche'+helpQ('Louer, occasion ou neuf','Location : dépôt de 30 jours de loyer, rendu à la fin. Occasion : disponible tout de suite, entretien plus cher, revente 35 %. Neuf : livré par le chantier naval en '+SH_YARD+' jours, revente 65 %.')+'</div>';
   /* terminaux */
   h+='<div class="pk-head"><b>Ports et terminaux</b><span class="sub">Réputation '+Math.round(m.img)+' / 100</span></div>';
-  h+='<div class="sub">Un terminal dans un grand port permet d’en faire partir des lignes vers sa région et les régions voisines, et des lignes intercontinentales vers vos autres terminaux. Vos escales y coûtent moitié moins, et d’autres compagnies vous paient pour vos quais. La réputation monte avec les années, le réseau et la fiabilité.</div>';
+  h+='<div class="sub">Comment ça marche'+helpQ('Ports et terminaux : fonctionnement','Un terminal dans un grand port permet d’en faire partir des lignes vers sa région et les régions voisines, et des lignes intercontinentales vers vos autres terminaux. Vos escales y coûtent moitié moins, et d’autres compagnies vous paient pour vos quais. La réputation monte avec les années, le réseau et la fiabilité.')+'</div>';
   Object.keys(SH_RG).forEach(rg=>{ const L=Object.values(SH_PT).filter(a=>a.tm&&a.rg===rg); if(!L.length) return;
     h+='<div class="tag">'+SH_RG[rg]+'</div><div class="ht-t">'+L.map(a=>{ const own=m.tm.includes(a.id), req=shTmReq(b,a.id), c=shTmCost(a.id);
       if(own){ const n=(m.ext&&m.ext[a.id])||0; return '<div class="rs-d"><div><b>'+esc(a.n)+'</b><small>Votre terminal · '+shTmUsed(b,a.id)+' / '+shTmCap(b,a.id)+' lignes</small><div class="fm-a">'+(n<3? shBt(b,'Quais : '+eur(shExtCost(b,a.id),0),'ext',a.id,{c:'sm',dis:!can(shExtCost(b,a.id))}) : pill('Quais au maximum','good'))+'</div></div></div>'; }
@@ -15853,24 +15994,48 @@ MET.office.html=function(b){
       '<small>Loyer de marché '+eur(ofMkt(b,B),0)+' / m² par an · résultat <b class="num '+cls(x.net)+'">'+signed(x.net,0)+' / j</b>'+(wk?' · '+wk:'')+'</small>'+
       '<div class="tag">Services</div><div class="fm-a">'+Object.keys(OF_SRV).map(k=>ofSrvOn(B,k)? ofBt(b,'Fermer : '+OF_SRV[k].n.toLowerCase(),'srv',B.id+':'+k,{c:'sm ghost'}) : ofBt(b,OF_SRV[k].n+' · '+eur(ofSrvCost(B,k),0),'srv',B.id+':'+k,{c:'sm',dis:!can(ofSrvCost(B,k))})).join('')+'</div>'+
       (ofWorks(B)? '' : '<div class="tag">Travaux</div><div class="fm-a">'+Object.keys(OF_WORK).filter(k=>!(k==='lbl'&&(B.lbl||B.std<3))&&!(k==='reno'&&B.std>=(m.pre?5:4))).map(k=>{ const c=Math.round(OF_WORK[k].c(B)*(m.fm?.9:1)/1000)*1000; return ofBt(b,OF_WORK[k].n+' · '+eur(c,0),'work',B.id+':'+k,{c:'sm ghost',dis:!can(c)}); }).join('')+(B.main?'':ofBt(b,'Vendre ('+eur(ofValue(b,B)*.95,0)+')','sellb',B.id,{c:'sm ghost'}))+'</div>')+'</div></div>'; });
-  h+='</div><div class="sub">Rafraîchissement : l’état remonte à 100 %. Rénovation lourde : un cran de standing (loyers plus élevés). Label énergie : charges −15 % et loyers +8 %, dès le standing « Haut de gamme ». Pendant les travaux, aucun nouveau locataire et des occupants moins satisfaits.</div>';
+  h+='</div><div class="sub">Comment ça marche'+helpQ('Travaux dans les immeubles','Rafraîchissement : l’état remonte à 100 %. Rénovation lourde : un cran de standing (loyers plus élevés). Label énergie : charges −15 % et loyers +8 %, dès le standing « Haut de gamme ». Pendant les travaux, aucun nouveau locataire et des occupants moins satisfaits.')+'</div>';
   /* prospects */
   h+='<div class="pk-head"><b>Entreprises intéressées</b><span class="sub">'+m.pr.length+' en recherche'+(ofEv(m,'tt')?' · télétravail':'')+'</span></div><div class="ht-t">';
   h+=m.pr.length? m.pr.slice().sort((x,y)=>(y.gc-x.gc)||(y.mult-x.mult)).map(P=>{ const ok=m.bd.filter(B=>!ofWorks(B)&&B.std>=P.std&&ofFree(B).length>=P.k).sort((x,y)=>ofMkt(b,y)-ofMkt(b,x)).slice(0,2);
     return '<div class="rs-d"><div><b>'+esc(P.n)+(P.gc?' · grand compte':'')+'</b><small>'+P.k+' étage'+(P.k>1?'s':'')+' · standing « '+OF_STD[P.std]+' » au moins · bail de '+P.yrs+' ans · '+OF_RISK[P.risk]+' · jusqu’au '+dateS(P.exp)+'</small>'+
       (ok.length? ok.map(B=>{ const r=ofMkt(b,B)*P.mult; return '<small>'+esc(B.n)+' : '+eur(r,0)+' / m² par an ('+Math.round(P.mult*100)+' % du marché)</small><div class="fm-a">'+ofBt(b,'Louer','lease',P.id+':'+B.id+':0',{c:'sm pri'})+ofBt(b,'Négocier +8 %','lease',P.id+':'+B.id+':1',{c:'sm ghost'})+'</div>'; }).join('')
         : '<small>'+(m.bd.some(B=>B.std>=P.std)? 'Pas assez d’étages libres pour le moment dans vos immeubles « '+OF_STD[P.std]+' » ou plus.' : 'Standing insuffisant : rénovez un immeuble ou achetez-en un « '+OF_STD[P.std]+' ».')+'</small>')+'</div></div>'; }).join('') : '<div class="sub">Personne pour le moment : de nouvelles entreprises se présentent régulièrement.</div>';
-  h+='</div><div class="sub">Négocier fait gagner 8 % de loyer, mais une entreprise sur deux refuse et cherche ailleurs. Une entreprise fragile peut faire faillite.</div>';
+  h+='</div><div class="sub">Comment ça marche'+helpQ('Négocier un bail','Négocier fait gagner 8 % de loyer, mais une entreprise sur deux refuse et cherche ailleurs. Une entreprise fragile peut faire faillite.')+'</div>';
   /* locataires */
   h+='<div class="pk-head"><b>Locataires</b><span class="sub">'+m.tn.length+' bail'+(m.tn.length>1?'x':'')+'</span></div><div class="ht-t">';
   m.tn.slice().sort((x,y)=>x.until-y.until).forEach(t=>{ const B=ofBd(b,t.bd);
     h+='<div class="rs-d"><div><b>'+esc(t.n)+'</b><small>'+esc(B?B.n:'')+' · '+t.fl.length+' étage'+(t.fl.length>1?'s':'')+' · '+eur(t.r,0)+' / m² par an · fin du bail le '+dateL(t.until)+'</small><div class="row sp"><span>'+pill('Satisfaction '+Math.round(t.sat),t.sat<40?'bad':t.sat<60?'warn':'good')+'</span>'+ofBt(b,'Faire partir','evict',t.id,{c:'sm ghost'})+'</div></div></div>'; });
-  h+='</div><div class="sub">À la fin du bail, un locataire satisfait renouvelle (au loyer du marché). Faire partir un locataire coûte six mois de loyer.</div>';
+  h+='</div><div class="sub">Comment ça marche'+helpQ('Fin des baux','À la fin du bail, un locataire satisfait renouvelle (au loyer du marché). Faire partir un locataire coûte six mois de loyer.')+'</div>';
   /* immeubles à vendre */
   h+='<div class="pk-head"><b>Immeubles à vendre</b><span class="sub">'+esc(D.CITIES[b.city].n)+'</span></div><div class="ht-t">';
   h+=m.bo.map(o=>'<div class="rs-d"><div><b>'+esc(o.n)+'</b><small>'+esc(ofDist(b,o.dist).n)+' · '+o.nf+' étages · '+fmtN(o.m2,0)+' m² · « '+OF_STD[o.std]+' » · état '+o.cond+' % · '+o.occ+' étage'+(o.occ>1?'s':'')+' déjà loué'+(o.occ>1?'s':'')+' · jusqu’au '+dateS(o.exp)+'</small><div class="fm-a">'+ofBt(b,'Acheter : '+eur(o.price,0),'buyb',o.id,{c:'sm',dis:!can(o.price)||m.bd.length>=8})+'</div></div></div>').join('')+'</div>';
   return h;
 };
+
+/* ============================================================
+   ENTREPÔT LOGISTIQUE : emplacements, clients, offres (V1.6.2)
+   ============================================================ */
+function whBt(b,lab,act,arg,o){ return '<button class="btn '+((o&&o.c)||'sm')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o&&o.dis?' disabled':'')+'>'+lab+'</button>'; }
+MET.warehouse.html=function(b){ const m=b.m, d=m.st||whDay(b), cap=whCap(b), used=whUsed(b);
+  let h='<div class="pk-head"><b>Emplacements</b><span class="sub">'+fmtN(used,0)+' / '+fmtN(cap,0)+' palettes'+(m.fr?' · froid '+fmtN(whFrUsed(b),0)+' / '+fmtN(whFrCap(b),0):'')+'</span></div>'+bar(used/Math.max(1,cap),used/cap>.95?'a':'g');
+  h+='<div class="sub">'+WH_EQ[m.eq].n+' · '+fmtN(Math.round(d.mv))+' mouvements par jour'+(d.late>1?' · <span class="neg">'+fmtN(Math.round(d.late))+' en retard</span>':'')+helpQ('Fonctionnement de l’entrepôt','Chaque client paie ses palettes chaque jour, week-end compris, et chaque entrée ou sortie. Trop de mouvements pour l’équipement : des retards, plus chers et mal vus. Vos usines de la même ville gardent leur stock plus longtemps.')+'</div>';
+  /* offres */
+  h+='<div class="pk-head"><b>Clients intéressés</b><span class="sub">'+m.off.length+' offre'+(m.off.length>1?'s':'')+'</span></div><div class="ht-t">';
+  h+=m.off.length? m.off.slice().sort((x,y)=>(y.big-x.big)||(y.p*y.pal-x.p*x.pal)).map(o=>{ const fit=whUsed(b)+o.pal<=cap&&(!o.fr||(m.fr&&whFrUsed(b)+o.pal<=whFrCap(b)));
+    return '<div class="rs-d"><div><b>'+esc(o.n)+(o.big?' · grand compte':'')+'</b><small>'+esc(o.sec)+(o.fr?' · sous température':'')+' · '+fmtN(o.pal,0)+' palettes · '+fmtN(o.p,2)+' € par palette et par jour · '+o.mo+' mois · jusqu’au '+dateS(o.exp)+'</small>'+
+      (fit? '<div class="fm-a">'+whBt(b,'Signer','sign',o.id+':0',{c:'sm pri'})+whBt(b,'Négocier +8 %','sign',o.id+':1',{c:'sm ghost'})+'</div>' : '<small>'+(o.fr&&!m.fr? 'Il faut une zone frigorifique.' : 'Pas assez de place.')+'</small>')+'</div></div>'; }).join('') : '<div class="sub">Aucune offre pour le moment.</div>';
+  h+='</div>';
+  /* clients */
+  h+='<div class="pk-head"><b>Clients</b><span class="sub">'+m.ct.length+' contrat'+(m.ct.length>1?'s':'')+'</span></div><div class="ht-t">';
+  m.ct.slice().sort((x,y)=>x.until-y.until).forEach(c=>{
+    h+='<div class="rs-d"><div><b>'+esc(c.n)+'</b><small>'+fmtN(c.pal,0)+' palettes'+(c.fr?' sous température':'')+' · '+fmtN(c.p,2)+' € par palette et par jour · fin le '+dateL(c.until)+'</small><div class="row sp"><span>'+pill('Satisfaction '+Math.round(c.sat),c.sat<40?'bad':c.sat<60?'warn':'good')+'</span>'+whBt(b,'Rompre','end',c.id,{c:'sm ghost'})+'</div></div></div>'; });
+  return h+'</div>';
+};
+/* petit bouton « ? » qui affiche une explication (même style que le glossaire) */
+function helpQ(k,t){ GLOSS[k]=t; return '<button class="qm" type="button" data-a="gloss" data-v="'+esc(k)+'" aria-label="Explication : '+esc(k)+'">?</button>'; }
+
+ACT.lng=el=>{ const id=+el.dataset.i; ui.lnG= id&&ui.lnG!==id? id : null; render(); };
 
 /* ============================================================
    LIENS : carte « Vos entreprises et le club » dans les finances du club
@@ -16236,6 +16401,12 @@ palDef('office',{col:'#8a5a44', sticky:1, icon:PI('<path d="M6 21V3h12v18M3 21h1
   badges:m=>({full:(m.bd||[]).some(B=>B.fl.every(Boolean))?1:0, gc:Math.min(1,m.gcn||0), lbl:(m.bd||[]).some(B=>B.lbl)?1:0, sig:(m.bd||[]).some(B=>B.std>=5)?1:0, pf:Math.min(4,Math.max(0,(m.bd||[]).length-1))}),
   ev:{full:['Votre immeuble affiche complet'], gc:['Un grand compte signe chez vous'], lbl:['Votre premier immeuble labellisé'], sig:['Un immeuble atteint le standing « Signature »'],
     pf:['Un deuxième immeuble rejoint votre portefeuille','Trois immeubles : un vrai portefeuille','Quatre immeubles dans la ville','Cinq immeubles : vous comptez sur le marché des bureaux']}});
+
+/* V1.6.2 : entrepôt logistique */
+palDef('warehouse',{col:'#1b7547', sticky:1, icon:PI('<path d="M2 9l10-5 10 5v12H2zM6 21v-9h12v9M6 15h12M6 18h12"/>'),
+  tag:n=>n.tr? 'Flotte de camions' : n.au? 'Automatisé' : n.gc? 'Grand compte' : 'Complet',
+  badges:(m,b)=>({full:typeof whUsed==='function'&&whUsed(b)>=whCap(b)*.98?1:0, gc:Math.min(1,m.bign||0), au:m.eq>=2?1:0, tr:m.tr>=5?1:0}),
+  ev:{full:['Votre entrepôt affiche complet'], gc:['Un grand compte vous confie ses stocks'], au:['Les robots prennent le relais : entrepôt automatisé'], tr:['Cinq camions à vos couleurs sillonnent les routes']}});
 
 /* ============================================================
    SONS ET VIBRATIONS (V1.3.7)
