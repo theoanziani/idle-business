@@ -9310,7 +9310,7 @@ const ecTr = (m,id) => m.tr[id].v*(m.tr[id].vir>0?2.2:1);
 /* une journée de l'entonnoir (sans hasard si sim=true, pour les prévisions) */
 function ecDay(b,sim){ const m=b.m, k=ecK(b), R0=metR0(b);
   const sale=m.ev&&m.ev.k==='soldes'&&m.ev.until>=S.day, late=m.ev&&m.ev.k==='retard'&&m.ev.until>=S.day;
-  let vis={org:850*k*(.5+.25*m.note)*(m.fid?1.25:1)*(m.intl?1.6:1)*(m.mkt?1.3:1)};
+  let vis={org:1020*k*/* V1.5.6 : +20 % de visiteurs naturels */(.5+.25*m.note)*(m.fid?1.25:1)*(m.intl?1.6:1)*(m.mkt?1.3:1)};
   Object.keys(EC_CH).forEach(c=>{ vis[c]=R0*EC_BUD[m.ch[c]]/EC_CH[c].cpc*(m.intl?1.2:1); });
   const tot=Object.values(vis).reduce((a,x)=>a+x,0);
   const L=m.cat.map(it=>{ const p=ecP(it.id); return {it, p, w:ecTr(m,it.id)}; }), wsum=L.reduce((a,x)=>a+x.w,0)||1;
@@ -15214,10 +15214,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.5.5';
+const IB_VER='V1.5.6';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Politique salariale expliquée','Un bouton « i » à côté de la jauge de politique salariale explique son effet sur la qualité, la fidélité et le moral.']
+  ['Boutique e-commerce plus rentable','La boutique en ligne attire 20 % de visiteurs naturels en plus : environ 20 % de chiffre d’affaires supplémentaire.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
