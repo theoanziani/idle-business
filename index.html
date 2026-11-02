@@ -11381,7 +11381,9 @@ function ofData(){ return {OF_SRV, OF_WORK, OF_STD}; }
 D.biz.warehouse.sub='Stockage, manutention et livraison pour vos clients';
 const WH_CL=[['Colibri Shop','e-commerce'],['Maison Ardent','grande distribution'],['Novapharm','pharmacie'],['Atelier Brume','mode'],['Ferrandi Industrie','industrie'],['Bio Vallée','alimentaire'],['Pixel Store','e-commerce'],['Mécaplus','industrie'],['Cave Saint-Clair','boissons'],['Glacier Polaire','alimentaire'],['TechNord','électronique'],['Jouets Lutin','jouets'],['Verdure & Co','jardinage'],['Opti Santé','pharmacie'],['Sport Élan','sport']];
 const WH_EQ=[{n:'Transpalettes', h:2.4, sp:1},{n:'Chariots élévateurs', h:1.5, sp:1.25, c:4},{n:'Entrepôt automatisé', h:.8, sp:1.6, c:14, rk:3}];
-const WH_P0=1.05;          /* prix moyen d'une palette stockée, € par jour */
+const WH_P0=1.12;          /* V1.7.2 : 1,05 → 1,12 */
+const WH_F={wms:.42,fr:1.05,exp:1.4,hub:2.8}; /* V1.7.2 : options 30 % moins chères */
+const WH_RK=5;          /* prix moyen d'une palette stockée, € par jour */
 const whK = b => metR0(b)/3454;
 function whCap(b){ const m=b.m; return Math.round(1700*whK(b)*(1+.3*(m.rk||0))); }
 function whUsed(b){ return b.m.ct.reduce((a,c)=>a+c.pal,0); }
@@ -11447,10 +11449,10 @@ MET.warehouse={
     out.push({k:'tog', act:'brk', label:'Commercial', val:m.brk?1:0, sub:'Il remplit seul les emplacements vides, 8 % sous le prix du marché.'});
     const nx=WH_EQ[m.eq+1]; if(nx&&(!nx.rk||mxHas(b,nx.rk))) out.push({k:'buy', act:'eq', label:nx.n, cost:R0*nx.c, sub:'Manutention moins chère et plus rapide.'});
     else out.push({k:'buy', act:'eq', label:WH_EQ[m.eq].n, owned:true, sub:'Équipement actuel.'});
-    out.push({k:'btn', act:'rk', label:'Rayonnages hauts ('+(m.rk||0)+' / 3)', cost:R0*3*(1+(m.rk||0)), dis:(m.rk||0)>=3, sub:'+30 % d’emplacements à chaque fois.'});
+    out.push({k:'btn', act:'rk', label:'Rayonnages hauts ('+(m.rk||0)+' / '+WH_RK+')', cost:R0*3*(1+(m.rk||0)), dis:(m.rk||0)>=WH_RK, sub:'+30 % d’emplacements à chaque fois.'});
     out.push({k:'btn', act:'tr', label:'Acheter un camion ('+m.tr+')', cost:R0*5, sub:'140 colis livrés par jour pour vos clients, 290 € de frais quotidiens.'});
     if(m.tr) out.push({k:'btn', act:'trs', label:'Revendre un camion', gain:R0*3, sub:'Un camion de moins.'});
-    [['wms',1,.6,'Logiciel de gestion','Moins d’erreurs, manutention −10 %.'],['fr',2,1.5,'Zone frigorifique','Un quart des emplacements sous température.'],['exp',4,2,'Livraison express','+25 % par colis livré.'],['hub',5,4,'Plateforme multimodale','Clients plus gros, +12 % de prix.']].forEach(([k2,rk,f,l,s])=>{
+    [['wms',1,WH_F.wms,'Logiciel de gestion','Moins d’erreurs, manutention −10 %.'],['fr',2,WH_F.fr,'Zone frigorifique','Un quart des emplacements sous température.'],['exp',4,WH_F.exp,'Livraison express','+25 % par colis livré.'],['hub',5,WH_F.hub,'Plateforme multimodale','Clients plus gros, +12 % de prix.']].forEach(([k2,rk,f,l,s])=>{
       if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:d.cost*f, sub:s}); });
     return out; },
   acts:{
@@ -11458,13 +11460,13 @@ MET.warehouse={
     sign:(b,arg)=>{ const [oid,neg]=String(arg).split(':'); return whTake(b,+oid,+neg||0); },
     end:(b,id)=>{ const m=b.m, c=m.ct.find(x=>x.id===+id); if(!c) return err('Contrat introuvable.'); const pen=c.pal*c.p*30; if(!metBuy(b,pen,'Rupture de contrat : '+c.n)) return err('Il faut '+eur(pen,0)+' d’indemnité (un mois).'); m.ct=m.ct.filter(x=>x!==c); return ok('Contrat rompu : '+fmtN(c.pal,0)+' palettes libérées.'); },
     eq:(b)=>{ const m=b.m, nx=WH_EQ[m.eq+1]; if(!nx) return err('Équipement au maximum.'); if(nx.rk&&!mxHas(b,nx.rk)) return err('Palier '+nx.rk+' requis.'); const c=metR0(b)*nx.c; if(!metBuy(b,c,nx.n)) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m.eq++; metLog(b,'nouvel équipement : '+nx.n.toLowerCase()+'.','good'); return ok(nx.n+' en service.'); },
-    rk:(b)=>{ const m=b.m; if((m.rk||0)>=3) return err('Rayonnages au maximum.'); const c=metR0(b)*3*(1+(m.rk||0)); if(!metBuy(b,c,'Rayonnages hauts')) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m.rk=(m.rk||0)+1; return ok(fmtN(whCap(b),0)+' emplacements.'); },
+    rk:(b)=>{ const m=b.m; if((m.rk||0)>=WH_RK) return err('Rayonnages au maximum.'); const c=metR0(b)*3*(1+(m.rk||0)); if(!metBuy(b,c,'Rayonnages hauts')) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m.rk=(m.rk||0)+1; return ok(fmtN(whCap(b),0)+' emplacements.'); },
     tr:(b)=>{ const c=metR0(b)*5; if(!metBuy(b,c,'Achat d’un camion')) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); b.m.tr++; return ok('Camion en service.'); },
     trs:(b)=>{ const m=b.m; if(!m.tr) return err('Aucun camion.'); m.tr--; payCap('b:'+b.id,'Revente d’un camion',metR0(b)*3); settleAccounts(); return ok('Camion revendu.'); },
-    wms:(b)=>whBuyR(b,'wms',.6,'Logiciel de gestion',1),
-    fr:(b)=>whBuyR(b,'fr',1.5,'Zone frigorifique',2),
-    exp:(b)=>whBuyR(b,'exp',2,'Livraison express',4),
-    hub:(b)=>whBuyR(b,'hub',4,'Plateforme multimodale',5)
+    wms:(b)=>whBuyR(b,'wms',WH_F.wms,'Logiciel de gestion',1),
+    fr:(b)=>whBuyR(b,'fr',WH_F.fr,'Zone frigorifique',2),
+    exp:(b)=>whBuyR(b,'exp',WH_F.exp,'Livraison express',4),
+    hub:(b)=>whBuyR(b,'hub',WH_F.hub,'Plateforme multimodale',5)
   },
   auto: whAuto
 };
@@ -11486,9 +11488,9 @@ function whAuto(b,mode,q){ const m=b.m;
   if(mode!=='full'||S.day%30) return;
   const d=m.st||whDay(b), R0=metR0(b), nx=WH_EQ[m.eq+1];
   if(nx&&(!nx.rk||mxHas(b,nx.rk))&&d.late>0&&dlSpend(b,R0*nx.c,nx.n)){ m.eq++; return; }
-  if(d.occ>.9&&(m.rk||0)<3&&dlSpend(b,R0*3*(1+(m.rk||0)),'Rayonnages hauts')){ m.rk=(m.rk||0)+1; return; }
+  if(d.occ>.9&&(m.rk||0)<WH_RK&&dlSpend(b,R0*3*(1+(m.rk||0)),'Rayonnages hauts')){ m.rk=(m.rk||0)+1; return; }
   if(d.mv*.6>m.tr*140+140&&dlSpend(b,R0*5,'Achat d’un camion')){ m.tr++; return; }
-  for(const [k,f,l,rk] of [['wms',.6,'Logiciel de gestion',1],['fr',1.5,'Zone frigorifique',2],['exp',2,'Livraison express',4],['hub',4,'Plateforme multimodale',5]]) if(!m[k]&&mxHas(b,rk)&&whBuyR(b,k,f,l,rk,true).ok) break; }
+  for(const [k,f,l,rk] of [['wms',WH_F.wms,'Logiciel de gestion',1],['fr',WH_F.fr,'Zone frigorifique',2],['exp',WH_F.exp,'Livraison express',4],['hub',WH_F.hub,'Plateforme multimodale',5]]) if(!m[k]&&mxHas(b,rk)&&whBuyR(b,k,f,l,rk,true).ok) break; }
 
 /* ============================================================
    LIENS ENTRE VOS ENTREPRISES ET VOTRE CLUB
@@ -15579,10 +15581,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.7.1';
+const IB_VER='V1.7.2';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Ferme : récoltes plus rapides','Vergers et vignes donnent leur première récolte dès la saison de plantation (s’ils sont plantés au moins un mois avant), à 60 % pour de jeunes plants, puis une récolte pleine chaque année. Les plantations en cours profitent aussi de la nouvelle règle.']
+  ['Entrepôt plus rentable','Les clients paient leurs palettes environ 7 % plus cher, les options (logiciel, zone frigorifique, livraison express, plateforme multimodale) coûtent 30 % de moins, et l’on peut poser jusqu’à 5 rayonnages hauts au lieu de 3.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
