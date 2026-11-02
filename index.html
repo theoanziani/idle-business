@@ -1102,6 +1102,11 @@ details.ag-f .ag-s small.warn-t{color:var(--amber)}
 /* V1.5.1 Sociétés par catégorie */
 .bzg .grid{margin-top:4px}
 details.ag-f .ag-s small .warn-t{color:var(--amber)}
+/* V1.5.2 immeuble de bureaux : étages */
+.of-strip{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0}
+.of-strip i{width:14px;height:10px;border-radius:3px;background:var(--line)}
+.of-strip i.on{background:var(--green)}
+.of-strip i.bad{background:var(--amber)}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -10940,6 +10945,174 @@ function shAuto(b,mode,q){ const m=b.m;
 function shData(){ return {SH_PT, SH_TY, SH_RG, SH_NB}; }
 
 /* ============================================================
+   IMMEUBLE DE BUREAUX (V1.5.2)
+   - Portefeuille d'immeubles dans la ville : celui de l'entreprise, puis des immeubles rachetés.
+     Chaque immeuble a des étages, un standing (1 à 4, 5 avec le dernier palier), un état qui s'use,
+     un label énergie et des services (restaurant d'entreprise, salles de réunion, conciergerie, parking).
+   - Locataires : des entreprises cherchent des bureaux (1 à 4 étages, parfois un grand compte) ;
+     vous les installez au loyer demandé ou vous négociez. Bail de 3, 6 ou 9 ans ; à l'échéance,
+     un locataire satisfait renouvelle, sinon il part. Un mandat d'agence remplit seul les étages
+     vides, un peu moins cher et contre une commission.
+   - Travaux : rafraîchissement (état), rénovation lourde (standing +1), label énergie.
+   - Événements : faillite d'un locataire, panne d'ascenseur, vague de télétravail, grand compte.
+   État b.m (v:1) : bd[] {id, n, dist, nf, m2, std, cond, lbl, srv{}, fl[] (id du locataire ou 0), wk {k, until}},
+   tn[] {id, bd, n, sec, fl[], r (€/m² par an), until, sat, risk}, pr[] (prospects), bo[] (immeubles à vendre),
+   mk (marché), brk (mandat), ev[], nid, st, acc, accC, pend, pendC, log.
+   ============================================================ */
+D.biz.office.sub='Étages loués aux entreprises, services, rénovations';
+const OF_STD=['','Ordinaire','Correct','Haut de gamme','Prestige','Signature'], OF_STDF=[0,.78,.9,1.05,1.22,1.4];
+const OF_SRV={rest:{n:'Restaurant d’entreprise', c:220, d:55, sat:7}, reu:{n:'Salles de réunion', c:80, d:18, sat:4, rev:1}, conc:{n:'Conciergerie', c:40, d:22, sat:5}, park:{n:'Parking', c:160, d:10, sat:3, rev:1}};
+const OF_NAMES=['Altéa Conseil','Brévin & Associés','Calderon Assurances','Delmas Ingénierie','Éolis Énergie','Fortis Avocats','Galéa Santé','Hélix Logiciels','Iris Banque privée','Jalon Architectes','Kerval Audit','Lumen Médias','Marelle Voyages','Norvel Pharma','Opaline Design','Pilote Data','Quartz Finance','Rivage Immobilier','Sorel Industries','Talis Recrutement','Ulysse Télécom','Vauban Notaires','Wagram Capital','Xénon Biotech','Yole Formation','Zéphyr Mobilité'];
+const OF_TOWER=['Tour Horizon','Tour Lumière','Le Belvédère','Tour Atlas','Le Prisme','Tour Équinoxe','Le Quadrant','Tour Méridienne','Le Carré d’or','Tour Vigie','L’Amiral','Tour Céleste'];
+function ofDist(b,id){ return D.CITIES[b.city].d.find(x=>x.id===id)||D.CITIES[b.city].d[0]; }
+function ofBd(b,id){ return b.m.bd.find(x=>x.id===id); }
+function ofM2f(B){ return B.m2/B.nf; }
+/* loyer de marché d'un immeuble (€/m² par an) */
+function ofMkt(b,B){ const dd=ofDist(b,B.dist), C=D.CITIES[b.city], m=b.m;
+  return dd.p*fxOf(C.ccy)*.055*(OF_STDF[B.std]||1)*(B.lbl?1.08:1)*(m.pre&&B.std>=5?1.1:1)*m.mk*(.8+.4*B.cond/100); }
+function ofFree(B){ return B.fl.map((t,i)=>t?-1:i).filter(i=>i>=0); }
+function ofWorks(B){ return B.wk&&B.wk.until>S.day; }
+function ofNewBd(b,dist,nf,m2,std,cond,name){ const m=b.m; const B={id:m.nid++, n:name, dist, nf, m2:Math.round(m2), std, cond, lbl:0, srv:{}, fl:Array(nf).fill(0), wk:null}; return B; }
+function ofTenant(b,B,P,floors,rent,silent){ const m=b.m, t={id:m.nid++, bd:B.id, n:P.n, sec:P.sec, fl:floors, r:Math.round(rent), until:S.day+P.yrs*360, sat:62, risk:P.risk, gc:P.gc?1:0};
+  floors.forEach(i=>B.fl[i]=t.id); m.tn.push(t); if(P.gc) m.gcn=(m.gcn||0)+1; if(!silent) metLog(b,t.n+' s’installe dans '+B.n+' ('+floors.length+' étage'+(floors.length>1?'s':'')+', '+eur(t.r,0)+' / m² par an).','good'); return t; }
+function ofLeave(b,t,why){ const m=b.m, B=ofBd(b,t.bd); if(B) B.fl=B.fl.map(x=>x===t.id?0:x); m.tn=m.tn.filter(x=>x!==t); if(why) metLog(b,why,'warn'); }
+function ofProspect(b,gc){ const m=b.m, k=gc? 5+Math.floor(rnd()*4) : 1+Math.floor(rnd()*rnd()*4), sec=pick(['tech','bureaux','immo','media','luxe']);
+  return {id:m.nid++, n:pick(OF_NAMES), sec, k, std:gc? 3 : 1+Math.floor(rnd()*3), mult:gc? 1.12+rnd()*.12 : .86+rnd()*.26, yrs:pick(gc?[6,9]:[3,3,6,9]), risk:gc?0:pick([0,0,1,1,2]), exp:S.day+(gc?14:10+Math.floor(rnd()*10)), gc:gc?1:0}; }
+function ofInit(b){
+  const m={v:1, bd:[], tn:[], pr:[], bo:[], mk:1, brk:1, ev:[], nid:1, st:null, acc:0, accC:0, pend:0, pendC:0, log:[]};
+  b.m=m; b.stock=0;
+  const bd=b.bld&&bldById(b.bld), surf=bd? bd.surf : 7000, nf=clamp(Math.round(surf/700),4,22);
+  const B=ofNewBd(b,b.dist||D.CITIES[b.city].d[0].id,nf,surf,bd? clamp(Math.round(bd.q*2),1,4) : 2,72,bd? bd.addr : 'Votre immeuble'); B.main=1; m.bd.push(B);
+  /* l'immeuble arrive à moitié loué : des baux en cours, de longueurs variées */
+  let i=0; while(i<nf*.55){ const P=ofProspect(b,false); const k=Math.min(P.k,nf-i); const fl=[]; for(let j=0;j<k;j++) fl.push(i+j); i+=k;
+    const t=ofTenant(b,B,P,fl,ofMkt(b,B)*P.mult,true); t.until=S.day+60+Math.floor(rnd()*900); }
+  for(let k=0;k<4;k++) m.pr.push(ofProspect(b,false));
+  ofOffers(b); return m; }
+function ofOffers(b){ const m=b.m, C=D.CITIES[b.city]; m.bo=m.bo.filter(o=>o.exp>S.day);
+  while(m.bo.length<3){ const dd=pick(C.d), nf=4+Math.floor(rnd()*14), m2=nf*(500+Math.floor(rnd()*500)), std=1+Math.floor(rnd()*3), cond=40+Math.floor(rnd()*50), occ=Math.round(rnd()*.8*nf);
+    const used=m.bd.map(x=>x.n).concat(m.bo.map(x=>x.n)), n=OF_TOWER.find(x=>!used.includes(x))||('Immeuble '+(m.nid));
+    const o={id:m.nid++, n, dist:dd.id, nf, m2, std, cond, occ, exp:S.day+45+Math.floor(rnd()*30)}; o.price=ofValue(b,o); m.bo.push(o); } }
+/* valeur d'un immeuble : surface, quartier, standing, état ; les baux en place ajoutent un peu */
+function ofValue(b,B){ const dd=ofDist(b,B.dist), C=D.CITIES[b.city], occ= B.fl? B.fl.filter(Boolean).length : (B.occ||0);
+  return Math.round(B.m2*dd.p*fxOf(C.ccy)*.62*(OF_STDF[B.std]||1)*(.7+.3*B.cond/100)*(1+.12*occ/B.nf)/1e4)*1e4; }
+function ofSrvOn(B,k){ return !!(B.srv&&B.srv[k]); }
+/* une journée d'un immeuble (sans hasard) */
+function ofBdDay(b,B){ const m=b.m, m2f=ofM2f(B), T=m.tn.filter(t=>t.bd===B.id); let rev=0, cost=0;
+  T.forEach(t=>{ rev+=t.r*m2f*t.fl.length/360; });
+  const occF=T.reduce((a,t)=>a+t.fl.length,0), vac=B.nf-occF, chg=(m.chg?.85:1)*(B.lbl?.85:1);
+  cost+=vac*m2f*48/360*chg + B.m2*9/360*chg;                 /* charges des étages vides, frais non récupérables */
+  if(!B.main) cost+=B.m2*14/360;                              /* taxe foncière des immeubles rachetés */
+  Object.keys(OF_SRV).forEach(k=>{ if(!ofSrvOn(B,k)) return; const S0=OF_SRV[k]; cost+=S0.d*B.nf;
+    if(k==='reu') rev+=occF*38; if(k==='park') rev+=B.m2/45*9; });
+  return {rev, cost, occ:occF, nf:B.nf, net:rev-cost}; }
+function ofDay(b){ const m=b.m; let r={rev:0,cost:0,occ:0,nf:0}; m.bd.forEach(B=>{ const x=ofBdDay(b,B); B.st=x; r.rev+=x.rev; r.cost+=x.cost; r.occ+=x.occ; r.nf+=x.nf; });
+  r.lf=r.nf? r.occ/r.nf : 0; return r; }
+function ofSatTgt(b,t){ const m=b.m, B=ofBd(b,t.bd); if(!B) return 50; const srv=Object.keys(OF_SRV).reduce((a,k)=>a+(ofSrvOn(B,k)?OF_SRV[k].sat:0),0), ratio=t.r/Math.max(1,ofMkt(b,B));
+  return clamp(48+srv+(B.std-2)*6+(B.cond-60)/4+(B.lbl?5:0)-Math.max(0,ratio-1)*70+Math.max(0,1-ratio)*25-(ofWorks(B)?15:0),0,100); }
+function ofEv(m,k){ return (m.ev||[]).some(e=>e.k===k&&e.until>=S.day); }
+MET.office={
+  fam:'imm', core:true, init:ofInit,
+  ranks:[
+    {n:'Gestion des charges', d:'Contrats d’entretien renégociés : −15 % de charges.'},
+    {n:'Commercialisation', d:'Un service commercial : plus d’entreprises intéressées, commission d’agence divisée par deux.'},
+    {n:'Baux longs', d:'Vos locataires renouvellent plus souvent leur bail.'},
+    {n:'Facility management', d:'Vos immeubles s’usent deux fois moins vite, les pannes coûtent moins.'},
+    {n:'Immeubles de prestige', d:'Une rénovation peut porter un immeuble au standing « Signature » : +10 % de loyers.'}
+  ],
+  mods(b){ const m=b.m; return {vol:0, cogs:0, rev:m.pend, fixed:m.pendC}; },
+  daily(b,ctx){
+    const m=b.m;
+    if(ctx.open){ m.pend=m.acc; m.pendC=m.accC; m.acc=0; m.accC=0; }
+    m.ev=(m.ev||[]).filter(e=>e.until>=S.day);
+    m.mk=clamp(m.mk+(1-m.mk)*.01+.006*norm(),.8,1.2)*(1)+0;
+    m.bd.forEach(B=>{ B.cond=clamp(B.cond-(m.fm?.012:.024),0,100); if(B.wk&&B.wk.until<=S.day){ const w=B.wk; B.wk=null;
+        if(w.k==='ref'){ B.cond=100; metLog(b,'rafraîchissement terminé à '+B.n+'.','good'); }
+        if(w.k==='reno'){ B.std=Math.min(m.pre?5:4,B.std+1); B.cond=100; metLog(b,B.n+' rénové : standing « '+OF_STD[B.std]+' ».','good'); }
+        if(w.k==='lbl'){ B.lbl=1; metLog(b,B.n+' obtient son label énergie : charges −15 %, loyers +8 %.','good'); } } });
+    /* satisfaction et fins de bail */
+    m.tn.slice().forEach(t=>{ t.sat=clamp(t.sat+(ofSatTgt(b,t)-t.sat)/60,0,100);
+      if(t.until<=S.day){ const p=clamp(t.sat/100*1.1+(m.bl?.15:0)-.12,.05,.95), B=ofBd(b,t.bd);
+        if(rnd()<p){ const nr=Math.round((t.r*.5+ofMkt(b,B)*.5)); t.r=nr; t.until=S.day+pick([3,6,9])*360; metLog(b,t.n+' renouvelle son bail à '+B.n+' ('+eur(nr,0)+' / m² par an).','good'); }
+        else ofLeave(b,t,t.n+' ne renouvelle pas son bail et quitte '+B.n+' ('+t.fl.length+' étage'+(t.fl.length>1?'s':'')+' libéré'+(t.fl.length>1?'s':'')+').'); } });
+    /* prospects et immeubles à vendre */
+    m.pr=m.pr.filter(p=>p.exp>S.day);
+    const want=(m.com?6:4)-(ofEv(m,'tt')?2:0); if(m.pr.length<want&&rnd()<(m.com?.35:.25)) m.pr.push(ofProspect(b,false));
+    if(S.day%15===0) ofOffers(b);
+    /* mandat d'agence : un étage vide se loue seul, 8 % sous le marché, commission d'un mois de loyer */
+    if(m.brk) m.bd.forEach(B=>{ if(ofWorks(B)) return; const fr=ofFree(B); if(!fr.length||rnd()>.06) return; const P=ofProspect(b,false); const k=Math.min(P.k,fr.length), fl=fr.slice(0,k), r=ofMkt(b,B)*.92;
+      const t=ofTenant(b,B,P,fl,r,true); m.accC+=r*ofM2f(B)*k/12*(m.com?.5:1); metLog(b,'l’agence installe '+t.n+' dans '+B.n+' ('+k+' étage'+(k>1?'s':'')+').',''); });
+    const d=ofDay(b); m.st=d; m.acc+=d.rev; m.accC+=d.cost;
+    ofRisks(b);
+  },
+  kpis(b){ const m=b.m, d=m.st||ofDay(b), T=m.tn, avg=T.length? T.reduce((a,t)=>a+t.r,0)/T.length : 0, sat=T.length? T.reduce((a,t)=>a+t.sat,0)/T.length : 0;
+    return [['Occupation', Math.round((d.lf||0)*100)+' %', d.occ+' étage'+(d.occ>1?'s':'')+' loué'+(d.occ>1?'s':'')+' sur '+d.nf],
+            ['Loyer moyen', eur(avg,0)+' / m² / an', T.length+' locataire'+(T.length>1?'s':'')],
+            ['Satisfaction', Math.round(sat)+' / 100', m.bd.length+' immeuble'+(m.bd.length>1?'s':'')],
+            ['Marché des bureaux', Math.round(m.mk*100)+' %', ofEv(m,'tt')? 'Vague de télétravail' : 'Demande normale']];
+  },
+  ctl(b){ const m=b.m, d=bizDef(b), out=[];
+    out.push({k:'tog', act:'brk', label:'Mandat d’agence', val:m.brk?1:0, sub:'L’agence loue seule les étages vides, 8 % sous le marché, contre une commission d’un mois de loyer'+(m.com?' (divisée par deux)':'')+'.'});
+    [['chg',1,1,'Gestion des charges','−15 % de charges.'],['com',2,2,'Commercialisation','Plus de prospects, commission ÷ 2.'],['bl',3,3,'Baux longs','Renouvellements plus fréquents.'],['fm',4,4,'Facility management','Usure ÷ 2, pannes moins chères.'],['pre',5,6,'Immeubles de prestige','Standing « Signature » possible, +10 % de loyers.']].forEach(([k2,rk,f,l,s])=>{
+      if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:d.cost*f, sub:s}); });
+    return out; },
+  acts:{
+    lease:(b,arg)=>{ const [pid,bid,neg]=String(arg).split(':'); return ofSign(b,+pid,+bid,+neg||0); },
+    evict:(b,id)=>ofEvict(b,+id),
+    srv:(b,arg)=>{ const [bid,k]=String(arg).split(':'); return ofSrv(b,+bid,k); },
+    work:(b,arg)=>{ const [bid,k]=String(arg).split(':'); return ofWork(b,+bid,k); },
+    buyb:(b,id)=>ofBuyBd(b,+id),
+    sellb:(b,id)=>ofSellBd(b,+id),
+    brk:(b,v)=>{ b.m.brk= v===undefined? (b.m.brk?0:1) : (+v?1:0); return ok(b.m.brk? 'Mandat d’agence confié.' : 'Vous choisissez vous-même vos locataires.'); },
+    chg:(b)=>ofBuyR(b,'chg',1,'Gestion des charges',1),
+    com:(b)=>ofBuyR(b,'com',2,'Commercialisation',2),
+    bl:(b)=>ofBuyR(b,'bl',3,'Baux longs',3),
+    fm:(b)=>ofBuyR(b,'fm',4,'Facility management',4),
+    pre:(b)=>ofBuyR(b,'pre',6,'Immeubles de prestige',5)
+  },
+  auto: ofAuto
+};
+function ofBuyR(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizDef(b).cost*f;
+  if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m[k]=1; metLog(b,label.toLowerCase()+' : c’est fait.','good'); return ok(label+' : c’est fait.'); }
+/* installer un prospect (négociation : +8 % de loyer, mais une chance sur deux qu'il renonce) */
+function ofSign(b,pid,bid,neg){ const m=b.m, P=m.pr.find(x=>x.id===pid), B=ofBd(b,bid); if(!P) return err('Cette entreprise a trouvé ailleurs.'); if(!B) return err('Immeuble introuvable.');
+  if(ofWorks(B)) return err('Travaux en cours dans cet immeuble.'); if(B.std<P.std) return err('Standing insuffisant : « '+OF_STD[P.std]+' » demandé.');
+  const fr=ofFree(B); if(fr.length<P.k) return err('Pas assez d’étages libres ('+P.k+' demandé'+(P.k>1?'s':'')+').');
+  let r=ofMkt(b,B)*P.mult; if(neg){ if(rnd()<.5){ m.pr=m.pr.filter(x=>x!==P); metLog(b,P.n+' refuse la hausse et cherche ailleurs.','warn'); return err(P.n+' refuse vos conditions et s’en va.'); } r*=1.08; }
+  m.pr=m.pr.filter(x=>x!==P); const t=ofTenant(b,B,P,fr.slice(0,P.k),r); return ok(t.n+' signe un bail de '+P.yrs+' ans à '+eur(t.r,0)+' / m² par an.'); }
+function ofEvict(b,id){ const m=b.m, t=m.tn.find(x=>x.id===id); if(!t) return err('Locataire introuvable.'); const B=ofBd(b,t.bd), c=t.r*ofM2f(B)*t.fl.length/12*6;
+  if(!metBuy(b,c,'Indemnité de départ : '+t.n)) return err('Il faut '+eur(c,0)+' d’indemnité (six mois de loyer).'); ofLeave(b,t); return ok(t.n+' part contre '+eur(c,0)+' d’indemnité.'); }
+function ofSrvCost(B,k){ return Math.round(OF_SRV[k].c*B.m2/10/1000)*1000; }
+function ofSrv(b,bid,k,auto){ const B=ofBd(b,bid), S0=OF_SRV[k]; if(!B||!S0) return err('Introuvable.'); B.srv=B.srv||{};
+  if(B.srv[k]){ B.srv[k]=0; return ok(S0.n+' fermé à '+B.n+'.'); }
+  const c=ofSrvCost(B,k); if(!(auto? dlSpend(b,c,S0.n) : metBuy(b,c,S0.n+' : '+B.n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); B.srv[k]=1; metLog(b,S0.n.toLowerCase()+' ouvert à '+B.n+'.','good'); return ok(S0.n+' ouvert.'); }
+const OF_WORK={ref:{n:'Rafraîchissement', d:20, c:B=>B.m2*120}, reno:{n:'Rénovation lourde', d:120, c:B=>B.m2*420*B.std}, lbl:{n:'Label énergie', d:60, c:B=>B.m2*220}};
+function ofWork(b,bid,k,auto){ const m=b.m, B=ofBd(b,bid), W=OF_WORK[k]; if(!B||!W) return err('Introuvable.'); if(ofWorks(B)) return err('Des travaux sont déjà en cours.');
+  if(k==='reno'&&B.std>=(m.pre?5:4)) return err('Standing au maximum'+(m.pre?'.':' (le palier 5 permet « Signature »).')); if(k==='lbl'&&B.lbl) return err('Déjà labellisé.'); if(k==='lbl'&&B.std<3) return err('Standing « Haut de gamme » requis.');
+  const c=Math.round(W.c(B)*(m.fm?.9:1)/1000)*1000; if(!(auto? dlSpend(b,c,W.n) : metBuy(b,c,W.n+' : '+B.n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  B.wk={k, until:S.day+W.d}; return ok(W.n+' lancé à '+B.n+' : '+W.d+' jours.'); }
+function ofBuyBd(b,id,auto){ const m=b.m, o=m.bo.find(x=>x.id===id); if(!o) return err('Offre expirée.'); if(m.bd.length>=8) return err('Huit immeubles au plus.');
+  if(!(auto? dlSpend(b,o.price,'Achat : '+o.n) : metBuy(b,o.price,'Achat de l’immeuble '+o.n))) return err('Trésorerie insuffisante : '+eur(o.price,0)+'.');
+  const B=ofNewBd(b,o.dist,o.nf,o.m2,o.std,o.cond,o.n); m.bd.push(B); m.bo=m.bo.filter(x=>x!==o);
+  for(let i=0;i<o.occ;){ const P=ofProspect(b,false), k=Math.min(P.k,o.occ-i), fl=[]; for(let j=0;j<k;j++) fl.push(i+j); i+=k; const t=ofTenant(b,B,P,fl,ofMkt(b,B)*P.mult,true); t.until=S.day+90+Math.floor(rnd()*900); }
+  metLog(b,'achat de '+B.n+' ('+ofDist(b,B.dist).n+', '+B.nf+' étages).','good'); return ok(B.n+' rejoint votre portefeuille.'); }
+function ofSellBd(b,id){ const m=b.m, B=ofBd(b,id); if(!B) return err('Immeuble introuvable.'); if(B.main) return err('C’est le siège de l’entreprise.'); if(ofWorks(B)) return err('Attendez la fin des travaux.');
+  const v=ofValue(b,B)*.95; m.tn.filter(t=>t.bd===B.id).forEach(t=>ofLeave(b,t)); m.bd=m.bd.filter(x=>x!==B); payCap('b:'+b.id,'Vente de l’immeuble '+B.n,v); settleAccounts(); return ok(B.n+' vendu '+eur(v,0)+'.'); }
+/* événements */
+function ofRisks(b){ const m=b.m, r=rnd();
+  if(r<.0012&&!ofEv(m,'tt')){ m.ev.push({k:'tt',until:S.day+90}); m.mk=Math.max(.8,m.mk-.06); metLog(b,'vague de télétravail : les entreprises cherchent moins de bureaux pendant trois mois.','bad'); }
+  else if(r<.0030){ m.pr.push(ofProspect(b,true)); metLog(b,'un grand compte cherche plusieurs étages : offre valable deux semaines.','good'); }
+  const T=m.tn.filter(t=>t.risk===2); if(T.length&&rnd()<.0006*T.length){ const t=pick(T); ofLeave(b,t,t.n+' fait faillite : ses étages sont libérés et deux mois de loyer sont perdus.'); }
+  m.bd.forEach(B=>{ if(rnd()<.0016*(B.cond<50?2:1)){ const c=B.m2*(m.fm?2:5); m.accC+=c; m.tn.filter(t=>t.bd===B.id).forEach(t=>t.sat=Math.max(0,t.sat-8)); metLog(b,'panne d’ascenseur à '+B.n+' : '+eur(c,0)+' de réparation, locataires mécontents.','bad'); } }); }
+/* le directeur : installe les prospects ; en délégation totale, entretien, services et achats */
+function ofAuto(b,mode,q){ const m=b.m;
+  if(S.day%3===0) m.pr.slice().sort((x,y)=>y.mult-x.mult).forEach(P=>{ const B=m.bd.filter(B=>!ofWorks(B)&&B.std>=P.std&&ofFree(B).length>=P.k).sort((x,y)=>ofMkt(b,y)-ofMkt(b,x))[0]; if(B&&(P.mult>=.9||rnd()<q)) ofSign(b,P.id,B.id,0); });
+  if(mode!=='full'||S.day%30) return;
+  m.bd.forEach(B=>{ if(!ofWorks(B)&&B.cond<55) ofWork(b,B.id,'ref',true); ['conc','reu','rest'].forEach(k=>{ if(!ofSrvOn(B,k)&&B.fl.filter(Boolean).length>=B.nf*.6) ofSrv(b,B.id,k,true); }); });
+  const o=m.bo.slice().sort((x,y)=>x.price/x.m2-y.price/y.m2)[0]; if(o&&(b.dlp||0)>o.price*1.1) ofBuyBd(b,o.id,true);
+  for(const [k,f,l,rk] of [['chg',1,'Gestion des charges',1],['com',2,'Commercialisation',2],['bl',3,'Baux longs',3],['fm',4,'Facility management',4],['pre',6,'Immeubles de prestige',5]]) if(!m[k]&&mxHas(b,rk)&&ofBuyR(b,k,f,l,rk,true).ok) break; }
+function ofData(){ return {OF_SRV, OF_WORK, OF_STD}; }
+
+/* ============================================================
    LIENS ENTRE VOS ENTREPRISES ET VOTRE CLUB
    - Ferme → buvettes du stade : à chaque match à domicile, les buvettes vendent ; avec votre
      ferme, ce sont vos produits (recette ×1,5).
@@ -14902,11 +15075,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.5.1';
+const IB_VER='V1.5.2';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Sociétés par catégorie','Dans Sociétés, vos entreprises sont rangées en menus déroulants par grande catégorie (commerce et restauration, tech et services, industrie et agriculture…), avec le nombre de sociétés, leur résultat du jour et celles à surveiller.'],
-  ['Paliers de la compagnie maritime','Cinq moments sont célébrés et restent affichés sur l’illustration : premier affrètement livré, première ligne intercontinentale, premier navire neuf, premier géant de 22 000 conteneurs, et chaque nouvelle région de votre réseau.']
+  ['Immeuble de bureaux : un vrai métier','Louez vos étages aux entreprises qui se présentent (au loyer proposé ou en négociant), suivez leurs baux et leur satisfaction, ouvrez des services (restaurant, salles de réunion, conciergerie, parking) et lancez des travaux : rafraîchissement, rénovation lourde, label énergie.'],
+  ['Un portefeuille d’immeubles','Rachetez d’autres immeubles de la ville (jusqu’à huit). Un mandat d’agence peut louer seul les étages vides. Attention aux faillites, pannes d’ascenseur et vagues de télétravail, et guettez les grands comptes.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -15456,6 +15629,40 @@ function shShipChoice(b,a,bb,act,lid){ const m=b.m, idle=m.fl.filter(p=>shFree(m
   return _mc(); }; }
 
 /* ============================================================
+   IMMEUBLE DE BUREAUX : immeubles, locataires, prospects, achats (V1.5.2)
+   ============================================================ */
+function ofBt(b,lab,act,arg,o){ return '<button class="btn '+((o&&o.c)||'sm')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o&&o.dis?' disabled':'')+'>'+lab+'</button>'; }
+const OF_RISK=['Solide','Correct','Fragile'];
+function ofStrip(b,B){ const m=b.m; return '<div class="of-strip" aria-label="'+B.fl.filter(Boolean).length+' étages loués sur '+B.nf+'">'+B.fl.map((t,i)=>{ const T=t&&m.tn.find(x=>x.id===t); return '<i class="'+(T? (T.sat<40?'bad':'on') : '')+'" title="Étage '+(i+1)+(T?' : '+esc(T.n):' : libre')+'"></i>'; }).join('')+'</div>'; }
+MET.office.html=function(b){
+  const m=b.m, can=x=>availFor(cityOf(b).ccy)>=x;
+  /* immeubles */
+  let h='<div class="pk-head"><b>Immeubles</b><span class="sub">'+m.bd.length+' immeuble'+(m.bd.length>1?'s':'')+' · '+m.bd.reduce((a,B)=>a+B.nf,0)+' étages</span></div><div class="ht-t">';
+  m.bd.forEach(B=>{ const x=B.st||ofBdDay(b,B), wk=ofWorks(B)? OF_WORK[B.wk.k].n+' jusqu’au '+dateL(B.wk.until) : '';
+    h+='<div class="rs-d of-bd"><div><b>'+esc(B.n)+(B.main?' (siège)':'')+'</b><small>'+esc(ofDist(b,B.dist).n)+' · '+B.nf+' étages de '+fmtN(Math.round(ofM2f(B)),0)+' m² · standing « '+OF_STD[B.std]+' » · état '+Math.round(B.cond)+' %'+(B.lbl?' · label énergie':'')+'</small>'+ofStrip(b,B)+
+      '<small>Loyer de marché '+eur(ofMkt(b,B),0)+' / m² par an · résultat <b class="num '+cls(x.net)+'">'+signed(x.net,0)+' / j</b>'+(wk?' · '+wk:'')+'</small>'+
+      '<div class="tag">Services</div><div class="fm-a">'+Object.keys(OF_SRV).map(k=>ofSrvOn(B,k)? ofBt(b,'Fermer : '+OF_SRV[k].n.toLowerCase(),'srv',B.id+':'+k,{c:'sm ghost'}) : ofBt(b,OF_SRV[k].n+' · '+eur(ofSrvCost(B,k),0),'srv',B.id+':'+k,{c:'sm',dis:!can(ofSrvCost(B,k))})).join('')+'</div>'+
+      (ofWorks(B)? '' : '<div class="tag">Travaux</div><div class="fm-a">'+Object.keys(OF_WORK).filter(k=>!(k==='lbl'&&(B.lbl||B.std<3))&&!(k==='reno'&&B.std>=(m.pre?5:4))).map(k=>{ const c=Math.round(OF_WORK[k].c(B)*(m.fm?.9:1)/1000)*1000; return ofBt(b,OF_WORK[k].n+' · '+eur(c,0),'work',B.id+':'+k,{c:'sm ghost',dis:!can(c)}); }).join('')+(B.main?'':ofBt(b,'Vendre ('+eur(ofValue(b,B)*.95,0)+')','sellb',B.id,{c:'sm ghost'}))+'</div>')+'</div></div>'; });
+  h+='</div><div class="sub">Rafraîchissement : l’état remonte à 100 %. Rénovation lourde : un cran de standing (loyers plus élevés). Label énergie : charges −15 % et loyers +8 %, dès le standing « Haut de gamme ». Pendant les travaux, aucun nouveau locataire et des occupants moins satisfaits.</div>';
+  /* prospects */
+  h+='<div class="pk-head"><b>Entreprises intéressées</b><span class="sub">'+m.pr.length+' en recherche'+(ofEv(m,'tt')?' · télétravail':'')+'</span></div><div class="ht-t">';
+  h+=m.pr.length? m.pr.slice().sort((x,y)=>(y.gc-x.gc)||(y.mult-x.mult)).map(P=>{ const ok=m.bd.filter(B=>!ofWorks(B)&&B.std>=P.std&&ofFree(B).length>=P.k).sort((x,y)=>ofMkt(b,y)-ofMkt(b,x)).slice(0,2);
+    return '<div class="rs-d"><div><b>'+esc(P.n)+(P.gc?' · grand compte':'')+'</b><small>'+P.k+' étage'+(P.k>1?'s':'')+' · standing « '+OF_STD[P.std]+' » au moins · bail de '+P.yrs+' ans · '+OF_RISK[P.risk]+' · jusqu’au '+dateS(P.exp)+'</small>'+
+      (ok.length? ok.map(B=>{ const r=ofMkt(b,B)*P.mult; return '<small>'+esc(B.n)+' : '+eur(r,0)+' / m² par an ('+Math.round(P.mult*100)+' % du marché)</small><div class="fm-a">'+ofBt(b,'Louer','lease',P.id+':'+B.id+':0',{c:'sm pri'})+ofBt(b,'Négocier +8 %','lease',P.id+':'+B.id+':1',{c:'sm ghost'})+'</div>'; }).join('')
+        : '<small>'+(m.bd.some(B=>B.std>=P.std)? 'Pas assez d’étages libres pour le moment dans vos immeubles « '+OF_STD[P.std]+' » ou plus.' : 'Standing insuffisant : rénovez un immeuble ou achetez-en un « '+OF_STD[P.std]+' ».')+'</small>')+'</div></div>'; }).join('') : '<div class="sub">Personne pour le moment : de nouvelles entreprises se présentent régulièrement.</div>';
+  h+='</div><div class="sub">Négocier fait gagner 8 % de loyer, mais une entreprise sur deux refuse et cherche ailleurs. Une entreprise fragile peut faire faillite.</div>';
+  /* locataires */
+  h+='<div class="pk-head"><b>Locataires</b><span class="sub">'+m.tn.length+' bail'+(m.tn.length>1?'x':'')+'</span></div><div class="ht-t">';
+  m.tn.slice().sort((x,y)=>x.until-y.until).forEach(t=>{ const B=ofBd(b,t.bd);
+    h+='<div class="rs-d"><div><b>'+esc(t.n)+'</b><small>'+esc(B?B.n:'')+' · '+t.fl.length+' étage'+(t.fl.length>1?'s':'')+' · '+eur(t.r,0)+' / m² par an · fin du bail le '+dateL(t.until)+'</small><div class="row sp"><span>'+pill('Satisfaction '+Math.round(t.sat),t.sat<40?'bad':t.sat<60?'warn':'good')+'</span>'+ofBt(b,'Faire partir','evict',t.id,{c:'sm ghost'})+'</div></div></div>'; });
+  h+='</div><div class="sub">À la fin du bail, un locataire satisfait renouvelle (au loyer du marché). Faire partir un locataire coûte six mois de loyer.</div>';
+  /* immeubles à vendre */
+  h+='<div class="pk-head"><b>Immeubles à vendre</b><span class="sub">'+esc(D.CITIES[b.city].n)+'</span></div><div class="ht-t">';
+  h+=m.bo.map(o=>'<div class="rs-d"><div><b>'+esc(o.n)+'</b><small>'+esc(ofDist(b,o.dist).n)+' · '+o.nf+' étages · '+fmtN(o.m2,0)+' m² · « '+OF_STD[o.std]+' » · état '+o.cond+' % · '+o.occ+' étage'+(o.occ>1?'s':'')+' déjà loué'+(o.occ>1?'s':'')+' · jusqu’au '+dateS(o.exp)+'</small><div class="fm-a">'+ofBt(b,'Acheter : '+eur(o.price,0),'buyb',o.id,{c:'sm',dis:!can(o.price)||m.bd.length>=8})+'</div></div></div>').join('')+'</div>';
+  return h;
+};
+
+/* ============================================================
    LIENS : carte « Vos entreprises et le club » dans les finances du club
    ============================================================ */
 { const _tf=fcTabFin; fcTabFin=function(O){ const h=_tf(O), farm=lkHas('farm'), rn=lkHas('renew'), hc=lkHas('couture'), e=lkPhone();
@@ -15807,6 +16014,13 @@ palDef('shipping',{col:'#1b5e8a', sticky:1, icon:PI('<path d="M3 15l2 5h14l2-5zM
     ct:Math.min(4,Math.max(0,new Set((m.tm||[]).map(id=>shPt(id).rg)).size-1))}),
   ev:{ch:['Votre premier voyage d’affrètement est livré'], ic:['Votre première ligne intercontinentale appareille'], nf:['Le chantier naval vous livre votre premier navire neuf'], gt:['Un géant de 22 000 conteneurs rejoint votre flotte'],
     ct:['Un terminal dans une deuxième région','Votre réseau s’étend à une troisième région','Quatre régions : une compagnie mondiale','Cinq régions reliées par vos navires']}});
+
+/* V1.5.2 : immeuble de bureaux */
+palDef('office',{col:'#8a5a44', sticky:1, icon:PI('<path d="M6 21V3h12v18M3 21h18M9 6h2M13 6h2M9 9.5h2M13 9.5h2M9 13h2M13 13h2M10.5 21v-4h3v4"/>'),
+  tag:n=>n.pf? (n.pf+1)+' immeubles' : n.sig? 'Signature' : n.gc? 'Grand compte' : n.lbl? 'Label énergie' : 'Complet',
+  badges:m=>({full:(m.bd||[]).some(B=>B.fl.every(Boolean))?1:0, gc:Math.min(1,m.gcn||0), lbl:(m.bd||[]).some(B=>B.lbl)?1:0, sig:(m.bd||[]).some(B=>B.std>=5)?1:0, pf:Math.min(4,Math.max(0,(m.bd||[]).length-1))}),
+  ev:{full:['Votre immeuble affiche complet'], gc:['Un grand compte signe chez vous'], lbl:['Votre premier immeuble labellisé'], sig:['Un immeuble atteint le standing « Signature »'],
+    pf:['Un deuxième immeuble rejoint votre portefeuille','Trois immeubles : un vrai portefeuille','Quatre immeubles dans la ville','Cinq immeubles : vous comptez sur le marché des bureaux']}});
 
 /* ============================================================
    SONS ET VIBRATIONS (V1.3.7)
