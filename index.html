@@ -1766,7 +1766,7 @@ function rptBegin(){ RPT={d0:S.day, d1:S.day-1, days:0, nw0:S.nw, cash0:S.cash, 
 function rptBiz(b){
   const l=b.last; if(!l||!RPT) return;
   const r=RPT.biz[b.id]||(RPT.biz[b.id]={id:b.id,name:b.name,city:b.city,dist:b.dist,def:b.def,rev:0,cogs:0,wages:0,rent:0,sec:0,ins:0,mkt:0,extra:0,upkeep:0,net:0,days:0});
-  ['rev','cogs','wages','rent','sec','ins','mkt','extra','upkeep','net'].forEach(k=>{ r[k]+=l[k]||0; }); r.days++; r.name=b.name;
+  ['rev','cogs','wages','rent','sec','ins','mkt','extra','upkeep','net','dfr'].forEach(k=>{ r[k]=(r[k]||0)+(l[k]||0); }); r.days++; r.name=b.name;
 }
 function rptDay(){
   if(!RPT) return;
@@ -1793,7 +1793,7 @@ function rptAlerts(){
 }
 function rptSummary(){
   const R=RPT; if(!R) return null;
-  const rows=Object.values(R.biz).map(r=>({...r,exp:r.cogs+r.wages+r.rent+r.sec+r.ins+r.mkt+r.extra+r.upkeep})).sort((a,b)=>Math.abs(b.net)-Math.abs(a.net));
+  const rows=Object.values(R.biz).map(r=>({...r,exp:r.cogs+r.wages+r.rent+r.sec+r.ins+r.mkt+r.extra+r.upkeep-(r.dfr||0)})).sort((a,b)=>Math.abs(b.net)-Math.abs(a.net));
   let rev=0,exp=0,net=0; rows.forEach(r=>{ rev+=r.rev; exp+=r.exp; net+=r.net; });
   const byCity={}; rows.forEach(r=>{ const c=byCity[r.city]||(byCity[r.city]={rev:0,net:0}); c.rev+=r.rev; c.net+=r.net; });
   const other=[]; Object.keys(R.fl).forEach(k=>{ if(k.startsWith('b:')) return; const f=R.fl[k]; other.push({k,in:f.in,out:f.out,net:f.in-f.out}); });
@@ -1981,6 +1981,7 @@ function bizValue(b){
 }
 function sellPrice(b){ return bizValue(b)*0.88; }
 function closeBiz(b,price,buyer){
+  if((b.dfr||0)>0){ pay('b:'+b.id,'Frais reportés réglés',-b.dfr); b.dfr=0; b.dfr0=0; }
   const p=price===undefined? sellPrice(b) : price;
   payCap('b:'+b.id,(buyer?'Rachat par '+buyer+' : ':'Cession : ')+b.name,p);
   if(b.prem){ const pv=premValue(b)*0.96; payCap('b:'+b.id,'Vente des locaux : '+b.name,pv); }
@@ -2036,6 +2037,7 @@ function bizProjection(b){
 }
 
 /* ---------- Traitement quotidien d'une entreprise ---------- */
+const DFR_DEFS=['gallery','staffing','farm','textile','studio','couture','promo','build'], DFR_MAX=60;
 function processBiz(b){
   const d=bizDef(b), day=S.day, we=isWE(day);
   if(isFact(b)) b.price=1;
@@ -2106,14 +2108,23 @@ function processBiz(b){
     }
   }
   if(closedByEvent){ rev=0; if(!isStock(b)) cogs=0; wages=0; mkt=0; }
-  const net=rev-cogs-wages-upkeep-rent-secc-insc-mkt-extra;
-  b.last={day,rev,cogs,wages,upkeep,rent,sec:secc,ins:insc,mkt,extra,net,open,closed:closedByEvent};
+  let net=rev-cogs-wages-upkeep-rent-secc-insc-mkt-extra;
+  /* V1.5.7 : un jour sans vente (activité qui vend par périodes, ou fermeture du week-end), les frais sont mis
+     de côté et déduits des ventes suivantes : résultat du jour à 0, même bénéfice sur la durée. Réglés au plus tard après 60 jours. */
+  let dfrA=0;
+  if(b.status==='active'){ let D0=b.dfr||0; const per=DFR_DEFS.includes(b.def), weOff=we&&!open&&!closedByEvent;
+    if(net<0&&(per||weOff)){ dfrA=-net; D0+=-net; if(!b.dfr0) b.dfr0=day; }
+    else if(net>0&&D0>0){ const s=Math.min(D0,net); dfrA=-s; D0-=s; }
+    if(D0>0&&b.dfr0&&day-b.dfr0>=DFR_MAX){ dfrA-=D0; D0=0; }
+    if(D0<=.5){ D0=0; b.dfr0=0; } b.dfr=D0; net+=dfrA; }
+  b.last={day,rev,cogs,wages,upkeep,rent,sec:secc,ins:insc,mkt,extra,dfr:dfrA,net,net0:net-dfrA,open,closed:closedByEvent};
   b.hist.push(Math.round(net)); if(b.hist.length>60) b.hist.shift();
   opsDaily(b,open&&!closedByEvent,we);
   metDaily(b,{open:open&&!closedByEvent,rev});
   if(rev>0) pay(src,'Ventes',rev);
   const costs=cogs+wages+upkeep+rent+secc+insc+mkt+extra;
   if(costs>0) pay(src,'Charges d’exploitation',-costs);
+  if(dfrA) pay(src,dfrA>0?'Frais reportés à la prochaine vente':'Frais reportés réglés',dfrA);
   S.tb.corp+=net*C.taxM;
   rptBiz(b);
   if(rev>0 && S.bank.lic && d.cat==='com' && S.bank.dep>0){ const f=rev*0.004*(S.bank.fees===0?.5:S.bank.fees===2?1.4:1); S.bank.payFees=(S.bank.payFees||0)+f; }
@@ -7745,7 +7756,7 @@ function mxRank(b){ const mm=metOf(b); if(mm&&mm.rank&&b.m) return mm.rank(b); c
 function mxNext(b){ const r=mxRank(b); return r>=5? null : MX_STEPS[r+1]; }
 function mxDaily(b){
   if(b.status!=='active'||!metOf(b)) return;
-  const R0=metR0(b)||1, net=b.last? b.last.net : 0, r0=mxRank(b);
+  const R0=metR0(b)||1, net=b.last? (b.last.net0!==undefined? b.last.net0 : b.last.net) : 0, r0=mxRank(b);   /* la maîtrise suit le vrai résultat du jour, avant report des frais */
   b.mx=(b.mx||0)+clamp(.35+net/R0*.6,0,1.6);
   const r1=mxRank(b), m=metOf(b);
   if(r1>r0 && m.ranks && m.ranks[r1-1]){ metLog(b,'palier de maîtrise '+r1+' atteint : '+m.ranks[r1-1].n+'. '+m.ranks[r1-1].d,'good'); }
@@ -10047,8 +10058,8 @@ MET.couture = {
     {n:'Ateliers d’art', d:'Brodeurs, plumassiers, bottiers : les artisans travaillent 50 % plus vite et les défilés gagnent en éclat.'},
     {n:'Maison mythique', d:'Votre nom traverse le temps : le prestige résiste mieux aux licences et ne descend plus sous 40.'}
   ],
-  mods(b){ const m=b.m, R0=metR0(b), pf=hcPf(m), sc=m.cur? m.cur.sc/60 : .7;
-    const pap=R0*.86*pf*sc*hcSeasonF(m)*(m.bq?1.4:1)*(m.cf>S.day?.8:1)*(m.eg>S.day?1.15:1)*clamp(S.macro.econ,.7,1.3)*weFactor(b);
+  mods(b){ const m=b.m, R0=metR0(b), pf=hcPf(m), sc=m.cur? Math.max(.6,m.cur.sc/60) : .7;   /* V1.5.7 : une collection ratée ne fait plus tomber les ventes trop bas */
+    const pap=R0*1.08*pf*sc*hcSeasonF(m)*(m.bq?1.4:1)*(m.cf>S.day?.8:1)*(m.eg>S.day?1.15:1)*clamp(S.macro.econ,.7,1.3)*weFactor(b);
     const lic=(m.lic.acc?R0*.22:0)*pf+(m.lic.par?R0*.4:0)*pf;
     return {vol:0, cogs:0, rev:m.pend+pap+lic, fixed:m.pendC+m.art*R0*.03+(m.bq?R0*.12:0)};
   },
@@ -11651,7 +11662,8 @@ function modalBiz(b){
     if(l){
       body+='<div class="grid g2"><div><h3 style="margin-top:0">Flux du dernier jour</h3><div class="tw"><table class="tbl"><tbody>'+
         '<tr><td>Ventes</td><td class="r num pos">'+eur(l.rev,0)+'</td></tr><tr><td>Coûts variables (matières, marchandises)</td><td class="r num neg">−'+eur(l.cogs,0)+'</td></tr><tr><td>Salaires et charges</td><td class="r num neg">−'+eur(l.wages,0)+'</td></tr><tr><td>Entretien et frais fixes</td><td class="r num neg">−'+eur(l.upkeep,0)+'</td></tr>'+(l.rent?'<tr><td>Loyer</td><td class="r num neg">−'+eur(l.rent,0)+'</td></tr>':'')+(l.sec?'<tr><td>Sécurité</td><td class="r num neg">−'+eur(l.sec,0)+'</td></tr>':'')+(l.ins?'<tr><td>Assurance</td><td class="r num neg">−'+eur(l.ins,0)+'</td></tr>':'')+(l.mkt?'<tr><td>Marketing</td><td class="r num neg">−'+eur(l.mkt,0)+'</td></tr>':'')+(l.extra?'<tr><td>Incidents</td><td class="r num neg">−'+eur(l.extra,0)+'</td></tr>':'')+
-        '<tr><td><b>Résultat</b></td><td class="r num '+cls(l.net)+'"><b>'+signed(l.net,0)+'</b></td></tr></tbody></table></div>'+(l.closed?'<div class="sub neg">Activité interrompue par un incident.</div>':!l.open?'<div class="sub">Fermée : charges fixes seulement.</div>':'')+'</div>'+
+        (l.dfr? '<tr><td>'+(l.dfr>0?'Frais reportés à la prochaine vente':'Frais reportés réglés')+'</td><td class="r num '+(l.dfr>0?'pos':'neg')+'">'+signed(l.dfr,0)+'</td></tr>' : '')+
+        '<tr><td><b>Résultat</b></td><td class="r num '+cls(l.net)+'"><b>'+signed(l.net,0)+'</b></td></tr></tbody></table></div>'+((b.dfr||0)>0? '<div class="sub">Frais en attente : <b class="num">'+eur(b.dfr,0)+'</b>, déduits des prochaines ventes (au plus tard le '+dateL((b.dfr0||S.day)+DFR_MAX)+').</div>' : '')+(l.closed?'<div class="sub neg">Activité interrompue par un incident.</div>':!l.open?'<div class="sub">Fermée : charges fixes seulement.</div>':'')+'</div>'+
         '<div><h3 style="margin-top:0">Résultats des 30 derniers jours</h3>'+barsChart(b.hist.slice(-30),{label:'Résultats quotidiens de '+b.name})+'</div></div>';
     }
     /* pilotage */
@@ -15214,10 +15226,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.5.6';
+const IB_VER='V1.5.7';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Boutique e-commerce plus rentable','La boutique en ligne attire 20 % de visiteurs naturels en plus : environ 20 % de chiffre d’affaires supplémentaire.']
+  ['Plus de pertes entre deux ventes','Galerie, agence de recrutement, ferme, usine textile, studio, haute couture, promotion immobilière et construction : un jour sans vente affiche 0 €. Les frais sont mis de côté et déduits des ventes suivantes (au plus tard après 60 jours). Même chose pour les jours de fermeture du week-end. Le bénéfice sur la durée ne change pas.'],
+  ['Haute couture rééquilibrée','Le prêt-à-porter rapporte davantage et une collection ratée ne fait plus s’effondrer les ventes : la maison est rentable sur l’année.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
