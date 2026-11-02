@@ -1095,6 +1095,10 @@ details.fcd[open]>summary{margin-bottom:8px}
 details.ag-f .ag-s{display:flex;flex-direction:column;min-width:0;gap:2px}
 details.ag-f .ag-s small{color:var(--ink-3);font-size:13px;font-weight:600}
 details.ag-f .ag-s small.warn-t{color:var(--amber)}
+/* V1.4.9 compagnie maritime */
+.al-map .sh-l polyline{fill:none;stroke:#ffd23f;stroke-width:.6;opacity:.9;stroke-linejoin:round}
+.al-map .sh-l.lg polyline{stroke-dasharray:2 1.4}
+.al-map .sh-l.ch polyline{stroke:#9fe3ff;stroke-width:.4;opacity:.8}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -3489,8 +3493,7 @@ function factSupply(b,bought){
 function route(fromC,toC){
   const A=D.CITIES[fromC], B=D.CITIES[toC]; let days, rate;
   if(fromC===toC){ days=1; rate=.01; } else if(A.country===B.country){ days=2; rate=.02; } else if(CONT[A.country]===CONT[B.country]){ days=4; rate=.04; } else { days=9; rate=.07; }
-  const ship=S.biz.some(x=>x.def==='shipping'&&x.status==='active');
-  if(ship&&fromC!==toC){ days=Math.ceil(days*.7); rate*=.6; }
+  const ship=false;   /* V1.4.9 : le gain passe par la compagnie maritime (metier_shipping.js) */
   if(S.mgr&&S.mgr.del&&A.country===B.country){ days=Math.max(1,days-1); rate*=.7; }
   return {days,rate,ship};
 }
@@ -10656,6 +10659,284 @@ function alAuto(b,mode,q){ const m=b.m;
 function alData(){ return {AL_AP, AL_CO, AL_TY}; }
 
 /* ============================================================
+   COMPAGNIE MARITIME (V1.4.9)
+   - Terminaux : une place à quai dans un grand port permet d'en faire partir des lignes régulières
+     vers les ports de sa région ou des régions voisines, et des lignes intercontinentales vers vos
+     autres terminaux. Chaque terminal demande de l'argent et une réputation minimale.
+   - Lignes de porte-conteneurs : des navires tournent entre deux ports ; la capacité dépend du
+     nombre de navires et de la durée d'une rotation, la demande de la taille des ports.
+   - Affrètement : des chargeurs proposent des voyages de vrac ou de pétrole, payés selon un indice
+     du fret qui varie ; il faut un vraquier ou un pétrolier libre.
+   - Vos usines : leurs expéditions vers un autre pays passent par vos navires (moins chères, plus
+     rapides) et le fret est payé à la compagnie.
+   - Flotte : navires loués (dépôt de 30 jours), achetés d'occasion (tout de suite, entretien plus
+     cher) ou commandés neufs au chantier naval (livrés en 240 jours).
+   - Canaux et risques : péages de Suez et de Panama, fermetures (détour par le cap), tempêtes,
+     avaries, piraterie dans le golfe d'Aden ; une assurance couvre rançons et réparations.
+   État b.m (v:1) : tm[] (terminaux), ext{}, fl[] {id, t, own, occ, ln, ch, down, yard, dep},
+   ln[] {id, a, b, p, st}, off[] (offres d'affrètement), ch[] (voyages en cours), bunk (€/t),
+   ci (indice conteneurs), bi (indice vrac), img, usn, ins, plan, ali, eco, esc, d2d, ev[], nid,
+   st, acc, accC, pend, pendC, uf (fret de vos usines du jour), log.
+   ============================================================ */
+D.biz.shipping.sub='Porte-conteneurs, vrac et pétrole';
+D.DEFB.shipping={t:['land','depot','office'],s:3000};
+if(D.BASKET) D.BASKET.shipping=250;
+
+const SH_RG={neu:'Europe du Nord', med:'Méditerranée', nae:'Amérique du Nord (Atlantique)', naw:'Amérique du Nord (Pacifique)', sa:'Amérique latine', af:'Afrique', me:'Moyen-Orient et Inde', as:'Asie', oc:'Océanie'};
+const SH_NB={neu:['med','nae'], med:['neu','af','me'], nae:['neu','sa','naw'], naw:['nae','as'], sa:['nae','af'], af:['med','sa','me'], me:['med','af','as'], as:['me','oc','naw'], oc:['as']};
+/* ports : [code, nom, région, côte, lat, lon, trafic (millions d'EVP par an), terminal possible ?] ; côte : atl, med, red (mer Rouge), ind, pac (Asie, Océanie), pace (Amériques, Pacifique) */
+const SH_PT={};
+[['RTM','Rotterdam','neu','atl',51.95,4.05,14.5,1],['ANR','Anvers','neu','atl',51.27,4.33,12,1],['HAM','Hambourg','neu','atl',53.54,9.97,8.7,1],['LEH','Le Havre','neu','atl',49.48,.11,3,1],['FXT','Felixstowe','neu','atl',51.95,1.31,3.8],['GDN','Gdańsk','neu','atl',54.4,18.67,2.1],
+ ['FOS','Marseille-Fos','med','med',43.4,4.87,1.5,1],['BCN','Barcelone','med','med',41.35,2.16,3.5,1],['VLC','Valence','med','med',39.44,-.32,5.1,1],['GOA','Gênes','med','med',44.4,8.92,2.6],['PIR','Le Pirée','med','med',37.94,23.63,5.1,1],['TNG','Tanger Med','med','med',35.89,-5.5,8.6,1],['RJK','Rijeka','med','med',45.33,14.43,.4,1],['PSD','Port-Saïd','med','med',31.26,32.3,3.8],
+ ['NYC','New York','nae','atl',40.67,-74.05,9.5,1],['SAV','Savannah','nae','atl',32.08,-81.09,5.9],['MIA','Miami','nae','atl',25.77,-80.17,1.3,1],['HOU','Houston','nae','atl',29.73,-95.27,3.9],
+ ['LAX','Los Angeles','naw','pace',33.74,-118.26,9.9,1],['VAN','Vancouver','naw','pace',49.29,-123.11,3.6,1],['SEA','Seattle','naw','pace',47.6,-122.35,3.5],
+ ['SSZ','Santos','sa','atl',-23.96,-46.31,5,1],['BUE','Buenos Aires','sa','atl',-34.6,-58.37,1.5],['RIO','Rio de Janeiro','sa','atl',-22.89,-43.18,1.4],['CTG','Carthagène','sa','atl',10.4,-75.53,3.4,1],
+ ['LOS','Lagos','af','atl',6.43,3.39,1.5],['DUR','Durban','af','ind',-29.87,31.03,2.8,1],['MBA','Mombasa','af','ind',-4.06,39.67,1.6],['CAS','Casablanca','af','atl',33.6,-7.62,1.3],
+ ['JEA','Jebel Ali (Dubaï)','me','ind',25.01,55.06,14,1],['JED','Djeddah','me','red',21.48,39.17,4.7,1],['BOM','Bombay','me','ind',18.95,72.95,6.4,1],
+ ['SHA','Shanghai','as','pac',31.23,121.49,47,1],['SZX','Shenzhen','as','pac',22.5,113.88,30,1],['SIN','Singapour','as','pac',1.26,103.82,37,1],['BUS','Busan','as','pac',35.1,129.04,22,1],['HKG','Hong Kong','as','pac',22.3,114.17,14],['TYO','Tokyo','as','pac',35.62,139.78,4.5,1],
+ ['SYD','Sydney','oc','pac',-33.86,151.2,2.7,1],['MEL','Melbourne','oc','pac',-37.82,144.95,3.1,1],['AKL','Auckland','oc','pac',-36.84,174.77,1,1]
+].forEach(([id,n,rg,sd,lat,lon,sz,tm])=>{ SH_PT[id]={id,n,rg,sd,lat,lon,sz,tm:!!tm, am:rg==='nae'||rg==='sa'}; });
+/* points de passage */
+const SH_WP={cv:[16,-21], gib:[36,-5.6], suez:[30.6,32.4], bab:[12.6,43.4], sin:[1.3,103.8], pan:[9.1,-79.7], cape:[-35,19.5], horn:[-56.5,-67.5]};
+/* navires (modèles fictifs) : capacité (EVP ou tonnes), vitesse (nœuds), prix neuf, loyer par jour, fioul (t par jour de mer), équipage (€ par jour), passe Panama ? */
+const SH_TY={
+  f1:{n:'Feeder 1 200', k:'box', d:'Porte-conteneurs régional', cap:1200, kn:17, pr:22e6, ls:7000, fuel:22, crew:5000, pan:1},
+  p5:{n:'Panamax 5 000', k:'box', d:'Porte-conteneurs moyen', cap:5000, kn:21, pr:65e6, ls:19000, fuel:60, crew:8000, pan:1},
+  n13:{n:'Néo-Panamax 13 000', k:'box', d:'Grand porte-conteneurs', cap:13000, kn:22, pr:130e6, ls:40000, fuel:110, crew:10000, pan:1},
+  g22:{n:'Géant 22 000', k:'box', d:'Très grand porte-conteneurs (trop large pour Panama)', cap:22000, kn:21, pr:190e6, ls:60000, fuel:150, crew:11000, pan:0},
+  bk:{n:'Vraquier 80 000 t', k:'bulk', d:'Minerai, charbon, céréales', cap:80000, kn:14, pr:38e6, ls:11000, fuel:30, crew:5500, pan:1},
+  tk:{n:'Pétrolier 150 000 t', k:'tank', d:'Pétrole brut et raffiné (trop large pour Panama)', cap:150000, kn:15, pr:75e6, ls:22000, fuel:45, crew:7000, pan:0}
+};
+const SH_PRICE=[.8,1,1.15,1.3], SH_YARD=240, SH_OCC=.6;
+const SH_CARGO={bulk:['minerai de fer','charbon','céréales','bauxite','engrais'], tank:['pétrole brut','gazole','kérosène','naphta']};
+const shPt = id => SH_PT[id];
+function shGc(a,b){ const r=Math.PI/180, dl=(b[0]-a[0])*r, dn=(b[1]-a[1])*r, x=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)**2; return 2*6371*Math.asin(Math.sqrt(x)); }
+function shEv(m,k){ return (m.ev||[]).some(e=>e.k===k&&e.until>=S.day); }
+/* route maritime entre deux ports : points de passage, canal emprunté, golfe d'Aden ? */
+function shPath(a,b,m,big){
+  let A=shPt(a), B=shPt(b); const rk={atl:0,med:1,red:2,ind:3,pac:4,pace:5}; let flip=false;
+  if(rk[A.sd]>rk[B.sd]||(A.sd===B.sd&&A.lon>B.lon)){ const t=A; A=B; B=t; flip=true; }
+  const pa=[A.lat,A.lon], pb=[B.lat,B.lon], W=SH_WP, sA=A.sd, sB=B.sd, sinIf=p=>(B.lon>100||B.rg==='oc')&&B.id!=='SIN'? [W.sin] : [];
+  const suezShut=m&&shEv(m,'suez'), panShut=m&&shEv(m,'pan');
+  let pts=[pa], canal=null, aden=false;
+  const viaSuez=(gib)=>{ if(suezShut){ pts.push(...(gib?[W.gib]:[]),W.cape); } else { pts.push(...(gib?[W.gib]:[]),W.suez); canal='suez'; if(sB!=='red'){ pts.push(W.bab); aden=true; } } };
+  const eu=P=>P.rg==='neu'||P.rg==='med', wa=P=>P.rg==='af'&&P.sd==='atl'&&P.lat<20||P.rg==='sa';
+  if(sA===sB){ if(sA==='pac'&&A.lon<105&&B.lon>105) pts.push(W.sin); if(sA==='atl'&&((eu(A)&&wa(B))||(eu(B)&&wa(A)))) pts.push(W.cv); }
+  else if(sA==='atl'&&sB==='med'){ if(wa(A)) pts.push(W.cv); pts.push(W.gib); }
+  else if((sA==='atl'||sA==='med')&&(sB==='red'||sB==='ind'||sB==='pac')){
+    if(sA==='atl'&&A.am&&sB==='pac'){ if(panShut||big) pts.push(W.horn); else { pts.push(W.pan); canal='pan'; } }
+    else if(B.id==='DUR'&&sA==='atl'){ if(eu(A)) pts.push(W.cv); pts.push(W.cape); }
+    else { viaSuez(sA==='atl'&&!(A.am&&false)); if(sB==='pac') pts.push(...sinIf()); else if(sB==='ind'&&B.id==='DUR'){ pts.splice(pts.length-1,1); pts.push(W.bab); } } }
+  else if((sA==='atl'||sA==='med')&&sB==='pace'){ if(sA==='med') pts.push(W.gib); if(panShut||big) pts.push(W.horn); else { pts.push(W.pan); canal='pan'; } }
+  else if(sA==='red'&&(sB==='ind'||sB==='pac'||sB==='pace')){ pts.push(W.bab); aden=true; if(sB!=='ind') pts.push(...sinIf()); }
+  else if(sA==='ind'&&(sB==='pac'||sB==='pace')) pts.push(W.sin);
+  pts.push(pb); if(flip) pts.reverse();
+  let d=0; for(let i=1;i<pts.length;i++) d+=shGc(pts[i-1],pts[i]);
+  return {pts, d:Math.round(d*1.08), canal, aden}; }
+function shDist(a,b,m){ return shPath(a,b,m,false).d; }
+/* rotation d'un navire sur une ligne (aller-retour, escales comprises), en jours */
+function shRot(b,t,a,bb){ const m=b.m, T=SH_TY[t], P=shPath(a,bb,m,!T.pan), sea=P.d/(T.kn*.75*1.852*24), port=(m.plan?2.5:3.5);   /* vitesse économique, plusieurs escales à chaque bout */
+  return {rt:2*sea+2*port+(P.canal?1:0), sea:2*sea, P}; }
+/* prix moyen du transport d'un EVP selon la distance */
+function shRate(d){ return 150+.012*d; }
+function shHomeTm(b){ return {paris:'LEH',toulouse:'LEH',marseille:'FOS',barcelone:'BCN',madrid:'VLC',seville:'VLC',zagreb:'RJK',split:'RJK',dubrovnik:'RJK',miami:'MIA',newyork:'NYC',losangeles:'LAX',rio:'SSZ',saopaulo:'SSZ',salvador:'SSZ',pekin:'SHA',shanghai:'SHA',shenzhen:'SZX'}[b&&b.city]||'RTM'; }
+function shTmCost(id){ const P=shPt(id); return Math.round((7e6+P.sz*6e5)/1e5)*1e5; }
+function shTmReq(b,id){ const P=shPt(id), H=shPt(shHomeTm(b)); return Math.round(26+P.sz*.55+(H&&P.rg!==H.rg&&!SH_NB[H.rg].includes(P.rg)?12:0)); }
+function shTmCap(b,id){ return 3+2*((b.m.ext&&b.m.ext[id])||0); }
+function shTmUsed(b,id){ return b.m.ln.filter(l=>l.a===id).length; }
+function shExtCost(b,id){ return Math.round(shTmCost(id)*.45*(1+((b.m.ext&&b.m.ext[id])||0))/1e5)*1e5; }
+function shDests(b,from){ const m=b.m, A=shPt(from), ok=[A.rg].concat(SH_NB[A.rg]); return Object.values(SH_PT).filter(x=>x.id!==from&&(ok.includes(x.rg)||m.tm.includes(x.id))); }
+function shShip(b,id){ return b.m.fl.find(p=>p.id===id); }
+function shLine(b,id){ return b.m.ln.find(l=>l.id===id); }
+const shFree = (m,p) => !(p.down>S.day) && !(p.yard>S.day) && !p.ch && !(p.ln&&m.ln.some(l=>l.id===p.ln));
+function shMaint(m,p){ const T=SH_TY[p.t]; return p.own? T.pr*.00011*(p.occ?1.7:1) : T.ls; }
+function shBunk(m){ return m.bunk*(shEv(m,'fuel')?1.3:1); }
+function shInit(b){
+  const h=shHomeTm(b), H=shPt(h);
+  const m={v:1, tm:[h], ext:{}, fl:[], ln:[], off:[], bunk:420, ci:1, bi:1, img:32, usn:1, ins:0, ev:[], nid:1, st:null, acc:0, accC:0, pend:0, pendC:0, uf:0, log:[]};
+  b.m=m; b.stock=0;
+  /* au départ : un Panamax et un feeder loués, chacun sur la meilleure ligne qui s'offre à lui */
+  const cands=shDests(b,h).filter(x=>shDist(h,x.id,m)>=600);
+  const bestFor=(t,skip)=>{ let best=null; cands.forEach(x=>{ if(x.id===skip) return; const l={id:-1, a:h, b:x.id, p:1}; m.ln=[l]; m.fl=[{id:-1,t,own:0,ln:-1,down:0}]; const v=shLineDay(b,l).net; if(!best||v>best.v) best={x,v}; }); m.ln=[]; m.fl=[]; return best; };
+  const b1=bestFor('p5'), b2=bestFor('f1',b1&&b1.x.id);
+  [[b1,'p5'],[b2,'f1']].forEach(([o,t])=>{ if(!o) return; const l={id:m.nid++, a:h, b:o.x.id, p:1}; m.ln.push(l); m.fl.push({id:m.nid++, t, own:0, ln:l.id, down:0, dep:SH_TY[t].ls*30}); });
+  shOffers(b); return m; }
+/* une journée d'une ligne (prévision sans hasard si sim) */
+function shLineDay(b,l){
+  const m=b.m, P=m.fl.filter(p=>p.ln===l.id&&!(p.down>S.day)&&!(p.yard>S.day)); const A=shPt(l.a), B=shPt(l.b);
+  if(!P.length) return {teu:0,cap:0,rev:0,cost:0,lf:0,net:0,ships:0};
+  const d0=shDist(l.a,l.b,m);
+  /* demande (EVP par jour, deux sens) : grands ports, grands flux Asie-Europe et transpacifique */
+  const big=(x,y)=>(x==='as'&&(y==='neu'||y==='med'||y==='naw'))||(y==='as'&&(x==='neu'||x==='med'||x==='naw'));
+  let dem=260*Math.sqrt(A.sz*B.sz)/(1+d0/18000)*(A.rg===B.rg&&d0<1500?.55:1)*(big(A.rg,B.rg)?1.6:1);
+  const inter=A.rg!==B.rg&&!SH_NB[A.rg].includes(B.rg); if(inter&&m.ali) dem*=1.15;
+  const pm=SH_PRICE[l.p]||1, share=clamp(.2+m.img/260,.1,.65)*Math.pow(pm,-2.4);
+  const want=dem*share*(4000/(4000+dem*share));
+  let cap=0, cost=0, calls=0, canal=0, teuK=0;
+  P.forEach(p=>{ const T=SH_TY[p.t], R=shRot(b,p.t,l.a,l.b), fs=R.sea/R.rt;
+    cap+=T.cap*2/R.rt*.92; calls+=2/R.rt;
+    cost+=T.fuel*fs*shBunk(m)*(m.eco?.85:1)+T.crew+shMaint(m,p);
+    if(R.P.canal) canal+=2/R.rt*T.cap*(R.P.canal==='suez'?26:34);
+    teuK+=T.cap; });
+  const fee=(x)=>m.tm.includes(x)? .5 : 1;
+  cost+=calls/2*(fee(l.a)+fee(l.b))*(9000+teuK/P.length*2.2)+canal;
+  const teu=Math.min(cap,want), rate=shRate(d0)*pm*m.ci*(m.d2d?1.1:1);
+  cost+=teu*(m.tm.includes(l.a)&&m.tm.includes(l.b)? 38 : 55);
+  const rev=teu*rate;
+  return {teu, cap, rev, cost, lf:cap? teu/cap : 0, net:rev-cost, d:d0, want, ships:P.length}; }
+/* offres d'affrètement : voyages de vrac et de pétrole entre deux ports, payés selon l'indice */
+function shOffers(b){ const m=b.m, ids=Object.keys(SH_PT), n=4+Math.floor(rnd()*3); m.off=m.off.filter(o=>o.exp>S.day);
+  while(m.off.length<n){ const k=rnd()<.6?'bulk':'tank', a=pick(ids); let bb=pick(ids); if(bb===a) continue;
+    const d=shDist(a,bb,null); if(d<1500) continue; const T=k==='bulk'?SH_TY.bk:SH_TY.tk, q=Math.round(T.cap*(.7+rnd()*.3)/1000)*1000;
+    const days=Math.ceil(2*d/(T.kn*1.852*24)+5), base=(k==='bulk'? 4.5+.0013*d : 4+.0011*d)*(k==='bulk'?m.bi:Math.sqrt(m.bi*m.ci));
+    m.off.push({id:m.nid++, k, c:pick(SH_CARGO[k]), a, b:bb, q, d, days, pay:Math.round(q*base/1000)*1000, exp:S.day+7+Math.floor(rnd()*7)}); } }
+function shChDay(m,p){ const c=p.ch, T=SH_TY[p.t]; if(!c) return {rev:0,cost:0};
+  const fs=Math.min(1,(c.days-5)/c.days); return {rev:c.pay/c.days, cost:T.fuel*fs*shBunk(m)*(m.eco?.85:1)+T.crew+shMaint(m,p)+(c.toll||0)/c.days}; }
+function shDay(b){ const m=b.m; let r={teu:0,cap:0,rev:0,cost:0,ch:0};
+  m.ln.forEach(l=>{ const x=shLineDay(b,l); l.st=x; r.teu+=x.teu; r.cap+=x.cap; r.rev+=x.rev; r.cost+=x.cost; });
+  m.fl.forEach(p=>{ if(p.ch){ const x=shChDay(m,p); r.rev+=x.rev; r.cost+=x.cost; r.ch+=x.rev; }
+    else if(!(p.ln&&m.ln.some(l=>l.id===p.ln))&&!(p.yard>S.day)) r.cost+=shMaint(m,p)+SH_TY[p.t].crew*.4; });
+  /* terminaux : d'autres compagnies paient pour vos quais */
+  r.rev+=m.tm.reduce((a,id)=>a+shPt(id).sz*160,0);
+  if(m.ins) r.cost+=shInsCost(b);
+  r.lf=r.cap? r.teu/r.cap : 0; return r; }
+function shInsCost(b){ return Math.round(b.m.fl.reduce((a,p)=>a+SH_TY[p.t].pr*.000035,0)*(b.m.esc?.7:1)); }
+MET.shipping={
+  fam:'ind', core:true, init:shInit,
+  ranks:[
+    {n:'Planification des escales', d:'Des escales mieux préparées : rotations plus courtes, donc plus de capacité avec les mêmes navires.'},
+    {n:'Alliance maritime', d:'Des partenaires partagent leurs navires avec vous : +15 % de demande sur les lignes intercontinentales.'},
+    {n:'Navires économes', d:'Bulbes d’étrave, peintures et vitesse réduite : −15 % de fioul.'},
+    {n:'Sûreté et escortes', d:'Gardes armés et escortes dans le golfe d’Aden : piraterie bien plus rare, assurance −30 %.'},
+    {n:'Logistique porte-à-porte', d:'Vous prenez en charge camions et douane : +10 % sur le prix de chaque conteneur.'}
+  ],
+  mods(b){ const m=b.m; return {vol:0, cogs:0, rev:m.pend, fixed:m.pendC}; },
+  daily(b,ctx){
+    const m=b.m;
+    if(ctx.open){ m.pend=m.acc; m.pendC=m.accC; m.acc=0; m.accC=0; }
+    m.ev=(m.ev||[]).filter(e=>e.until>=S.day);
+    /* fioul, indices du fret conteneurs et vrac */
+    m.bunk=clamp(m.bunk+(420-m.bunk)*.02+7*norm(),260,700);
+    m.ci=clamp(m.ci+(1-m.ci)*.01+.012*norm(),.65,1.6); m.bi=clamp(m.bi+(1-m.bi)*.012+.02*norm(),.5,1.9);
+    /* navires livrés par le chantier, voyages d'affrètement terminés */
+    m.fl.forEach(p=>{ if(p.yard&&p.yard<=S.day){ p.yard=0; metLog(b,SH_TY[p.t].n+' livré par le chantier naval.','good'); }
+      if(p.ch&&p.ch.end<=S.day){ metLog(b,'voyage d’affrètement terminé ('+p.ch.c+', '+shPt(p.ch.a).n+' – '+shPt(p.ch.b).n+').','good'); p.ch=null; } });
+    if(S.day%7===0) shOffers(b);
+    const d=shDay(b); d.rev+=m.uf||0; m.uf=0; m.st=d; m.acc+=d.rev; m.accC+=d.cost;
+    /* réputation : années, réseau, terminaux, fiabilité */
+    if(!m.d0) m.d0=S.day;
+    const inc=(m.ev||[]).filter(e=>e.k==='pir'||e.k==='av').length;
+    const tgt=30+Math.min(24,(S.day-m.d0)/360*6)+Math.min(8,m.ln.length*.5)+Math.min(8,m.tm.length*1.2)+(m.ali?4:0)+(m.d2d?4:0)+(d.lf>.7?3:d.lf<.4?-3:0)-inc*4;
+    m.img=clamp(m.img+(Math.min(95,tgt)-m.img)/400,0,100);
+    shRisks(b);
+  },
+  kpis(b){ const m=b.m, d=m.st||shDay(b), busy=m.fl.filter(p=>p.ch).length;
+    return [['Conteneurs / jour', fmtN(Math.round(d.teu))+' EVP', m.ln.length+' ligne'+(m.ln.length>1?'s':'')+' · remplissage '+Math.round((d.lf||0)*100)+' %'],
+            ['Affrètement', busy+' voyage'+(busy>1?'s':'')+' en cours', 'Indice du vrac '+Math.round(m.bi*100)],
+            ['Réputation', Math.round(m.img)+' / 100', m.tm.length+' terminal'+(m.tm.length>1?'s':'')],
+            ['Fioul', eur(shBunk(m),0)+' / t', 'Indice conteneurs '+Math.round(m.ci*100)]];
+  },
+  ctl(b){ const m=b.m, d=bizDef(b), out=[];
+    out.push({k:'tog', act:'usn', label:'Transporter les marchandises de vos usines', val:m.usn?1:0, sub:'Expéditions vers un autre pays : délais −40 %, coût −50 %, payé à votre compagnie (au moins une ligne requise).'});
+    out.push({k:'tog', act:'ins', label:'Assurance de la flotte', val:m.ins?1:0, sub:(m.ins?'':'Environ ')+eur(shInsCost(b),0)+' par jour : rançons de piraterie et réparations d’avaries couvertes.'});
+    [['plan',1,1.5,'Planification des escales','Rotations plus courtes.'],['ali',2,3,'Alliance maritime','+15 % de demande intercontinentale.'],['eco',3,5,'Navires économes','−15 % de fioul.'],['esc',4,6,'Sûreté et escortes','Piraterie bien plus rare, assurance −30 %.'],['d2d',5,10,'Logistique porte-à-porte','+10 % par conteneur.']].forEach(([k2,rk,f,l,s])=>{
+      if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:d.cost*f, sub:s}); });
+    return out; },
+  acts:{
+    tm:(b,id)=>shBuyTm(b,id),
+    ext:(b,id)=>shExt(b,id),
+    open:(b,arg)=>{ const [a,bb,pid]=String(arg).split(':'); return shOpen(b,a,bb,+pid); },
+    close:(b,id)=>shClose(b,+id),
+    price:(b,arg)=>{ const [id,v]=String(arg).split(':'), l=shLine(b,+id); if(!l) return err('Ligne introuvable.'); l.p=clamp(+v|0,0,3); return ok(''); },
+    add:(b,arg)=>{ const [id,pid]=String(arg).split(':'); return shAssign(b,+id,+pid); },
+    off:(b,pid)=>shUnassign(b,+pid),
+    lease:(b,t)=>shGet(b,t,'lease'),
+    occ:(b,t)=>shGet(b,t,'occ'),
+    yard:(b,t)=>shGet(b,t,'new'),
+    drop:(b,id)=>shDrop(b,+id),
+    charter:(b,arg)=>{ const [oid,pid]=String(arg).split(':'); return shCharter(b,+oid,+pid); },
+    usn:(b,v)=>{ b.m.usn= v===undefined? (b.m.usn?0:1) : (+v?1:0); return ok(b.m.usn? 'Vos usines expédient par vos navires.' : 'Vos usines utilisent d’autres transporteurs.'); },
+    ins:(b,v)=>{ b.m.ins= v===undefined? (b.m.ins?0:1) : (+v?1:0); return ok(b.m.ins? 'Flotte assurée.' : 'Assurance résiliée.'); },
+    plan:(b)=>shBuyR(b,'plan',1.5,'Planification des escales',1),
+    ali:(b)=>shBuyR(b,'ali',3,'Alliance maritime',2),
+    eco:(b)=>shBuyR(b,'eco',5,'Navires économes',3),
+    esc:(b)=>shBuyR(b,'esc',6,'Sûreté et escortes',4),
+    d2d:(b)=>shBuyR(b,'d2d',10,'Logistique porte-à-porte',5)
+  },
+  auto: shAuto
+};
+function shBuyR(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizDef(b).cost*f;
+  if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m[k]=1; metLog(b,label.toLowerCase()+' : c’est fait.','good'); return ok(label+' : c’est fait.'); }
+function shBuyTm(b,id,auto){ const m=b.m, P=shPt(id); if(!P||!P.tm) return err('Port inconnu.'); if(m.tm.includes(id)) return err('Vous y avez déjà un terminal.');
+  const req=shTmReq(b,id); if(m.img<req) return err('Réputation insuffisante : '+req+' requis ('+Math.round(m.img)+' aujourd’hui).');
+  const c=shTmCost(id); if(!(auto? dlSpend(b,c,'Terminal : '+P.n) : metBuy(b,c,'Terminal à '+P.n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  m.tm.push(id); metLog(b,'nouveau terminal à '+P.n+'.','good'); return ok('Vous pouvez maintenant ouvrir des lignes depuis '+P.n+'.'); }
+function shExt(b,id,auto){ const m=b.m; if(!m.tm.includes(id)) return err('Achetez d’abord un terminal.'); m.ext=m.ext||{}; const n=m.ext[id]||0; if(n>=3) return err('Quais au maximum à '+shPt(id).n+'.');
+  const c=shExtCost(b,id); if(!(auto? dlSpend(b,c,'Quais : '+shPt(id).n) : metBuy(b,c,'Quais supplémentaires : '+shPt(id).n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  m.ext[id]=n+1; metLog(b,'quais supplémentaires à '+shPt(id).n+' : '+shTmCap(b,id)+' lignes possibles.','good'); return ok(shTmCap(b,id)+' lignes possibles au départ de '+shPt(id).n+'.'); }
+function shCanLine(b,a,bb){ const m=b.m; if(!m.tm.includes(a)) return 'Départ depuis un de vos terminaux uniquement.'; if(!shPt(bb)) return 'Port inconnu.';
+  if(shTmUsed(b,a)>=shTmCap(b,a)) return 'Plus de quai libre à '+shPt(a).n+' ('+shTmCap(b,a)+' lignes) : achetez des quais supplémentaires.';
+  if(!shDests(b,a).some(x=>x.id===bb)) return 'Destination hors de portée : même région, région voisine, ou un autre de vos terminaux.';
+  if(m.ln.some(l=>(l.a===a&&l.b===bb)||(l.a===bb&&l.b===a))) return 'Cette ligne existe déjà.'; return ''; }
+function shOpen(b,a,bb,pid){ const m=b.m, e=shCanLine(b,a,bb); if(e) return err(e); const p=shShip(b,pid); if(!p) return err('Choisissez un navire.');
+  if(SH_TY[p.t].k!=='box') return err('Seuls les porte-conteneurs desservent les lignes.'); if(!shFree(m,p)) return err('Ce navire n’est pas disponible.');
+  const l={id:m.nid++, a, b:bb, p:1}; m.ln.push(l); p.ln=l.id; metLog(b,'nouvelle ligne '+shPt(a).n+' – '+shPt(bb).n+'.','good'); return ok('Ligne ouverte : '+shPt(a).n+' – '+shPt(bb).n+'.'); }
+function shAssign(b,lid,pid){ const m=b.m, l=shLine(b,lid), p=shShip(b,pid); if(!l||!p) return err('Introuvable.'); if(SH_TY[p.t].k!=='box') return err('Seuls les porte-conteneurs desservent les lignes.');
+  if(!shFree(m,p)) return err('Ce navire n’est pas disponible.'); p.ln=l.id; return ok(SH_TY[p.t].n+' ajouté sur la ligne.'); }
+function shUnassign(b,pid){ const m=b.m, p=shShip(b,pid); if(!p||!p.ln) return err('Ce navire n’est sur aucune ligne.'); p.ln=0; return ok(SH_TY[p.t].n+' retiré de la ligne.'); }
+function shClose(b,lid){ const m=b.m, l=shLine(b,lid); if(!l) return err('Ligne introuvable.'); m.ln=m.ln.filter(x=>x!==l); m.fl.forEach(p=>{ if(p.ln===lid) p.ln=0; }); return ok('Ligne fermée ; ses navires sont disponibles.'); }
+function shGet(b,t,how,auto){ const m=b.m, T=SH_TY[t]; if(!T) return err('Modèle inconnu.'); const lab={lease:'Location',occ:'Achat d’occasion',new:'Commande au chantier'}[how]; if(!lab) return err('Mode inconnu.');
+  const c= how==='lease'? T.ls*30 : how==='occ'? T.pr*SH_OCC : T.pr;
+  if(how==='lease'){ if(availFor(cityOf(b).ccy)<c) return err('Il faut '+eur(c,0)+' de dépôt de garantie.'); payCap('b:'+b.id,'Dépôt de garantie : '+T.n,-c); settleAccounts(); }
+  else if(!(auto? dlSpend(b,c,lab+' : '+T.n) : metBuy(b,c,lab+' : '+T.n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  const p={id:m.nid++, t, own:how==='lease'?0:1, occ:how==='occ'?1:0, ln:0, down:0, dep:how==='lease'?c:0, yard:how==='new'? S.day+SH_YARD : 0}; m.fl.push(p);
+  return ok(how==='lease'? T.n+' loué ('+eur(T.ls,0)+' par jour).' : how==='occ'? T.n+' d’occasion acheté.' : T.n+' commandé : livraison le '+dateL(p.yard)+'.'); }
+function shResale(p){ const T=SH_TY[p.t]; return T.pr*(p.occ? .35 : .65); }
+function shDrop(b,pid){ const m=b.m, p=shShip(b,pid); if(!p) return err('Navire introuvable.'); if(p.ch) return err('Ce navire est en voyage d’affrètement.'); if(p.yard>S.day) return err('Ce navire est encore au chantier.'); const T=SH_TY[p.t];
+  if(p.own){ payCap('b:'+b.id,'Revente : '+T.n,shResale(p)); settleAccounts(); } else if(p.dep){ payCap('b:'+b.id,'Dépôt rendu : '+T.n,p.dep); settleAccounts(); }
+  m.fl=m.fl.filter(x=>x!==p); return ok(p.own? T.n+' revendu '+eur(shResale(p),0)+'.' : 'Location de '+T.n+' terminée, dépôt rendu.'); }
+function shCharter(b,oid,pid){ const m=b.m, o=m.off.find(x=>x.id===oid); if(!o) return err('Offre expirée.'); const p=shShip(b,pid); if(!p) return err('Choisissez un navire.');
+  const T=SH_TY[p.t]; if(T.k!==o.k) return err(o.k==='bulk'? 'Il faut un vraquier.' : 'Il faut un pétrolier.'); if(T.cap<o.q) return err('Capacité insuffisante.'); if(!shFree(m,p)) return err('Ce navire n’est pas disponible.');
+  const P=shPath(o.a,o.b,m,!T.pan), days=Math.ceil(2*P.d/(T.kn*1.852*24)+5), toll=P.canal? 2*T.cap*(P.canal==='suez'?.9:1.1) : 0;
+  p.ch={id:o.id, c:o.c, a:o.a, b:o.b, pay:o.pay, days, end:S.day+days, toll, aden:P.aden}; m.off=m.off.filter(x=>x!==o);
+  metLog(b,'affrètement : '+o.c+' de '+shPt(o.a).n+' à '+shPt(o.b).n+' pour '+eur(o.pay,0)+' ('+days+' jours).','good'); return ok('Voyage signé : '+eur(o.pay,0)+' en '+days+' jours.'); }
+/* risques : canaux, tempêtes, avaries, piraterie */
+function shRisks(b){ const m=b.m, r=rnd(), act=m.fl.filter(p=>!(p.yard>S.day)&&!(p.down>S.day)&&(p.ch||(p.ln&&m.ln.some(l=>l.id===p.ln))));
+  const add=(k,days,txt,cls)=>{ m.ev.push({k,until:S.day+days}); metLog(b,txt,cls||'bad'); };
+  if(r<.0015&&!shEv(m,'suez')) add('suez',rint(6,40),'le canal de Suez est fermé : détour par le cap de Bonne-Espérance, plus long et plus coûteux en fioul.');
+  else if(r<.0028&&!shEv(m,'pan')) add('pan',rint(30,60),'sécheresse au canal de Panama : les navires passent par le cap Horn.');
+  else if(r<.0040&&!shEv(m,'fuel')) add('fuel',30,'flambée du fioul : +30 % pendant un mois.');
+  if(!act.length) return;
+  const p=pick(act), T=SH_TY[p.t], val=T.pr, x=rnd();
+  if(x<.004){ p.down=S.day+rint(3,6); metLog(b,'tempête : '+T.n+' retardé de quelques jours.','warn'); }
+  else if(x<.0065){ p.down=S.day+8; m.ev.push({k:'av',until:S.day+8}); const c=val*.008; if(m.ins) metLog(b,'avarie sur '+T.n+' : 8 jours d’immobilisation, réparation prise en charge par l’assurance.','warn'); else { m.accC+=c; metLog(b,'avarie sur '+T.n+' : 8 jours d’immobilisation et '+eur(c,0)+' de réparation.','bad'); } }
+  else { const aden=p.ch? p.ch.aden : (p.ln? shPath(shLine(b,p.ln).a,shLine(b,p.ln).b,m,!T.pan).aden : false);
+    if(aden&&x<.0065+.006*(m.esc?.3:1)){ p.down=S.day+20; m.ev.push({k:'pir',until:S.day+20}); const c=val*.015;
+      if(m.ins) metLog(b,'pirates dans le golfe d’Aden : '+T.n+' retenu 20 jours, rançon payée par l’assurance.','bad'); else { m.accC+=c; metLog(b,'pirates dans le golfe d’Aden : '+T.n+' retenu 20 jours, rançon de '+eur(c,0)+'.','bad'); } } } }
+/* vos usines : le fret vers un autre pays passe par vos navires */
+function shGroupCo(){ return S.biz.find(x=>x.def==='shipping'&&x.status==='active'&&x.m&&x.m.usn&&x.m.ln&&x.m.ln.length); }
+{ const _rt=route; route=function(fromC,toC){ const R=_rt(fromC,toC), A=D.CITIES[fromC], B=D.CITIES[toC], co=shGroupCo();
+    if(!co||fromC===toC||!A||!B||A.country===B.country) return R;
+    R.days=Math.max(1,Math.ceil(R.days*.6)); R.rate*=.5; R.ship=true; R.co=co.id; return R; }; }
+{ const _df=deliverFrom; deliverFrom=function(cid,bid){ const I=indInit(), c=I.active.find(x=>x.id===cid), b=S.biz.find(x=>x.id===bid);
+    let R=null, cost=0; if(c&&b&&goodOf(b)===c.g){ R=route(b.city,c.city); cost=c.qty*D.GOODS[c.g].v*R.rate; }
+    const r=_df(cid,bid); if(r&&r.ok&&R&&R.co){ const co=S.biz.find(x=>x.id===R.co); if(co&&co.m){ co.m.uf=(co.m.uf||0)+cost; co.m.uft=(co.m.uft||0)+cost; } } return r; }; }
+/* le directeur : prix chaque semaine ; en délégation totale, affrètements, navires et lignes */
+function shAuto(b,mode,q){ const m=b.m;
+  if(S.day%7===0) m.ln.forEach(l=>{ let best=l.p, bv=-1e18; const save=l.p; for(let p=0;p<4;p++){ l.p=p; const x=shLineDay(b,l); if(x.net>bv){ bv=x.net; best=p; } } l.p= rnd()<(1-q)*.3? save : best; });
+  /* affrètement : un vraquier ou un pétrolier libre prend la meilleure offre rentable */
+  m.fl.filter(p=>SH_TY[p.t].k!=='box'&&shFree(m,p)).forEach(p=>{ const T=SH_TY[p.t]; const o=m.off.filter(o=>o.k===T.k&&o.q<=T.cap).map(o=>{ const days=Math.ceil(2*o.d/(T.kn*1.852*24)+5); return {o, v:o.pay/days}; }).sort((x,y)=>y.v-x.v)[0];
+    if(o&&o.v>shMaint(m,p)+T.crew+T.fuel*shBunk(m)*.85) shCharter(b,o.o.id,p.id); });
+  if(mode!=='full') return;
+  if(S.day%30===0){
+    /* une ligne nouvelle avec un navire loué si elle s'annonce rentable */
+    const h=m.tm[Math.floor(rnd()*m.tm.length)], cand=shDests(b,h).filter(x=>!shCanLine(b,h,x.id)).sort((x,y)=>y.sz-x.sz)[0];
+    if(cand&&(b.dlp||0)>SH_TY.p5.ls*30){ const r=shGet(b,'p5','lease',true); if(r.ok){ const p=m.fl[m.fl.length-1]; shOpen(b,h,cand.id,p.id); const l=m.ln[m.ln.length-1]; if(l&&shLineDay(b,l).net<0){ shClose(b,l.id); shDrop(b,p.id); } } }
+    for(const [k,f,l,rk] of [['plan',1.5,'Planification des escales',1],['ali',3,'Alliance maritime',2],['eco',5,'Navires économes',3],['esc',6,'Sûreté et escortes',4],['d2d',10,'Logistique porte-à-porte',5]]) if(!m[k]&&mxHas(b,rk)&&shBuyR(b,k,f,l,rk,true).ok) break; }
+}
+function shData(){ return {SH_PT, SH_TY, SH_RG, SH_NB}; }
+
+/* ============================================================
    LIENS ENTRE VOS ENTREPRISES ET VOTRE CLUB
    - Ferme → buvettes du stade : à chaque match à domicile, les buvettes vendent ; avec votre
      ferme, ce sont vos produits (recette ×1,5).
@@ -11595,7 +11876,7 @@ function vGuide(){
       'Usine textile, de composants, de smartphones et ferme produisent des unités (vêtements, composants, smartphones, produits alimentaires) vendues au prix du marché de gros, qui varie chaque jour.',
       '<b>Vendre</b> écoule la production chaque jour ; <b>Stocker</b> la garde pour vendre plus cher plus tard. Stock : 10 jours × équipement, +15 jours par niveau d’entrepôt dans la même ville.',
       '<b>Contrats</b> : des clients commandent une quantité à livrer dans une ville avant une date, 15 à 45 % au-dessus du prix de gros. La production nécessaire est réservée et expédiée automatiquement dès que le stock suffit. Retard : 30 % retenus ; non livré : pénalité de 15 %.',
-      '<b>Transport</b> : 1 jour dans la ville, 2 dans le pays, 4 sur le continent, 9 ailleurs, de 1 à 7 % de la valeur. Une compagnie maritime réduit délais et coûts.',
+      '<b>Transport</b> : 1 jour dans la ville, 2 dans le pays, 4 sur le continent, 9 ailleurs, de 1 à 7 % de la valeur. Votre compagnie maritime (avec au moins une ligne) transporte vers les autres pays : délais −40 %, coût −50 %, payé à la compagnie.',
       '<b>Intégration</b> : vos usines de smartphones utilisent d’abord vos propres composants, 8 % moins cher.'
     ])),
     sec('Modes et gérant',ul([
@@ -12393,7 +12674,7 @@ function vLogi(){
         return '<div class="row sp"><span class="sub">Depuis '+esc(cityName(b.city))+' : '+R.days+' j, transport '+eur(c.qty*G.v*R.rate,0)+' · stock '+fmtN(b.goods||0)+'</span>'+btn('Expédier','ctship',{c:'sm',i:c.id,j:b.id,dis:(b.goods||0)<c.qty})+'</div>'; }).join('')+'<div class="sub">Expédition automatique dès que le stock suffit, depuis l’usine la plus proche.</div></div>')+'</div>'; }).join('')+'</div>' : '<div class="sub">Aucun contrat.</div>');
   h+=card('Transport','<div class="tw"><table class="tbl"><thead><tr><th>Trajet</th><th class="r">Durée</th><th class="r">Coût</th></tr></thead><tbody>'+
     [['Même ville','paris','paris'],['Même pays','paris','toulouse'],['Même continent','paris','barcelone'],['Autre continent','paris','miami']].map(x=>{ const R=route(x[1],x[2]); return '<tr><td>'+x[0]+'</td><td class="r">'+R.days+' j</td><td class="r">'+fmtN(R.rate*100,1)+' % de la valeur</td></tr>'; }).join('')+
-    '</tbody></table></div><div class="sub">'+(route('paris','miami').ship?'Votre compagnie maritime réduit délais et coûts.':'Une compagnie de transport maritime réduit les délais de 30 % et les coûts de 40 %.')+'</div>');
+    '</tbody></table></div><div class="sub">'+(route('paris','miami').ship?'Vos navires transportent vos marchandises vers les autres pays : délais −40 %, coût −50 %.':'Une compagnie maritime avec au moins une ligne transporte vos marchandises vers les autres pays : délais −40 %, coût −50 %.')+'</div>');
   return h;
 }
 Object.assign(ACT,{
@@ -14618,11 +14899,12 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.4.8';
+const IB_VER='V1.4.9';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Service RH chaque jour','Le vivier de l’agence se renouvelle chaque jour, et le service RH pourvoit tous les postes vacants dès qu’un candidat respecte vos critères minimaux, sans limite de nombre. Le lundi, les postes encore vides sont complétés par des profils moyens seulement s’ils respectent aussi vos critères.'],
-  ['Des dates partout','Les échéances, journaux, contrats, élections, sauvegardes et graphiques affichent une date (par exemple 12 mars 2027) au lieu d’un numéro de jour.']
+  ['Nouvelle compagnie maritime','La compagnie maritime devient un vrai métier : terminaux dans 30 grands ports, lignes de porte-conteneurs, affrètement de vraquiers et de pétroliers selon un indice du fret, navires loués, d’occasion ou commandés au chantier naval.'],
+  ['Canaux et risques','Péages de Suez et de Panama, fermetures avec détour par les caps, tempêtes, avaries et pirates dans le golfe d’Aden. Une assurance couvre rançons et réparations.'],
+  ['Vos usines en profitent','Avec au moins une ligne, les expéditions de vos usines vers un autre pays passent par vos navires : délais −40 %, coût −50 %, et le fret est payé à votre compagnie.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -15076,6 +15358,102 @@ function alPlaneChoice(b,d,act){ const m=b.m, idle=m.fl.filter(p=>(!p.ln||!m.ln.
   return _mc(); }; }
 
 /* ============================================================
+   COMPAGNIE MARITIME : réseau, lignes, affrètement, flotte, terminaux (V1.4.9)
+   ============================================================ */
+const shX=lon=>lon+180, shY=lat=>90-lat;
+function shPoly(pts){ let out='', seg=[]; const fl=()=>{ if(seg.length>1) out+='<polyline points="'+seg.map(p=>shX(p[1]).toFixed(1)+','+shY(p[0]).toFixed(1)).join(' ')+'"/>'; seg=[]; };
+  pts.forEach((p,i)=>{ if(i&&Math.abs(p[1]-pts[i-1][1])>180){ fl(); } seg.push(p); }); fl(); return out; }
+function shMap(b){
+  const m=b.m, land=typeof YS_GEO!=='undefined'? '<path class="land" d="'+YS_GEO.land+Object.values(YS_GEO.c).join('')+'"/>' : '';
+  const ln=m.ln.map(l=>'<g class="sh-l'+(shPt(l.a).rg!==shPt(l.b).rg&&!SH_NB[shPt(l.a).rg].includes(shPt(l.b).rg)?' lg':'')+'">'+shPoly(shPath(l.a,l.b,m,false).pts)+'</g>').join('');
+  const chs=m.fl.filter(p=>p.ch).map(p=>'<g class="sh-l ch">'+shPoly(shPath(p.ch.a,p.ch.b,m,!SH_TY[p.t].pan).pts)+'</g>').join('');
+  const used=new Set(m.ln.flatMap(l=>[l.a,l.b]));
+  const pts=Object.values(SH_PT).map(a=>{ const own=m.tm.includes(a.id); return '<circle cx="'+shX(a.lon)+'" cy="'+shY(a.lat)+'" r="'+(own?2.2:used.has(a.id)?1.5:1)+'" class="al-p'+(own?' own':a.tm?' hub':'')+'"/>'; }).join('');
+  return '<div class="ys-map al-map"><svg viewBox="0 4 360 146" role="img" aria-label="Carte de votre réseau maritime">'+land+ln+chs+pts+'</svg></div><div class="sub">Points pleins : vos terminaux. Traits pleins : vos lignes (en pointillé, l’intercontinental). Traits fins : voyages d’affrètement en cours.</div>';
+}
+function shBt(b,lab,act,arg,o){ return '<button class="btn '+((o&&o.c)||'sm')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o&&o.dis?' disabled':'')+'>'+lab+'</button>'; }
+function shShipState(m,p){ const l=p.ln&&m.ln.find(x=>x.id===p.ln);
+  return p.yard>S.day? 'Au chantier naval, livré le '+dateL(p.yard) : p.down>S.day? 'Immobilisé encore '+(p.down-S.day)+' j' : p.ch? 'Affrètement : '+p.ch.c+', '+esc(shPt(p.ch.a).n)+' – '+esc(shPt(p.ch.b).n)+', retour le '+dateL(p.ch.end) : l? 'Sur la ligne '+esc(shPt(l.a).n)+' – '+esc(shPt(l.b).n) : 'À quai, sans emploi'; }
+MET.shipping.html=function(b){
+  const m=b.m, can=x=>availFor(cityOf(b).ccy)>=x;
+  let h='<div class="pk-head"><b>Réseau</b><span class="sub">'+m.tm.length+' terminal'+(m.tm.length>1?'s':'')+' · '+m.ln.length+' ligne'+(m.ln.length>1?'s':'')+'</span></div>'+shMap(b);
+  /* événements en cours */
+  const EV={suez:'Canal de Suez fermé : détour par le cap de Bonne-Espérance.', pan:'Canal de Panama restreint : détour par le cap Horn.', fuel:'Fioul 30 % plus cher.'};
+  const evs=(m.ev||[]).filter(e=>EV[e.k]&&e.until>=S.day); if(evs.length) h+=evs.map(e=>'<div class="notice">'+EV[e.k]+' Encore '+(e.until-S.day+1)+' j.</div>').join('');
+  /* lignes */
+  h+='<div class="pk-head"><b>Lignes de porte-conteneurs</b><span class="sub">'+(m.ln.length? m.ln.length+' en service' : 'Aucune ligne')+'</span></div><div class="ht-t">';
+  m.ln.forEach(l=>{ const x=l.st||shLineDay(b,l), P=m.fl.filter(p=>p.ln===l.id), path=shPath(l.a,l.b,m,false);
+    h+='<div class="rs-d"><div><b>'+esc(shPt(l.a).n)+' – '+esc(shPt(l.b).n)+'</b><small>'+fmtN(x.d||path.d,0)+' km'+(path.canal? ' · canal de '+(path.canal==='suez'?'Suez':'Panama') : '')+(path.aden?' · golfe d’Aden':'')+' · '+(P.length? P.map(p=>SH_TY[p.t].n).join(', ') : 'aucun navire')+'</small>'+
+      '<small>'+fmtN(Math.round(x.teu||0))+' EVP par jour sur '+fmtN(Math.round(x.cap||0))+' · remplissage '+Math.round((x.lf||0)*100)+' % · demande '+fmtN(Math.round(x.want||0))+' · prix '+Math.round((SH_PRICE[l.p]||1)*100)+' % · résultat <b class="num '+cls(x.net||0)+'">'+signed(x.net||0,0)+' / j</b></small>'+
+      '<div class="fm-a">'+shBt(b,'Prix −','price',l.id+':'+Math.max(0,l.p-1),{c:'sm ghost',dis:l.p<=0})+shBt(b,'Prix +','price',l.id+':'+Math.min(3,l.p+1),{c:'sm ghost',dis:l.p>=3})+
+      '<button class="btn sm ghost" data-a="shadd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un navire</button>'+(P.length>1? shBt(b,'Retirer un navire','off',P[P.length-1].id,{c:'sm ghost'}) : '')+shBt(b,'Fermer','close',l.id,{c:'sm ghost'})+'</div></div></div>'; });
+  h+='</div><div><button class="btn sm pri" data-a="shnew" data-i="'+b.id+'">Ouvrir une ligne</button></div>';
+  /* affrètement */
+  const bulk=m.fl.filter(p=>SH_TY[p.t].k!=='box');
+  h+='<div class="pk-head"><b>Affrètement</b><span class="sub">Indice du vrac '+Math.round(m.bi*100)+' · '+bulk.filter(p=>p.ch).length+' voyage(s) en cours</span></div>';
+  h+='<div class="sub">Des chargeurs cherchent un navire pour un voyage. Le prix suit l’indice du fret ; les offres changent chaque semaine. Il faut un vraquier ou un pétrolier libre.</div><div class="ht-t">';
+  h+=m.off.slice().sort((x,y)=>y.pay/y.days-x.pay/x.days).map(o=>{ const ok=m.fl.some(p=>SH_TY[p.t].k===o.k&&SH_TY[p.t].cap>=o.q&&shFree(m,p));
+    return '<div class="rs-d"><div><b>'+esc(o.c.charAt(0).toUpperCase()+o.c.slice(1))+' : '+esc(shPt(o.a).n)+' – '+esc(shPt(o.b).n)+'</b><small>'+fmtN(o.q,0)+' t · '+(o.k==='bulk'?'vraquier':'pétrolier')+' · environ '+o.days+' jours · '+eur(o.pay,0)+' (≈ '+eur(o.pay/o.days,0)+' / j) · jusqu’au '+dateS(o.exp)+'</small>'+
+      '<div class="fm-a"><button class="btn sm'+(ok?' pri':'')+'" data-a="shch" data-i="'+b.id+'" data-j="'+o.id+'"'+(ok?'':' disabled')+'>'+(ok?'Accepter':'Aucun navire libre')+'</button></div></div></div>'; }).join('')+'</div>';
+  /* flotte */
+  const idle=m.fl.filter(p=>shFree(m,p));
+  h+='<div class="pk-head"><b>Flotte</b><span class="sub">'+m.fl.length+' navire'+(m.fl.length>1?'s':'')+(idle.length?' · '+idle.length+' sans emploi':'')+'</span></div><div class="ht-t">';
+  m.fl.forEach(p=>{ const T=SH_TY[p.t];
+    h+='<div class="rs-d"><div><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+(p.own? (p.occ?'acheté d’occasion':'acheté neuf') : 'loué '+eur(T.ls,0)+' / j')+'</small><small>'+shShipState(m,p)+'</small>'+
+      (p.ch||p.yard>S.day? '' : '<div class="fm-a">'+shBt(b,p.own?'Revendre ('+eur(shResale(p),0)+')':'Rendre','drop',p.id,{c:'sm ghost'})+'</div>')+'</div></div>'; });
+  h+='</div><div class="pk-list">'+Object.entries(SH_TY).map(([k,T])=>'<div class="pk-o al-ty"><span><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+(T.k==='box'? fmtN(T.cap,0)+' EVP' : fmtN(T.cap,0)+' t')+' · '+T.kn+' nœuds</small></span><span class="row">'+
+    shBt(b,'Louer '+eur(T.ls,0)+' / j','lease',k,{c:'sm',dis:!can(T.ls*30)})+shBt(b,'Occasion '+eur(T.pr*SH_OCC,0),'occ',k,{c:'sm ghost',dis:!can(T.pr*SH_OCC)})+shBt(b,'Neuf '+eur(T.pr,0),'yard',k,{c:'sm ghost',dis:!can(T.pr)})+'</span></div>').join('')+'</div>'+
+    '<div class="sub">Location : dépôt de 30 jours de loyer, rendu à la fin. Occasion : disponible tout de suite, entretien plus cher, revente 35 %. Neuf : livré par le chantier naval en '+SH_YARD+' jours, revente 65 %.</div>';
+  /* terminaux */
+  h+='<div class="pk-head"><b>Ports et terminaux</b><span class="sub">Réputation '+Math.round(m.img)+' / 100</span></div>';
+  h+='<div class="sub">Un terminal dans un grand port permet d’en faire partir des lignes vers sa région et les régions voisines, et des lignes intercontinentales vers vos autres terminaux. Vos escales y coûtent moitié moins, et d’autres compagnies vous paient pour vos quais. La réputation monte avec les années, le réseau et la fiabilité.</div>';
+  Object.keys(SH_RG).forEach(rg=>{ const L=Object.values(SH_PT).filter(a=>a.tm&&a.rg===rg); if(!L.length) return;
+    h+='<div class="tag">'+SH_RG[rg]+'</div><div class="ht-t">'+L.map(a=>{ const own=m.tm.includes(a.id), req=shTmReq(b,a.id), c=shTmCost(a.id);
+      if(own){ const n=(m.ext&&m.ext[a.id])||0; return '<div class="rs-d"><div><b>'+esc(a.n)+'</b><small>Votre terminal · '+shTmUsed(b,a.id)+' / '+shTmCap(b,a.id)+' lignes</small><div class="fm-a">'+(n<3? shBt(b,'Quais : '+eur(shExtCost(b,a.id),0),'ext',a.id,{c:'sm',dis:!can(shExtCost(b,a.id))}) : pill('Quais au maximum','good'))+'</div></div></div>'; }
+      return '<div class="rs-d"><div><b>'+esc(a.n)+'</b><small>'+fmtN(a.sz,1)+' M d’EVP par an · réputation '+req+' requise</small><div class="fm-a">'+shBt(b,'Acheter : '+eur(c,0),'tm',a.id,{c:'sm',dis:m.img<req||!can(c)})+'</div></div></div>'; }).join('')+'</div>'; });
+  if(m.uft) h+='<div class="sub">Fret de vos usines transporté depuis l’ouverture : '+eur(m.uft,0)+'.</div>';
+  return h;
+};
+/* ouvrir une ligne : terminal, destination, navire */
+ACT.shnew=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(!b) return; ui.modal={type:'shnew', id:b.id, a:b.m.tm.length===1?b.m.tm[0]:null, to:null}; render(); };
+ACT.shnewa=el=>{ const m=ui.modal; if(!m) return; m.a=el.dataset.v; m.to=null; render(); };
+ACT.shnewb=el=>{ const m=ui.modal; if(!m) return; m.to=el.dataset.v||null; render(); };
+ACT.shnewgo=el=>{ const m=ui.modal, b=S.biz.find(x=>x.id===m.id); if(!b) return; let pid=+el.dataset.v;
+  if(el.dataset.t){ const r=shGet(b,el.dataset.t,'lease'); if(!r.ok) return after(r); pid=b.m.fl[b.m.fl.length-1].id; }
+  const r=shOpen(b,m.a,m.to,pid); if(!r.ok&&el.dataset.t) shDrop(b,pid); if(r.ok) ui.modal={type:'biz',id:b.id}; after(r); };
+ACT.shadd=el=>{ ui.modal={type:'shadd', id:+el.dataset.i, l:+el.dataset.j}; render(); };
+ACT.shaddgo=el=>{ const m=ui.modal, b=S.biz.find(x=>x.id===m.id); if(!b) return; let pid=+el.dataset.v;
+  if(el.dataset.t){ const r=shGet(b,el.dataset.t,'lease'); if(!r.ok) return after(r); pid=b.m.fl[b.m.fl.length-1].id; }
+  const r=shAssign(b,m.l,pid); if(!r.ok&&el.dataset.t) shDrop(b,pid); if(r.ok) ui.modal={type:'biz',id:b.id}; after(r); };
+ACT.shch=el=>{ ui.modal={type:'shch', id:+el.dataset.i, o:+el.dataset.j}; render(); };
+ACT.shchgo=el=>{ const m=ui.modal, b=S.biz.find(x=>x.id===m.id); if(!b) return; const r=shCharter(b,m.o,+el.dataset.v); if(r.ok) ui.modal={type:'biz',id:b.id}; after(r); };
+/* prévision d'une ligne avec un navire de plus (sans rien changer) */
+function shPreview(b,a,bb,t,lid){ const m=b.m, saveL=m.ln, saveF=m.fl; let x;
+  try{ const l= lid? Object.assign({},m.ln.find(z=>z.id===lid)) : {id:-9, a, b:bb, p:1}; const id=l.id;
+    m.fl=saveF.filter(p=>p.ln===id).concat([{id:-8, t, own:0, ln:id, down:0}]); m.ln=[l]; x=shLineDay(b,l); } finally { m.ln=saveL; m.fl=saveF; } return x; }
+function shShipChoice(b,a,bb,act,lid){ const m=b.m, idle=m.fl.filter(p=>shFree(m,p)&&SH_TY[p.t].k==='box'), can=x=>availFor(cityOf(b).ccy)>=x;
+  const row=(t,extra,data,dis)=>{ const x=shPreview(b,a,bb,t,lid); return '<button class="pk-o" data-a="'+act+'" '+data+(dis?' disabled':'')+'><span><b>'+esc(SH_TY[t].n)+'</b><small>'+extra+' · prévision '+signed(x.net,0)+' / j pour la ligne · remplissage '+Math.round(x.lf*100)+' %</small></span></button>'; };
+  return (idle.length? '<div class="tag">Navires sans emploi</div>'+idle.map(p=>row(p.t,(p.own?'à vous':'loué'),'data-v="'+p.id+'"',false)).join('') : '')+
+    '<div class="tag">Louer un navire pour cette ligne</div>'+Object.entries(SH_TY).filter(([k,T])=>T.k==='box').map(([k,T])=>row(k,fmtN(T.cap,0)+' EVP · '+eur(T.ls,0)+' / j · dépôt '+eur(T.ls*30,0),'data-v="0" data-t="'+k+'"',!can(T.ls*30))).join(''); }
+{ const _mc=modalContent; modalContent=function(){ const M=ui.modal;
+  if(M&&M.type==='shnew'){ const b=S.biz.find(x=>x.id===M.id); if(!b||!b.m){ ui.modal=null; return _mc(); } const m=b.m;
+    let body='<button class="back" data-a="bizopen" data-i="'+b.id+'">‹ '+esc(b.name)+'</button>';
+    body+='<div class="tag">Départ</div><div class="seg al-seg">'+m.tm.map(h=>'<button class="'+(M.a===h?'on':'')+'" data-a="shnewa" data-v="'+h+'">'+esc(shPt(h).n)+' ('+shTmUsed(b,h)+'/'+shTmCap(b,h)+')</button>').join('')+'</div>';
+    if(M.a&&shTmUsed(b,M.a)>=shTmCap(b,M.a)) body+='<div class="notice">Plus de quai libre à '+esc(shPt(M.a).n)+' : achetez des quais dans « Ports et terminaux ».</div>';
+    else if(M.a&&!M.to){ const L=shDests(b,M.a).filter(x=>!shCanLine(b,M.a,x.id)).map(x=>({x,d:shDist(M.a,x.id,m)})).sort((p,q)=>q.x.sz-p.x.sz);
+      body+='<div class="tag">Destination</div><div class="pk-list">'+(L.length? L.map(({x,d})=>'<button class="pk-o'+(m.tm.includes(x.id)?' match':'')+'" data-a="shnewb" data-v="'+x.id+'"><span><b>'+esc(x.n)+'</b><small>'+esc(SH_RG[x.rg])+' · '+fmtN(d,0)+' km · '+fmtN(x.sz,1)+' M d’EVP par an'+(m.tm.includes(x.id)?' · votre terminal':'')+'</small></span></button>').join('') : '<div class="sub">Toutes les destinations possibles sont déjà desservies.</div>')+'</div>'; }
+    else if(M.a&&M.to){ const P=shPath(M.a,M.to,m,false);
+      body+='<div class="sub"><b>'+esc(shPt(M.a).n)+' – '+esc(shPt(M.to).n)+'</b> · '+fmtN(P.d,0)+' km'+(P.canal?' · canal de '+(P.canal==='suez'?'Suez':'Panama'):'')+' · environ '+eur(shRate(P.d),0)+' par EVP. <button class="lnk" data-a="shnewb" data-v="">Changer</button></div>'+shShipChoice(b,M.a,M.to,'shnewgo'); }
+    return {title:'Ouvrir une ligne',sm:true,body}; }
+  if(M&&M.type==='shadd'){ const b=S.biz.find(x=>x.id===M.id), l=b&&shLine(b,M.l); if(!l){ ui.modal=null; return _mc(); }
+    return {title:'Renforcer la ligne',sm:true,body:'<button class="back" data-a="bizopen" data-i="'+b.id+'">‹ '+esc(b.name)+'</button><div class="sub">'+esc(shPt(l.a).n)+' – '+esc(shPt(l.b).n)+' : un navire de plus ajoute de la capacité, utile seulement si la demande dépasse ce que vous offrez.</div>'+shShipChoice(b,l.a,l.b,'shaddgo',l.id)}; }
+  if(M&&M.type==='shch'){ const b=S.biz.find(x=>x.id===M.id), m=b&&b.m, o=m&&m.off.find(x=>x.id===M.o); if(!o){ ui.modal=null; return _mc(); }
+    const L=m.fl.filter(p=>SH_TY[p.t].k===o.k&&SH_TY[p.t].cap>=o.q&&shFree(m,p));
+    return {title:'Affrètement',sm:true,body:'<button class="back" data-a="bizopen" data-i="'+b.id+'">‹ '+esc(b.name)+'</button><div class="sub">'+esc(o.c)+' de '+esc(shPt(o.a).n)+' à '+esc(shPt(o.b).n)+' : '+fmtN(o.q,0)+' t pour '+eur(o.pay,0)+'.</div>'+
+      (L.length? L.map(p=>'<button class="pk-o" data-a="shchgo" data-v="'+p.id+'"><span><b>'+esc(SH_TY[p.t].n)+'</b><small>'+(p.own?'à vous':'loué')+'</small></span></button>').join('') : '<div class="notice">Aucun navire libre de ce type : louez-en un dans « Flotte ».</div>')}; }
+  return _mc(); }; }
+
+/* ============================================================
    LIENS : carte « Vos entreprises et le club » dans les finances du club
    ============================================================ */
 { const _tf=fcTabFin; fcTabFin=function(O){ const h=_tf(O), farm=lkHas('farm'), rn=lkHas('renew'), hc=lkHas('couture'), e=lkPhone();
@@ -15407,6 +15785,12 @@ palDef('airline',{col:'#1f7fb8', sticky:1, icon:PI('<path d="M2.5 13.5l7-1.5L13 
   tag:n=>n.ct? (n.ct+1)+' continents' : 'Long-courrier',
   badges:m=>({lh:m.ln.some(l=>alDist(l.a,l.b)>3500)?1:0, ct:Math.max(0,new Set(m.hubs.map(h=>AL_CO[alAp(h).co].ct)).size-1)}),
   ev:{lh:['Votre premier vol long-courrier décolle'], ct:['Votre compagnie s’installe sur un deuxième continent','Un troisième continent rejoint votre réseau','Quatre continents : une compagnie mondiale','Cinq continents desservis','Les six continents : le monde entier est à vous']}});
+
+/* V1.4.9 : compagnie maritime */
+palDef('shipping',{col:'#1b5e8a', sticky:1, icon:PI('<path d="M3 15l2 5h14l2-5zM5 15V11h14v4M8 11V8h4v3M14 11V6h3v5"/>'),
+  tag:n=>n.ct? (n.ct+1)+' continents' : 'Intercontinental',
+  badges:m=>({ic:(m.ln||[]).some(l=>shPt(l.a).rg!==shPt(l.b).rg&&!SH_NB[shPt(l.a).rg].includes(shPt(l.b).rg))?1:0, ct:Math.min(4,Math.max(0,new Set((m.tm||[]).map(id=>shPt(id).rg)).size-1))}),
+  ev:{ic:['Votre première ligne intercontinentale appareille'], ct:['Un deuxième terminal hors de votre région','Votre réseau s’étend à une troisième région','Quatre régions : une compagnie mondiale','Cinq régions reliées par vos navires']}});
 
 /* ============================================================
    SONS ET VIBRATIONS (V1.3.7)
