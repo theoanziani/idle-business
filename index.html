@@ -12524,11 +12524,11 @@ function vGuide(){
       '<b>Classement des magnats</b> dans Rivaux : valeur nette estimée et bénéfice quotidien de chaque groupe.'
     ])),
     sec('Usines et logistique',ul([
-      'Usine textile, de composants, de smartphones et ferme produisent des unités (vêtements, composants, smartphones, produits alimentaires) vendues au prix du marché de gros, qui varie chaque jour.',
+      'L’usine textile, l’usine électronique et la ferme produisent des unités (vêtements, composants électroniques, produits alimentaires) vendues au prix du marché de gros, qui varie chaque jour. Les smartphones de l’usine électronique se vendent directement aux clients, hors contrats.',
       '<b>Vendre</b> écoule la production chaque jour ; <b>Stocker</b> la garde pour vendre plus cher plus tard. Stock : 10 jours × équipement, +15 jours par niveau d’entrepôt dans la même ville.',
       '<b>Contrats</b> : des clients commandent une quantité à livrer dans une ville avant une date, 15 à 45 % au-dessus du prix de gros. La production nécessaire est réservée et expédiée automatiquement dès que le stock suffit. Retard : 30 % retenus ; non livré : pénalité de 15 %.',
       '<b>Transport</b> : 1 jour dans la ville, 2 dans le pays, 4 sur le continent, 9 ailleurs, de 1 à 7 % de la valeur. Votre compagnie maritime (avec au moins une ligne) transporte vers les autres pays : délais −40 %, coût −50 %, payé à la compagnie.',
-      '<b>Intégration</b> : vos usines de smartphones utilisent d’abord vos propres composants, 8 % moins cher.'
+      '<b>Intégration</b> : l’usine électronique assemble ses smartphones avec ses propres puces ; vos ateliers de réparation paient leurs pièces moins cher grâce à elle.'
     ])),
     sec('Modes et gérant',ul([
       '<b>Défi des 100 jours</b> (au choix à la création) : faites le plus gros bénéfice en 100 jours face à trois magnats IA ; classement sur l’accueil.',
@@ -13325,14 +13325,14 @@ function factPilot(b){
 function vLogi(){
   const I=indInit(), facts=S.biz.filter(isFact);
   let h=head('Usines et logistique');
-  h+=card('Marché de gros','<div class="stack">'+Object.keys(D.GOODS).map(g=>{ const G=D.GOODS[g], hst=gpInit()[g].h, ch=hst.length>1? hst[hst.length-1]/hst[0]-1:0;
+  h+=card('Marché de gros','<div class="stack">'+Object.keys(D.GOODS).filter(g=>g!=='tel').map(g=>{ const G=D.GOODS[g], hst=gpInit()[g].h, ch=hst.length>1? hst[hst.length-1]/hst[0]-1:0;
     return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:6px"><div><b>'+G.n+'</b><div class="sub">Prix de référence '+eur(G.v,2)+'</div></div><div class="fxs">'+spark(hst,70,26)+'<small class="'+cls(ch)+'">'+(ch>=0?'+':'')+fmtN(ch*100,1)+' %</small></div><b class="num">'+eur(gPrice(g),2)+'</b></div>'; }).join('')+
     '</div><div class="sub">Vendez au grossiste quand les prix sont hauts, stockez quand ils sont bas.</div>');
   h+=card('Mes usines', facts.length? '<div class="stack">'+facts.map(b=>{ const g=goodOf(b), G=D.GOODS[g], cap=factCap(b), st=b.goods||0;
     return '<div class="stack" style="gap:6px;border-bottom:1px solid var(--line);padding-bottom:10px"><div class="row sp"><div><b>'+esc(b.name)+'</b><div class="sub">'+esc(bizAddr(b))+' · '+G.n+'</div></div>'+(b.status!=='active'?pill('Mise en route','info'):pill(fmtN(b.prodDay||0)+' / j',''))+'</div>'+
       bar(st/cap,st/cap>.9?'r':'g')+'<div class="row sp"><span class="sub">'+fmtN(st)+' / '+fmtN(cap)+' '+G.u+' · '+eur(st*gPrice(g),0)+'</span>'+(D.FACTIN[b.def]?'<span class="sub">Utilise vos '+D.GOODS[D.FACTIN[b.def]].n.toLowerCase()+' (−8 %)</span>':'')+'</div>'+
       '<div class="row"><div class="seg"><button class="'+(b.fmode!=='store'?'on':'')+'" data-a="fmode" data-i="'+b.id+'" data-v="sell">Vendre</button><button class="'+(b.fmode==='store'?'on':'')+'" data-a="fmode" data-i="'+b.id+'" data-v="store">Stocker</button></div>'+btn('Vendre le stock','gsell',{c:'sm',i:b.id,dis:st<1})+'</div></div>'; }).join('')+'</div><div class="sub">Une usine en mode vente garde quand même la production nécessaire à vos contrats. Chaque entrepôt de la même ville ajoute 15 jours de stockage par niveau.</div>'
-    : '<div class="notice info">Établissez une usine (textile, composants, smartphones) ou une ferme dans un entrepôt ou sur un terrain, depuis Sociétés.</div>');
+    : '<div class="notice info">Établissez une usine (textile ou électronique) ou une ferme dans un entrepôt ou sur un terrain, depuis Sociétés.</div>');
   if(I.offers.length) h+=card('Contrats proposés','<div class="stack">'+I.offers.map(o=>{ const G=D.GOODS[o.g];
     return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:180px"><b>'+esc(o.client)+'</b><div class="sub">'+fmtN(o.qty)+' '+G.u+' de '+G.n.toLowerCase()+' à livrer à '+esc(cityName(o.city))+' avant le '+dateL(o.due)+' · '+eur(o.px,2)+' l’unité ('+Math.round((o.px/gPrice(o.g)-1)*100)+' % au-dessus du gros) · total '+eur(o.qty*o.px,0)+'</div></div>'+btn('Accepter','ctacc',{c:'sm pri',i:o.id})+'</div>'; }).join('')+'</div><div class="sub">Pénalité de 15 % et réputation en baisse si le contrat n’est pas livré à temps.</div>');
   const act=I.active;
@@ -15578,10 +15578,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.6.7';
+const IB_VER='V1.6.8';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Notes sur 5','Les notes des critiques (restaurants, haute couture) s’affichent désormais sur 5, comme les avis des clients. Exemple : première étoile du guide à 3,4 sur 5.']
+  ['Usines : textes corrigés','Composants et smartphones ne forment plus qu’une usine électronique : les textes d’Usines et de l’aide le disent désormais, et les smartphones (vendus directement aux clients) quittent le marché de gros.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
