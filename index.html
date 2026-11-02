@@ -1438,7 +1438,7 @@ function newState(name, cap, seed){
       st:{intIn:0,intOut:0,fees:0,loss:0,wage:0}, failed:0, lastWarn:-99},
     prop:[], listings:[], projects:[],
     lux:[], luxVal:{}, country:null,
-    ledger:[], fl:{}, journal:[], nwH:[], ach:{}, tierSeen:0,
+    ledger:[], fl:{}, journal:[], nwH:[], ach:{}, chal:{}, tierSeen:0,
     stats:{layoffs30:0, lobby:0, hires:0, flips:0, startupWin:0},
     over:null, won:false, flashTier:null,
     acc:{USD:0,CNY:0,BRL:0}, fx:{USD:D.CCY.USD.eur,CNY:D.CCY.CNY.eur,BRL:D.CCY.BRL.eur}, fxH:{USD:[D.CCY.USD.eur],CNY:[D.CCY.CNY.eur],BRL:[D.CCY.BRL.eur]},
@@ -4623,6 +4623,28 @@ function checkAch(){
   });
 }
 
+/* ---------- Défis par palier de richesse (V1.6.3) ---------- */
+function chAct(){ return S.biz.filter(b=>b.status==='active'); }
+function chCities(){ return new Set(chAct().map(b=>b.city)).size; }
+function chMo(){ return chAct().reduce((a,b)=>a+(b.hist||[]).slice(-30).reduce((x,y)=>x+y,0),0); }
+function chN(n){ return {t:n+' entreprises',d:'Avoir '+n+' entreprises en activité.',v:()=>chAct().length,g:n}; }
+function chC(n){ return {t:n+' villes',d:'Être présent dans '+n+' villes.',v:chCities,g:n}; }
+function chP(n){ return {t:'Mois rentable',d:'Gagner '+eur(n,0)+' en 30 jours avec vos entreprises.',v:chMo,g:n}; }
+const CHAL=[
+  {r:1000,   l:[chN(2),{t:'Agrandir',d:'Passer une entreprise au niveau 2.',v:()=>Math.max(0,...S.biz.map(b=>b.lvl||1)),g:2},{t:'Bonne réputation',d:'Atteindre 60 de réputation.',v:()=>S.rep,g:60}]},
+  {r:8000,   l:[chN(4),chC(2),chP(3000)]},
+  {r:60000,  l:[chN(7),chC(3),chP(40000)]},
+  {r:500000, l:[chN(10),chC(4),chP(400000)]},
+  {r:1e7,    l:[chN(15),chC(5),chP(8e6)]},
+  {r:1.5e8,  l:[chN(20),chC(6),chP(1.5e8)]},
+  {r:3e9,    l:[chN(25),{t:'Grand employeur',d:'Employer 1 000 personnes.',v:()=>totalEmployees(),g:1000},chP(3e9)]}
+];
+function checkChal(){
+  S.chal=S.chal||{}; const T=Math.min(tierNow(),CHAL.length-1);
+  for(let t=0;t<=T;t++) CHAL[t].l.forEach((c,i)=>{ const k=t+':'+i;
+    if(!S.chal[k] && c.v()>=c.g){ S.chal[k]=S.day; S.cash+=CHAL[t].r; S.rep=clamp(S.rep+1,0,100); log('good','Défi réussi : « '+c.t+' ». Prime de '+eur(CHAL[t].r,0)+'.'); } });
+}
+
 /* ---------- Jour suivant ---------- */
 function nextDay(){
   if(S.over) return false;
@@ -4649,7 +4671,7 @@ function nextDay(){
   politicsStep();
   computeNW();
   if(S.day%(S.nwStep||1)===0){ S.nwH.push(Math.round(S.nw)); if(S.nwH.length>1200){ S.nwH=S.nwH.filter((x,i)=>i%2===0); S.nwStep=(S.nwStep||1)*2; } }
-  checkAch();
+  checkAch(); checkChal();
   Object.keys(D.CITIES).forEach(id=>{ if(!D.CITIES[id].parent && !S.citySeen[id] && S.peakNW>=D.CITIES[id].unlock){ S.citySeen[id]=1; log('good','Nouvelle ville accessible : '+D.CITIES[id].n+'. Ouvrez-y des sociétés depuis l’onglet Sociétés.'); } });
   const t=tierNow();
   if(t>S.tierSeen){ S.tierSeen=t; S.flashTier=t; log('good','Nouveau palier : '+D.TIERS[t].n+' ! '+D.TIERS[t].d); }
@@ -13163,8 +13185,22 @@ Object.assign(ACT,{
   collsell:el=>after(sellColl(+el.dataset.i)),
   luxrent:el=>after(setLuxRent(el.dataset.i,el.dataset.v==='1')),
   offm:el=>after(offmHire(el.dataset.v==='1')),
-  offmgo:el=>{ const n=+el.dataset.v; ui.modal=null; S.seen=Date.now(); doNext(n); }
+  offmgo:el=>{ const n=+el.dataset.v; ui.modal=null; S.seen=Date.now(); ui.offRun=1; try{ doNext(n); } finally{ ui.offRun=0; } }
 });
+
+/* V1.6.3 : résumé de l’absence en tête du rapport du gérant hors ligne */
+const _rptSumOff=rptSummary;
+rptSummary=function(){ const s=_rptSumOff(); if(s&&ui.offRun) s.off=1; return s; };
+function offSumHtml(s){
+  const win=s.rows.filter(r=>r.net>0).slice(0,5), lose=s.rows.filter(r=>r.net<0);
+  return '<section class="rb"><h3>Pendant votre absence</h3><div class="sub">Votre gérant a fait tourner vos entreprises '+s.days+' jour'+(s.days>1?'s':'')+', du '+dateL(s.d0)+' au '+dateL(s.d1)+'.</div>'+
+    '<div class="row sp"><span>Résultat des entreprises</span><b class="num '+cls(s.net)+'">'+signed(s.net,0)+'</b></div>'+
+    '<div class="row sp"><span>Valeur nette</span><b class="num '+cls(s.nw1-s.nw0)+'">'+signed(s.nw1-s.nw0,0)+'</b></div>'+
+    (win.length? '<div class="flist">'+win.map(r=>'<div><span><b>'+esc(r.name)+'</b><small>'+esc(cityName(r.city))+'</small></span><span class="num pos">'+signed(r.net,0)+'</span></div>').join('')+'</div>' : '')+
+    (lose.length? '<div class="sub">'+lose.length+' entreprise'+(lose.length>1?'s':'')+' en perte : '+signed(lose.reduce((a,r)=>a+r.net,0),0)+'.</div>' : '')+'</section>';
+}
+const _mRepOff=modalReport;
+modalReport=function(m){ const r=_mRepOff(m); if(m.s&&m.s.off) r.body=offSumHtml(m.s)+r.body; return r; };
 
 /* ============================================================
    USINES ET LOGISTIQUE : écran dédié et pilotage d'une usine
@@ -13451,7 +13487,10 @@ function vHome(){
   const agenda=card('Agenda','<div class="flist">'+ev.slice(0,6).map(x=>'<div><span><b>'+esc(x[0])+'</b><small>'+esc(x[1])+'</small></span><span class="sub num">'+esc(x[2])+'</span></div>').join('')+'</div>');
   /* objectifs */
   const todo=ACH.filter(a=>!S.ach[a.id]); const done=ACH.length-todo.length;
-  const ach=card('Objectifs','<div class="row sp"><span class="sub">'+done+' / '+ACH.length+' réalisés</span></div>'+bar(done/ACH.length,'g')+
+  const T=Math.min(tierNow(),CHAL.length-1), CH=CHAL[T], chs=S.chal||{};
+  const chH='<div class="tag" style="margin-top:10px">Défis du palier '+esc(D.TIERS[T].n)+' · prime de '+eur(CH.r,0)+' chacun</div><div class="flist">'+CH.l.map((c,i)=>{ const ok=chs[T+':'+i], v=c.v();
+    return '<div><span><b>'+c.t+(ok?' · réussi':'')+'</b><small>'+c.d+'</small>'+(ok?'':bar(Math.max(0,Math.min(1,v/c.g)),'g'))+'</span></div>'; }).join('')+'</div>';
+  const ach=card('Objectifs',chH+'<div class="row sp" style="margin-top:10px"><span class="sub">'+done+' / '+ACH.length+' réalisés</span></div>'+bar(done/ACH.length,'g')+
     '<div class="flist" style="margin-top:8px">'+todo.slice(0,3).map(a=>'<div><span><b>'+a.t+'</b><small>'+a.d+'</small></span></div>').join('')+(todo.length?'':'<div class="sub">Tous les objectifs sont atteints.</div>')+'</div>');
   const jr=S.journal.slice(-8).reverse();
   const jcard=card('Actualités','<div class="log">'+jr.map(x=>'<div><span class="d">'+dateS(x.d)+'</span><span class="'+x.s+'">'+(x.k==='news'?'<span class="tag" style="margin-right:6px">Actu</span>':x.k==='club'?'<span class="tag" style="margin-right:6px">Club</span>':'')+esc(x.m)+'</span></div>').join('')+'</div>');
@@ -15425,12 +15464,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.6.2';
+const IB_VER='V1.6.3';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['L’entrepôt devient un vrai métier','Signez des clients qui louent vos emplacements de palettes, suivez la manutention, équipez-vous (chariots puis robots), ajoutez des rayonnages, une zone frigorifique et des camions de livraison.'],
-  ['Start-up : directeur plus ambitieux','En délégation totale, il lève des fonds dès que possible, ce qui fait monter les paliers, puis pivote vers l’IA.'],
-  ['Écrans plus épurés','L’accueil garde l’essentiel, le reste passe dans « Plus de détails ». Les lignes aériennes et maritimes s’ouvrent avec « Gérer », et les longues explications passent derrière des boutons « ? ».']
+  ['Défis par palier','Chaque palier de richesse propose trois défis (entreprises, villes, bénéfice sur 30 jours) avec une prime à la clé. Retrouvez-les dans Objectifs, sous « Plus de détails ».'],
+  ['Retour plus lisible','Après une absence, le rapport du gérant commence par un résumé : résultat de la période et entreprises qui ont le plus rapporté.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
