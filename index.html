@@ -1131,6 +1131,9 @@ details.hmore>summary::after{content:'';width:8px;height:8px;border-right:2px so
 details.hmore[open]>summary::after{transform:rotate(-135deg);margin-bottom:-2px}
 details.hmore .hm-b{display:flex;flex-direction:column;gap:18px;margin-top:18px}
 
+/* V1.7.3 : +7 jours en cours */
+#t-ctrl .btn.busy{opacity:.75;pointer-events:none;font-variant-numeric:tabular-nums}
+
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -8273,8 +8276,10 @@ MET.resto = {
     {n:'Chaîne de bistrots', d:'Ouvrez des bistrots à votre nom, qui profitent de la réputation de la maison.'},
     {n:'Chef à la télévision', d:'Une émission et un livre de recettes : la marque devient célèbre.'}
   ],
-  rankSub:b=>{ const m=b.m, r=mxRank(b); if(r<3) return 'Les paliers 1 à 3 sont les étoiles du guide : il faut une note des critiques de '+note5(RS_STAR[r+1])+' sur 5 pour la '+(r?'prochaine':'première')+' étoile. Le guide passe tous les 45 jours.';
+  rankSub:b=>{ const m=b.m, r=mxRank(b); if(r<3) return 'Les paliers 1 à 3 sont les étoiles du guide : il faut une note des critiques de '+note5(RS_STAR[r+1])+' sur 5 (actuellement '+note5(m.crit)+') pour la '+(r?'prochaine':'première')+' étoile. Le guide passe tous les 45 jours'+(m.guide>S.day?', prochaine visite vers le '+dateL(m.guide):'')+'.';
     if(r<5) return 'Avec trois étoiles obtenues, la maîtrise ('+Math.round(b.mx||0)+' / '+MX_STEPS[r===3?4:5]+') ouvre le palier suivant.'; return ''; },
+  /* V1.7.3 : progression vers le palier suivant (barre) */
+  rankProg:b=>{ const m=b.m, r=mxRank(b), x=b.mx||0; if(r<3) return clamp(m.crit/RS_STAR[r+1],0,1); if(r<5) return clamp((x-MX_STEPS[r])/(MX_STEPS[r+1]-MX_STEPS[r]),0,1); return null; },
   rank(b){ const m=b.m, x=b.mx||0, s=m.best||0; if(s<3) return s; return x>=MX_STEPS[5]? 5 : x>=MX_STEPS[4]? 4 : 3; },
   mods(b){ rsFix(b); const m=b.m; m.pm=clamp(m.pm,RS_PMIN,RS_PMAX); const p=rsCalc(b);
     const dem=Math.pow(Math.max(p.app,.5)/6.66,.8)*p.variety*1.03*Math.pow(p.V/m.pm,RS_EL)*(1+.06*m.stars)*(.9+.2*m.crit/100)*(m.tv?1.12:1);
@@ -9129,6 +9134,8 @@ MET.saas = {
   ],
   rankSub:b=>{ const m=b.m, r=mxRank(b); if(r>=5) return ''; if(r===2) return 'Le pivot IA s’ouvre avec la maîtrise ('+Math.round(b.mx||0)+' / '+MX_STEPS[3]+').'; if(r===4) return 'L’introduction en bourse s’ouvre avec la maîtrise ('+Math.round(b.mx||0)+' / '+MX_STEPS[5]+').';
     const R=SA_ROUND[m.rounds]; return R? 'Prochain palier : '+R.n.toLowerCase()+', ouvert quand le chiffre d’affaires atteint '+eur(R.need*metR0(b),0)+' par jour.' : ''; },
+  rankProg:b=>{ const m=b.m, r=mxRank(b), x=b.mx||0; if(r>=5) return null; if(r===2) return clamp(x/MX_STEPS[3],0,1); if(r===4) return clamp(x/MX_STEPS[5],0,1);
+    const R=SA_ROUND[m.rounds]; return R? clamp(saMRR(b)/30/(R.need*metR0(b)),0,1) : null; },
   rank(b){ const m=b.m, x=b.mx||0, s=m.rounds||0; if(s>=3) return x>=MX_STEPS[5]? 5 : 4; if(s>=2) return x>=MX_STEPS[3]? 3 : 2; return s; },
   mods(b){ const m=b.m, R0=metR0(b), k=saK(b);
     const serv=(m.F*.004+m.P*.06+m.E*1.2)*(S.biz.some(x=>x.def==='dc'&&x.status==='active')?.7:1);
@@ -12689,11 +12696,12 @@ function autoTick(){
   if(ui.auto&&!ui.timer) ui.timer=setTimeout(autoTick,ui.speed);
 }
 function startAuto(){ clearTimeout(ui.timer); rptBegin(); ui.auto=true; syncCtrl(); render(); ui.timer=setTimeout(autoTick,300); }
-function doNext(n,quiet){
-  if(!S||S.over) return;
-  const c0=S.cash, d0=S.day;
-  if(!quiet||!RPT) rptBegin();
-  advance(n);
+/* pre (V1.7.3) : jours déjà joués un par un par runDays {c0, d0, N, halt} */
+function doNext(n,quiet,pre){
+  if(!S||(S.over&&!pre)) return;
+  const c0=pre? pre.c0 : S.cash, d0=pre? pre.d0 : S.day, N=pre? pre.N : n;
+  if(!pre&&(!quiet||!RPT)) rptBegin();
+  if(!(pre&&pre.halt)) advance(n);
   ui.delta=S.cash-c0;
   if(S.over){
     stopAuto(false); RPT=null; ui.mq=[]; ui.modal={type:'over'}; const sl=SV.slot; SV.slot=0; SV.dirty=false; if(sl) (SV.busy||Promise.resolve()).then(()=>svDelete(sl));
@@ -12705,19 +12713,30 @@ function doNext(n,quiet){
     if(S.stop && ui.auto){ stop=true; toast('Pause automatique : événement important. Consultez le journal.','bad'); }
     if(stop) stopAuto(false);
     if(!ui.auto){
-      const sm=(RPT&&RPT.days&&(n>1||S.day-d0>1||!rpPrefs().skip1))? rptSummary() : null; RPT=null;
+      const sm=(RPT&&RPT.days&&(N>1||S.day-d0>1||!rpPrefs().skip1))? rptSummary() : null; RPT=null;
       if(sm) pushModal({type:'report',s:sm});
     }
     ev.forEach(pushModal);
   }
-  if(n>1 && S.day-d0<n && !S.over) toast('Arrêt anticipé le '+dateL(S.day)+' : événement important.','bad');
+  if(N>1 && S.day-d0<N && !S.over) toast('Arrêt anticipé le '+dateL(S.day)+' : événement important.','bad');
   render(); saveGame();
 }
 
+/* V1.7.3 : plusieurs jours joués un par un, l’écran reste réactif (date qui défile), rapport à la fin */
+function runDays(N){ if(ui.run||!S||S.over) return; if(N<=1) return doNext(N);
+  const pre={c0:S.cash, d0:S.day, N}; rptBegin(); ui.run=1; let k=0;
+  const b=document.querySelector('[data-a="next7"]'); if(b){ b.classList.add('busy'); b.setAttribute('aria-busy','true'); }
+  const tick=()=>{ let go=false; try{ go= k<N-1 && !S.over && nextDay() && !S.stop && !S.over; }catch(e){ ui.run=0; throw e; }
+    if(go){ k++; try{ renderTop(); const t=document.querySelector('[data-a="next7"]'); if(t){ t.classList.add('busy'); t.textContent='Jour '+(k+1)+' / '+N; } }catch(e){} setTimeout(tick,0); return; }
+    if(k<N-1||S.stop||S.over) k++;   /* arrêt anticipé : le jour joué compte */
+    ui.run=0; pre.halt= S.stop||S.over||k>=N;
+    const t=document.querySelector('[data-a="next7"]'); if(t){ t.classList.remove('busy'); t.removeAttribute('aria-busy'); t.textContent='+7 jours'; }
+    doNext(N-k,false,pre); };
+  setTimeout(tick,16); }
 /* ---------- Actions ---------- */
 const ACT={
   tab:el=>{ if(el.dataset.i==='biz') ui.bz={c:null,d:null}; ui.tab=el.dataset.i; ui.modal=null; window.scrollTo(0,0); render(); saveUI(); },
-  next:()=>{ if(ui.auto){ stopAuto(); render(); return; } doNext(1); }, next7:()=>{ if(ui.auto){ stopAuto(); render(); return; } doNext(7); },
+  next:()=>{ if(ui.run) return; if(ui.auto){ stopAuto(); render(); return; } doNext(1); }, next7:()=>{ if(ui.auto){ stopAuto(); render(); return; } runDays(7); },
   closemodal:()=>closeModal(),
   ovclick:(el,e)=>{ if(e.target===el&&!(ui.modal&&ui.modal.type==='rpedit')) closeModal(); },
   confirmno:()=>{ ui.modal=ui.prev; ui.prev=null; ui.confirmFn=null; render(); },
@@ -15356,9 +15375,9 @@ function awCard(){
 /* blocs ajoutés au pilotage du métier */
 function mxHtml(b){
   const m=metOf(b); if(!m||!m.ranks) return '';
-  const r=mxRank(b), cs=m.rankSub, nx=cs? null : mxNext(b), lo=MX_STEPS[r], x=b.mx||0;
-  return '<div class="met-c"><div class="row sp"><b>Maîtrise : palier '+r+' sur 5</b>'+(nx? '<span class="sub">'+Math.round((x-lo)/(nx-lo)*100)+' %</span>' : r>=5? pill('Maximum','good') : '')+'</div>'+
-    (nx? bar((x-lo)/(nx-lo),'g') : cs&&cs(b)? '<div class="sub">'+esc(cs(b))+'</div>' : '')+
+  const r=mxRank(b), cs=m.rankSub, nx=cs? null : mxNext(b), lo=MX_STEPS[r], x=b.mx||0, rp=cs&&m.rankProg? m.rankProg(b) : null;
+  return '<div class="met-c"><div class="row sp"><b>Maîtrise : palier '+r+' sur 5</b>'+(nx? '<span class="sub">'+Math.round((x-lo)/(nx-lo)*100)+' %</span>' : rp!==null&&r<5? '<span class="sub">'+Math.round(rp*100)+' %</span>' : r>=5? pill('Maximum','good') : '')+'</div>'+
+    (nx? bar((x-lo)/(nx-lo),'g') : (rp!==null&&r<5? bar(rp,'g') : '')+(cs&&cs(b)? '<div class="sub">'+esc(cs(b))+'</div>' : ''))+
     '<div class="mx-l">'+m.ranks.map((k,i)=>'<div class="'+(i<r?'on':'')+'"><span>'+(i+1)+'</span><div><b>'+esc(k.n)+'</b><small>'+esc(k.d)+'</small></div></div>').join('')+'</div>'+
     (cs? '' : '<div class="sub">La maîtrise progresse chaque jour d’activité, plus vite quand l’entreprise est rentable.</div>')+'</div>';
 }
@@ -15581,10 +15600,12 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.7.2';
+const IB_VER='V1.7.3';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Entrepôt plus rentable','Les clients paient leurs palettes environ 7 % plus cher, les options (logiciel, zone frigorifique, livraison express, plateforme multimodale) coûtent 30 % de moins, et l’on peut poser jusqu’à 5 rayonnages hauts au lieu de 3.']
+  ['« +7 jours » plus fluide','Les jours défilent un par un en haut de l’écran au lieu de figer le jeu, puis le rapport de la semaine s’affiche.'],
+  ['Lignes aériennes estimées','Au moment d’ouvrir une ligne, chaque destination affiche son meilleur résultat estimé par jour et son remplissage, puis chaque avion proposé (au sol ou en location) son propre résultat estimé.'],
+  ['Paliers du restaurant','La fiche du restaurant gastronomique et de la start-up montre maintenant une barre de progression vers le palier suivant, avec la note actuelle des critiques et la date de la prochaine visite du guide.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
@@ -16020,16 +16041,23 @@ ACT.aladd=el=>{ ui.modal={type:'aladd', id:+el.dataset.i, l:+el.dataset.j}; rend
 ACT.aladdgo=el=>{ const m=ui.modal, b=S.biz.find(x=>x.id===m.id); if(!b) return; let pid=+el.dataset.v;
   if(el.dataset.t){ const r=alGet(b,el.dataset.t,false); if(!r.ok) return after(r); pid=b.m.fl[b.m.fl.length-1].id; }
   const r=alAssign(b,m.l,pid); if(!r.ok&&el.dataset.t) alDrop(b,pid); if(r.ok) ui.modal={type:'biz',id:b.id}; after(r); };
+/* V1.7.3 : estimation du résultat d'une ligne avant de l'ouvrir (avion loué ou au sol, prix normal) */
+function alEst(b,a,to,t,pid){ const m=b.m; let p=pid? alPlane(b,pid) : null, tmp=null, old;
+  if(!p){ tmp={id:-9,t,own:0,ln:-9}; m.fl.push(tmp); p=tmp; } else { old=p.ln; p.ln=-9; }
+  let r; try{ r=alLineDay(b,{id:-9,a,b:to,p:1,cab:1},true); } finally{ if(tmp) m.fl.pop(); else p.ln=old; }
+  return r; }
+function alEstTxt(r){ return r? 'résultat estimé '+signed(r.net,0)+' / j · remplissage '+Math.round((r.lf||0)*100)+' %' : ''; }
+function alBestEst(b,a,to){ const d=alDist(a,to); let best=null; Object.entries(AL_TY).forEach(([k,T])=>{ if(T.rg<d) return; const r=alEst(b,a,to,k); if(!best||r.net>best.net) best=Object.assign({k},r); }); return best; }
 function alPlaneChoice(b,d,act){ const m=b.m, idle=m.fl.filter(p=>(!p.ln||!m.ln.some(l=>l.id===p.ln))&&AL_TY[p.t].rg>=d), can=x=>mAvail(b)>=x;
-  return (idle.length? '<div class="tag">Avions au sol</div>'+idle.map(p=>'<button class="pk-o" data-a="'+act+'" data-v="'+p.id+'"><span><b>'+esc(AL_TY[p.t].n)+'</b><small>'+AL_TY[p.t].seats+' places · '+(p.own?'acheté':'loué')+'</small></span></button>').join('') : '')+
-    '<div class="tag">Louer un avion pour cette ligne</div>'+Object.entries(AL_TY).filter(([k,T])=>T.rg>=d).map(([k,T])=>'<button class="pk-o" data-a="'+act+'" data-v="0" data-t="'+k+'"'+(can(T.ls*30)?'':' disabled')+'><span><b>'+esc(T.n)+'</b><small>'+T.seats+' places · '+eur(T.ls,0)+' / j · dépôt '+eur(T.ls*30,0)+'</small></span></button>').join(''); }
+  return (idle.length? '<div class="tag">Avions au sol</div>'+idle.map(p=>'<button class="pk-o" data-a="'+act+'" data-v="'+p.id+'"><span><b>'+esc(AL_TY[p.t].n)+'</b><small>'+AL_TY[p.t].seats+' places · '+(p.own?'acheté':'loué')+'</small>'+(ui.modal&&ui.modal.a&&ui.modal.to? '<small class="num">'+alEstTxt(alEst(b,ui.modal.a,ui.modal.to,p.t,p.id))+'</small>' : '')+'</span></button>').join('') : '')+
+    '<div class="tag">Louer un avion pour cette ligne</div>'+Object.entries(AL_TY).filter(([k,T])=>T.rg>=d).map(([k,T])=>'<button class="pk-o" data-a="'+act+'" data-v="0" data-t="'+k+'"'+(can(T.ls*30)?'':' disabled')+'><span><b>'+esc(T.n)+'</b><small>'+T.seats+' places · '+eur(T.ls,0)+' / j · dépôt '+eur(T.ls*30,0)+'</small>'+(ui.modal&&ui.modal.a&&ui.modal.to? '<small class="num">'+alEstTxt(alEst(b,ui.modal.a,ui.modal.to,k))+'</small>' : '')+'</span></button>').join(''); }
 { const _mc=modalContent; modalContent=function(){ const M=ui.modal;
   if(M&&M.type==='alnew'){ const b=S.biz.find(x=>x.id===M.id); if(!b||!b.m){ ui.modal=null; return _mc(); } const m=b.m;
     let body='<button class="back" data-a="bizopen" data-i="'+b.id+'">‹ '+esc(b.name)+'</button>';
     body+='<div class="tag">Départ</div><div class="seg al-seg">'+m.hubs.map(h=>'<button class="'+(M.a===h?'on':'')+'" data-a="alnewa" data-v="'+h+'">'+esc(alAp(h).n)+' ('+alHubUsed(b,h)+'/'+alHubCap(b,h)+')</button>').join('')+'</div>';
     if(M.a&&alHubUsed(b,M.a)>=alHubCap(b,M.a)) body+='<div class="notice">Plus de créneau libre à '+esc(alAp(M.a).n)+' : achetez des créneaux dans « Tours de contrôle ».</div>';
-    else if(M.a&&!M.to){ const L=alDests(b,M.a).filter(x=>!alCanLine(b,M.a,x.id)).map(x=>{ const d=alDist(M.a,x.id), l={id:-1,a:M.a,b:x.id,p:1,cab:1}; return {x,d}; }).sort((p,q)=>q.x.sz-p.x.sz);
-      body+='<div class="tag">Destination</div><div class="pk-list">'+(L.length? L.map(({x,d})=>'<button class="pk-o'+(x.hub&&m.hubs.includes(x.id)?' match':'')+'" data-a="alnewb" data-v="'+x.id+'"><span><b>'+esc(x.n)+'</b><small>'+esc(AL_CO[x.co].n)+' · '+fmtN(d,0)+' km · '+x.sz+' M de passagers par an'+(m.hubs.includes(x.id)?' · votre plateforme':'')+(x.lei?' · loisirs':'')+'</small></span></button>').join('') : '<div class="sub">Toutes les destinations possibles sont déjà desservies.</div>')+'</div>'; }
+    else if(M.a&&!M.to){ const L=alDests(b,M.a).filter(x=>!alCanLine(b,M.a,x.id)).map(x=>{ const d=alDist(M.a,x.id), l={id:-1,a:M.a,b:x.id,p:1,cab:1}; return {x,d,e:alBestEst(b,M.a,x.id)}; }).sort((p,q)=>(q.e?q.e.net:0)-(p.e?p.e.net:0));
+      body+='<div class="tag">Destination</div><div class="pk-list">'+(L.length? L.map(({x,d,e})=>'<button class="pk-o'+(x.hub&&m.hubs.includes(x.id)?' match':'')+'" data-a="alnewb" data-v="'+x.id+'"><span><b>'+esc(x.n)+'</b><small>'+esc(AL_CO[x.co].n)+' · '+fmtN(d,0)+' km · '+x.sz+' M de passagers par an'+(m.hubs.includes(x.id)?' · votre plateforme':'')+(x.lei?' · loisirs':'')+'</small>'+(e?'<small class="num '+cls(e.net)+'">Meilleur cas : '+esc(AL_TY[e.k].n)+', '+alEstTxt(e)+'</small>':'')+'</span></button>').join('') : '<div class="sub">Toutes les destinations possibles sont déjà desservies.</div>')+'</div>'; }
     else if(M.a&&M.to){ const d=alDist(M.a,M.to);
       body+='<div class="sub"><b>'+esc(alAp(M.a).n)+' – '+esc(alAp(M.to).n)+'</b> · '+fmtN(d,0)+' km · billet éco environ '+eur(alEco(d),0)+'. <button class="lnk" data-a="alnewb" data-v="">Changer</button></div>'+alPlaneChoice(b,d,'alnewgo'); }
     return {title:'Ouvrir une ligne',sm:true,body}; }
@@ -16368,7 +16396,7 @@ function synCard(){
 { const _vbh3=vBizHome; vBizHome=function(){ const h=_vbh3(); return S.biz.length? h+synCard() : h; }; }
 
 /* V1.6.6 : fenêtre de crise de groupe */
-{ const _dn=doNext; doNext=function(n,q){ _dn(n,q); if(S&&S.flashCri){ S.flashCri=false; if(criOn()&&!S.cri.mit){ pushModal({type:'cri'}); render(); } } }; }
+{ const _dn=doNext; doNext=function(n,q){ _dn.apply(this,arguments); if(S&&S.flashCri){ S.flashCri=false; if(criOn()&&!S.cri.mit){ pushModal({type:'cri'}); render(); } } }; }
 { const _mc3=modalContent; modalContent=function(){ const m=ui.modal; if(!(m&&m.type==='cri')) return _mc3();
   if(!criOn()) return {title:'Crise',sm:true,body:'<div class="sub">La crise est terminée.</div><div>'+btn('Fermer','closemodal',{c:'pri'})+'</div>'};
   const C=CRI[S.cri.k], L=S.biz.filter(criHit);
