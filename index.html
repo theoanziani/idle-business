@@ -9016,8 +9016,10 @@ MET.electronics = {
   ],
   mods(b){ const m=b.m, R0=metR0(b), G=EL_GEN[m.g], cf=elCapF(b), down=m.ev&&m.ev.k==='cont'&&m.ev.until>=S.day;
     const pen=m.ev&&m.ev.k==='pen'&&m.ev.until>=S.day? 1.4 : 1, y=elY(m);
-    const chip= down? 0 : R0*cf*y/.8*G.v*pen*.95;
-    const cost= (down? .3 : 1)*R0*.5*cf*G.c*m.ri + R0*EL_RD[m.rd]+R0*.02*(m.salles||0);
+    const chip= down? 0 : R0*cf*y/.8*G.v*pen;   /* V1.7.5 : puces +5 % (facteur .95 → 1) */
+    /* V1.7.5 : la recherche ne coûte que si elle peut avancer (génération suivante permise par le palier) */
+    const rdOn=elRdOn(b);
+    const cost= (down? .3 : 1)*R0*.5*cf*G.c*m.ri + (rdOn? R0*EL_RD[m.rd] : 0)+R0*.02*(m.salles||0);
     return { vol:0, cogs:0, rev:chip+m.phPend, fixed:cost };
   },
   daily(b,ctx){ const m=b.m, R0=metR0(b);
@@ -9048,8 +9050,8 @@ MET.electronics = {
     return k;
   },
   ctl(b){ const m=b.m, d=bizDef(b), R0=metR0(b), out=[];
-    out.push({k:'seg', act:'rd', label:'Budget de recherche', val:m.rd, opts:EL_RD.map((x,i)=>[i,i?Math.round(x*100)+' %':'Aucun']), sub:'Part du chiffre d’affaires de base consacrée chaque jour à la recherche : '+eur(R0*EL_RD[m.rd],0)+' / jour.'});
-    if(m.rdy&&EL_GEN[m.g+1]) out.push({k:'btn', act:'gen', label:'Passer à la gravure en '+EL_GEN[m.g+1].n, cost:d.cost*1.5*(m.g+1), sub:'Puces '+Math.round(EL_GEN[m.g+1].v/EL_GEN[m.g].v*100-100)+' % plus chères, mais le rendement repart de 35 %.'});
+    out.push({k:'seg', act:'rd', label:'Budget de recherche', val:m.rd, opts:EL_RD.map((x,i)=>[i,i?Math.round(x*100)+' %':'Aucun']), sub: elRdOn(b)? 'Part du chiffre d’affaires de base consacrée chaque jour à la recherche : '+eur(R0*EL_RD[m.rd],0)+' / jour.' : (m.rdy? 'La recherche est prête : lancez la nouvelle gravure. Rien n’est dépensé en attendant.' : 'Rien n’est dépensé tant que le palier suivant n’ouvre pas une nouvelle gravure.')});
+    if(m.rdy&&EL_GEN[m.g+1]) out.push({k:'btn', act:'gen', label:'Passer à la gravure en '+EL_GEN[m.g+1].n, cost:d.cost*1.5*(m.g+1), sub:'Puces '+Math.round(EL_GEN[m.g+1].v/EL_GEN[m.g].v*100-100)+' % plus chères, mais le rendement redescend vers 54 % avant de remonter.'});
     out.push((m.salles||0)<3? {k:'btn', act:'salle', label:'Agrandir les salles blanches', cost:d.cost*1.5*((m.salles||0)+1), sub:'+30 % de production. Entretien '+eur(R0*.02,0)+' / jour.'} : {k:'buy', act:'salle', label:'Salles blanches', owned:true, sub:'Capacité maximale.'});
     if(mxHas(b,3)&&!m.ph) out.push({k:'btn', act:'ph', label:'Ouvrir une ligne de smartphones', cost:d.cost*5, sub:'Vos puces vous coûtent moins cher que celles des rivaux.'});
     return out;
@@ -9064,11 +9066,14 @@ MET.electronics = {
       m.next.g=m.g; return ok(''); },
     now:(b)=>{ const m=b.m; if(!m.ph||!m.next) return err('Aucun modèle prêt.'); if(m.mod) return err('Le prochain lancement est à la mi-septembre.'); m.mod=Object.assign({},m.next); m.next=null; metLog(b,'premier smartphone lancé.','good'); return ok('Modèle lancé.'); }
   },
-  auto: elAuto
+  auto: elAuto,
+  /* V1.7.5 : objectif de la réserve en délégation totale */
+  goal(b){ const m=b.m, d=bizDef(b); if(m.rdy&&EL_GEN[m.g+1]) return {n:'Gravure en '+EL_GEN[m.g+1].n, c:d.cost*1.5*(m.g+1)}; if((m.salles||0)<3) return {n:'Salle blanche', c:d.cost*1.5*((m.salles||0)+1)}; if(mxHas(b,3)&&!m.ph) return {n:'Ligne de smartphones', c:d.cost*5}; return null; }
 };
+function elRdOn(b){ const m=b.m, nx=EL_GEN[m.g+1], maxG= mxHas(b,5)? 4 : mxHas(b,2)? 2 : mxHas(b,1)? 1 : 0; return !!(nx&&m.g+1<=maxG&&!m.rdy); }
 function elGen(b,auto){ const m=b.m, nx=EL_GEN[m.g+1]; if(!nx||!m.rdy) return err('Recherche pas encore prête.'); const c=bizDef(b).cost*1.5*(m.g+1);
   if(!(auto? dlSpend(b,c,'Nouvelle génération') : metBuy(b,c,'Nouvelle génération'))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
-  m.g++; m.xp=0; m.rp=0; m.rdy=0; metLog(b,'nouvelle gravure en '+nx.n+' : le rendement va remonter peu à peu.','good'); return ok('Gravure en '+nx.n+'.'); }
+  m.g++; m.xp=40; m.rp=0; m.rdy=0;   /* V1.7.5 : l’expérience acquise sert en partie (rendement de départ ≈ 54 % au lieu de 35 %) */ metLog(b,'nouvelle gravure en '+nx.n+' : le rendement va remonter peu à peu.','good'); return ok('Gravure en '+nx.n+'.'); }
 function elSalle(b,auto){ const m=b.m; if((m.salles||0)>=3) return err('Capacité maximale.'); const c=bizDef(b).cost*1.5*((m.salles||0)+1);
   if(!(auto? dlSpend(b,c,'Salle blanche') : metBuy(b,c,'Salle blanche'))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m.salles=(m.salles||0)+1; return ok('Salles blanches agrandies.'); }
 /* le directeur d'usine équilibre production et recherche */
@@ -15609,14 +15614,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.7.4';
+const IB_VER='V1.7.5';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Estimer un achat','Dans le pilotage des métiers, « Estimer la rentabilité » simule 90 jours avec et sans l’achat et affiche le gain par jour et le délai de remboursement.'],
-  ['Rentabilité du groupe','Sociétés classe vos entreprises par rendement annuel (bénéfice des 30 derniers jours rapporté à tout l’argent investi) pour savoir quoi agrandir et quoi revoir.'],
-  ['Lignes : plus d’estimations','« Renforcer la ligne » de la compagnie aérienne indique le gain d’un avion de plus ; la compagnie maritime classe ses destinations par meilleur résultat estimé.'],
-  ['Défis de légende','Une fois les défis du palier Souverain réussis, des séries de défis de plus en plus ambitieuses prennent le relais.'],
-  ['Accueil plus léger','« Plus de détails » n’est préparé qu’à l’ouverture.']
+  ['Usine électronique plus rentable','Les puces se vendent 5 % plus cher ; la recherche ne coûte plus rien tant qu’elle ne peut pas avancer (ou une fois prête) ; une nouvelle gravure fait redescendre le rendement vers 54 % au lieu de 35 %. En délégation totale, le directeur met de côté pour les salles blanches, les nouvelles gravures et la ligne de smartphones.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
