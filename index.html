@@ -7893,7 +7893,7 @@ function dlBudget(b){ return Math.max(0,b.dlp||0); }
 function dlSpend(b,cost,label){ if(cost>dlBudget(b)) return false; if(!metBuy(b,cost,label)) return false; b.dlp=dlBudget(b)-cost; return true; }
 /* prochain achat visé par le directeur : le moins cher des investissements encore possibles */
 function dlGoal(b){ const mm=metOf(b); if(!mm||b.status!=='active') return null; let best=null;
-  try{ metCtl(b).forEach(c=>{ if(c.k==='buy'&&!c.owned&&!c.dis&&c.cost>0&&(!best||c.cost<best.c)) best={n:c.label, c:c.cost}; });
+  try{ metCtl(b).forEach(c=>{ if(c.k==='buy'&&!c.owned&&!c.dis&&c.cost>0&&(!best||c.cost<best.c)) best={n:c.label, c:c.cost, act:c.act, arg:c.arg}; });
     if(mm.goal){ const g=mm.goal(b); if(g&&(!best||g.c<best.c)) best=g; } }catch(e){}
   return best; }
 /* achat d'une action métier payée sur la trésorerie, décomptée de la réserve */
@@ -7907,6 +7907,10 @@ function dlDaily(b){
     /* V1.6.6 : plus rien à acheter : la réserve ne garde que trois mois de mise de côté */
     if(!g) b.dlp=Math.min(b.dlp,add*90); }
   try{ m.auto(b,mode,dlQuality(b)); }catch(e){ console.error(e); }
+  /* V1.8.1 : en délégation totale, le directeur achète lui-même l'achat visé dès que la réserve le couvre
+     (avant : seuls les achats prévus par le métier étaient faits, la réserve pouvait dormir) */
+  if(mode==='full'){ try{ for(let k=0;k<3;k++){ const g=dlGoal(b); if(!g||!g.act||dlBudget(b)<g.c) break;
+      if(!dlAct(b,g.c,()=>{ const r=metAct(b,g.act,g.arg); if(r&&r.ok!==false) metLog(b,'Votre directeur : '+g.n.toLowerCase()+' ('+eur(g.c,0)+').'); return r; })) break; } }catch(e){ console.error(e); } }
 }
 { const _ns=nextDay; nextDay=function(){ const ok=_ns(); if(ok){ try{ bizRetireStep(); S.biz.forEach(b=>{ mxDaily(b); dlDaily(b); }); }catch(e){ console.error(e); } } return ok; }; }
 
@@ -15677,11 +15681,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.7.9';
+const IB_VER='V1.8.1';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Pépites plus rares','Les meilleurs recruteurs de jeunes trouvent un peu moins de pépites : environ 1 jeune sur 40 au lieu de 1 sur 30 pour l’expertise maximale.'],
-  ['Recruteurs de jeunes','Un rapport par mois de mission (le nombre de jeunes proposés reste le même).']
+  ['Réserves dépensées','En délégation totale, le directeur achète lui-même l’investissement qu’il vise dès que sa réserve le couvre (studio, ferme, entrepôt, galerie…), au lieu de laisser l’argent dormir.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
