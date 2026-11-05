@@ -7898,8 +7898,11 @@ const dlSkipped = (b,k) => !!(b.dlSkip&&b.dlSkip[k]>S.day);
 function dlGoal(b){ const mm=metOf(b); if(!mm||b.status!=='active') return null; let best=null;
   try{ metCtl(b).forEach(c=>{ if((c.k==='buy'||c.k==='btn')&&!c.owned&&!c.dis&&c.cost>0&&c.act&&!dlSkipped(b,c.act+':'+c.arg)&&(!best||c.cost<best.c)) best={n:c.label, c:c.cost, act:c.act, arg:c.arg}; });
     if(mm.goal){ const g=mm.goal(b); if(g&&(!best||g.c<best.c)) best=g; } }catch(e){}
+  /* V1.8.4 : l'agrandissement reste l'achat visé (la réserve peut donc l'atteindre), y compris pendant un
+     agrandissement en cours (niveau suivant) ; s'il vient d'échouer, il reste visé mais n'est retenté qu'après 30 jours */
+  if(!best&&b.up&&b.lvl+1<MAXLVL){ b.lvl++; const c=upgradeCost(b); b.lvl--; best={n:'Agrandir au niveau '+(b.lvl+2)+' (après le chantier en cours)', c, up:1, wait:1}; }
   if(!best&&!b.up&&b.lvl<MAXLVL){ const bd=b.bld&&bldById(b.bld), full=bd&&b.lvl+1>bldMaxLvl(bd,b.def);
-    if(!full&&!dlSkipped(b,'up')) best={n:'Agrandir l’entreprise (niveau '+(b.lvl+1)+')', c:upgradeCost(b), up:1};
+    if(!full) best={n:'Agrandir l’entreprise (niveau '+(b.lvl+1)+')', c:upgradeCost(b), up:1, wait:dlSkipped(b,'up')?1:0};
     /* V1.8.3 : bâtiment trop petit pour grandir : déménager dans la même ville vers un bâtiment plus grand */
     else if(full&&!dlSkipped(b,'rel')){ try{ const C=relocCands(b,1).filter(x=>x.mx>b.lvl).sort((x,y)=>(y.fit-x.fit)||(y.mx-x.mx))[0];
       if(C) best={n:'Déménager au '+C.bd.addr+' pour grandir (niveau '+C.mx+' au plus)', c:relocCost(b), rel:C.bd.id}; }catch(e){} } }
@@ -7917,7 +7920,7 @@ function dlDaily(b){
   try{ m.auto(b,mode,dlQuality(b)); }catch(e){ console.error(e); }
   /* V1.8.1 : en délégation totale, le directeur achète lui-même l'achat visé dès que la réserve le couvre
      (avant : seuls les achats prévus par le métier étaient faits, la réserve pouvait dormir) */
-  if(mode==='full'){ try{ for(let k=0;k<3;k++){ const g=dlGoal(b); if(!g||!(g.act||g.up||g.rel)||dlBudget(b)<g.c) break; const key=g.up? 'up' : g.rel? 'rel' : g.act+':'+g.arg;
+  if(mode==='full'){ try{ for(let k=0;k<3;k++){ const g=dlGoal(b); if(!g||g.wait||!(g.act||g.up||g.rel)||dlBudget(b)<g.c) break; const key=g.up? 'up' : g.rel? 'rel' : g.act+':'+g.arg;
       const done=dlAct(b,g.c,()=>{ const r= g.up? upgradeBiz(b) : g.rel? relocBiz(b,g.rel) : metAct(b,g.act,g.arg); if(r&&r.ok!==false) metLog(b,'Votre directeur : '+g.n.toLowerCase()+' ('+eur(g.c,0)+').'); return r; });
       /* refusé, ou achat renouvelable (cave, stock…) : on n'y revient pas avant 30 jours */
       b.dlSkip=b.dlSkip||{}; b.dlSkip[key]=S.day+30; if(!done) continue; } }catch(e){ console.error(e); } }
@@ -15710,10 +15713,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.8.3';
+const IB_VER='V1.8.4';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Directeurs : grandir plutôt qu’épargner','Quand une société n’a plus d’achat en vue, son directeur l’agrandit ; si le bâtiment est trop petit, il la déménage dans la même ville vers un bâtiment plus grand, puis continue. Les achats renouvelables (cave, stocks) ne sont plus rachetés qu’une fois par mois.']
+  ['Réserve pour s’agrandir','L’agrandissement compte désormais comme un achat visé à part entière : la réserve du directeur n’est plus limitée à trois mois et peut atteindre son prix, même pendant un chantier en cours (il vise alors le niveau suivant).']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
