@@ -4740,7 +4740,7 @@ function nextDay(){
   politicsStep();
   computeNW();
   if(S.day%(S.nwStep||1)===0){ S.nwH.push(Math.round(S.nw)); if(S.nwH.length>1200){ S.nwH=S.nwH.filter((x,i)=>i%2===0); S.nwStep=(S.nwStep||1)*2; } }
-  checkAch(); checkChal(); checkChalR(); criStep();
+  checkAch(); checkChal(); checkChalR(); criStep(); balStep();
   Object.keys(D.CITIES).forEach(id=>{ if(!D.CITIES[id].parent && !S.citySeen[id] && S.peakNW>=D.CITIES[id].unlock){ S.citySeen[id]=1; log('good','Nouvelle ville accessible : '+D.CITIES[id].n+'. Ouvrez-y des sociétés depuis l’onglet Sociétés.'); } });
   const t=tierNow();
   if(t>S.tierSeen){ S.tierSeen=t; S.flashTier=t; log('good','Nouveau palier : '+D.TIERS[t].n+' ! '+D.TIERS[t].d); }
@@ -11748,6 +11748,28 @@ function criMit(){ if(!criOn()) return err('Aucune crise en cours.'); if(S.cri.m
 { const _ll=lkList; lkList=function(b){ const L=_ll(b); if(criHit(b)) L.unshift(['cri',CRI[S.cri.k].n+' jusqu’au '+dateL(S.cri.until),(S.cri.mit?'atténuée : ':'')+CRI[S.cri.k].eff+(S.cri.mit?' (effets réduits de 60 %)':''),1]); return L; }; }
 
 /* ============================================================
+   V1.8.9 : équilibrage des métiers.
+   - BAL_F : coup de pouce aux métiers lourds en capital (remboursement trop lent).
+   - Saturation : au-delà d'un rendement de BAL_ROI par an (bénéfice des 30 derniers jours
+     rapporté à tout l'argent investi), le marché se sature et les recettes baissent
+     progressivement (b.satF, lissé chaque jour). Évite les remboursements en quelques jours.
+   ============================================================ */
+const BAL_F={office:8, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2};
+const BAL_ROI=4.5;          /* 450 % par an, soit un remboursement en 80 jours environ */
+function balInv(b){ const d=bizDef(b); return Math.max(1,(b.inv$||d.cost)+Math.max(0,bizInvested(b)-d.cost)); }
+const BAL_SKIP=['promo','build'];   /* ventes par programmes : recettes trop irrégulières pour la saturation */
+function balStep(){ S.biz.forEach(b=>{ if(b.status!=='active'||!metOf(b)||BAL_SKIP.includes(b.def)) return; const L=b.last; if(!L) return;
+  b.revA= b.revA===undefined? L.rev : b.revA+(L.rev-b.revA)/60;
+  const h=(b.hist||[]).slice(-60); if(h.length<30) return;
+  /* recettes sans saturation R, charges C : bénéfice(f) = f·R − C ; on vise f tel que le rendement = BAL_ROI */
+  const f0=b.satF||1, n=h.reduce((a,x)=>a+x,0)/h.length, R=Math.max(1,b.revA/f0), C=R*f0-n, inv=balInv(b);
+  const roi1=(R-C)*360/inv, fx= roi1>BAL_ROI? (BAL_ROI*inv/360+C)/R : 1, tgt=clamp(fx,.05,1);
+  b.satF=clamp(f0+(tgt-f0)*.05,.05,1); }); }
+{ const _mm=metMods; metMods=function(b){ const z=_mm(b); if(!b||b.status!=='active') return z;
+  const f=(BAL_F[b.def]||1)*(b.satF||1); if(f!==1){ z.vol*=f; z.rev*=f; } return z; }; }
+{ const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé','recettes −'+Math.round((1-b.satF)*100)+' % : votre société rapporte plus de 450 % par an de ce qu’elle a coûté',1]); return L; }; }
+
+/* ============================================================
    V1.6.1 : toutes les entreprises coûtent 20 % de plus (création, agrandissements, options), sans
    changer leurs recettes : chacune met 20 % de temps en plus à se rembourser. D.biz[k].cost0 garde
    le prix de référence qui sert au calcul des recettes. (Le doublement de la V1.5.9 est abandonné : pf = 1.)
@@ -15744,13 +15766,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.8.8';
+const IB_VER='V1.8.9';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Carte « Délégation »','Dans Sociétés, une carte résume chaque société confiée : mode, directeur et moral, achat visé avec la réserve et une barre de progression, dernier achat.'],
-  ['Priorité du groupe','Nouvelle option de la délégation totale : à mi-chemin d’un gros achat, le directeur complète avec la trésorerie générale (sans la faire descendre sous un mois de dépenses).'],
-  ['Moral des directeurs','Une alerte prévient quand un directeur a le moral en berne et risque de partir.'],
-  ['Confidentialité','La politique de confidentialité est accessible depuis la boutique de l’application.']
+  ['Équilibrage des activités','Une société qui rapporte plus de 450 % par an de ce qu’elle a coûté sature son marché : ses recettes baissent peu à peu, ce qui ramène son remboursement vers 80 jours (la fiche l’indique). Les activités lourdes en capital rapportent davantage : immeubles de bureaux, compagnie aérienne, concession, énergies renouvelables, hôtel, data center.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
