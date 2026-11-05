@@ -1948,7 +1948,8 @@ const availFor = cc => S.cash;
 const bizCanPay = (b,amt) => availFor(cityOf(b).ccy)>=amt;
 function startupOdds(defId,inv){
   const su=D.biz[defId].startup, add=[0,.07,.14][inv||0];
-  let pS=(su.pS+add)*(0.85+0.15*S.macro.econ), pF=Math.max(.05,su.pF-add);
+  /* V1.8.7 : risque d'échec réduit de 40 % (start-up : 28 % → 17 % ; deep-tech : 38 % → 23 %, sans option) */
+  let pS=(su.pS+add)*(0.85+0.15*S.macro.econ), pF=Math.max(.04,su.pF*.6-add);
   pS=clamp(pS,.05,.8); return {pS, pF, pM:Math.max(0,1-pS-pF)};
 }
 function bizCount(defId){ return S.biz.filter(b=>b.def===defId).length; }
@@ -8633,7 +8634,8 @@ function htAuto(b,mode,q){
   if(mode!=='full'||S.day%14!==0) return;
   if(m.st<5&&htStar(b,true).ok) return;
   for(const [k,f,l,rk] of [['spa',.3,'Spa',0],['resto',.15,'Restaurant de l’hôtel',0],['salles',.2,'Salles de réception',2],['pres',.25,'Suite présidentielle',3]]){ if(!m[k]&&mxHas(b,rk)){ if(htBuy(b,k,f,l,rk,true).ok) return; } }
-  if(mxHas(b,5)) htResort(b,true);
+  /* V1.8.7 : les resorts attendent que l'hôtel ait atteint le niveau 3 (l'agrandissement passe avant) */
+  if(mxHas(b,5)&&b.lvl>=3) htResort(b,true);
 }
 
 /* ============================================================
@@ -15733,12 +15735,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.8.6';
+const IB_VER='V1.8.7';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Délégation totale vérifiée','Les directeurs ne rachètent plus sans fin des achats à l’unité (camions de l’entrepôt, pièces, cave…) : seul leur pilote les achète, selon les besoins. Ils n’agrandissent plus une société qui perd de l’argent, ni avant que le précédent agrandissement ait fait monter le bénéfice.'],
-  ['Directeur remplacé','Quand le directeur d’une société déléguée démissionne ou se fait débaucher, le meilleur candidat abordable est recruté aussitôt : la délégation ne s’arrête plus en silence.'],
-  ['Parc : place aux terrains','Le directeur du parc économise pour le terrain suivant quand le parc est plein, au lieu de remplacer des attractions, puis l’agrandit.']
+  ['Start-up moins risquées','Le risque d’échec d’une start-up baisse de 40 % : environ 17 % au lieu de 28 % pour une start-up classique, 23 % au lieu de 38 % pour une deep-tech (avant options de financement).'],
+  ['Hôtel délégué','Le directeur agrandit l’hôtel jusqu’au niveau 3 avant d’ouvrir des resorts à l’étranger ; montées en gamme et services restent prioritaires.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
