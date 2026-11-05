@@ -3822,6 +3822,9 @@ function bossStep(){
     x.mood=clamp(x.mood+(tgt-x.mood)*0.03,0,100);
     if(x.mood<45&&intensity(rivKey(b))>0&&rnd()<0.003*(S.dm||1)){ const r=pick(rivAlive()); b.boss=null; log('bad',r.n+' débauche '+x.name+', directeur de « '+b.name+' ». Recrutez un remplaçant dans la fiche de l’entreprise.'); }
     else if(x.mood<20&&rnd()<0.01){ b.boss=null; log('warn',x.name+' démissionne de la direction de « '+b.name+' » (moral au plus bas).'); }
+    /* V1.8.6 : société déléguée sans directeur : le meilleur candidat abordable est recruté aussitôt, la délégation continue */
+    if(!b.boss&&b.dl&&b.dl!=='me'){ const C=bossCands(b).map((c,i)=>({c,i})).filter(o=>bizCanPay(b,o.c.sal*10)).sort((p,q)=>bossAvg(q.c)-bossAvg(p.c))[0];
+      if(C&&hireBoss(b,C.i).ok) log('info','« '+b.name+' » : '+b.boss.name+' reprend la direction, la délégation continue.'); }
   });
 }
 function bossCands(b){ if(!b.bc||b.bcDay!==S.day){ b.bc=[genBoss(b,-.5),genBoss(b,.6),genBoss(b,1.6)]; b.bcDay=S.day; } return b.bc; }
@@ -7897,13 +7900,16 @@ function dlSpend(b,cost,label){ if(cost>dlBudget(b)) return false; if(!metBuy(b,
 /* V1.8.2 : achats « bouton » payants compris (montée en gamme, resort…), achats refusés écartés 30 jours,
    et à défaut l'agrandissement de la société : il y a toujours un achat visé tant qu'un niveau reste à gagner */
 const dlSkipped = (b,k) => !!(b.dlSkip&&b.dlSkip[k]>S.day);
+const dlNet30 = b => { const h=(b.hist||[]).slice(-30); return h.length? h.reduce((a,x)=>a+x,0)/h.length : 0; };
 function dlGoal(b){ const mm=metOf(b); if(!mm||b.status!=='active') return null; let best=null;
-  try{ metCtl(b).forEach(c=>{ if((c.k==='buy'||c.k==='btn')&&!c.owned&&!c.dis&&c.cost>0&&c.act&&!dlSkipped(b,c.act+':'+c.arg)&&(!best||c.cost<best.c)) best={n:c.label, c:c.cost, act:c.act, arg:c.arg}; });
+  try{ metCtl(b).forEach(c=>{ if((c.k==='buy'||(c.k==='btn'&&c.once))&&!c.owned&&!c.dis&&c.cost>0&&c.act&&!dlSkipped(b,c.act+':'+c.arg)&&(!best||c.cost<best.c)) best={n:c.label, c:c.cost, act:c.act, arg:c.arg}; });
     if(mm.goal){ const g=mm.goal(b); if(g&&(!best||g.c<best.c)) best=g; } }catch(e){}
+  /* V1.8.6 : pas d'agrandissement si la société perd de l'argent, ni si le précédent n'a pas fait monter le bénéfice */
+  const n30=dlNet30(b), upOk= n30>0 && (b.dlUpN===undefined || n30>=b.dlUpN*1.05);
   /* V1.8.4 : l'agrandissement reste l'achat visé (la réserve peut donc l'atteindre), y compris pendant un
      agrandissement en cours (niveau suivant) ; s'il vient d'échouer, il reste visé mais n'est retenté qu'après 30 jours */
-  if(!best&&b.up&&b.lvl+1<MAXLVL){ b.lvl++; const c=upgradeCost(b); b.lvl--; best={n:'Agrandir au niveau '+(b.lvl+2)+' (après le chantier en cours)', c, up:1, wait:1}; }
-  if(!best&&!b.up&&b.lvl<MAXLVL){ const bd=b.bld&&bldById(b.bld), full=bd&&b.lvl+1>bldMaxLvl(bd,b.def);
+  if(!best&&b.up&&b.lvl+1<MAXLVL&&upOk){ b.lvl++; const c=upgradeCost(b); b.lvl--; best={n:'Agrandir au niveau '+(b.lvl+2)+' (après le chantier en cours)', c, up:1, wait:1}; }
+  if(!best&&!b.up&&b.lvl<MAXLVL&&upOk){ const bd=b.bld&&bldById(b.bld), full=bd&&b.lvl+1>bldMaxLvl(bd,b.def);
     if(!full) best={n:'Agrandir l’entreprise (niveau '+(b.lvl+1)+')', c:upgradeCost(b), up:1, wait:dlSkipped(b,'up')?1:0};
     /* V1.8.3 : bâtiment trop petit pour grandir : déménager dans la même ville vers un bâtiment plus grand */
     else if(full&&!dlSkipped(b,'rel')){ try{ const C=relocCands(b,1).filter(x=>x.mx>b.lvl).sort((x,y)=>(y.fit-x.fit)||(y.mx-x.mx))[0];
@@ -7923,7 +7929,7 @@ function dlDaily(b){
   /* V1.8.1 : en délégation totale, le directeur achète lui-même l'achat visé dès que la réserve le couvre
      (avant : seuls les achats prévus par le métier étaient faits, la réserve pouvait dormir) */
   if(mode==='full'){ try{ for(let k=0;k<3;k++){ const g=dlGoal(b); if(!g||g.wait||!(g.act||g.up||g.rel)||dlBudget(b)<g.c) break; const key=g.up? 'up' : g.rel? 'rel' : g.act+':'+g.arg;
-      const done=dlAct(b,g.c,()=>{ const r= g.up? upgradeBiz(b) : g.rel? relocBiz(b,g.rel) : metAct(b,g.act,g.arg); if(r&&r.ok!==false) metLog(b,'Votre directeur : '+g.n.toLowerCase()+' ('+eur(g.c,0)+').'); return r; });
+      const done=dlAct(b,g.c,()=>{ const r= g.up? (b.dlUpN=dlNet30(b), upgradeBiz(b)) : g.rel? relocBiz(b,g.rel) : metAct(b,g.act,g.arg); if(r&&r.ok!==false) metLog(b,'Votre directeur : '+g.n.toLowerCase()+' ('+eur(g.c,0)+').'); return r; });
       /* refusé, ou achat renouvelable (cave, stock…) : on n'y revient pas avant 30 jours */
       b.dlSkip=b.dlSkip||{}; b.dlSkip[key]=S.day+30; if(!done) continue; } }catch(e){ console.error(e); } }
 }
@@ -8168,7 +8174,11 @@ MET.park = {
   },
   auto: pkAuto,
   /* V1.8.2 : achat visé en délégation totale = la construction la plus rentable du moment */
-  goal(b){ try{ pkFix(b); const x=pkOptimize(b,1,Infinity); if(x){ const it=pkIt(x.id); return {n:(x.rm!==undefined?'Remplacer par « ':'Construire « ')+it.n+' »', c:pkItemCost(b,it)}; } }catch(e){} return null; }
+  /* achat visé : une construction sur une case libre, sinon un nouveau terrain ; parc complet → agrandissement (générique).
+     Les remplacements se font au fil de l'eau, sans bloquer la réserve. */
+  goal(b){ try{ pkFix(b); const m=b.m, free=m.cells.some((c,i)=>!c&&m.zones[pkZone(i)].own);
+    if(free){ const x=pkOptimize(b,1,Infinity); if(x&&x.rm===undefined){ const it=pkIt(x.id); return {n:'Construire « '+it.n+' »', c:pkItemCost(b,it)}; } return null; }
+    const z=m.zones.findIndex((x,k)=>!x.own&&mxHas(b,PK_ZRANK[k])); if(z>0) return {n:'Nouveau terrain (zone '+(z+1)+')', c:bizDef(b).cost*PK_ZCOST[z]}; }catch(e){} return null; }
 };
 function pkItemCost(b,it){ return bizDef(b).cost*it.c; }
 function pkPlace(b,arg,auto){
@@ -8227,7 +8237,7 @@ function pkAuto(b,mode,q){
   m.zones.forEach((z,k)=>{ if(!z.own||z.th) return; const cnt={}; m.cells.forEach((c,i)=>{ const it=c&&pkIt(c.t); if(it&&it.k==='ride'&&pkZone(i)===k) cnt[it.tg]=(cnt[it.tg]||0)+1; });
     const best=Object.keys(cnt).sort((a,c)=>cnt[c]-cnt[a])[0]; const th=best&&Object.keys(PK_TH).find(t=>PK_TH[t].tag===best); if(th) z.th=th; });
   const free=[]; m.cells.forEach((c,i)=>{ if(!c&&m.zones[pkZone(i)].own) free.push(i); });
-  if(!free.length){ const z=m.zones.findIndex((x,k)=>!x.own&&mxHas(b,PK_ZRANK[k])); if(z>0){ const r=pkBuyZone(b,z,true); if(r.ok) return; } }
+  if(!free.length){ const z=m.zones.findIndex((x,k)=>!x.own&&mxHas(b,PK_ZRANK[k])); if(z>0){ pkBuyZone(b,z,true); return; } }   /* V1.8.6 : il épargne pour le terrain au lieu de remplacer */
   /* V1.8.2 : le directeur évalue chaque attraction possible sur chaque case libre (et le remplacement
      des moins utiles quand le parc est plein) avec le calcul du jeu, puis retient l'achat qui se
      rapporte le plus par jour (remboursé en moins de 30 mois). Un directeur moins bon se trompe parfois de case. */
@@ -15723,11 +15733,12 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.8.5';
+const IB_VER='V1.8.6';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Joueurs intouchables','Dans la fiche d’un joueur, « Intouchable » empêche le directeur sportif de le vendre ou de le mettre sur la liste des transferts, même en délégation totale.'],
-  ['Hôtel : distinction Palace','En délégation totale, le directeur d’un hôtel 5 étoiles vise la distinction Palace : il arrête la surréservation et ne dépasse plus le tarif normal tant que la note n’atteint pas 4,5, puis la demande ; il protège ensuite la note pour la garder.']
+  ['Délégation totale vérifiée','Les directeurs ne rachètent plus sans fin des achats à l’unité (camions de l’entrepôt, pièces, cave…) : seul leur pilote les achète, selon les besoins. Ils n’agrandissent plus une société qui perd de l’argent, ni avant que le précédent agrandissement ait fait monter le bénéfice.'],
+  ['Directeur remplacé','Quand le directeur d’une société déléguée démissionne ou se fait débaucher, le meilleur candidat abordable est recruté aussitôt : la délégation ne s’arrête plus en silence.'],
+  ['Parc : place aux terrains','Le directeur du parc économise pour le terrain suivant quand le parc est plein, au lieu de remplacer des attractions, puis l’agrandit.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
