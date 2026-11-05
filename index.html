@@ -7110,7 +7110,9 @@ function fcHomeGate(h,a){ const O=fcOwn(); if(!O||O.id!==h) return; const n=fcAt
       const parts=[], add=(l,v)=>{ v=Math.round(v); if(v>0){ parts.push([l,v]); fcPay('prize','Club : '+l.toLowerCase(),v); } };
       add('Prime de classement ('+(pos+1)+(pos?'e':'er')+')', tv*.55*Math.pow(Math.max(0,1-pos/n),1.5));
       if(pos===0) add('Prime du titre', tv*.25);
-      if(L.lvl===1&&pos>0&&pos<4) add('Prime de qualification européenne', tv*.1);
+      /* V1.7.8 : places européennes réelles (Coupe d’Europe des champions puis Coupe d’Europe : Espagne 4 + 2, France 3 + 2, Croatie 1 + 2) */
+      const euN={es:6, fr:5, hr:3}[nat]||0;
+      if(L.lvl===1&&pos>0&&pos<euN) add('Prime de qualification européenne', tv*.1);
       if(S.foot.cup[nat] && S.foot.cup[nat].champ===O.id) add('Victoire en coupe nationale', tv*.25);
       /* montée, descente (indemnité parachute sur deux saisons) */
       const mv=(N0.moves||[]).find(x=>x[0]===O.id), L2= mv? FOOT_LEAGUES.find(x=>x.id===mv[2]) : null, up= mv&&L2.lvl<L.lvl, down= mv&&L2.lvl>L.lvl;
@@ -7352,7 +7354,7 @@ function fcFreeYouth(id){ const O=fcOwn(); if(!O) return err('Aucun club.'); con
    Football : détection des jeunes (V1.2.1)
    O.ysc : recruteurs de jeunes (3 au plus) {id, n, exp, ex, w, m}
      exp (expérience, 1 à 5) : nombre de jeunes proposés ; ex (expertise, 1 à 5) : qualité et potentiel.
-   m (mission) : {c, len, d0, end, nx} : pays, durée (30, 90 ou 180 jours), rapport tous les 14 jours.
+   m (mission) : {c, len, d0, end, nx} : pays, durée (30, 90 ou 180 jours), rapport tous les mois (V1.7.8 ; iv = 30, anciennes missions : 14).
    O.yprop : jeunes proposés {…joueur, fee, until, sc} ; O.yscC : candidats, renouvelés tous les 30 jours.
    Valeurs par défaut : tout est créé à la première lecture (fcYS).
    ============================================================ */
@@ -7413,8 +7415,8 @@ function ysSend(id,c,len){
   if(s.m) return err(s.n+' est déjà en mission.'); if(!YS_C[c]) return err('Pays inconnu.'); if(!YS_LEN.includes(len)) return err('Durée inconnue.');
   const tr=ysTravel(O,c); if(S.cash<tr) return err('Il faut '+eur(tr,0)+' pour le voyage.');
   fcPay('staff','Club : voyage de '+s.n+' ('+YS_C[c].n+')',-tr);
-  s.m={c, len, d0:S.day, end:S.day+len, nx:S.day+14};
-  return ok(s.n+' part '+len/30+' mois en mission : '+YS_C[c].n+'. Premier rapport dans 2 semaines.');
+  s.m={c, len, d0:S.day, end:S.day+len, nx:S.day+30, iv:30};
+  return ok(s.n+' part '+len/30+' mois en mission : '+YS_C[c].n+'. Un rapport par mois, le premier dans 30 jours.');
 }
 function ysRecall(id){ const O=fcOwn(); const s=O&&O.ysc.find(x=>x.id===id); if(!s||!s.m) return err('Pas de mission.'); s.m=null; return ok(s.n+' rentre au club.'); }
 /* un jeune repéré : l'expertise relève le potentiel, mais des profils modestes restent proposés */
@@ -7429,7 +7431,7 @@ function ysYouth(O,s,c){
   return p;
 }
 function ysReport(O,s){
-  const m=s.m, per=[[1,2],[2,3],[3,4],[4,5],[5,7]][s.exp-1], reps=Math.max(1,Math.round(m.len/14));
+  const m=s.m, per=[[1,2],[2,3],[3,4],[4,5],[5,7]][s.exp-1], reps=ysReps(m);
   /* nombre de jeunes par mois de mission, réparti entre les rapports */
   const tot=(per[0]+frnd()*(per[1]-per[0]+.99))*m.len/30, n=Math.floor(tot/reps+frnd());
   const L=[]; for(let i=0;i<n;i++) L.push(ysYouth(O,s,m.c));
@@ -7440,15 +7442,16 @@ function ysReport(O,s){
   log(n?'good':'info','Rapport de votre recruteur de jeunes '+s.n+' ('+YS_C[m.c].n+') : '+(n? n+' jeune'+(n>1?'s':'')+' proposé'+(n>1?'s':'')+', le meilleur : '+fpLabel(Math.round((fpRange(best,false)[0]+fpRange(best,false)[1])/2)).toLowerCase()+'. À voir dans Club, onglet Staff.' : 'aucun jeune à la hauteur cette fois.'),'club');
 }
 /* V1.4.5 : nombre de rapports prévus et rendus ; le dernier tombe au plus tard le jour du retour */
-function ysReps(m){ return Math.max(1,Math.round(m.len/14)); }
-function ysDone(m){ if(m.rc===undefined) m.rc=Math.max(0,Math.round((m.nx-m.d0)/14)-1); return m.rc; }
+const ysIv = m => m.iv||14;
+function ysReps(m){ return Math.max(1,Math.round(m.len/ysIv(m))); }
+function ysDone(m){ if(m.rc===undefined) m.rc=Math.max(0,Math.round((m.nx-m.d0)/ysIv(m))-1); return m.rc; }
 function ysNext(m){ const left=ysReps(m)-ysDone(m); return left<=0? null : Math.min(m.nx,m.end); }
 function ysDaily(day){
   const O=fcOwn(); if(!O||!O.ysc) return; fcYS(O);
   O.ysc.forEach(s=>{ const m=s.m; if(!m) return;
     if((day-m.d0)%30===29) fcPay('staff','Club : frais de mission ('+s.n+')',-ysMonthly(s));
     ysDone(m);
-    if(day>=m.nx && m.nx<m.end && m.rc<ysReps(m)){ ysReport(O,s); m.rc++; m.nx+=14; }
+    if(day>=m.nx && m.nx<m.end && m.rc<ysReps(m)){ ysReport(O,s); m.rc++; m.nx+=ysIv(m); }
     if(day>=m.end && m.rc<ysReps(m)){ ysReport(O,s); m.rc++; }
     if(day>=m.end){ fcNews(s.n+' rentre de mission ('+YS_C[m.c].n+').',''); s.m=null; } });
   if(day%7===0) O.yprop=O.yprop.filter(p=>p.until>day);
@@ -15673,12 +15676,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.7.7';
+const IB_VER='V1.7.8';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Fin de saison du club','Une fenêtre animée présente le classement final, vos primes et les records du club (meilleur classement, points, buts, série sans défaite), avec un badge à chaque nouveau record.'],
-  ['Montées et descentes','Une montée rapporte une prime, un bonus des sponsors et un stade plus rempli la saison suivante ; une descente déclenche une indemnité parachute sur deux saisons.'],
-  ['Primes plus réalistes','L’écart de prime est plus fort en haut du classement, avec une prime du titre et une prime de qualification européenne en première division.']
+  ['Recruteurs de jeunes','Vos recruteurs envoient désormais un rapport par mois de mission (le nombre de jeunes proposés reste le même).'],
+  ['Prime européenne','La prime de qualification européenne suit les vraies places : du 2e au 6e en Espagne, du 2e au 5e en France, 2e et 3e en Croatie.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
