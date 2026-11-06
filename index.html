@@ -11832,7 +11832,9 @@ const BAL_F={office:8, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2};
 const BAL_ROI=4.5;          /* 450 % par an, soit un remboursement en 80 jours environ */
 function balInv(b){ const d=bizDef(b); return Math.max(1,(b.inv$||d.cost)+Math.max(0,bizInvested(b)-d.cost)); }
 const BAL_SKIP=['promo','build'];   /* ventes par programmes : recettes trop irrégulières pour la saturation */
-function balStep(){ S.biz.forEach(b=>{ if(b.status!=='active'||!metOf(b)||BAL_SKIP.includes(b.def)) return; const L=b.last; if(!L) return;
+/* V1.9.5 : les petits commerces du début (paliers 0 et 1) ne saturent pas tant qu'ils restent sous le niveau 4 */
+const balFree = b => (bizDef(b).tier||0)<=1 && b.lvl<4;
+function balStep(){ S.biz.forEach(b=>{ if(b.status!=='active'||!metOf(b)||BAL_SKIP.includes(b.def)) return; if(balFree(b)){ b.satF=1; return; } const L=b.last; if(!L) return;
   b.revA= b.revA===undefined? L.rev : b.revA+(L.rev-b.revA)/60;
   const h=(b.hist||[]).slice(-60); if(h.length<30) return;
   /* recettes sans saturation R, charges C : bénéfice(f) = f·R − C ; on vise f tel que le rendement = BAL_ROI */
@@ -15903,12 +15905,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.9.4';
+const IB_VER='V1.9.5';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Coupes nationales à portée de main','Dans Football, la coupe nationale de chaque pays a son onglet à côté des championnats : tour en cours, calendrier complet, tous les résultats du dernier tour et palmarès.'],
-  ['Places européennes en couleur','Dans les classements de première division (et la fenêtre de fin de saison), les places qualificatives pour chaque coupe européenne ont leur couleur, avec une légende.'],
-  ['Coupe des confédérations d’Europe','Troisième coupe européenne : phase de ligue en 6 journées, barrages, huitièmes, quarts, demies et finale. Qualifiés : le club suivant au classement (7e en Espagne, 6e en France, 4e en Croatie), les vainqueurs de coupe nationale non qualifiés ailleurs et 35 nouveaux clubs européens. Primes : environ la moitié de la Coupe d’Europe.']
+  ['Petits commerces comme avant','Les sociétés du début (réparation, e-commerce, start-up, recrutement, restaurant, ferme, construction, fast-food, textile) ne subissent plus la saturation du marché tant qu’elles restent sous le niveau 4 : elles retrouvent leurs recettes d’avant.'],
+  ['Coupes nationales à portée de main','La coupe nationale a son onglet à côté des championnats.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
