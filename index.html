@@ -1166,6 +1166,9 @@ details.hmore .hm-b{display:flex;flex-direction:column;gap:18px;margin-top:18px}
 @keyframes troConf{0%{opacity:0;transform:translateY(0) rotate(0)}10%{opacity:1}100%{opacity:0;transform:translateY(420px) rotate(540deg)}}
 @media (prefers-reduced-motion:reduce){.tro-svg,.tro-t,.tro .sub,.tro-n,.tro-sh{animation:none}.tro-conf{display:none}}
 
+/* V1.9.2 : compétition du match */
+.fm-comp{text-align:center;font-size:12px;font-weight:600;letter-spacing:.02em;opacity:.75;margin:0 0 6px}
+
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
 input,textarea{-webkit-user-select:text;user-select:text}
@@ -14990,9 +14993,24 @@ function fmTabHtml(L){
   if(!imp.length) return '<div class="sub">Coup d’envoi.</div>';
   return imp.map(e=>'<div class="fm-ev k-'+e.k+'"><span class="num">'+(e.k==='ft'||e.k==='ht'?'':footEvMin(e))+'</span><p>'+esc(footComment(M,e))+(e.k==='ft'&&L.pen? ' Qualification aux tirs au but pour '+esc(footName(L.pen))+'.' : '')+'</p></div>').join('');
 }
+/* V1.9.2 : compétition du match (championnat et journée, coupe et tour, coupe internationale et phase) */
+/* le jour enregistré peut être le lendemain du jour du calendrier (le match est traité pendant le passage au jour suivant) */
+function fmComp(h,a,day){ return fmComp1(h,a,day)||fmComp1(h,a,day-1)||'Match amical'; }
+function fmComp1(h,a,day){ try{
+  const nat=footClub(h).nat, lid=footLgOf(h), lg=lid&&S.foot.lg[lid], Lg=FOOT_LEAGUES.find(x=>x.id===lid);
+  if(lg&&footLgOf(a)===lid){ const i=(lg.dates||[]).indexOf(day); if(i>=0) return Lg.n+' · journée '+(i+1)+' sur '+lg.dates.length;
+    if(lg.po&&(lg.po.dates||[]).includes(day)) return Lg.n+' · barrages'; }
+  const C=S.foot.cup&&S.foot.cup[nat]; if(C&&(C.dates||[]).includes(day)){ const i=C.dates.indexOf(day), left=C.P/Math.pow(2,i);
+    return 'Coupe nationale · '+(left<=2?'finale':left<=4?'demi-finales':left<=8?'quarts de finale':left<=16?'huitièmes de finale':(i+1)+'e tour'); }
+  const IC=(S.foot&&S.foot.ic)||{};
+  for(const id of Object.keys(IC)){ const E=IC[id]; if(!E||!E.P||!(E.teams||[]).includes(h)) continue;
+    const j=((E.P.lp&&E.P.lp.dates)||[]).indexOf(day); if(j>=0) return FI[id].n+' · '+(E.P.lp.k==='swiss'?'phase de ligue':'phase de groupes')+', journée '+(j+1);
+    for(const st of (E.P.ko||[])){ const k=(st.d||[]).indexOf(day); if(k>=0) return FI[id].n+' · '+st.n.toLowerCase()+(st.d.length>1?(k?', retour':', aller'):''); } }
+  }catch(e){} return null; }
 function fmBody(L){
   const M=L.M, s=fmScoreNow(L);
-  return '<div class="fm">'+
+  if(L.comp===undefined){ const c0=fmComp1(L.h,L.a,L.day), c1=c0? null : fmComp1(L.h,L.a,L.day-1); L.comp=c0||c1||'Match amical'; L.cday= c0||!c1? L.day : L.day-1; }
+  return '<div class="fm"><div class="fm-comp">'+esc(L.comp)+' · '+esc(dateL(L.cday))+'</div>'+
     '<div class="fm-sb"><div class="t">'+fcrest(L.h,34)+'<b>'+esc(footName(L.h))+'</b></div><div class="c"><b id="fm-score" class="num">'+s[0]+' - '+s[1]+'</b><small id="fm-clock">'+(L.done?'Terminé':footClock(M,L.t))+'</small></div><div class="t">'+fcrest(L.a,34)+'<b>'+esc(footName(L.a))+'</b></div></div>'+
     '<canvas id="fm-cv" aria-label="Terrain : le match en direct" role="img"></canvas>'+
     '<div class="fm-ctl"><div class="seg">'+FM_SPEEDS.map(v=>'<button class="'+(L.speed===v&&L.play?'on':'')+'" data-a="fmspeed" data-v="'+v+'">×'+v+'</button>').join('')+'<button class="'+(!L.play&&!L.done?'on':'')+'" data-a="fmpause">Pause</button></div>'+
@@ -15823,11 +15841,11 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.9.1';
+const IB_VER='V1.9.2';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Remises de trophées','Quand votre club gagne le championnat, la coupe nationale ou une coupe internationale, ou qu’un de vos joueurs remporte le Ballon d’or, le trophée du meilleur gardien ou le Golden Boy, une cérémonie animée s’affiche.'],
-  ['Palmarès','L’onglet du club garde le palmarès de tous les trophées gagnés, saison par saison.']
+  ['Compétition du match','La fenêtre de match indique la compétition et l’étape : « Première Ligue · journée 23 sur 34 », « Coupe nationale · quarts de finale », « Coupe d’Europe des champions · huitièmes de finale, retour »…'],
+  ['Remises de trophées','Cérémonie animée quand votre club ou l’un de vos joueurs remporte un trophée, et palmarès dans l’onglet du club.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
