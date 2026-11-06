@@ -5617,7 +5617,7 @@ function footCupPlan(nat){
   return new Set(dates);
 }
 function footLgOf(id){ const F=S.foot; for(const k in F.lg){ if(F.lg[k].grp.some(g=>g.includes(id))) return k; } return (footClub(id)||{}).lg; }
-function footCupRoundName(C,i){ const left=C.P/Math.pow(2,i); return left===2?'Finale':left===4?'Demi-finales':left===8?'Quarts de finale':left===16?'Huitièmes de finale':(i+1)+'e tour'; }
+function footCupRoundName(C,i){ const left=C.P/Math.pow(2,i); return left===2?'Finale':left===4?'Demi-finales':left===8?'Quarts de finale':left===16?'Huitièmes de finale':(i===0?'1er tour':(i+1)+'e tour'); }
 function footCupDay(nat,day){
   const C=S.foot.cup[nat]; if(!C||C.champ||C.dates[C.ri]!==day) return;
   let pool=C.alive; if(C.ri===1 && C.byes.length){ pool=fshuffle(pool.concat(C.byes)); C.byes=[]; }
@@ -14801,8 +14801,10 @@ function vFoot(){
   footInit(); const {ls,L}=footUi(), lg=S.foot.lg[L.id], N=S.foot.nat[ui.fn];
   let h=head('Football');
   h+='<div class="ft-nav"><div class="seg">'+Object.keys(FOOT_NAT).map(k=>'<button class="'+(k===ui.fn?'on':'')+'" data-a="fnat" data-i="'+k+'">'+FOOT_NAT[k].n+'</button>').join('')+'</div>'+
-     '<div class="seg">'+ls.map(x=>'<button class="'+(x.id===L.id?'on':'')+'" data-a="flg" data-i="'+x.id+'">'+esc(x.n)+'</button>').join('')+'</div>'+
-     (lg.grp.length>1? '<div class="seg">'+lg.grp.map((g,i)=>'<button class="'+(i===ui.fg?'on':'')+'" data-a="fgrp" data-i="'+i+'">'+(ui.fn==='us'&&L.lvl<3? (i?'Conférence Ouest':'Conférence Est') : 'Groupe '+(i+1))+'</button>').join('')+'</div>' : '')+'</div>';
+     '<div class="seg">'+ls.map(x=>'<button class="'+(x.id===L.id&&!ui.fcup?'on':'')+'" data-a="flg" data-i="'+x.id+'">'+esc(x.n)+'</button>').join('')+(S.foot.cup[ui.fn]?'<button class="'+(ui.fcup?'on':'')+'" data-a="fcupv">'+esc(FOOT_CUPN[ui.fn])+'</button>':'')+'</div>'+
+     (!ui.fcup&&lg.grp.length>1? '<div class="seg">'+lg.grp.map((g,i)=>'<button class="'+(i===ui.fg?'on':'')+'" data-a="fgrp" data-i="'+i+'">'+(ui.fn==='us'&&L.lvl<3? (i?'Conférence Ouest':'Conférence Est') : 'Groupe '+(i+1))+'</button>').join('')+'</div>' : '')+'</div>';
+  /* V1.9.4 : la coupe nationale a son onglet à côté des championnats */
+  if(ui.fcup&&S.foot.cup[ui.fn]) return h+footCupView(ui.fn,N);
   h+='<div class="sub ft-st">'+footStatus(ui.fn,L.id)+'</div>';
   h+=card(esc(L.n)+(lg.grp.length>1? ' · '+(ui.fn==='us'&&L.lvl<3? (ui.fg?'Ouest':'Est') : 'groupe '+(ui.fg+1)) : ''), footTableHtml(L.id,ui.fg));
   /* séries éliminatoires */
@@ -14822,27 +14824,28 @@ function vFoot(){
     if(fx&&fx.length) b+='<div class="tag">Journée '+(lg.rd+1)+' · '+footDateLabel(lg.dates[lg.rd],{wd:1,noY:1})+'</div>'+fx.map(([x,y])=>ffix(x,y)).join('');
     if(b) h+=card('Matchs',b);
   }
-  /* coupe */
-  const C=S.foot.cup[ui.fn];
-  if(C){
-    let b='';
-    if(C.champ) b+='<div class="ft-champ">'+fcrest(C.champ,40)+'<div><small>Vainqueur '+footSeasonLabel(ui.fn,N.y)+'</small><b>'+esc(footName(C.champ))+'</b></div></div>';
-    else if(C.dates[C.ri]) b+='<div class="sub">'+footCupRoundName(C,C.ri)+' le '+footDateLabel(C.dates[C.ri],{wd:1})+'. '+(C.alive.length+C.byes.length)+' clubs encore en course.</div>';
-    if(C.last){ const mine=C.last.res.filter(r=>r.h===S.foot.fav||r.a===S.foot.fav), show=(mine.length?mine:[]).concat(C.last.res.filter(r=>!mine.includes(r))).slice(0, C.last.res.length<=8? 8 : 6);
-      b+='<div class="tag">'+C.last.name+' · '+footDateLabel(C.last.day,{wd:1,noY:1})+'</div>'+show.map(r=>fres(r,C.last.day)).join('')+(C.last.res.length>show.length? '<div class="sub">et '+(C.last.res.length-show.length)+' autres matchs.</div>' : ''); }
-    h+=card(FOOT_CUPN[ui.fn],b||'<div class="sub">La coupe commence avec la saison.</div>');
-  }
   /* palmarès */
-  const H=(S.foot.hist[L.id]||[]).slice(0,5), CH=(S.foot.cupHist[ui.fn]||[]).slice(0,5);
-  if(H.length||CH.length){
+  const H=(S.foot.hist[L.id]||[]).slice(0,5);
+  if(H.length){
     h+=card('Palmarès',(H.length? '<div class="tag">'+esc(L.n)+'</div>'+H.map(x=>'<div class="ft-pal"><span>'+footSeasonLabel(ui.fn,x.y)+'</span>'+fclubBtn(x.champ)+'</div>').join('') : '')+
-      (CH.length? '<div class="tag">'+FOOT_CUPN[ui.fn]+'</div>'+CH.map(x=>'<div class="ft-pal"><span>'+footSeasonLabel(ui.fn,x.y)+'</span>'+fclubBtn(x.champ)+'</div>').join('') : ''));
+      '');
   }
   return h;
 }
+function footCupView(nat,N){ const C=S.foot.cup[nat]; let b='', h='';
+  if(C.champ) b+='<div class="ft-champ">'+fcrest(C.champ,40)+'<div><small>Vainqueur '+footSeasonLabel(nat,N.y)+'</small><b>'+esc(footName(C.champ))+'</b></div></div>';
+  else if(C.dates[C.ri]) b+='<div class="sub">'+footCupRoundName(C,C.ri)+' le '+footDateLabel(C.dates[C.ri],{wd:1})+'. '+(C.alive.length+C.byes.length)+' clubs encore en course.</div>';
+  b+='<div class="tag">Calendrier</div>'+C.dates.map((d,i)=>'<div class="row sp"><span'+(i===C.ri&&!C.champ?' style="font-weight:700"':'')+'>'+footCupRoundName(C,i)+'</span><span class="sub">'+footDateLabel(d,{wd:1,noY:1})+'</span></div>').join('');
+  h+=card(esc(FOOT_CUPN[nat])+' '+footSeasonLabel(nat,N.y),b);
+  if(C.last){ const mine=C.last.res.filter(r=>r.h===S.foot.fav||r.a===S.foot.fav), all=mine.concat(C.last.res.filter(r=>!mine.includes(r)));
+    h+=card(esc(C.last.name)+' · '+footDateLabel(C.last.day,{wd:1,noY:1}), all.map(r=>fres(r,C.last.day)).join('')); }
+  const CH=(S.foot.cupHist[nat]||[]).slice(0,10);
+  if(CH.length) h+=card('Palmarès',CH.map(x=>'<div class="ft-pal"><span>'+footSeasonLabel(nat,x.y)+'</span>'+fclubBtn(x.champ)+'</div>').join(''));
+  return h; }
+ACT.fcupv=()=>{ ui.fcup=1; render(); };
 VIEWS.foot=vFoot;
-ACT.fnat=el=>{ ui.fn=el.dataset.i; ui.fl=null; ui.fg=0; render(); };
-ACT.flg=el=>{ ui.fl=el.dataset.i; ui.fg=0; render(); };
+ACT.fnat=el=>{ ui.fn=el.dataset.i; ui.fl=null; ui.fg=0; ui.fcup=0; render(); };
+ACT.flg=el=>{ ui.fl=el.dataset.i; ui.fg=0; ui.fcup=0; render(); };
 ACT.fgrp=el=>{ ui.fg=+el.dataset.i; render(); };
 ACT.fclub=el=>{ footInit(); ui.modal={type:'fclub',id:+el.dataset.i,prev:ui.modal&&ui.modal.type!=='fclub'?ui.modal:null}; render(); };
 ACT.ffav=el=>{ const id=+el.dataset.i; S.foot.fav= S.foot.fav===id? null : id; render(); toast(S.foot.fav? 'Vous suivez '+footName(id)+' : ses résultats arrivent dans le journal.' : 'Vous ne suivez plus ce club.'); };
@@ -14879,6 +14882,8 @@ const FT_EU={es1:[4,2,1], fr1:[3,2,1], hr1:[1,2,1]};
 { const _fl=footLegend; footLegend=function(lid){ const h=_fl(lid), E=FT_EU[lid]; if(!E) return h;
   const eu='<span class="z-c1"><i></i>Coupe d’Europe des champions</span><span class="z-c2"><i></i>Coupe d’Europe</span><span class="z-c3"><i></i>Coupe des confédérations</span>';
   return h? h.replace('<div class="ft-leg">','<div class="ft-leg">'+eu) : '<div class="ft-leg">'+eu+'</div>'; }; }
+/* l'onglet choisi (championnat ou coupe) reste visible dans la barre qui défile */
+{ const _rF2=render; render=function(){ _rF2.apply(this,arguments); try{ if(ui.tab==='foot') document.querySelectorAll('.ft-nav .seg').forEach(sg=>{ const on=sg.querySelector('button.on'); if(on&&(on.offsetLeft<sg.scrollLeft||on.offsetLeft+on.offsetWidth>sg.scrollLeft+sg.clientWidth)) sg.scrollLeft=on.offsetLeft-12; }); }catch(e){} }; }
 
 /* ============================================================
    FOOTBALL : match suivi sur un terrain animé (vue de dessus)
@@ -15058,7 +15063,7 @@ function fmComp1(h,a,day){ try{
   if(lg&&footLgOf(a)===lid){ const i=(lg.dates||[]).indexOf(day); if(i>=0) return Lg.n+' · journée '+(i+1)+' sur '+lg.dates.length;
     if(lg.po&&(lg.po.dates||[]).includes(day)) return Lg.n+' · barrages'; }
   const C=S.foot.cup&&S.foot.cup[nat]; if(C&&(C.dates||[]).includes(day)){ const i=C.dates.indexOf(day), left=C.P/Math.pow(2,i);
-    return 'Coupe nationale · '+(left<=2?'finale':left<=4?'demi-finales':left<=8?'quarts de finale':left<=16?'huitièmes de finale':(i+1)+'e tour'); }
+    return 'Coupe nationale · '+(left<=2?'finale':left<=4?'demi-finales':left<=8?'quarts de finale':left<=16?'huitièmes de finale':(i===0?'1er tour':(i+1)+'e tour')); }
   const IC=(S.foot&&S.foot.ic)||{};
   for(const id of Object.keys(IC)){ const E=IC[id]; if(!E||!E.P||!(E.teams||[]).includes(h)) continue;
     const j=((E.P.lp&&E.P.lp.dates)||[]).indexOf(day); if(j>=0) return FI[id].n+' · '+(E.P.lp.k==='swiss'?'phase de ligue':'phase de groupes')+', journée '+(j+1);
@@ -15898,9 +15903,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.9.3';
+const IB_VER='V1.9.4';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
+  ['Coupes nationales à portée de main','Dans Football, la coupe nationale de chaque pays a son onglet à côté des championnats : tour en cours, calendrier complet, tous les résultats du dernier tour et palmarès.'],
   ['Places européennes en couleur','Dans les classements de première division (et la fenêtre de fin de saison), les places qualificatives pour chaque coupe européenne ont leur couleur, avec une légende.'],
   ['Coupe des confédérations d’Europe','Troisième coupe européenne : phase de ligue en 6 journées, barrages, huitièmes, quarts, demies et finale. Qualifiés : le club suivant au classement (7e en Espagne, 6e en France, 4e en Croatie), les vainqueurs de coupe nationale non qualifiés ailleurs et 35 nouveaux clubs européens. Primes : environ la moitié de la Coupe d’Europe.']
 ];
