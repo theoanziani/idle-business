@@ -5339,7 +5339,42 @@ Pyramid FC|Le Caire|Égypte|003F87|FFFFFF|68
 Mamelodi Sundown|Pretoria|Afrique du Sud|FDD100|003F87|68
 Widad Casablanca|Casablanca|Maroc|E30613|FFFFFF|66
 Espérence de Tunis|Tunis|Tunisie|E30613|FDD100|66
-Auckland Citi|Auckland|Nouvelle-Zélande|87CEEB|FFFFFF|50`;
+Auckland Citi|Auckland|Nouvelle-Zélande|87CEEB|FFFFFF|50
+Sporting Lisière|Braga|Portugal|C8102E|FFFFFF|70
+Atlético Ribeira|Porto|Portugal|0B3D91|FFFFFF|66
+Vitória Serra|Guimarães|Portugal|111111|FFFFFF|65
+Union Dijle|Malines|Belgique|E30613|F4D03F|67
+Royal Escaut|Anvers|Belgique|D71920|FFFFFF|68
+Olympique Meuse|Liège|Belgique|C8102E|FFFFFF|66
+Polder Utrecht|Utrecht|Pays-Bas|E30613|FFFFFF|68
+Twente Vrij|Enschede|Pays-Bas|C8102E|FFFFFF|69
+Amstel Zuid|Amsterdam|Pays-Bas|1F4E9C|FFFFFF|64
+Donau Wien|Vienne|Autriche|5B2C83|FFFFFF|67
+Alpen Salz|Salzbourg|Autriche|E30613|FFFFFF|70
+Steiermark SC|Graz|Autriche|111111|FFFFFF|66
+Limmat Zurich|Zurich|Suisse|1F4E9C|FFFFFF|66
+Aar Berne|Berne|Suisse|F4D03F|111111|67
+Øresund BK|Copenhague|Danemark|0B3D91|FFFFFF|67
+Jylland FC|Herning|Danemark|111111|E30613|66
+Fjord Bergen|Bergen|Norvège|E30613|FFFFFF|64
+Nordlys IL|Bodø|Norvège|F4D03F|111111|68
+Mälaren IF|Stockholm|Suède|1F7A3A|FFFFFF|64
+Göta FF|Göteborg|Suède|0B3D91|FFFFFF|63
+Vistule Varsovie|Varsovie|Pologne|1F7A3A|FFFFFF|66
+Silésie KS|Katowice|Pologne|F4D03F|0B3D91|63
+Vltava Prague|Prague|Tchéquie|C8102E|FFFFFF|67
+Morava Brno|Brno|Tchéquie|E30613|FFFFFF|63
+Sava Belgrade|Belgrade|Serbie|111111|FFFFFF|66
+Dnipro Steppe|Dnipro|Ukraine|1F4E9C|FFFFFF|65
+Égée FC|Thessalonique|Grèce|111111|FFFFFF|66
+Bosphore SK|Istanbul|Turquie|F4D03F|0B3D91|68
+Anatolie Spor|Ankara|Turquie|C8102E|F4D03F|64
+Clyde Rovers|Glasgow|Écosse|0B3D91|FFFFFF|64
+Granite City|Aberdeen|Écosse|E30613|FFFFFF|63
+Bavière Nord|Nuremberg|Allemagne|8B1A1A|FFFFFF|67
+Rhénanie 04|Mayence|Allemagne|E30613|FFFFFF|68
+Lombardia Calcio|Bergame|Italie|0B3D91|111111|70
+Adriatico FC|Bologne|Italie|8B1A1A|0B3D91|69`;
 /* pays étrangers -> confédération */
 const FOOT_FCONF = {'Angleterre':'eu','Italie':'eu','Allemagne':'eu','Portugal':'eu','Pays-Bas':'eu','Belgique':'eu','Turquie':'eu','Écosse':'eu','Autriche':'eu','Suisse':'eu','Tchéquie':'eu','Grèce':'eu','Serbie':'eu','Ukraine':'eu','Danemark':'eu','Norvège':'eu','Pologne':'eu','Suède':'eu','Hongrie':'eu','Azerbaïdjan':'eu','Roumanie':'eu','Israël':'eu','Slovaquie':'eu',
   'Argentine':'sa','Uruguay':'sa','Colombie':'sa','Chili':'sa','Paraguay':'sa','Équateur':'sa','Pérou':'sa','Bolivie':'sa','Venezuela':'sa',
@@ -5350,6 +5385,7 @@ const FOOT_FCONF = {'Angleterre':'eu','Italie':'eu','Allemagne':'eu','Portugal':
 const FOOT_COMPS = [
   {id:'eu1',conf:'eu',n:'Coupe d’Europe des champions',size:36},
   {id:'eu2',conf:'eu',n:'Coupe d’Europe',size:36},
+  {id:'eu3',conf:'eu',n:'Coupe des confédérations d’Europe',size:36},
   {id:'sa1',conf:'sa',n:'Coupe des Libertés',size:32},
   {id:'na1',conf:'na',n:'Coupe des champions d’Amérique du Nord',size:16},
   {id:'as1',conf:'as',n:'Coupe d’Asie des clubs',size:24},
@@ -7136,7 +7172,7 @@ function fcHomeGate(h,a){ const O=fcOwn(); if(!O||O.id!==h) return; const n=fcAt
       add('Prime de classement ('+(pos+1)+(pos?'e':'er')+')', tv*.55*Math.pow(Math.max(0,1-pos/n),1.5));
       if(pos===0){ add('Prime du titre', tv*.25); troAdd('lg',L.n,footSeasonLabel(nat,y0)); }
       /* V1.7.8 : places européennes réelles (Coupe d’Europe des champions puis Coupe d’Europe : Espagne 4 + 2, France 3 + 2, Croatie 1 + 2) */
-      const euN={es:6, fr:5, hr:3}[nat]||0;
+      const euN={es:7, fr:6, hr:4}[nat]||0;   /* V1.9.3 : places de la Coupe des confédérations comprises */
       if(L.lvl===1&&pos>0&&pos<euN) add('Prime de qualification européenne', tv*.1);
       if(S.foot.cup[nat] && S.foot.cup[nat].champ===O.id) add('Victoire en coupe nationale', tv*.25);
       /* montée, descente (indemnité parachute sur deux saisons) */
@@ -7584,12 +7620,13 @@ function awStep(day){ const t=footDate(day); if(t.m===10&&t.d===28) awBallon(day
 const FI = {
   eu1:{n:'Coupe d’Europe des champions', short:'Europe des champions', season:'eu', draw:[8,28], wd:1, prize:1},
   eu2:{n:'Coupe d’Europe', short:'Coupe d’Europe', season:'eu', draw:[8,28], wd:3, prize:.25},
+  eu3:{n:'Coupe des confédérations d’Europe', short:'Confédérations', season:'eu', draw:[8,28], wd:3, prize:.12},
   sa1:{n:'Coupe des Libertés', short:'Libertés', season:'cal', draw:[3,1], wd:1, prize:.15},
   na1:{n:'Coupe des champions d’Amérique du Nord', short:'Amérique du Nord', season:'cal', draw:[2,1], wd:1, prize:.06},
   as1:{n:'Coupe d’Asie des clubs', short:'Asie', season:'eu', draw:[8,28], wd:1, prize:.08},
   w1:{n:'Coupe intercontinentale', short:'Intercontinentale', season:'cal', draw:[12,1], wd:2, prize:.5}
 };
-const FI_ORDER=['eu1','eu2','sa1','na1','as1','w1'];
+const FI_ORDER=['eu1','eu2','eu3','sa1','na1','as1','w1'];
 const fiDayOn = (day,wd) => { let d=day; while(wdOf(d)!==wd) d++; return d; };
 const fiFirst = (y,m,d,wd) => fiDayOn(footDay(y,m,d),wd);
 
@@ -7611,6 +7648,10 @@ function fiQualify(id){
   let out=[];
   if(id==='eu1'){ take('es1',0,4); take('fr1',0,3); take('hr1',0,1); fiForeign('eu',36-out.length,used,4).forEach(x=>out.push(x)); }
   else if(id==='eu2'){ const e1=S.foot.ic.eu1&&S.foot.ic.eu1.teams||[]; e1.forEach(x=>used.add(x)); take('es1',0,2); take('fr1',0,2); take('hr1',0,2); const ex=new Set([...used]); fiForeign('eu',36-out.length,ex,3).forEach(x=>out.push(x)); }
+  else if(id==='eu3'){ /* V1.9.3 : club suivant au classement et vainqueurs de coupe non qualifiés ailleurs */
+    [...(S.foot.ic.eu1&&S.foot.ic.eu1.teams||[]),...(S.foot.ic.eu2&&S.foot.ic.eu2.teams||[])].forEach(x=>used.add(x));
+    ['es','fr','hr'].forEach(n=>{ const h=S.foot.cupHist&&S.foot.cupHist[n], w=h&&h[0]&&h[0].champ; if(w&&!used.has(w)){ used.add(w); out.push(w); } });
+    take('es1',0,1); take('fr1',0,1); take('hr1',0,1); fiForeign('eu',36-out.length,new Set([...used]),3).forEach(x=>out.push(x)); }
   else if(id==='sa1'){ take('br1',0,6); fiForeign('sa',32-out.length,used,6).forEach(x=>out.push(x)); }
   else if(id==='na1'){ take('us1',0,4); fiForeign('na',16-out.length,used,9).forEach(x=>out.push(x)); }
   else if(id==='as1'){ take('cn1',0,3); fiForeign('as',24-out.length,used,6).forEach(x=>out.push(x)); }
@@ -7628,6 +7669,9 @@ function fiPlan(id,y){
   const C=FI[id], wd=C.wd, T=(m,d,yy)=>fiFirst(yy===undefined?y:yy,m,d,wd), Sun=(m,d,yy)=>fiDayOn(footDay(yy===undefined?y:yy,m,d),6);
   const spread=(a,b,n)=>{ const out=[]; for(let i=0;i<n;i++){ let d=Math.round(a+(b-a)*i/(n-1)); d=fiDayOn(d,wd); const doy=(d-1)%360; if(doy>=footDoy(12,20)||doy<=footDoy(1,5)) d=fiDayOn(d+16,wd); if(out.length&&d<=out[out.length-1]) d=fiDayOn(out[out.length-1]+7,wd); out.push(d); } return out; };
   if(id==='eu1'||id==='eu2') return {lp:{k:'swiss',n:8,dates:spread(footDay(y,9,16),footDay(y+1,1,28),8)}, ko:[
+    {k:'po',n:'Barrages',d:[T(2,10,y+1),T(2,24,y+1)]},{n:'Huitièmes de finale',d:[T(3,10,y+1),T(3,17,y+1)]},{n:'Quarts de finale',d:[T(4,7,y+1),T(4,14,y+1)]},{n:'Demi-finales',d:[T(4,28,y+1),T(5,5,y+1)]},{n:'Finale',d:[Sun(5,30,y+1)],neutral:1}]};
+  /* V1.9.3 : Coupe des confédérations d’Europe, phase de ligue en 6 journées */
+  if(id==='eu3') return {lp:{k:'swiss',n:6,dates:spread(footDay(y,9,16),footDay(y,12,10),6)}, ko:[
     {k:'po',n:'Barrages',d:[T(2,10,y+1),T(2,24,y+1)]},{n:'Huitièmes de finale',d:[T(3,10,y+1),T(3,17,y+1)]},{n:'Quarts de finale',d:[T(4,7,y+1),T(4,14,y+1)]},{n:'Demi-finales',d:[T(4,28,y+1),T(5,5,y+1)]},{n:'Finale',d:[Sun(5,30,y+1)],neutral:1}]};
   if(id==='as1') return {lp:{k:'swiss',n:8,dates:spread(footDay(y,9,16),footDay(y+1,2,17),8)}, ko:[
     {n:'Huitièmes de finale',d:[T(3,3,y+1),T(3,10,y+1)]},{n:'Quarts de finale',d:[T(4,7,y+1),T(4,14,y+1)]},{n:'Demi-finales',d:[T(4,21,y+1),T(4,28,y+1)]},{n:'Finale',d:[Sun(5,17,y+1)],neutral:1}]};
@@ -7669,7 +7713,7 @@ function fiDraw(id,y){
   const O=(typeof fcOwn==='function')&&fcOwn(); if(O&&teams.includes(O.id)){ fcNews('Qualifié pour la '+FI[id].n+'.','good'); fiPrize(id,'Participation',.0+1); }
   return E;
 }
-const FI_CONF = id => ({eu1:'eu',eu2:'eu',sa1:'sa',na1:'na',as1:'as'})[id];
+const FI_CONF = id => ({eu1:'eu',eu2:'eu',eu3:'eu',sa1:'sa',na1:'na',as1:'as'})[id];
 function fiKoFirst(id,teams){
   if(id==='w1') return {ties:[[teams[0],teams[1]],[teams[2],teams[3]]], bye:[teams[4],teams[5]]};
   const s=teams.slice().sort((a,b)=>footR(b)-footR(a)), ties=[]; for(let i=0;i<s.length/2;i++) ties.push([s[i],s[s.length-1-i]]);
@@ -15533,7 +15577,7 @@ function fiView(){
   }
   return h+fiPal(id);
 }
-function fiQualText(id){ return {eu1:'Qualifiés : les 4 premiers de la Primera Liga, les 3 premiers de la Première Ligue, le champion de Croatie et 28 grands clubs européens.', eu2:'Qualifiés : les clubs suivants des championnats européens.', sa1:'Qualifiés : les 6 premiers de la Série A brésilienne et 26 clubs sud-américains.', na1:'Qualifiés : les 4 meilleurs clubs de la Ligue majeure et 12 clubs d’Amérique du Nord et centrale.', as1:'Qualifiés : les 3 premiers de la Super Ligue chinoise et 21 clubs d’Asie.', w1:'Les champions de chaque continent se retrouvent en décembre.'}[id]; }
+function fiQualText(id){ return {eu3:'Qualifiés : le club suivant au classement (7e en Espagne, 6e en France, 4e en Croatie), les vainqueurs de coupe nationale non qualifiés ailleurs et des clubs européens.', eu1:'Qualifiés : les 4 premiers de la Primera Liga, les 3 premiers de la Première Ligue, le champion de Croatie et 28 grands clubs européens.', eu2:'Qualifiés : les clubs suivants des championnats européens.', sa1:'Qualifiés : les 6 premiers de la Série A brésilienne et 26 clubs sud-américains.', na1:'Qualifiés : les 4 meilleurs clubs de la Ligue majeure et 12 clubs d’Amérique du Nord et centrale.', as1:'Qualifiés : les 3 premiers de la Super Ligue chinoise et 21 clubs d’Asie.', w1:'Les champions de chaque continent se retrouvent en décembre.'}[id]; }
 function fiStatus(id,E){
   if(E.phase==='done') return 'terminée';
   if(E.phase==='lp') return (E.P.lp.k==='swiss'?'phase de ligue':'phase de groupes')+', journée '+E.ri+' sur '+E.P.lp.n+(E.P.lp.dates[E.ri]?' · prochaine le '+footDateLabel(E.P.lp.dates[E.ri],{wd:1,noY:1}):'');
@@ -15841,11 +15885,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.9.2';
+const IB_VER='V1.9.3';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
-  ['Compétition du match','La fenêtre de match indique la compétition et l’étape : « Première Ligue · journée 23 sur 34 », « Coupe nationale · quarts de finale », « Coupe d’Europe des champions · huitièmes de finale, retour »…'],
-  ['Remises de trophées','Cérémonie animée quand votre club ou l’un de vos joueurs remporte un trophée, et palmarès dans l’onglet du club.']
+  ['Coupe des confédérations d’Europe','Troisième coupe européenne : phase de ligue en 6 journées, barrages, huitièmes, quarts, demies et finale. Qualifiés : le club suivant au classement (7e en Espagne, 6e en France, 4e en Croatie), les vainqueurs de coupe nationale non qualifiés ailleurs et 35 nouveaux clubs européens. Primes : environ la moitié de la Coupe d’Europe.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
