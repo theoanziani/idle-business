@@ -11834,16 +11834,18 @@ function balInv(b){ const d=bizDef(b); return Math.max(1,(b.inv$||d.cost)+Math.m
 const BAL_SKIP=['promo','build'];   /* ventes par programmes : recettes trop irrégulières pour la saturation */
 /* V1.9.5 : les petits commerces du début (paliers 0 et 1) ne saturent pas tant qu'ils restent sous le niveau 4 */
 const balFree = b => (bizDef(b).tier||0)<=1 && b.lvl<4;
-function balStep(){ S.biz.forEach(b=>{ if(b.status!=='active'||!metOf(b)||BAL_SKIP.includes(b.def)) return; if(balFree(b)){ b.satF=1; return; } const L=b.last; if(!L) return;
-  b.revA= b.revA===undefined? L.rev : b.revA+(L.rev-b.revA)/60;
-  const h=(b.hist||[]).slice(-60); if(h.length<30) return;
-  /* recettes sans saturation R, charges C : bénéfice(f) = f·R − C ; on vise f tel que le rendement = BAL_ROI */
-  const f0=b.satF||1, n=h.reduce((a,x)=>a+x,0)/h.length, R=Math.max(1,b.revA/f0), C=R*f0-n, inv=balInv(b);
-  const roi1=(R-C)*360/inv, fx= roi1>BAL_ROI? (BAL_ROI*inv/360+C)/R : 1, tgt=clamp(fx,.05,1);
-  b.satF=clamp(f0+(tgt-f0)*.05,.05,1); }); }
+function balStep(){ S.biz.forEach(b=>{ if(b.status!=='active'||!metOf(b)||BAL_SKIP.includes(b.def)) return; if(balFree(b)){ b.satF=1; return; }
+  const L=b.last; if(!L||L.day!==S.day-1&&L.day!==S.day) return;
+  /* V1.9.6 : on suit les recettes et le bénéfice « sans saturation » (indépendants du réglage), ce qui évite les à-coups */
+  const f0=b.satF||1, raw=L.rev/f0, netRaw=L.net+raw-L.rev, a=1/60;
+  b.rawR= b.rawR===undefined? raw : b.rawR+(raw-b.rawR)*a; b.rawN= b.rawN===undefined? netRaw : b.rawN+(netRaw-b.rawN)*a; b.rawK=(b.rawK||0)+1;
+  if(b.rawK<30) return;
+  const inv=balInv(b), R=Math.max(1,b.rawR), C=R-b.rawN, roi1=b.rawN*360/inv;
+  const tgt= roi1>BAL_ROI? clamp((BAL_ROI*inv/360+C)/R,.05,1) : 1;
+  b.satF=clamp(f0+(tgt-f0)*.03,.05,1); }); }
 { const _mm=metMods; metMods=function(b){ const z=_mm(b); if(!b||b.status!=='active') return z;
   const f=(BAL_F[b.def]||1)*(b.satF||1); if(f!==1){ z.vol*=f; z.rev*=f; } return z; }; }
-{ const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé','recettes −'+Math.round((1-b.satF)*100)+' % : votre société rapporte plus de 450 % par an de ce qu’elle a coûté',1]); return L; }; }
+{ const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé','recettes −'+Math.round((1-b.satF)*100)+' %. Ce n’est pas une crise : la société rapporte plus de 450 % par an de ce qu’elle a coûté. Le plafond monte avec chaque agrandissement ou rénovation ; sinon, ouvrez la même activité dans une autre ville.',1]); return L; }; }
 
 /* ============================================================
    V1.6.1 : toutes les entreprises coûtent 20 % de plus (création, agrandissements, options), sans
@@ -15905,9 +15907,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.9.5';
+const IB_VER='V1.9.6';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
+  ['Marché saturé plus stable','La saturation des sociétés très rentables se règle désormais en douceur : plus d’à-coups qui faisaient passer des ateliers au niveau maximum dans le rouge. Le panneau Liens et crises explique comment repousser le plafond.'],
   ['Petits commerces comme avant','Les sociétés du début (réparation, e-commerce, start-up, recrutement, restaurant, ferme, construction, fast-food, textile) ne subissent plus la saturation du marché tant qu’elles restent sous le niveau 4 : elles retrouvent leurs recettes d’avant.'],
   ['Coupes nationales à portée de main','La coupe nationale a son onglet à côté des championnats.']
 ];
