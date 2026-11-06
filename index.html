@@ -1168,6 +1168,11 @@ details.hmore .hm-b{display:flex;flex-direction:column;gap:18px;margin-top:18px}
 
 /* V1.9.2 : compétition du match */
 .fm-comp{text-align:center;font-size:12px;font-weight:600;letter-spacing:.02em;opacity:.75;margin:0 0 6px}
+/* V1.9.3 : places européennes */
+.ft tr.z-c1 td:first-child{border-left-color:#3b6fd8}.ft-leg .z-c1 i{background:#3b6fd8}
+.ft tr.z-c2 td:first-child{border-left-color:#e08a1e}.ft-leg .z-c2 i{background:#e08a1e}
+.ft tr.z-c3 td:first-child{border-left-color:#1fa59a}.ft-leg .z-c3 i{background:#1fa59a}
+.fcs-r.zc1{box-shadow:inset 3px 0 0 #3b6fd8}.fcs-r.zc2{box-shadow:inset 3px 0 0 #e08a1e}.fcs-r.zc3{box-shadow:inset 3px 0 0 #1fa59a}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -14867,6 +14872,14 @@ function footClubBody(id){
 }
 { const _mcF=modalContent; modalContent=function(){ const m=ui.modal; if(m&&m.type==='fclub'){ footInit(); if(!footClub(m.id)){ ui.modal=null; return _mcF(); } return {title:'Club',sm:true,body:footClubBody(m.id)}; } return _mcF(); }; }
 
+/* V1.9.3 : places européennes en couleur dans les championnats de première division */
+const FT_EU={es1:[4,2,1], fr1:[3,2,1], hr1:[1,2,1]};
+{ const _fz=footZone; footZone=function(lid,gi,pos,n){ const z=_fz(lid,gi,pos,n), E=FT_EU[lid]; if(!E||z==='down') return z;
+  if(pos<E[0]) return 'c1'; if(pos<E[0]+E[1]) return 'c2'; if(pos<E[0]+E[1]+E[2]) return 'c3'; return z; }; }
+{ const _fl=footLegend; footLegend=function(lid){ const h=_fl(lid), E=FT_EU[lid]; if(!E) return h;
+  const eu='<span class="z-c1"><i></i>Coupe d’Europe des champions</span><span class="z-c2"><i></i>Coupe d’Europe</span><span class="z-c3"><i></i>Coupe des confédérations</span>';
+  return h? h.replace('<div class="ft-leg">','<div class="ft-leg">'+eu) : '<div class="ft-leg">'+eu+'</div>'; }; }
+
 /* ============================================================
    FOOTBALL : match suivi sur un terrain animé (vue de dessus)
    Le déroulé vient de footMatchScript ; l'animation construit les actions qui
@@ -15411,7 +15424,7 @@ ACT.dsnewsok=()=>{ const D=fcOwn()&&fcOwn().ds; if(D) D.unseen=[]; ui.modal=null
   const ban= d.mv==='up'? '<div class="fcs-ban up"><b>Montée en '+esc(d.to)+'</b><small>Prime de montée, bonus des sponsors et stade plus rempli toute la saison prochaine.</small></div>'
     : d.mv==='down'? '<div class="fcs-ban down"><b>Relégation en '+esc(d.to)+'</b><small>Une indemnité parachute amortit la baisse des droits TV pendant deux saisons.</small></div>'
     : d.pos===0? '<div class="fcs-ban up"><b>Champion de '+esc(d.n)+'</b></div>' : '';
-  const rows=d.rows.map((r,i)=>{ const mine=O&&r[0]===O.id, z= i<d.zone.up? ' zu' : i>=n-d.zone.down? ' zd' : '';
+  const rows=d.rows.map((r,i)=>{ const mine=O&&r[0]===O.id, E=FT_EU[d.lid], z= i<d.zone.up? ' zu' : i>=n-d.zone.down? ' zd' : E&&i<E[0]? ' zc1' : E&&i<E[0]+E[1]? ' zc2' : E&&i<E[0]+E[1]+E[2]? ' zc3' : '';
     return '<div class="fcs-r'+(mine?' me':'')+z+'" style="animation-delay:'+Math.min(i*45,1100)+'ms"><span class="p">'+(i+1)+'</span><span class="c">'+esc(footName(r[0]))+'</span><span class="g num">'+((r[2]-r[3])>0?'+':'')+(r[2]-r[3])+'</span><b class="num">'+r[1]+'</b></div>'; }).join('');
   const recRow=(k,l,v)=>'<div class="rs-d"><div><b>'+l+'</b><small>'+v+'</small></div>'+(d.nr.includes(k)? pill('Nouveau record','good') : '')+'</div>';
   const B=d.rec.best, bl=B? (B.pos+1)+(B.pos?'e':'er')+' de '+esc((FOOT_LEAGUES.find(x=>x.id===B.lid)||{n:''}).n)+' ('+esc(B.y)+')' : '';
@@ -15888,6 +15901,7 @@ MET.textile.html=function(b){
 const IB_VER='V1.9.3';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
+  ['Places européennes en couleur','Dans les classements de première division (et la fenêtre de fin de saison), les places qualificatives pour chaque coupe européenne ont leur couleur, avec une légende.'],
   ['Coupe des confédérations d’Europe','Troisième coupe européenne : phase de ligue en 6 journées, barrages, huitièmes, quarts, demies et finale. Qualifiés : le club suivant au classement (7e en Espagne, 6e en France, 4e en Croatie), les vainqueurs de coupe nationale non qualifiés ailleurs et 35 nouveaux clubs européens. Primes : environ la moitié de la Coupe d’Europe.']
 ];
 { const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
