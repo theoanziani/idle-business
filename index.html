@@ -7049,7 +7049,7 @@ const FC_TV = {fr:[25e6,5e6,1e6], es:[60e6,7e6,.9e6], hr:[2e6,.4e6,.08e6], us:[1
 /* ---------- Valeurs ---------- */
 function fcPlayerValue(p){ const af= p.a<=23? 1.4 : p.a<=28? 1.1 : p.a<=31? .8 : p.a<=33? .45 : .25; return Math.round(1.2e6*Math.exp((p.o-65)/6)*af/1e4)*1e4; }
 function fcPlayerWage(p){ return Math.round((fcPlayerValue(p)*.3+6e4)/1e3)*1e3; }      /* par saison */
-function fcClubValue(id){ const c=footClub(id), O=fcOwn(), r= O&&O.id===id? O.r0+.5*(fcXiAvg()-O.xi0) : footR(id); return Math.round((6e6*Math.exp((r-45)/8.5)+c.cap*600)/1e5)*1e5; }
+function fcClubValue(id){ const c=footClub(id), O=fcOwn(), r= O&&O.id===id? O.r0+.5*(fcXiAvg()-O.xi0) : footR(id); return Math.round((6e6*Math.exp((r-45)/8.5)+(O&&O.id===id? fcCap(O) : c.cap)*600)/1e5)*1e5; }
 const fcOwn = () => (S && S.foot && S.foot.own) || null;
 const fcIsOwn = id => !!(S && S.foot && S.foot.own && S.foot.own.id===id);
 
@@ -7139,7 +7139,8 @@ function fcTicketPrice(O){ const r=footR(O.id); return Math.round((12+Math.max(0
 function fcAttendance(O,oppId){
   const c=footClub(O.id), r=footR(O.id), lvl=FOOT_LEAGUES.find(L=>L.id===footLgOf(O.id)).lvl;
   const base=clamp(.45+(r-50)/80+(lvl===1?.12:lvl===2?0:-.1)+(O.mor-60)/400+((footR(oppId)||60)-60)/300,.15,.99);
-  return Math.round(c.cap*clamp(base*[1.12,1,.84][O.ticket]*(O.hype&&O.hype.until>S.day?1.12:1),.1,1));
+  /* V1.9.7 : les places ajoutées se remplissent un peu moins bien */
+  return Math.round(fcCap(O)*clamp(base*Math.pow(c.cap/fcCap(O),.3)*[1.12,1,.84][O.ticket]*(O.hype&&O.hype.until>S.day?1.12:1),.1,1));
 }
 function fcDaily(day){
   const O=fcOwn(); if(!O) return;
@@ -7302,6 +7303,23 @@ function fcSwap(slot,pid){ const O=fcOwn(); if(!O) return err('Aucun club.'); co
 /* V1.9.1 : trophées du club et de ses joueurs (cérémonie à l'écran, palmarès O.cab) */
 function troAdd(k,n,y,pl){ const O=fcOwn(); if(!O) return; const t={k,n,y:y||'',pl:pl||null,d:S.day};
   (O.cab=O.cab||[]).unshift(t); if(O.cab.length>80) O.cab.length=80; (O.troQ=O.troQ||[]).push(t); }
+
+/* V1.9.7 : agrandissement du stade. O.stx = places ajoutées, O.stb = chantier {n, c, end} */
+const ST_SEAT=900, ST_DAYS=120;
+function fcCap(O){ return footClub(O.id).cap+(O.stx||0); }
+function fcStMax(O){ const c0=footClub(O.id).cap; return Math.max(c0,Math.min(100000,c0*3)); }
+function fcStAdd(O){ const c0=footClub(O.id).cap; return Math.min(Math.max(2000,Math.round(c0*.15/500)*500),fcStMax(O)-fcCap(O)); }
+function fcStCost(O){ const n=fcStAdd(O); return Math.round(n*ST_SEAT*(1+fcCap(O)/60000)/1e4)*1e4; }
+function fcStBuild(){ const O=fcOwn(); if(!O) return {ok:false,msg:'Aucun club.'};
+  if(O.stb) return {ok:false,msg:'Des travaux sont déjà en cours.'};
+  const n=fcStAdd(O); if(n<=0) return {ok:false,msg:'Le stade a atteint sa taille maximale.'};
+  const c=fcStCost(O); if(S.cash<c) return {ok:false,msg:'Trésorerie insuffisante.'};
+  fcPay('works','Club : agrandissement du stade (+'+fmtN(n,0)+' places)',-c); O.stb={n,c,end:S.day+ST_DAYS};
+  fcNews('Les travaux d’agrandissement du stade commencent : '+fmtN(n,0)+' places en plus dans '+ST_DAYS+' jours.','');
+  return {ok:true,msg:'Travaux lancés : '+fmtN(n,0)+' places en plus dans '+ST_DAYS+' jours.'}; }
+{ const _fd=fcDaily; fcDaily=function(day){ _fd(day); const O=fcOwn(); if(!O||!O.stb||day<O.stb.end) return;
+  O.stx=(O.stx||0)+O.stb.n; const n=O.stb.n; O.stb=null; fcNews('Fin des travaux : le stade compte '+fmtN(fcCap(O),0)+' places (+'+fmtN(n,0)+').','good');
+  log('good','Votre stade est agrandi : '+fmtN(fcCap(O),0)+' places.','news'); }; }
 
 /* ============================================================
    Football : statistiques détaillées des joueurs (V1.1.6)
@@ -11702,7 +11720,7 @@ function lkHas(def){ return S.biz.find(x=>x.def===def&&x.status==='active'&&x.m)
 function lkPhone(){ const e=S.biz.find(x=>x.def==='electronics'&&x.status==='active'&&x.m&&x.m.ph&&x.m.mod); return e||null; }
 function lkPhoneHit(e){ return !!(e&&e.m.mod&&elScore(e,e.m.mod)>=elRival()); }
 { const _hg=fcHomeGate; fcHomeGate=function(h,a){ _hg(h,a); const O=fcOwn(); if(!O||O.id!==h||!O.lastGate) return;
-    const n=O.lastGate.n, farm=!!lkHas('farm'), cap=footClub(O.id).cap;
+    const n=O.lastGate.n, farm=!!lkHas('farm'), cap=fcCap(O);
     fcPay('food','Club : buvettes'+(farm?' (produits de votre ferme)':''),n*3.5*(farm?1.5:1));
     fcPay('energy','Club : énergie du stade'+(lkHas('renew')?' (vos centrales)':''),-cap*.35*(lkHas('renew')?.6:1)); }; }
 { const _fd=fcDaily; fcDaily=function(day){ _fd(day); const O=fcOwn(); if(!O||footDate(day).d!==1) return;
@@ -14870,7 +14888,7 @@ function footClubBody(id){
     '<div class="met-k"><div><span>Championnat</span><b>'+esc(L.n)+'</b><small>Division '+L.lvl+'</small></div>'+
     '<div><span>Classement</span><b class="num">'+(t[0]? (pos+1)+(pos?'e':'er') : '-')+'</b><small>'+t[6]+' points en '+t[0]+' matchs</small></div>'+
     '<div><span>Force</span><b class="num">'+r+' / 100</b><small>'+(r>=85?'Grand d’Europe':r>=75?'Haut de tableau':r>=62?'Solide':r>=50?'Modeste':'Petit club')+'</small></div>'+
-    '<div><span>Stade</span><b class="num">'+fmtN(c.cap,0)+'</b><small>places</small></div></div>'+
+    '<div><span>Stade</span><b class="num">'+fmtN((fcOwn()&&fcOwn().id===id)? fcCap(fcOwn()) : c.cap,0)+'</b><small>places</small></div></div>'+
     (f.length? '<div class="tag">Forme</div><div class="ft-form">'+f.map(x=>'<i class="'+(x==='V'?'w':x==='D'?'l':'d')+'">'+x+'</i>').join('')+'</div>' : '')+
     nx+
     footSquadHtml(id)+
@@ -15311,13 +15329,18 @@ function fcTabSt(O){
     return '<div class="fc-staff"><div><b>'+s.n+'</b> '+fcStars(l)+'<small>'+s.d+' Salaire : '+eur([0,1.5e5,4e5,1e6,2.5e6,6e6][l],0)+' par saison.</small></div>'+(l<5? btn('Recruter mieux : '+eur(fee,0),'fcstaff',{i:k,c:'sm',dis:S.cash<fee}) : pill('Le meilleur','good'))+'</div>'; }).join(''));
 }
 function fcTabFin(O){
-  const nat=footClub(O.id).nat, y=S.foot.nat[nat].y, f=O.fin[y]||{}, lab={gate:'Billetterie',food:'Buvettes',tv:'Droits de diffusion',spons:'Sponsors et boutique',prize:'Primes',transfer:'Transferts',wages:'Salaires',staff:'Staff',energy:'Énergie du stade'};
+  const nat=footClub(O.id).nat, y=S.foot.nat[nat].y, f=O.fin[y]||{}, lab={gate:'Billetterie',food:'Buvettes',tv:'Droits de diffusion',spons:'Sponsors et boutique',prize:'Primes',transfer:'Transferts',wages:'Salaires',staff:'Staff',energy:'Énergie du stade',works:'Travaux du stade'};
   const rows=Object.keys(lab).filter(k=>f[k]).map(k=>'<tr><td>'+lab[k]+'</td><td class="r num '+(f[k]>=0?'pos':'neg')+'">'+signed(f[k],0)+'</td></tr>').join(''), tot=Object.values(f).reduce((s,x)=>s+x,0);
-  const wages=O.sq.reduce((s,p)=>s+p.w,0)+fcStaffCost(O), att=fcAttendance(O,null), cap=footClub(O.id).cap;
+  const wages=O.sq.reduce((s,p)=>s+p.w,0)+fcStaffCost(O), att=fcAttendance(O,null), cap=fcCap(O);
   let h=card('Saison '+footSeasonLabel(nat,y),(rows? '<div class="tw"><table class="tbl"><tbody>'+rows+'<tr><td><b>Résultat</b></td><td class="r num '+(tot>=0?'pos':'neg')+'"><b>'+signed(tot,0)+'</b></td></tr></tbody></table></div>' : '<div class="sub">Pas encore de recettes ni de dépenses cette saison.</div>')+
     '<div class="sub" style="margin-top:8px">Salaires et staff : '+eur(wages,0)+' par saison. Un club qui veut gagner perd souvent de l’argent : vos autres entreprises comblent la différence.</div>');
   h+=card('Billetterie','<div class="seg">'+['Bas','Normal','Élevé'].map((t,i)=>'<button class="'+(O.ticket===i?'on':'')+'" data-a="fcset" data-i="ticket" data-v="'+i+'">'+t+'</button>').join('')+'</div>'+
     '<div class="sub" style="margin-top:6px">Billet moyen : '+eur(fcTicketPrice(O),0)+'. Affluence attendue : '+fmtN(att,0)+' sur '+fmtN(cap,0)+' places.</div>');
+  { const n=fcStAdd(O), c=fcStCost(O), B=O.stb;
+    h+=card('Stade','<div class="sub">Capacité : '+fmtN(cap,0)+' places'+(O.stx? ' dont '+fmtN(O.stx,0)+' ajoutées' : '')+'. Maximum : '+fmtN(fcStMax(O),0)+'.</div>'+
+      (B? '<div class="sub" style="margin-top:6px">Travaux en cours : +'+fmtN(B.n,0)+' places, fin dans '+Math.max(0,B.end-S.day)+' jours.</div><div class="bar"><i style="width:'+Math.round(clamp(1-(B.end-S.day)/ST_DAYS,0,1)*100)+'%"></i></div>'
+       : n>0? '<div class="sub" style="margin-top:6px">Chaque place rapporte la billetterie et les buvettes à chaque match à domicile, et augmente la valeur du club. Les nouvelles places se remplissent un peu moins bien.</div><div style="margin-top:10px">'+btn('Agrandir : +'+fmtN(n,0)+' places · '+eur(c,0),'fcstade',{c:'pri',dis:S.cash<c})+'</div><div class="sub">Durée des travaux : '+ST_DAYS+' jours.</div>'
+       : '<div class="sub" style="margin-top:6px">Le stade a atteint sa taille maximale.</div>')); }
   h+=card('Propriété','<div class="sub">Vous avez racheté le club '+eur(O.price,0)+'. Valeur actuelle : '+eur(fcClubValue(O.id),0)+'.</div><div style="margin-top:10px">'+btn('Revendre le club','fcsellask',{c:'ghost'})+'</div>');
   return h;
 }
@@ -15337,6 +15360,7 @@ ACT.fcscout=el=>{ ui.modal={type:'fcscout',id:el.dataset.i,club:+el.dataset.j}; 
 ACT.fcbid=el=>{ const m=ui.modal; const r=fcBid(m.id,m.club,+el.dataset.v); if(r.ok) ui.modal=null; after(r); };
 ACT.fcbuyask=el=>{ ui.modal={type:'fcbuy',id:+el.dataset.i}; render(); };
 ACT.fcbuy=el=>{ const r=fcBuy(+el.dataset.i); if(r.ok){ ui.modal=null; ui.tab='club'; ui.ct='ov'; } after(r); };
+ACT.fcstade=()=>after(fcStBuild());
 ACT.fcsellask=()=>{ ui.modal={type:'fcsell'}; render(); };
 ACT.fcsell=()=>{ const r=fcSell(); ui.modal=null; after(r); };
 
@@ -15907,9 +15931,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.9.6';
+const IB_VER='V1.9.7';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
+  ['Agrandir son stade','Dans l’onglet Finances de votre club, la carte Stade permet d’ajouter des places (environ 15 % de plus par chantier, 120 jours de travaux, jusqu’à trois fois la capacité d’origine). Plus de billetterie, plus de buvettes et un club qui vaut plus cher.'],
   ['Marché saturé plus stable','La saturation des sociétés très rentables se règle désormais en douceur : plus d’à-coups qui faisaient passer des ateliers au niveau maximum dans le rouge. Le panneau Liens et crises explique comment repousser le plafond.'],
   ['Petits commerces comme avant','Les sociétés du début (réparation, e-commerce, start-up, recrutement, restaurant, ferme, construction, fast-food, textile) ne subissent plus la saturation du marché tant qu’elles restent sous le niveau 4 : elles retrouvent leurs recettes d’avant.'],
   ['Coupes nationales à portée de main','La coupe nationale a son onglet à côté des championnats.']
