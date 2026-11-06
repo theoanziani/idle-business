@@ -7121,6 +7121,8 @@ function fcAfterMatch(h,a,gh,ga){
   const O=fcOwn(); if(!O) return;
   const me=O.id===h?0:1, gf=me?ga:gh, gc=me?gh:ga, opp=me?h:a;
   O.mor=clamp(O.mor+(gf>gc?4:gf<gc?-5:0),10,100);
+  /* V1.9.9 : engouement des supporters selon les derniers résultats */
+  O.fv=clamp((O.fv||0)*.85+(gf>gc?.03:gf<gc?-.03:0),-.2,.2);
   /* blessures */
   const R=frnd, L=fcLineup();
   L.xi.forEach(p=>{ const q=O.sq.find(x=>x.id===p.id); if(q && R()<.02*(1.25-.12*O.staff.phys)){ q.inj=Math.round((5+R()*28)*(1.1-.1*O.staff.phys)); fcNews(q.n+' est blessé ('+q.inj+' jours).','bad'); } });
@@ -7138,7 +7140,7 @@ function fcPay(k,label,amt){ pay('foot',label,amt); fcFin(k,amt); }
 function fcTicketPrice(O){ const r=footR(O.id); return Math.round((12+Math.max(0,r-45)*1.3)*[.8,1,1.25][O.ticket]); }
 function fcAttendance(O,oppId){
   const c=footClub(O.id), r=footR(O.id), lvl=FOOT_LEAGUES.find(L=>L.id===footLgOf(O.id)).lvl;
-  const base=clamp(.45+(r-50)/80+(lvl===1?.12:lvl===2?0:-.1)+(O.mor-60)/400+((footR(oppId)||60)-60)/300,.15,.99);
+  const base=clamp(.45+(r-50)/80+(lvl===1?.12:lvl===2?0:-.1)+(O.mor-60)/400+((footR(oppId)||60)-60)/300+fcFan(O).t,.12,.99);
   /* V1.9.7 : les places ajoutées se remplissent un peu moins bien */
   return Math.round(fcCap(O)*clamp(base*Math.pow(c.cap/fcCap(O),.3)*[1.12,1,.84][O.ticket]*(O.hype&&O.hype.until>S.day?1.12:1),.1,1));
 }
@@ -7307,7 +7309,7 @@ function troAdd(k,n,y,pl){ const O=fcOwn(); if(!O) return; const t={k,n,y:y||'',
 /* V1.9.7 : agrandissement du stade. O.stx = places ajoutées, O.stb = chantier {n, c, end} */
 const ST_SEAT=900, ST_DAYS=120;
 function fcCap(O){ return footClub(O.id).cap+(O.stx||0); }
-function fcStMax(O){ const c0=footClub(O.id).cap; return Math.max(c0,Math.min(100000,c0*3)); }
+function fcStMax(O){ return Math.max(footClub(O.id).cap,100000); }
 function fcStAdd(O){ const c0=footClub(O.id).cap; return Math.min(Math.max(2000,Math.round(c0*.15/500)*500),fcStMax(O)-fcCap(O)); }
 function fcStCost(O){ const n=fcStAdd(O); return Math.round(n*ST_SEAT*(1+fcCap(O)/60000)/1e4)*1e4; }
 function fcStBuild(){ const O=fcOwn(); if(!O) return {ok:false,msg:'Aucun club.'};
@@ -7320,6 +7322,12 @@ function fcStBuild(){ const O=fcOwn(); if(!O) return {ok:false,msg:'Aucun club.'
 { const _fd=fcDaily; fcDaily=function(day){ _fd(day); const O=fcOwn(); if(!O||!O.stb||day<O.stb.end) return;
   O.stx=(O.stx||0)+O.stb.n; const n=O.stb.n; O.stb=null; fcNews('Fin des travaux : le stade compte '+fmtN(fcCap(O),0)+' places (+'+fmtN(n,0)+').','good');
   log('good','Votre stade est agrandi : '+fmtN(fcCap(O),0)+' places.','news'); }; }
+
+/* V1.9.9 : remplissage dynamique. f = forme récente (−20 à +20 points), k = classement (−8 à +8 points) */
+function fcFan(O){ const f=O.fv||0, lid=footLgOf(O.id), lg=S.foot.lg[lid]; let k=0;
+  if(lg&&lg.tab){ const gi=Math.max(0,lg.grp.findIndex(g=>g.includes(O.id))), tab=footTable(lid,gi), pos=tab.findIndex(x=>x.id===O.id), t=lg.tab[O.id];
+    if(pos>=0&&t&&t[0]>=4&&tab.length>1) k=(.5-pos/(tab.length-1))*.16; }
+  return {f,k,t:f+k}; }
 
 /* ============================================================
    Football : statistiques détaillées des joueurs (V1.1.6)
@@ -15335,7 +15343,7 @@ function fcTabFin(O){
   let h=card('Saison '+footSeasonLabel(nat,y),(rows? '<div class="tw"><table class="tbl"><tbody>'+rows+'<tr><td><b>Résultat</b></td><td class="r num '+(tot>=0?'pos':'neg')+'"><b>'+signed(tot,0)+'</b></td></tr></tbody></table></div>' : '<div class="sub">Pas encore de recettes ni de dépenses cette saison.</div>')+
     '<div class="sub" style="margin-top:8px">Salaires et staff : '+eur(wages,0)+' par saison. Un club qui veut gagner perd souvent de l’argent : vos autres entreprises comblent la différence.</div>');
   h+=card('Billetterie','<div class="seg">'+['Bas','Normal','Élevé'].map((t,i)=>'<button class="'+(O.ticket===i?'on':'')+'" data-a="fcset" data-i="ticket" data-v="'+i+'">'+t+'</button>').join('')+'</div>'+
-    '<div class="sub" style="margin-top:6px">Billet moyen : '+eur(fcTicketPrice(O),0)+'. Affluence attendue : '+fmtN(att,0)+' sur '+fmtN(cap,0)+' places.</div>');
+    '<div class="sub" style="margin-top:6px">Billet moyen : '+eur(fcTicketPrice(O),0)+'. Affluence attendue : '+fmtN(att,0)+' sur '+fmtN(cap,0)+' places.</div>'+(()=>{ const F=fcFan(O), pt=x=>(x>=0?'+':'−')+Math.round(Math.abs(x)*100); return '<div class="sub">Engouement des supporters : '+pt(F.t)+' points de remplissage (forme récente '+pt(F.f)+', classement '+pt(F.k)+'). Les victoires remplissent le stade, les défaites le vident.</div>'; })());
   { const n=fcStAdd(O), c=fcStCost(O), B=O.stb;
     h+=card('Stade','<div class="sub">Capacité : '+fmtN(cap,0)+' places'+(O.stx? ' dont '+fmtN(O.stx,0)+' ajoutées' : '')+'. Maximum : '+fmtN(fcStMax(O),0)+'.</div>'+
       (B? '<div class="sub" style="margin-top:6px">Travaux en cours : +'+fmtN(B.n,0)+' places, fin dans '+Math.max(0,B.end-S.day)+' jours.</div><div class="bar"><i style="width:'+Math.round(clamp(1-(B.end-S.day)/ST_DAYS,0,1)*100)+'%"></i></div>'
@@ -15931,9 +15939,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.9.8';
+const IB_VER='V1.9.9';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
+  ['Un stade qui vit avec vos résultats','L’affluence suit la forme récente et le classement : une série de victoires et une place en haut du tableau remplissent le stade, une mauvaise passe le vide. L’agrandissement n’a plus de limite liée à la capacité d’origine (jusqu’à 100 000 places).'],
   ['Un peu plus de pépites','Les recruteurs de jeunes dénichent un peu plus souvent une pépite (environ 2,9 % par jeune pour le meilleur recruteur, contre 2,5 %).'],
   ['Agrandir son stade','Dans l’onglet Finances de votre club, la carte Stade permet d’ajouter des places (environ 15 % de plus par chantier, 120 jours de travaux, jusqu’à trois fois la capacité d’origine). Plus de billetterie, plus de buvettes et un club qui vaut plus cher.'],
   ['Marché saturé plus stable','La saturation des sociétés très rentables se règle désormais en douceur : plus d’à-coups qui faisaient passer des ateliers au niveau maximum dans le rouge. Le panneau Liens et crises explique comment repousser le plafond.'],
