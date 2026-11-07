@@ -11588,11 +11588,22 @@ function ofAuto(b,mode,q){ const m=b.m;
   for(const [k,f,l,rk] of [['chg',1,'Gestion des charges',1],['com',2,'Commercialisation',2],['bl',3,'Baux longs',3],['fm',4,'Facility management',4],['pre',6,'Immeubles de prestige',5]]) if(!m[k]&&mxHas(b,rk)&&ofBuyR(b,k,f,l,rk,true).ok) break; }
 function ofData(){ return {OF_SRV, OF_WORK, OF_STD}; }
 
-/* V2.0.1 : achat visé en délégation totale : l'immeuble en vente le moins cher au m² (huit au plus),
-   seulement quand les immeubles actuels sont remplis aux trois quarts */
-MET.office.goal=function(b){ const m=b.m; if(!m||m.bd.length>=8||!(m.bo||[]).length) return null;
-  const nf=m.bd.reduce((a,B)=>a+B.nf,0), occ=m.bd.reduce((a,B)=>a+B.fl.filter(Boolean).length,0); if(nf&&occ<nf*.75) return null;
-  const o=m.bo.slice().sort((x,y)=>x.price/x.m2-y.price/y.m2)[0]; return {n:'Immeuble '+o.n+' ('+o.nf+' étages)', c:o.price, act:'buyb', arg:o.id}; };
+/* V2.0.3 : achat visé en délégation totale, le plus vite remboursé parmi :
+   rénovation lourde d'un immeuble (standing +1), label énergie, rachat d'un immeuble en vente.
+   Gain estimé = loyers de marché supplémentaires ; retenu si remboursé en moins de 6 ans. */
+function ofGoals(b){ const m=b.m, out=[], fm=m.fm?.9:1, smax=m.pre?5:4;
+  const nf=m.bd.reduce((a,B)=>a+B.nf,0), occ=m.bd.reduce((a,B)=>a+B.fl.filter(Boolean).length,0), lf=nf? occ/nf : 0;
+  /* recettes réelles / loyers bruts (bonus de la société, niveau, marché) */
+  const r0=ofDay(b).rev, kx= r0>0&&b.last&&b.last.rev>0? clamp(b.last.rev/r0,1,12) : (BAL_F.office||1)*(b.satF||1);
+  const ann=B=>ofMkt(b,B)*B.m2*Math.max(.5,lf)/360*kx;         /* loyers de marché par jour d'un immeuble */
+  m.bd.forEach(B=>{ if(ofWorks(B)) return; const a=ann(B);
+    if(B.std<smax){ const c=Math.round(OF_WORK.reno.c(B)*fm/1000)*1000, g=a*((OF_STDF[B.std+1]||1)/(OF_STDF[B.std]||1)-1); out.push({n:'Rénovation lourde de '+B.n+' ('+OF_STD[B.std+1]+')', c, g, act:'work', arg:B.id+':reno'}); }
+    if(!B.lbl&&B.std>=3){ const c=Math.round(OF_WORK.lbl.c(B)*fm/1000)*1000, g=a*.08+B.m2*9/360*.15; out.push({n:'Label énergie de '+B.n, c, g, act:'work', arg:B.id+':lbl'}); } });
+  if(m.bd.length<8&&lf>=.6) (m.bo||[]).forEach(o=>{ const B={dist:o.dist,std:o.std,lbl:0,cond:o.cond,m2:o.m2}, g=ofMkt(b,B)*o.m2*Math.max(.6,lf)/360*kx-o.m2*23/360;
+    out.push({n:'Immeuble '+o.n+' ('+o.nf+' étages)', c:o.price, g, act:'buyb', arg:o.id}); });
+  return out.filter(x=>x.g>0&&x.c/x.g<2160).sort((x,y)=>x.c/x.g-y.c/y.g); }
+/* parmi ce qui se rembourse en moins de 900 jours, le moins cher d'abord (travaux avant rachats) */
+MET.office.goal=function(b){ const L=ofGoals(b), F=L.filter(x=>x.c/x.g<900).sort((x,y)=>x.c-y.c), g=F[0]||L[0]; return g? {n:g.n, c:g.c, act:g.act, arg:g.arg} : null; };
 
 /* ============================================================
    ENTREPÔT LOGISTIQUE (V1.6.2)
@@ -15948,9 +15959,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.0.1';
+const IB_VER='V2.0.2';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
+  ['Directeurs : réserves mieux dépensées','Compagnie aérienne et transport maritime : le directeur achète tout de suite les places en tour de contrôle, terminaux et quais visés au lieu d’attendre la fin du mois (la réserve ne dort plus). Studio, agence de recrutement et autres activités à cycles : la décision d’agrandir se fonde sur le bénéfice moyen des quatre derniers mois, plus sur le dernier mois seul.'],
   ['Immeubles de bureaux : le directeur investit','En délégation totale, le directeur vise l’achat d’un nouvel immeuble (le moins cher au m²) dès que ses immeubles sont loués aux trois quarts, et met sa réserve de côté pour l’acheter. Partout, un agrandissement qui n’a pas fait monter le bénéfice est retenté au bout de 180 jours au lieu d’être bloqué.'],
   ['Un stade qui vit avec vos résultats','L’affluence suit la forme récente et le classement : une série de victoires et une place en haut du tableau remplissent le stade, une mauvaise passe le vide. L’agrandissement n’a plus de limite liée à la capacité d’origine (jusqu’à 100 000 places).'],
   ['Un peu plus de pépites','Les recruteurs de jeunes dénichent un peu plus souvent une pépite (environ 2,9 % par jeune pour le meilleur recruteur, contre 2,5 %).'],
