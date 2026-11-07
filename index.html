@@ -8008,7 +8008,7 @@ function dlGoal(b){ const mm=metOf(b); if(!mm||b.status!=='active') return null;
   try{ metCtl(b).forEach(c=>{ if((c.k==='buy'||(c.k==='btn'&&c.once))&&!c.owned&&!c.dis&&c.cost>0&&c.act&&!dlSkipped(b,c.act+':'+c.arg)&&(!best||c.cost<best.c)) best={n:c.label, c:c.cost, act:c.act, arg:c.arg}; });
     if(mm.goal){ const g=mm.goal(b); if(g&&(!best||g.c<best.c)) best=g; } }catch(e){}
   /* V1.8.6 : pas d'agrandissement si la société perd de l'argent, ni si le précédent n'a pas fait monter le bénéfice */
-  const n30=dlNet30(b), upOk= n30>0 && (b.dlUpN===undefined || n30>=b.dlUpN*1.05);
+  const n30=dlNet30(b), upOk= n30>0 && (b.dlUpN===undefined || n30>=b.dlUpN*1.05 || S.day-(b.dlUpD||0)>=180);   /* V2.0.1 : nouvel essai au bout de 180 jours */
   /* V1.8.4 : l'agrandissement reste l'achat visé (la réserve peut donc l'atteindre), y compris pendant un
      agrandissement en cours (niveau suivant) ; s'il vient d'échouer, il reste visé mais n'est retenté qu'après 30 jours */
   if(!best&&b.up&&b.lvl+1<MAXLVL&&upOk){ b.lvl++; const c=upgradeCost(b); b.lvl--; best={n:'Agrandir au niveau '+(b.lvl+2)+' (après le chantier en cours)', c, up:1, wait:1}; }
@@ -8036,7 +8036,7 @@ function dlDaily(b){
          générale, sans descendre sous un mois de dépenses du groupe */
       if(dlBudget(b)<g.c&&b.dlg&&dlBudget(b)>=g.c*.5){ const need=g.c-dlBudget(b); if(S.cash-need>=finBuf()){ b.dlp=(b.dlp||0)+need; metLog(b,'priorité du groupe : '+eur(need,0)+' de la trésorerie générale pour « '+g.n.toLowerCase()+' ».'); } }
       if(dlBudget(b)<g.c) break; const key=g.up? 'up' : g.rel? 'rel' : g.act+':'+g.arg;
-      const done=dlAct(b,g.c,()=>{ const r= g.up? (b.dlUpN=dlNet30(b), upgradeBiz(b)) : g.rel? relocBiz(b,g.rel) : metAct(b,g.act,g.arg); if(r&&r.ok!==false) metLog(b,'Votre directeur : '+g.n.toLowerCase()+' ('+eur(g.c,0)+').'); return r; });
+      const done=dlAct(b,g.c,()=>{ const r= g.up? (b.dlUpN=dlNet30(b), b.dlUpD=S.day, upgradeBiz(b)) : g.rel? relocBiz(b,g.rel) : metAct(b,g.act,g.arg); if(r&&r.ok!==false) metLog(b,'Votre directeur : '+g.n.toLowerCase()+' ('+eur(g.c,0)+').'); return r; });
       /* refusé, ou achat renouvelable (cave, stock…) : on n'y revient pas avant 30 jours */
       b.dlSkip=b.dlSkip||{}; b.dlSkip[key]=S.day+30; if(!done) continue; } }catch(e){ console.error(e); } }
 }
@@ -11584,6 +11584,12 @@ function ofAuto(b,mode,q){ const m=b.m;
   const o=m.bo.slice().sort((x,y)=>x.price/x.m2-y.price/y.m2)[0]; if(o&&mDlp(b)>o.price*1.1) ofBuyBd(b,o.id,true);
   for(const [k,f,l,rk] of [['chg',1,'Gestion des charges',1],['com',2,'Commercialisation',2],['bl',3,'Baux longs',3],['fm',4,'Facility management',4],['pre',6,'Immeubles de prestige',5]]) if(!m[k]&&mxHas(b,rk)&&ofBuyR(b,k,f,l,rk,true).ok) break; }
 function ofData(){ return {OF_SRV, OF_WORK, OF_STD}; }
+
+/* V2.0.1 : achat visé en délégation totale : l'immeuble en vente le moins cher au m² (huit au plus),
+   seulement quand les immeubles actuels sont remplis aux trois quarts */
+MET.office.goal=function(b){ const m=b.m; if(!m||m.bd.length>=8||!(m.bo||[]).length) return null;
+  const nf=m.bd.reduce((a,B)=>a+B.nf,0), occ=m.bd.reduce((a,B)=>a+B.fl.filter(Boolean).length,0); if(nf&&occ<nf*.75) return null;
+  const o=m.bo.slice().sort((x,y)=>x.price/x.m2-y.price/y.m2)[0]; return {n:'Immeuble '+o.n+' ('+o.nf+' étages)', c:o.price, act:'buyb', arg:o.id}; };
 
 /* ============================================================
    ENTREPÔT LOGISTIQUE (V1.6.2)
