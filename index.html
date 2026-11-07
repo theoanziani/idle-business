@@ -15959,26 +15959,32 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.0.2';
+const IB_VER='V2.0.4';
+const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
+/* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
+const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
+/* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
-  ['Directeurs : réserves mieux dépensées','Compagnie aérienne et transport maritime : le directeur achète tout de suite les places en tour de contrôle, terminaux et quais visés au lieu d’attendre la fin du mois (la réserve ne dort plus). Studio, agence de recrutement et autres activités à cycles : la décision d’agrandir se fonde sur le bénéfice moyen des quatre derniers mois, plus sur le dernier mois seul.'],
-  ['Immeubles de bureaux : le directeur investit','En délégation totale, le directeur vise l’achat d’un nouvel immeuble (le moins cher au m²) dès que ses immeubles sont loués aux trois quarts, et met sa réserve de côté pour l’acheter. Partout, un agrandissement qui n’a pas fait monter le bénéfice est retenté au bout de 180 jours au lieu d’être bloqué.'],
-  ['Un stade qui vit avec vos résultats','L’affluence suit la forme récente et le classement : une série de victoires et une place en haut du tableau remplissent le stade, une mauvaise passe le vide. L’agrandissement n’a plus de limite liée à la capacité d’origine (jusqu’à 100 000 places).'],
-  ['Un peu plus de pépites','Les recruteurs de jeunes dénichent un peu plus souvent une pépite (environ 2,9 % par jeune pour le meilleur recruteur, contre 2,5 %).'],
-  ['Agrandir son stade','Dans l’onglet Finances de votre club, la carte Stade permet d’ajouter des places (environ 15 % de plus par chantier, 120 jours de travaux, jusqu’à trois fois la capacité d’origine). Plus de billetterie, plus de buvettes et un club qui vaut plus cher.'],
-  ['Marché saturé plus stable','La saturation des sociétés très rentables se règle désormais en douceur : plus d’à-coups qui faisaient passer des ateliers au niveau maximum dans le rouge. Le panneau Liens et crises explique comment repousser le plafond.'],
-  ['Petits commerces comme avant','Les sociétés du début (réparation, e-commerce, start-up, recrutement, restaurant, ferme, construction, fast-food, textile) ne subissent plus la saturation du marché tant qu’elles restent sous le niveau 4 : elles retrouvent leurs recettes d’avant.'],
-  ['Coupes nationales à portée de main','La coupe nationale a son onglet à côté des championnats.']
+  ['Nouveautés plus claires','Au retour dans le jeu, seules les nouveautés parues depuis votre dernière partie s’affichent. La liste complète reste dans Paramètres.','V2.0.4'],
+  ['Bureaux : rénovations et rachats','En délégation totale, le directeur de l’immeuble de bureaux vise désormais les rénovations lourdes (standing +1), le label énergie et le rachat d’immeubles, selon ce qui se rembourse le plus vite. Il fait d’abord les travaux les moins chers puis rachète des immeubles, même si son immeuble n’est pas encore plein.','V2.0.3'],
+  ['Directeurs : réserves mieux dépensées','Compagnie aérienne et transport maritime : le directeur achète tout de suite les places en tour de contrôle, terminaux et quais visés au lieu d’attendre la fin du mois (la réserve ne dort plus). Studio, agence de recrutement et autres activités à cycles : la décision d’agrandir se fonde sur le bénéfice moyen des quatre derniers mois, plus sur le dernier mois seul.','V2.0.2'],
+  ['Immeubles de bureaux : le directeur investit','En délégation totale, le directeur vise l’achat d’un nouvel immeuble (le moins cher au m²) dès que ses immeubles sont loués aux trois quarts, et met sa réserve de côté pour l’acheter. Partout, un agrandissement qui n’a pas fait monter le bénéfice est retenté au bout de 180 jours au lieu d’être bloqué.','V2.0.1'],
+  ['Un stade qui vit avec vos résultats','L’affluence suit la forme récente et le classement : une série de victoires et une place en haut du tableau remplissent le stade, une mauvaise passe le vide. L’agrandissement n’a plus de limite liée à la capacité d’origine (jusqu’à 100 000 places).','V1.9.9'],
+  ['Un peu plus de pépites','Les recruteurs de jeunes dénichent un peu plus souvent une pépite (environ 2,9 % par jeune pour le meilleur recruteur, contre 2,5 %).','V1.9.8'],
+  ['Agrandir son stade','Dans l’onglet Finances de votre club, la carte Stade permet d’ajouter des places (environ 15 % de plus par chantier, 120 jours de travaux, jusqu’à trois fois la capacité d’origine). Plus de billetterie, plus de buvettes et un club qui vaut plus cher.','V1.9.7'],
+  ['Marché saturé plus stable','La saturation des sociétés très rentables se règle désormais en douceur : plus d’à-coups qui faisaient passer des ateliers au niveau maximum dans le rouge. Le panneau Liens et crises explique comment repousser le plafond.','V1.9.6'],
+  ['Petits commerces comme avant','Les sociétés du début (réparation, e-commerce, start-up, recrutement, restaurant, ferme, construction, fast-food, textile) ne subissent plus la saturation du marché tant qu’elles restent sous le niveau 4 : elles retrouvent leurs recettes d’avant.','V1.9.5'],
+  ['Coupes nationales à portée de main','La coupe nationale a son onglet à côté des championnats.','V1.9.4']
 ];
-{ const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3; S.seenVer=IB_VER; if(!fresh) ui.modal={type:'ibnews'}; } }catch(e){} return _r.apply(this,arguments); }; }
+{ const _r=render; render=function(){ try{ if(S&&!S.over&&S.seenVer!==IB_VER&&!ui.modal&&!(ui.mq&&ui.mq.length)){ const fresh=S.day<3, prev=S.seenVer; S.seenVer=IB_VER; if(!fresh&&ibNewsSince(prev).length) ui.modal={type:'ibnews', prev}; } }catch(e){} return _r.apply(this,arguments); }; }
 { const _mc=modalContent; modalContent=function(){ const m=ui.modal;
-  if(m&&m.type==='ibnews') return {title:'Nouveautés',sm:true,body:'<div class="stack"><div class="sub">Nouveautés de la version '+IB_VER+'.</div>'+
-    IB_NEWS.map(x=>'<div><b>'+esc(x[0])+'</b><div class="sub">'+esc(x[1])+'</div></div>').join('')+'<div>'+btn('Compris','ibnewsok',{c:'pri'})+'</div></div>'};
+  if(m&&m.type==='ibnews'){ const L= m.all? IB_NEWS : ibNewsSince(m.prev); return {title:'Nouveautés',sm:true,body:'<div class="stack"><div class="sub">'+(m.all? 'Dernières nouveautés du jeu (version '+IB_VER+').' : 'Nouveautés depuis votre dernière partie (version '+IB_VER+').')+'</div>'+
+    L.map(x=>'<div><b>'+esc(x[0])+'</b> <span class="sub">'+esc(x[2]||'')+'</span><div class="sub">'+esc(x[1])+'</div></div>').join('')+'<div>'+btn('Compris','ibnewsok',{c:'pri'})+'</div></div>'}; }
   return _mc(); }; }
 ACT.ibnewsok=()=>{ ui.modal=null; render(); };
 { const _vs=VIEWS.set; VIEWS.set=function(){ return _vs()+card('Version du jeu','<div class="row sp"><span class="sub">Version '+IB_VER+'</span>'+btn('Voir les nouveautés','ibnewsopen',{c:'sm'})+'</div>'); }; }
-ACT.ibnewsopen=()=>{ ui.modal={type:'ibnews'}; render(); };
+ACT.ibnewsopen=()=>{ ui.modal={type:'ibnews', all:1}; render(); };
 
 /* ============================================================
    ÉLECTRONIQUE : la ligne de puces et le smartphone dans la fiche
