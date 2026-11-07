@@ -16007,13 +16007,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.0.7';
+const IB_VER='V2.0.8';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Sponsor du maillot','Texte du sponsor du maillot simplifié.','V2.0.8'],
   ['Lancez vos guerres des prix','Dans Rivaux, carte Vos marchés : attaquez un concurrent présent sur l’un de vos marchés. Pendant 20 jours, prix −12 % et clients +10 % ; le rival perd du terrain et de la puissance, et quitte le marché s’il tombe à presque rien. Attention, il peut riposter.','V2.0.7'],
   ['Restaurant gastronomique plus rentable','Recettes du restaurant gastronomique +35 %, et le marché ne sature qu’au-delà de 600 % de rendement par an (450 % pour les autres activités).','V2.0.6'],
   ['Recruteurs de jeunes','La fenêtre de mission indique désormais le bon rythme : un rapport par mois.','V2.0.5'],
@@ -16666,7 +16667,7 @@ function spSel(slot,cur,excl){ const L=spCandidates().filter(b=>!(excl||[]).incl
 { const _tf2=fcTabFin; fcTabFin=function(O){ const h=_tf2(O), P=spOf(O), f=spFame(O), pc=x=>Math.round(x*f*1000)/10;
   const row=(slot,label,d)=>'<div class="met-c"><b>'+label+'</b>'+spSel(slot,P[slot])+'<div class="sub">'+d+'</div></div>';
   let c='<div class="sub">Mettez vos propres sociétés en avant : elles vendent plus grâce à la visibilité du club (plus le club est connu, plus l’effet est fort), mais le club perd une partie de ses sponsors.</div>'+
-    row('kit','Sponsor du maillot','+'+pc(SP_SLOT.kit.boost).toString().replace('.',',')+' % de ventes pour la société ; le club perd 25 % de ses sponsors. Un smartphone de votre usine sur le maillot garde ses effets propres.')+
+    row('kit','Sponsor du maillot','+'+pc(SP_SLOT.kit.boost).toString().replace('.',',')+' % de ventes pour la société ; le club perd 25 % de ses sponsors.')+
     row('std','Nom du stade','+'+pc(SP_SLOT.std.boost).toString().replace('.',',')+' % de ventes ; le club perd 10 % de ses sponsors.')+
     '<div class="met-c"><b>Partenaires officiels ('+P.part.length+' / 3)</b>'+P.part.map(id=>{ const b=spBiz(id); return b? '<div class="row sp sp-p"><span>'+esc(b.name)+'<small class="sub"> · '+esc(bizDef(b).n)+'</small></span><button class="btn sm ghost" data-a="sprm" data-i="'+id+'">Retirer</button></div>' : ''; }).join('')+
       (P.part.length<3? spSel('addp',null,P.part) : '')+'<div class="sub">+'+pc(SP_SLOT.part.boost).toString().replace('.',',')+' % de ventes chacun ; le club perd 4 % de ses sponsors par partenaire.</div></div>';
