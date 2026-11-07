@@ -11874,8 +11874,9 @@ function criMit(){ if(!criOn()) return err('Aucune crise en cours.'); if(S.cri.m
      rapporté à tout l'argent investi), le marché se sature et les recettes baissent
      progressivement (b.satF, lissé chaque jour). Évite les remboursements en quelques jours.
    ============================================================ */
-const BAL_F={office:8, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2};
+const BAL_F={office:8, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2, resto:1.35};   /* V2.0.6 : resto +35 % */
 const BAL_ROI=4.5;          /* 450 % par an, soit un remboursement en 80 jours environ */
+const BAL_ROI_D={resto:6};  /* V2.0.6 : le restaurant gastronomique sature plus tard (600 % par an) */
 function balInv(b){ const d=bizDef(b); return Math.max(1,(b.inv$||d.cost)+Math.max(0,bizInvested(b)-d.cost)); }
 const BAL_SKIP=['promo','build'];   /* ventes par programmes : recettes trop irrégulières pour la saturation */
 /* V1.9.5 : les petits commerces du début (paliers 0 et 1) ne saturent pas tant qu'ils restent sous le niveau 4 */
@@ -11887,11 +11888,11 @@ function balStep(){ S.biz.forEach(b=>{ if(b.status!=='active'||!metOf(b)||BAL_SK
   b.rawR= b.rawR===undefined? raw : b.rawR+(raw-b.rawR)*a; b.rawN= b.rawN===undefined? netRaw : b.rawN+(netRaw-b.rawN)*a; b.rawK=(b.rawK||0)+1;
   if(b.rawK<30) return;
   const inv=balInv(b), R=Math.max(1,b.rawR), C=R-b.rawN, roi1=b.rawN*360/inv;
-  const tgt= roi1>BAL_ROI? clamp((BAL_ROI*inv/360+C)/R,.05,1) : 1;
+  const RT=BAL_ROI_D[b.def]||BAL_ROI, tgt= roi1>RT? clamp((RT*inv/360+C)/R,.05,1) : 1;
   b.satF=clamp(f0+(tgt-f0)*.03,.05,1); }); }
 { const _mm=metMods; metMods=function(b){ const z=_mm(b); if(!b||b.status!=='active') return z;
   const f=(BAL_F[b.def]||1)*(b.satF||1); if(f!==1){ z.vol*=f; z.rev*=f; } return z; }; }
-{ const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé','recettes −'+Math.round((1-b.satF)*100)+' %. Ce n’est pas une crise : la société rapporte plus de 450 % par an de ce qu’elle a coûté. Le plafond monte avec chaque agrandissement ou rénovation ; sinon, ouvrez la même activité dans une autre ville.',1]); return L; }; }
+{ const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé','recettes −'+Math.round((1-b.satF)*100)+' %. Ce n’est pas une crise : la société rapporte plus de '+Math.round((BAL_ROI_D[b.def]||BAL_ROI)*100)+' % par an de ce qu’elle a coûté. Le plafond monte avec chaque agrandissement ou rénovation ; sinon, ouvrez la même activité dans une autre ville.',1]); return L; }; }
 
 /* ============================================================
    V1.6.1 : toutes les entreprises coûtent 20 % de plus (création, agrandissements, options), sans
@@ -15959,13 +15960,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.0.5';
+const IB_VER='V2.0.6';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Restaurant gastronomique plus rentable','Recettes du restaurant gastronomique +35 %, et le marché ne sature qu’au-delà de 600 % de rendement par an (450 % pour les autres activités).','V2.0.6'],
   ['Recruteurs de jeunes','La fenêtre de mission indique désormais le bon rythme : un rapport par mois.','V2.0.5'],
   ['Nouveautés plus claires','Au retour dans le jeu, seules les nouveautés parues depuis votre dernière partie s’affichent. La liste complète reste dans Paramètres.','V2.0.4'],
   ['Bureaux : rénovations et rachats','En délégation totale, le directeur de l’immeuble de bureaux vise désormais les rénovations lourdes (standing +1), le label énergie et le rachat d’immeubles, selon ce qui se rembourse le plus vite. Il fait d’abord les travaux les moins chers puis rachète des immeubles, même si son immeuble n’est pas encore plein.','V2.0.3'],
