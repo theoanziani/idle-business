@@ -2808,9 +2808,9 @@ function intensity(key){ const R=rivInit(); if(ncOn(key)) return 0; let t=0; D.R
 const intLabel = i => i<.2?'Faible':i<.45?'Modérée':i<.7?'Forte':'Très forte';
 function warsFor(b){ return rivInit().wars.filter(w=>w.key===rivKey(b)); }
 function warM(b){ let m=1; warsFor(b).forEach(w=>{ m*= w.resp==='match'? 1-0.05*w.sev : w.resp==='camp'? 1-0.07*w.sev : 1-0.16*w.sev; }); return m; }
-const warRev = b => warsFor(b).some(w=>w.resp==='match')? 0.9 : 1;
+const warRev = b => (warsFor(b).some(w=>w.resp==='match')? 0.9 : 1)*attRev(b);   /* V2.0.7 : vos propres guerres des prix */
 const warCost = b => warsFor(b).some(w=>w.resp==='camp')? 0.02 : 0;
-function compM(b){ return clamp(1-0.3*(intensity(rivKey(b))-0.3),.85,1.1)*warM(b); }
+function compM(b){ return clamp(1-0.3*(intensity(rivKey(b))-0.3),.85,1.1)*warM(b)*attVol(b); }
 
 function rivStep(){
   const R=rivInit(), dm=S.dm||1, day=S.day;
@@ -3407,6 +3407,40 @@ function magnates(){
   L.push({n:S.name,me:true,v:S.nw,ph:S.nwH.slice(-60)});
   return L.sort((a,b)=>b.v-a.v);
 }
+
+/* ---------- V2.0.7 : guerres des prix lancées par le joueur ----------
+   Sur un de vos marchés (ville | secteur), contre un rival présent. 20 jours : vos prix −12 %, vos ventes +10 %.
+   Chaque jour la présence du rival sur ce marché recule de 0,012 ; à la fin, sa puissance perd 0,05.
+   Une présence sous 0,05 : le rival quitte le marché (ses enseignes ferment).
+   Le rival peut riposter (25 % + 10 % par point d'agressivité) : effets réduits de moitié et il lance sa propre guerre.
+   Coût de lancement : 30 % du prix d'un contrat de non-concurrence. Pas de nouvelle attaque sur ce marché pendant 60 jours.
+   État : S.riv.att[] {id, key, rival, left, rip}, S.riv.attCd{key: jour}. */
+const ATT_DAYS=20, ATT_CD=60;
+const attOf = key => ((S.riv&&S.riv.att)||[]).find(a=>a.key===key);
+function attRev(b){ return attOf(rivKey(b))? .88 : 1; }
+function attVol(b){ const a=attOf(rivKey(b)); return a? (a.rip? 1.05 : 1.10) : 1; }
+const attCost = key => Math.round(ncPrice(key)*.3/100)*100;
+function attRivals(key){ const R=rivInit(); return D.RIVALS.filter(r=>!R.rv[r.id].gone&&(R.rv[r.id].pres[key]||0)>0); }
+function attWhy(key){ const R=rivInit(); if(!S.biz.some(b=>b.status==='active'&&rivKey(b)===key)) return 'Vous n’avez pas d’activité sur ce marché.';
+  if(attOf(key)) return 'Une guerre des prix est déjà en cours.'; if((R.attCd||{})[key]>S.day) return 'Vos clients se remettent de la dernière guerre : possible le '+dateL(R.attCd[key])+'.';
+  if(!attRivals(key).length) return 'Aucun rival sur ce marché.'; return ''; }
+function attLaunch(key,rid){ const R=rivInit(), why=attWhy(key); if(why) return err(why);
+  const r=rivDef(rid), v=R.rv[rid]; if(!r||!v||v.gone||!(v.pres[key]>0)) return err('Ce rival n’est pas sur ce marché.');
+  const c=attCost(key); if(S.cash<c) return err('Trésorerie insuffisante : '+eur(c,0)+' requis.');
+  pay('gen','Guerre des prix contre '+r.n+' : '+keyLabel(key),-c);
+  const rip=rnd()<.25+.1*r.ag; R.att=R.att||[]; R.att.push({id:R.nid++, key, rival:rid, left:ATT_DAYS, rip});
+  if(rip&&!R.wars.some(w=>w.key===key)){ R.wars.push({id:R.nid++,key,rival:rid,left:rint(8,14),sev:Math.round((.5+.5*rnd())*10)/10,resp:'hold'}); v.wars++; }
+  log(rip?'warn':'good','Vous cassez les prix face à '+r.n+' : '+keyLabel(key)+', pendant '+ATT_DAYS+' jours.'+(rip?' '+r.n+' riposte et baisse aussi ses prix : choisissez votre réponse dans Rivaux.':''));
+  return ok(rip? r.n+' riposte : la bataille sera plus rude.' : 'Guerre des prix lancée.'); }
+function attStep(){ const R=S.riv; if(!R||!R.att||!R.att.length) return;
+  R.att=R.att.filter(a=>{ const v=R.rv[a.rival], r=rivDef(a.rival); if(!v||v.gone) return false;
+    if(v.pres[a.key]) v.pres[a.key]=Math.max(0,v.pres[a.key]-.012*(a.rip?.5:1));
+    if(--a.left>0&&v.pres[a.key]>.05) return true;
+    v.pow=Math.max(.4,v.pow-.05*(a.rip?.5:1)); v.lost++; R.attCd=R.attCd||{}; R.attCd[a.key]=S.day+ATT_CD;
+    if(!(v.pres[a.key]>.05)){ delete v.pres[a.key]; R.wars=R.wars.filter(w=>!(w.key===a.key&&w.rival===a.rival)); log('good',r.n+' abandonne le marché '+keyLabel(a.key)+' : ses enseignes ferment.'); }
+    else log('info','Fin de votre guerre des prix contre '+r.n+' ('+keyLabel(a.key)+'). Sa présence sur ce marché tombe à '+fmtN(v.pres[a.key],2)+'.');
+    try{ shopsSync(); }catch(e){} return false; }); }
+{ const _rs=rivStep; rivStep=function(){ _rs.apply(this,arguments); attStep(); }; }
 
 /* ============================================================
    FINANCE ET POUVOIR : ordres automatiques, introductions en bourse, épargne automatique,
@@ -13292,6 +13326,10 @@ function rivBadge(){ const R=S.riv; if(!R) return 0; return R.offers.length+R.wa
 function vRivals(){
   const R=rivInit(); let h=head('Rivaux');
   /* guerres des prix */
+  /* V2.0.7 : vos guerres des prix */
+  if((R.att||[]).length) h+=card('Vos guerres des prix','<div class="stack">'+R.att.map(a=>{ const r=rivDef(a.rival), v=R.rv[a.rival];
+    return '<div class="war"><div class="row sp"><div><b>Contre '+esc(r.n)+'</b><div class="sub">'+esc(keyLabel(a.key))+'</div></div>'+pill('encore '+a.left+' j',a.rip?'warn':'good')+'</div>'+
+      '<div class="sub">Vos prix −12 %, vos ventes +'+(a.rip?5:10)+' %. Présence du rival : '+fmtN(v.pres[a.key]||0,2)+(a.rip?' · il riposte : effets réduits de moitié':'')+'.</div></div>'; }).join('')+'</div>');
   h+=card('Guerres des prix', R.wars.length? '<div class="stack">'+R.wars.map(w=>{ const r=rivDef(w.rival);
     return '<div class="war"><div class="row sp"><div><b>'+esc(r.n)+'</b><div class="sub">'+esc(keyLabel(w.key))+'</div></div>'+pill('encore '+w.left+' j','warn')+'</div>'+
       '<div class="row">'+dots(Math.round(w.sev*2.5),5)+'<span class="sub">Gravité '+w.sev.toFixed(1)+'</span></div>'+
@@ -13312,7 +13350,7 @@ function vRivals(){
   /* rivaux */
   { const keys=[...new Set(S.biz.filter(b=>b.status==='active').map(rivKey))];
     h+=card('Vos marchés', keys.length? '<div class="stack">'+keys.map(k=>{ const I=intensity(k), nc=ncOn(k);
-      return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:170px"><b>'+esc(keyLabel(k))+'</b><div class="sub">Concurrence : '+intLabel(I)+(nc?' · contrat jusqu’au '+dateL(S.riv.nc[k]):'')+'</div></div>'+(nc? pill('Protégé','good') : btn('Non-concurrence : '+eur(ncPrice(k),0),'ncbuy',{c:'sm',i:k,dis:S.cash<ncPrice(k)}))+'</div>'; }).join('')+'</div><div class="sub">Un contrat de non-concurrence écarte les rivaux d’un marché pendant 90 jours.</div>' : '<div class="sub">Lancez d’abord une entreprise.</div>'); }
+      return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:170px"><b>'+esc(keyLabel(k))+'</b><div class="sub">Concurrence : '+intLabel(I)+(nc?' · contrat jusqu’au '+dateL(S.riv.nc[k]):'')+'</div></div>'+'<div class="row">'+(attOf(k)? pill('Guerre en cours','warn') : attRivals(k).length? btn('Guerre des prix','attopen',{c:'sm',i:k}) : '')+(nc? pill('Protégé','good') : btn('Non-concurrence : '+eur(ncPrice(k),0),'ncbuy',{c:'sm',i:k,dis:S.cash<ncPrice(k)}))+'</div></div>'; }).join('')+'</div><div class="sub">Un contrat de non-concurrence écarte les rivaux d’un marché pendant 90 jours.</div>' : '<div class="sub">Lancez d’abord une entreprise.</div>'); }
   h=h.replace(head('Rivaux'),head('Rivaux')+magnatesCard());
   h+=card('Les rivaux','<div class="stack">'+D.RIVALS.filter(r=>!R.rv[r.id].gone).map(r=>{ const v=R.rv[r.id], ks=Object.keys(v.pres).filter(k=>cityVisible(k.split('|')[0])).sort((a,b)=>v.pres[b]-v.pres[a]);
     const mine=new Set(S.biz.map(rivKey));
@@ -13323,12 +13361,21 @@ function vRivals(){
   return h;
 }
 Object.assign(ACT,{
+  attopen:el=>{ ui.modal={type:'attk',k:el.dataset.i}; render(); },
+  attgo:el=>{ const r=attLaunch(ui.modal&&ui.modal.k,el.dataset.v); if(r.ok) ui.modal=null; after(r); },
   warresp:el=>after(respondWar(+el.dataset.i,el.dataset.v)),
   offeracc:el=>{ const R=rivInit(), o=R.offers.find(x=>x.id===+el.dataset.i), b=o&&S.biz.find(x=>x.id===o.b); if(!b) return; ask('Accepter l’offre','Vendre <b>'+esc(b.name)+'</b> à '+esc(rivDef(o.rival).n)+' pour <b>'+eur(o.price,0)+'</b> ? Le personnel est licencié.','Vendre',()=>after(acceptOffer(o.id),'Entreprise cédée.')); },
   offerref:el=>after(refuseOffer(+el.dataset.i)),
   dealbuy:el=>after(buyDeal(+el.dataset.i),'Commerce racheté.'),
   talhire:el=>after(hireTalent(+el.dataset.i,el.dataset.j))
 });
+
+/* V2.0.7 : fenêtre pour lancer une guerre des prix */
+{ const _mc=modalContent; modalContent=function(){ const m=ui.modal; if(!(m&&m.type==='attk')) return _mc(); const k=m.k, why=attWhy(k), c=attCost(k), R=rivInit();
+  return {title:'Guerre des prix',sm:true,body:'<div class="stack"><div><b>'+esc(keyLabel(k))+'</b><div class="sub">Pendant '+ATT_DAYS+' jours, vos sociétés de ce marché baissent leurs prix de 12 % et gagnent 10 % de clients. Le rival visé perd du terrain chaque jour, et de la puissance à la fin. S’il tombe à presque rien, il quitte le marché et ses enseignes ferment. Il peut riposter : les effets sont alors réduits de moitié et il lance sa propre guerre.</div></div>'+
+    (why? '<div class="notice bad">'+esc(why)+'</div>' : attRivals(k).map(r=>{ const v=R.rv[r.id];
+      return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:160px"><b>'+esc(r.n)+'</b><div class="sub">Présence '+fmtN(v.pres[k],2)+' · puissance '+fmtN(v.pow,2)+' · riposte '+Math.round((.25+.1*r.ag)*100)+' %</div></div>'+btn('Attaquer · '+eur(c,0),'attgo',{c:'sm pri',v:r.id,dis:S.cash<c})+'</div>'; }).join(''))+
+    '<div class="sub">Coût de lancement : '+eur(c,0)+'. Ensuite, 60 jours de répit avant une nouvelle guerre sur ce marché.</div></div>'}; }; }
 
 /* ============================================================
    V2 phase 3 : villes (achat, loyers, pays)
@@ -15960,13 +16007,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.0.6';
+const IB_VER='V2.0.7';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Lancez vos guerres des prix','Dans Rivaux, carte Vos marchés : attaquez un concurrent présent sur l’un de vos marchés. Pendant 20 jours, prix −12 % et clients +10 % ; le rival perd du terrain et de la puissance, et quitte le marché s’il tombe à presque rien. Attention, il peut riposter.','V2.0.7'],
   ['Restaurant gastronomique plus rentable','Recettes du restaurant gastronomique +35 %, et le marché ne sature qu’au-delà de 600 % de rendement par an (450 % pour les autres activités).','V2.0.6'],
   ['Recruteurs de jeunes','La fenêtre de mission indique désormais le bon rythme : un rapport par mois.','V2.0.5'],
   ['Nouveautés plus claires','Au retour dans le jeu, seules les nouveautés parues depuis votre dernière partie s’affichent. La liste complète reste dans Paramètres.','V2.0.4'],
