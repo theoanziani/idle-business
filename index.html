@@ -8004,11 +8004,13 @@ function dlSpend(b,cost,label){ if(cost>dlBudget(b)) return false; if(!metBuy(b,
    et à défaut l'agrandissement de la société : il y a toujours un achat visé tant qu'un niveau reste à gagner */
 const dlSkipped = (b,k) => !!(b.dlSkip&&b.dlSkip[k]>S.day);
 const dlNet30 = b => { const h=(b.hist||[]).slice(-30); return h.length? h.reduce((a,x)=>a+x,0)/h.length : 0; };
+/* V2.0.2 : bénéfice moyen sur environ 120 jours (activités à cycles : collections, récoltes, films) */
+const dlNetL = b => b.dlE!==undefined? Math.max(b.dlE,dlNet30(b)) : dlNet30(b);
 function dlGoal(b){ const mm=metOf(b); if(!mm||b.status!=='active') return null; let best=null;
   try{ metCtl(b).forEach(c=>{ if((c.k==='buy'||(c.k==='btn'&&c.once))&&!c.owned&&!c.dis&&c.cost>0&&c.act&&!dlSkipped(b,c.act+':'+c.arg)&&(!best||c.cost<best.c)) best={n:c.label, c:c.cost, act:c.act, arg:c.arg}; });
     if(mm.goal){ const g=mm.goal(b); if(g&&(!best||g.c<best.c)) best=g; } }catch(e){}
   /* V1.8.6 : pas d'agrandissement si la société perd de l'argent, ni si le précédent n'a pas fait monter le bénéfice */
-  const n30=dlNet30(b), upOk= n30>0 && (b.dlUpN===undefined || n30>=b.dlUpN*1.05 || S.day-(b.dlUpD||0)>=180);   /* V2.0.1 : nouvel essai au bout de 180 jours */
+  const n30=dlNetL(b), upOk= n30>0 && (b.dlUpN===undefined || n30>=b.dlUpN*1.05 || S.day-(b.dlUpD||0)>=180);   /* V2.0.1 : nouvel essai au bout de 180 jours */
   /* V1.8.4 : l'agrandissement reste l'achat visé (la réserve peut donc l'atteindre), y compris pendant un
      agrandissement en cours (niveau suivant) ; s'il vient d'échouer, il reste visé mais n'est retenté qu'après 30 jours */
   if(!best&&b.up&&b.lvl+1<MAXLVL&&upOk){ b.lvl++; const c=upgradeCost(b); b.lvl--; best={n:'Agrandir au niveau '+(b.lvl+2)+' (après le chantier en cours)', c, up:1, wait:1}; }
@@ -8023,6 +8025,7 @@ function dlAct(b,cost,fn){ if(!(cost>0)||dlBudget(b)<cost) return false; const r
 function dlDaily(b){
   const m=metOf(b); if(!m||!m.auto||b.status!=='active') return;
   const mode=dlMode(b); if(mode==='me') return;
+  if(b.last&&b.last.day!==b.dlEd){ b.dlEd=b.last.day; const n=b.last.net||0; b.dlE= b.dlE===undefined? n : b.dlE+(n-b.dlE)/120; }
   if(mode==='full'&&b.last){ const add=DL_BUD[b.dlb||0]*Math.max(0,b.last.net0!==undefined? b.last.net0 : b.last.net), g=dlGoal(b);
     /* V1.5.8 : réserve plafonnée à trois ans de mise de côté, ou au prix du prochain achat visé s'il est plus cher */
     b.dlp=Math.min(dlBudget(b)+add, Math.max(dlBudget(b),add*1080,g? g.c*1.05 : 0));
@@ -8036,7 +8039,7 @@ function dlDaily(b){
          générale, sans descendre sous un mois de dépenses du groupe */
       if(dlBudget(b)<g.c&&b.dlg&&dlBudget(b)>=g.c*.5){ const need=g.c-dlBudget(b); if(S.cash-need>=finBuf()){ b.dlp=(b.dlp||0)+need; metLog(b,'priorité du groupe : '+eur(need,0)+' de la trésorerie générale pour « '+g.n.toLowerCase()+' ».'); } }
       if(dlBudget(b)<g.c) break; const key=g.up? 'up' : g.rel? 'rel' : g.act+':'+g.arg;
-      const done=dlAct(b,g.c,()=>{ const r= g.up? (b.dlUpN=dlNet30(b), b.dlUpD=S.day, upgradeBiz(b)) : g.rel? relocBiz(b,g.rel) : metAct(b,g.act,g.arg); if(r&&r.ok!==false) metLog(b,'Votre directeur : '+g.n.toLowerCase()+' ('+eur(g.c,0)+').'); return r; });
+      const done=dlAct(b,g.c,()=>{ const r= g.up? (b.dlUpN=dlNetL(b), b.dlUpD=S.day, upgradeBiz(b)) : g.rel? relocBiz(b,g.rel) : metAct(b,g.act,g.arg); if(r&&r.ok!==false) metLog(b,'Votre directeur : '+g.n.toLowerCase()+' ('+eur(g.c,0)+').'); return r; });
       /* refusé, ou achat renouvelable (cave, stock…) : on n'y revient pas avant 30 jours */
       b.dlSkip=b.dlSkip||{}; b.dlSkip[key]=S.day+30; if(!done) continue; } }catch(e){ console.error(e); } }
 }
@@ -11121,7 +11124,7 @@ function alInvest(b){ const m=b.m, H=alNextHub(b);
   if(H&&alBuyHub(b,H.id,true).ok) return;
   const x=alLeasedOnGood(b); if(!x||mDlp(b)<AL_TY[x.p.t].pr) return;
   const r=alGet(b,x.p.t,true,true); if(!r.ok) return; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; alDrop(b,x.p.id); metLog(b,'le directeur achète l’'+AL_TY[n.t].n+' de la ligne '+alAp(x.l.a).n+' – '+alAp(x.l.b).n+' au lieu de le louer.',''); }
-MET.airline.goal=function(b){ const H=alNextHub(b); if(H) return {n:'Place dans la tour : '+H.n, c:alHubCost(H.id)}; const x=alLeasedOnGood(b); return x? {n:AL_TY[x.p.t].n+' acheté', c:AL_TY[x.p.t].pr} : null; };
+MET.airline.goal=function(b){ const H=alNextHub(b); if(H) return {n:'Place dans la tour : '+H.n, c:alHubCost(H.id), act:'hub', arg:H.id}; const x=alLeasedOnGood(b); return x? {n:AL_TY[x.p.t].n+' acheté', c:AL_TY[x.p.t].pr} : null; };
 function alData(){ return {AL_AP, AL_CO, AL_TY}; }
 
 /* ============================================================
@@ -11412,7 +11415,7 @@ function shInvest(b){ const m=b.m, T=shNextTm(b);
   if(T&&shBuyTm(b,T.id,true).ok) return;
   const x=shLeasedOnGood(b); if(!x) return; const c=SH_TY[x.p.t].pr*SH_OCC; if(mDlp(b)<c) return;
   const r=shGet(b,x.p.t,'occ',true); if(!r.ok) return; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; shDrop(b,x.p.id); metLog(b,'le directeur rachète d’occasion le '+SH_TY[n.t].n+' de la ligne '+shPt(x.l.a).n+' – '+shPt(x.l.b).n+'.',''); }
-MET.shipping.goal=function(b){ const m=b.m; if(m.tm.length&&m.tm.every(h=>shTmUsed(b,h)>=shTmCap(b,h))){ const h=m.tm[0]; if((m.ext&&m.ext[h]||0)<3) return {n:'Quais à '+shPt(h).n, c:shExtCost(b,h)}; } const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id)}; const x=shLeasedOnGood(b); return x? {n:SH_TY[x.p.t].n+' d’occasion', c:SH_TY[x.p.t].pr*SH_OCC} : null; };
+MET.shipping.goal=function(b){ const m=b.m; if(m.tm.length&&m.tm.every(h=>shTmUsed(b,h)>=shTmCap(b,h))){ const h=m.tm[0]; if((m.ext&&m.ext[h]||0)<3) return {n:'Quais à '+shPt(h).n, c:shExtCost(b,h), act:'ext', arg:h}; } const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id), act:'tm', arg:T.id}; const x=shLeasedOnGood(b); return x? {n:SH_TY[x.p.t].n+' d’occasion', c:SH_TY[x.p.t].pr*SH_OCC} : null; };
 function shData(){ return {SH_PT, SH_TY, SH_RG, SH_NB}; }
 
 /* ============================================================
@@ -15945,9 +15948,10 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V1.9.9';
+const IB_VER='V2.0.1';
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 const IB_NEWS=[
+  ['Immeubles de bureaux : le directeur investit','En délégation totale, le directeur vise l’achat d’un nouvel immeuble (le moins cher au m²) dès que ses immeubles sont loués aux trois quarts, et met sa réserve de côté pour l’acheter. Partout, un agrandissement qui n’a pas fait monter le bénéfice est retenté au bout de 180 jours au lieu d’être bloqué.'],
   ['Un stade qui vit avec vos résultats','L’affluence suit la forme récente et le classement : une série de victoires et une place en haut du tableau remplissent le stade, une mauvaise passe le vide. L’agrandissement n’a plus de limite liée à la capacité d’origine (jusqu’à 100 000 places).'],
   ['Un peu plus de pépites','Les recruteurs de jeunes dénichent un peu plus souvent une pépite (environ 2,9 % par jeune pour le meilleur recruteur, contre 2,5 %).'],
   ['Agrandir son stade','Dans l’onglet Finances de votre club, la carte Stade permet d’ajouter des places (environ 15 % de plus par chantier, 120 jours de travaux, jusqu’à trois fois la capacité d’origine). Plus de billetterie, plus de buvettes et un club qui vaut plus cher.'],
