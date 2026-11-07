@@ -15589,7 +15589,7 @@ ACT.ysdrop=el=>{ const r=ysDrop(el.dataset.i); if(r.ok) ui.modal=null; after(r);
     return {title:'Mission de '+esc(s.n),sm:true,body:ysMap(O,m.c,m.z)+
       '<div class="seg ys-len">'+YS_LEN.map(l=>'<button class="'+(m.len===l?'on':'')+'" data-a="yslen" data-v="'+l+'">'+l/30+' mois</button>').join('')+'</div>'+
       (c? '<div class="met-k"><div><span>Pays</span><b>'+esc(c.n)+'</b><small>Vivier : '+(c.t>=1.15?'exceptionnel':c.t>=1.05?'très riche':c.t>=.98?'riche':'modeste')+(c.rare?' ; pays peu commun : une pépite peut surgir':'')+'</small></div><div><span>Coût total</span><b class="num">'+eur(cost,0)+'</b><small>Voyage '+eur(ysTravel(O,m.c),0)+' + '+eur(ysMonthly(s),0)+' par mois</small></div></div>'+
-        '<div class="sub">'+Math.round(m.len/14)+' rapports, un toutes les deux semaines.</div><div class="row" style="margin-top:10px">'+btn('Envoyer '+esc(s.n),'yssend',{c:'pri',dis:S.cash<ysTravel(O,m.c)})+'</div>'
+        '<div class="sub">'+(m.len/30>1? (m.len/30)+' rapports, un par mois.' : 'Un rapport à la fin du mois.')+'</div><div class="row" style="margin-top:10px">'+btn('Envoyer '+esc(s.n),'yssend',{c:'pri',dis:S.cash<ysTravel(O,m.c)})+'</div>'
         : '<div class="sub">Touchez un pays sur la carte, ou choisissez-le dans la liste.</div>')+
       '<div class="ys-list">'+Object.entries(YS_C).map(([k,x])=>'<button class="'+(m.c===k?'on':'')+'" data-a="yspick" data-v="'+k+'">'+esc(x.n)+'</button>').join('')+'</div>'}; }
   if(m&&m.type==='ysprop'&&O){ fcYS(O); const p=O.yprop.find(x=>x.id===m.id); if(!p){ ui.modal=null; return _mc(); }
@@ -15959,13 +15959,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.0.4';
+const IB_VER='V2.0.5';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Recruteurs de jeunes','La fenêtre de mission indique désormais le bon rythme : un rapport par mois.','V2.0.5'],
   ['Nouveautés plus claires','Au retour dans le jeu, seules les nouveautés parues depuis votre dernière partie s’affichent. La liste complète reste dans Paramètres.','V2.0.4'],
   ['Bureaux : rénovations et rachats','En délégation totale, le directeur de l’immeuble de bureaux vise désormais les rénovations lourdes (standing +1), le label énergie et le rachat d’immeubles, selon ce qui se rembourse le plus vite. Il fait d’abord les travaux les moins chers puis rachète des immeubles, même si son immeuble n’est pas encore plein.','V2.0.3'],
   ['Directeurs : réserves mieux dépensées','Compagnie aérienne et transport maritime : le directeur achète tout de suite les places en tour de contrôle, terminaux et quais visés au lieu d’attendre la fin du mois (la réserve ne dort plus). Studio, agence de recrutement et autres activités à cycles : la décision d’agrandir se fonde sur le bénéfice moyen des quatre derniers mois, plus sur le dernier mois seul.','V2.0.2'],
