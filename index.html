@@ -13322,6 +13322,7 @@ Object.assign(CH,{
    V2 phase 2 : rivaux, guerres des prix, rachats, débauchage
    ============================================================ */
 const WARR=[['hold','Subir','Ventes −16 % × gravité'],['match','Aligner les prix','Prix −10 %, ventes −5 % × gravité'],['camp','Campagne','Ventes −7 % × gravité, 2 % de coût/jour']];
+const warsFor0 = k => rivInit().wars.some(w=>w.key===k);
 function rivBadge(){ const R=S.riv; if(!R) return 0; return R.offers.length+R.wars.filter(w=>w.resp==='hold').length; }
 function vRivals(){
   const R=rivInit(); let h=head('Rivaux');
@@ -13349,8 +13350,9 @@ function vRivals(){
       '<div class="hr">'+(targets.length? targets.map(e=>{ const c=talentCost(e,t); return btn('Recruter chez '+esc(e.name)+' · prime '+eur(c,0),'talhire',{c:'sm pri',i:t.id,j:'b'+e.id,dis:S.cash<c}); }).join('') : '<span class="sub">Aucun poste de ce type à pourvoir.</span>')+'</div></div>'; }).join('')+'</div><div class="sub">Renouvelés chaque lundi. La prime vaut 14 jours de salaire.</div>' : '<div class="sub">Nouveaux talents lundi.</div>');
   /* rivaux */
   { const keys=[...new Set(S.biz.filter(b=>b.status==='active').map(rivKey))];
-    h+=card('Vos marchés', keys.length? '<div class="stack">'+keys.map(k=>{ const I=intensity(k), nc=ncOn(k);
-      return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:170px"><b>'+esc(keyLabel(k))+'</b><div class="sub">Concurrence : '+intLabel(I)+(nc?' · contrat jusqu’au '+dateL(S.riv.nc[k]):'')+'</div></div>'+'<div class="row">'+(attOf(k)? pill('Guerre en cours','warn') : attRivals(k).length? btn('Guerre des prix','attopen',{c:'sm',i:k}) : '')+(nc? pill('Protégé','good') : btn('Non-concurrence : '+eur(ncPrice(k),0),'ncbuy',{c:'sm',i:k,dis:S.cash<ncPrice(k)}))+'</div></div>'; }).join('')+'</div><div class="sub">Un contrat de non-concurrence écarte les rivaux d’un marché pendant 90 jours.</div>' : '<div class="sub">Lancez d’abord une entreprise.</div>'); }
+    { const F=S.fcfold||{}, open=!!F.rv_mk, nw=keys.filter(k=>attOf(k)||warsFor0(k)).length;
+      h+='<section class="card fcd-c"><details class="fcd ag-f" data-k="rv_mk"'+(open?' open':'')+'><summary><span class="ag-s"><h2><span>Vos marchés</span></h2><small>'+keys.length+' marché'+(keys.length>1?'s':'')+(nw? ' · '+nw+' en guerre' : '')+'</small></span></summary><div class="ht-t">'+(keys.length? '<div class="stack">'+keys.map(k=>{ const I=intensity(k), nc=ncOn(k);
+      return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:170px"><b>'+esc(keyLabel(k))+'</b><div class="sub">Concurrence : '+intLabel(I)+(nc?' · contrat jusqu’au '+dateL(S.riv.nc[k]):'')+'</div></div>'+'<div class="row">'+(attOf(k)? pill('Guerre en cours','warn') : attRivals(k).length? btn('Guerre des prix','attopen',{c:'sm',i:k}) : '')+(nc? pill('Protégé','good') : btn('Non-concurrence : '+eur(ncPrice(k),0),'ncbuy',{c:'sm',i:k,dis:S.cash<ncPrice(k)}))+'</div></div>'; }).join('')+'</div><div class="sub">Un contrat de non-concurrence écarte les rivaux d’un marché pendant 90 jours.</div>' : '<div class="sub">Lancez d’abord une entreprise.</div>')+'</div></details></section>'; }; }
   h=h.replace(head('Rivaux'),head('Rivaux')+magnatesCard());
   h+=card('Les rivaux','<div class="stack">'+D.RIVALS.filter(r=>!R.rv[r.id].gone).map(r=>{ const v=R.rv[r.id], ks=Object.keys(v.pres).filter(k=>cityVisible(k.split('|')[0])).sort((a,b)=>v.pres[b]-v.pres[a]);
     const mine=new Set(S.biz.map(rivKey));
@@ -16007,13 +16009,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.0.8';
+const IB_VER='V2.0.9';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Vos marchés repliables','Dans Rivaux, la carte Vos marchés se déplie d’un toucher et indique le nombre de marchés en guerre.','V2.0.9'],
   ['Sponsor du maillot','Texte du sponsor du maillot simplifié.','V2.0.8'],
   ['Lancez vos guerres des prix','Dans Rivaux, carte Vos marchés : attaquez un concurrent présent sur l’un de vos marchés. Pendant 20 jours, prix −12 % et clients +10 % ; le rival perd du terrain et de la puissance, et quitte le marché s’il tombe à presque rien. Attention, il peut riposter.','V2.0.7'],
   ['Restaurant gastronomique plus rentable','Recettes du restaurant gastronomique +35 %, et le marché ne sature qu’au-delà de 600 % de rendement par an (450 % pour les autres activités).','V2.0.6'],
