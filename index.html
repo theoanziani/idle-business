@@ -1444,9 +1444,12 @@ function pick(a){ return a[Math.floor(rnd()*a.length)]; }
 function poisson(l){ let L=Math.exp(-l),k=0,p=1; do{k++;p*=rnd();}while(p>L&&k<30); return k-1; }
 function wpick(items, wf){ let t=0; items.forEach(i=>t+=wf(i)); let r=rnd()*t; for(const i of items){ r-=wf(i); if(r<=0) return i; } return items[items.length-1]; }
 
-const NF = new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0});
-const NF2 = new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2});
-function fmtN(n,d){ return d? new Intl.NumberFormat('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d}).format(n) : NF.format(Math.round(n)); }
+/* V2.1.6 : format des nombres selon la langue (anglais : 1,234.5) */
+const NLOC = (()=>{ try{ return (typeof localStorage!=='undefined'&&localStorage.getItem('idlebiz.lang')==='en')? 'en-GB' : 'fr-FR'; }catch(e){ return 'fr-FR'; } })();
+const NF = new Intl.NumberFormat(NLOC,{maximumFractionDigits:0});
+const NF2 = new Intl.NumberFormat(NLOC,{minimumFractionDigits:2,maximumFractionDigits:2});
+const NFD = {};
+function fmtN(n,d){ return d? (NFD[d]=NFD[d]||new Intl.NumberFormat(NLOC,{minimumFractionDigits:d,maximumFractionDigits:d})).format(n) : NF.format(Math.round(n)); }
 function eur(n,dec){
   if(!isFinite(n)) return '—';
   const a=Math.abs(n), sg=n<0?'−':'';
@@ -15774,7 +15777,7 @@ function ysPropRow(p){
   const free=YS_MAX-O.ysc.length;
   return _st(O)+card('Recruteurs de jeunes ('+O.ysc.length+' sur '+YS_MAX+')','<div class="sub">L’expérience donne le nombre de jeunes proposés (une étoile : 1 ou 2 par mois de mission ; cinq étoiles : 5 à 7). L’expertise relève leur qualité et leur potentiel, sans écarter tous les profils modestes.</div>'+
       O.ysc.map(s=>ysScoutRow(O,s)).join('')+(free>0? '<div class="row" style="margin-top:8px">'+btn('Recruter un recruteur de jeunes','yshire',{c:'sm'})+'</div>' : ''))+
-    card('Jeunes proposés ('+O.yprop.length+')', O.yprop.length? '<div class="row sp"><span class="sub">Ils sont listés dans l’onglet Effectif.</span>'+btn('Voir les jeunes','fctab',{v:'sq',c:'sm pri'})+'</div>' : '<div class="sub">Envoyez un recruteur en mission : il envoie un rapport toutes les deux semaines.</div>');
+    card('Jeunes proposés ('+O.yprop.length+')', O.yprop.length? '<div class="row sp"><span class="sub">Ils sont listés dans l’onglet Effectif.</span>'+btn('Voir les jeunes','fctab',{v:'sq',c:'sm pri'})+'</div>' : '<div class="sub">Envoyez un recruteur en mission : il envoie un rapport chaque mois.</div>');
 }; }
 ACT.yshire=()=>{ ui.modal={type:'yshire'}; render(); };
 ACT.yshireok=el=>{ const m=ui.modal, r= m&&m.rep? ysReplace(m.rep,el.dataset.i) : ysHire(el.dataset.i); if(r.ok) ui.modal=null; after(r); };
@@ -16168,13 +16171,15 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.1.3';
+const IB_VER='V2.1.5';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['English: more translations','Guide, journal, notifications, club, rivals, cities, bank and rules are now translated. Hors noms propres, environ 97 % des textes affichés sont en anglais.','V2.1.5'],
+  ['English (beta)','Réglages, carte Langue : le jeu peut s’afficher en anglais. Version bêta : l’essentiel de l’interface est traduit, certains textes restent en français.','V2.1.4'],
   ['Événement de la semaine','Chaque semaine, un de vos secteurs est à l’honneur : recettes +20 % pendant 30 jours de jeu et un défi de bénéfice qui rapporte une prime. Nouvel événement chaque lundi.','V2.1.3'],
   ['26 nouveaux succès et écran Statistiques','Succès pour le football, les rivaux, les villes, la délégation et les grands records, avec la liste complète dans Objectifs. Nouvel écran Statistiques (menu Plus) : records, bénéfice par secteur, meilleures sociétés.','V2.1.3'],
   ['Démarrage plus sûr et confort','La fenêtre de lancement prévient quand la trésorerie restante est trop faible, et le conseiller signale une trésorerie basse. Taille du texte réglable dans Réglages. Écran Sociétés plus rapide avec beaucoup de sociétés.','V2.1.3'],
@@ -16782,7 +16787,7 @@ MET.office.html=function(b){
         : '<small>'+(m.bd.some(B=>B.std>=P.std)? 'Pas assez d’étages libres pour le moment dans vos immeubles « '+OF_STD[P.std]+' » ou plus.' : 'Standing insuffisant : rénovez un immeuble ou achetez-en un « '+OF_STD[P.std]+' ».')+'</small>')+'</div></div>'; }).join('') : '<div class="sub">Personne pour le moment : de nouvelles entreprises se présentent régulièrement.</div>';
   h+='</div><div class="sub">Comment ça marche'+helpQ('Négocier un bail','Négocier fait gagner 8 % de loyer, mais une entreprise sur deux refuse et cherche ailleurs. Une entreprise fragile peut faire faillite.')+'</div>';
   /* locataires */
-  h+='<div class="pk-head"><b>Locataires</b><span class="sub">'+m.tn.length+' bail'+(m.tn.length>1?'x':'')+'</span></div><div class="ht-t">';
+  h+='<div class="pk-head"><b>Locataires</b><span class="sub">'+m.tn.length+(m.tn.length>1?' baux':' bail')+'</span></div><div class="ht-t">';
   m.tn.slice().sort((x,y)=>x.until-y.until).forEach(t=>{ const B=ofBd(b,t.bd);
     h+='<div class="rs-d"><div><b>'+esc(t.n)+'</b><small>'+esc(B?B.n:'')+' · '+t.fl.length+' étage'+(t.fl.length>1?'s':'')+' · '+eur(t.r,0)+' / m² par an · fin du bail le '+dateL(t.until)+'</small><div class="row sp"><span>'+pill('Satisfaction '+Math.round(t.sat),t.sat<40?'bad':t.sat<60?'warn':'good')+'</span>'+ofBt(b,'Faire partir','evict',t.id,{c:'sm ghost'})+'</div></div></div>'; });
   h+='</div><div class="sub">Comment ça marche'+helpQ('Fin des baux','À la fin du bail, un locataire satisfait renouvelle (au loyer du marché). Faire partir un locataire coûte six mois de loyer.')+'</div>';
