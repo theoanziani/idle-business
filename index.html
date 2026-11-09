@@ -11908,7 +11908,7 @@ function criMit(){ if(!criOn()) return err('Aucune crise en cours.'); if(S.cri.m
      rapporté à tout l'argent investi), le marché se sature et les recettes baissent
      progressivement (b.satF, lissé chaque jour). Évite les remboursements en quelques jours.
    ============================================================ */
-const BAL_F={office:8, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2, resto:1.35};   /* V2.0.6 : resto +35 % */
+const BAL_F={office:8, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2, resto:1.35, electronics:1.15, shipping:1.1};   /* V2.1.1 : électronique +15 %, maritime +10 % */   /* V2.0.6 : resto +35 % */
 const BAL_ROI=4.5;          /* 450 % par an, soit un remboursement en 80 jours environ */
 const BAL_ROI_D={resto:6};  /* V2.0.6 : le restaurant gastronomique sature plus tard (600 % par an) */
 function balInv(b){ const d=bizDef(b); return Math.max(1,(b.inv$||d.cost)+Math.max(0,bizInvested(b)-d.cost)); }
@@ -11922,11 +11922,11 @@ function balStep(){ S.biz.forEach(b=>{ if(b.status!=='active'||!metOf(b)||BAL_SK
   b.rawR= b.rawR===undefined? raw : b.rawR+(raw-b.rawR)*a; b.rawN= b.rawN===undefined? netRaw : b.rawN+(netRaw-b.rawN)*a; b.rawK=(b.rawK||0)+1;
   if(b.rawK<30) return;
   const inv=balInv(b), R=Math.max(1,b.rawR), C=R-b.rawN, roi1=b.rawN*360/inv;
-  const RT=BAL_ROI_D[b.def]||BAL_ROI, tgt= roi1>RT? clamp((RT*inv/360+C)/R,.05,1) : 1;
+  const RT=BAL_ROI_D[b.def]||((bizDef(b).tier||0)<=1? 6 : BAL_ROI),   /* V2.1.1 : petits commerces 600 % */ tgt= roi1>RT? clamp((RT*inv/360+C)/R,.05,1) : 1;
   b.satF=clamp(f0+(tgt-f0)*.03,.05,1); }); }
 { const _mm=metMods; metMods=function(b){ const z=_mm(b); if(!b||b.status!=='active') return z;
   const f=(BAL_F[b.def]||1)*(b.satF||1); if(f!==1){ z.vol*=f; z.rev*=f; } return z; }; }
-{ const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé','recettes −'+Math.round((1-b.satF)*100)+' %. Ce n’est pas une crise : la société rapporte plus de '+Math.round((BAL_ROI_D[b.def]||BAL_ROI)*100)+' % par an de ce qu’elle a coûté. Le plafond monte avec chaque agrandissement ou rénovation ; sinon, ouvrez la même activité dans une autre ville.',1]); return L; }; }
+{ const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé','recettes −'+Math.round((1-b.satF)*100)+' %. Ce n’est pas une crise : la société rapporte plus de '+Math.round((BAL_ROI_D[b.def]||((bizDef(b).tier||0)<=1? 6 : BAL_ROI))*100)+' % par an de ce qu’elle a coûté. Le plafond monte avec chaque agrandissement ou rénovation ; sinon, ouvrez la même activité dans une autre ville.',1]); return L; }; }
 
 /* ============================================================
    V1.6.1 : toutes les entreprises coûtent 20 % de plus (création, agrandissements, options), sans
