@@ -4838,7 +4838,9 @@ function importSave(txt){
    ============================================================ */
 const FOOT_NAT = {
   fr:{in:'en France', n:'France',      conf:'eu', cal:[8,5],  city:'paris'},
+  en:{in:'en Angleterre', n:'Angleterre', conf:'eu', cal:[8,5], city:'paris'},   /* V2.1.2 */
   es:{in:'en Espagne', n:'Espagne',     conf:'eu', cal:[8,5],  city:'barcelone'},
+  de:{in:'en Allemagne', n:'Allemagne',  conf:'eu', cal:[8,5], city:'paris'},
   hr:{in:'en Croatie', n:'Croatie',     conf:'eu', cal:[7,5],  city:'zagreb'},
   us:{in:'aux États-Unis', n:'États-Unis',  conf:'na', cal:[2,12], city:'miami', closed:true},
   br:{in:'au Brésil', n:'Brésil',      conf:'sa', cal:[1,12], city:'rio'},
@@ -4863,7 +4865,13 @@ const FOOT_LEAGUES = [
   {id:'br3',nat:'br',lvl:3,n:'Série C',             up:4},
   {id:'cn1',nat:'cn',lvl:1,n:'Super Ligue',         down:2},
   {id:'cn2',nat:'cn',lvl:2,n:'Première Ligue',      up:2, down:2},
-  {id:'cn3',nat:'cn',lvl:3,n:'Deuxième Ligue',      up:2, groups:2}
+  {id:'cn3',nat:'cn',lvl:3,n:'Deuxième Ligue',      up:2, groups:2},
+  /* V2.1.2 : construits après les clubs étrangers (identifiants des sauvegardes inchangés) ;
+     les clubs anglais et allemands déjà connus rejoignent la première division de leur pays */
+  {id:'en1',nat:'en',lvl:1,n:'Ligue d’élite',       down:3, ext:'Angleterre'},
+  {id:'en2',nat:'en',lvl:2,n:'Championnat',          up:3, ext:'Angleterre'},
+  {id:'de1',nat:'de',lvl:1,n:'Erste Liga',           down:2, ext:'Allemagne'},
+  {id:'de2',nat:'de',lvl:2,n:'Zweite Liga',          up:2, ext:'Allemagne'}
 ];
 const FOOT_RAW = {
 fr1:`Paris Saint-Germont|Paris|004170|DA291C|88|47926
@@ -5233,6 +5241,67 @@ Guangdong Mingto|Canton|E30613|FCD405|36|10000
 Guangzhou Dandelions|Canton|FCD405|00843D|36|10000
 Wuhan Three Town B|Wuhan|00A3E0|FFFFFF|35|5000`
 };
+/* V2.1.2 : nouveaux clubs anglais et allemands (en1 et de1 complètent les clubs déjà connus) */
+const FOOT_EXT_RAW = {
+en1:`Fulam FC|Londres|FFFFFF|111111|74|29600
+Brentfort|Londres|E30613|FFFFFF|74|17250
+AFC Bornemouth|Bournemouth|DA291C|111111|74|11300
+Evertown|Liverpool|003399|FFFFFF|73|52800
+West Ham Unitad|Londres|7A263A|1BB1E7|73|62500
+Wolverhampton Wanderer|Wolverhampton|FDB913|231F20|72|31750
+Sunderlande AFC|Sunderland|EB172B|FFFFFF|69|49000
+Leeds Unitad|Leeds|FFFFFF|1D428A|70|37800
+Burnlee FC|Burnley|6C1D45|99D6EA|68|21900`,
+en2:`Ipswitch Town|Ipswich|0044A9|FFFFFF|68|30300
+Leicester Citi|Leicester|003090|FDBE11|68|32260
+Southamptown|Southampton|D71920|FFFFFF|67|32380
+Sheffield Unitad|Sheffield|EE2737|111111|66|32050
+Middlesboro|Middlesbrough|E30613|FFFFFF|66|34740
+West Bromwitch Albion|West Bromwich|122F67|FFFFFF|65|26850
+Norwitch Citi|Norwich|00A650|FFF200|65|27240
+Coventri Citi|Coventry|5DB3E5|FFFFFF|65|32600
+Hul Citi|Hull|F5971D|111111|63|25400
+Watfort|Watford|FBEE23|ED2127|64|22200
+Bristol Citi|Bristol|E21A23|FFFFFF|63|27000
+Stok Citi|Stoke-on-Trent|E03A3E|FFFFFF|63|30000
+Milwall|Londres|001D5E|FFFFFF|63|20140
+Queens Park Rangeur|Londres|1D5BA4|FFFFFF|62|18400
+Swanzea Citi|Swansea|FFFFFF|111111|62|21000
+Derbi County|Derby|FFFFFF|111111|61|32950
+Preston North Ende|Preston|FFFFFF|0B1F4B|61|23400
+Blackburne Rovers|Blackburn|009EE0|FFFFFF|61|31370
+Portsmouthe|Portsmouth|001489|FFFFFF|60|20900
+Charleton Athletic|Londres|D4021D|FFFFFF|60|27100`,
+de1:`VfL Wolfsbourg|Wolfsbourg|65B32E|FFFFFF|74|30000
+TSG Hoffenheym|Sinsheim|1C63B7|FFFFFF|73|30150
+Werdar Bremen|Brême|1D9053|FFFFFF|72|42100
+Union Berlinn|Berlin|EB1923|FFFFFF|72|22000
+AC Augsbourg|Augsbourg|BA3733|46714D|70|30660
+1. AC Köln|Cologne|ED1C24|FFFFFF|70|50000
+Hamburgo SV|Hambourg|0A3F86|FFFFFF|70|57000
+AC St. Paulo|Hambourg|6B4E3D|FFFFFF|68|29546`,
+de2:`AC Heydenheim|Heidenheim|E30613|003D7C|67|15000
+VfL Bocum|Bochum|005CA9|FFFFFF|66|26000
+Holstein Kiell|Kiel|003F8A|FFFFFF|65|15000
+Schalk 04|Gelsenkirchen|004D9D|FFFFFF|66|62271
+Herta Berlin|Berlin|005CA9|FFFFFF|65|74475
+Hanovre 96|Hanovre|00843D|111111|64|49000
+Fortune Düsseldorf|Düsseldorf|E30613|FFFFFF|64|54600
+AC Kaiserslauter|Kaiserslautern|D5121E|FFFFFF|64|49327
+SV Darmstad 98|Darmstadt|004E9F|FFFFFF|63|17650
+SC Paderborne|Paderborn|0B2F6E|FFFFFF|62|15000
+Karlsruher AC|Karlsruhe|0057A4|FFFFFF|62|34302
+AC Magdebourg|Magdebourg|0A4595|FFFFFF|62|30098
+SV Elversburg|Spiesen-Elversberg|111111|FFFFFF|61|10000
+Eintrakt Braunschweig|Brunswick|FCD116|0050A0|61|23325
+Spielvereinigung Fürt|Fürth|008A3E|FFFFFF|60|16626
+Preußen Munster|Münster|00843D|111111|60|14300
+Arminia Bielefelde|Bielefeld|005CA9|FFFFFF|61|26515
+Dynamo Dresde|Dresde|FCD116|111111|61|32066`
+};
+/* capacité des stades des clubs déjà connus qui deviennent jouables */
+const FOOT_EXT_CAP = {'Arsenol':60704,'Manchester Citi':53400,'Liverpoul':61276,'Chelsee':40343,'Newcastle Unitad':52305,'Aston Vila':42640,'Manchester Unitad':74310,'Tottenham Hotspurs':62850,'Nottingham Forrest':30404,'Brighton Albian':31876,'Crystal Palais':25486,
+  'FC Beyern München':75024,'Borussia Dortmond':81365,'Bayer 05 Leverkusen':30210,'RS Leipzig':47069,'Eintrakt Frankfurt':58000,'VfL Stuttgart':60449,'SK Freiburg':34700,'Borussio Mönchengladbach':54042,'Bavière Nord':50000,'Rhénanie 04':33305};
 /* Clubs étrangers non jouables (coupes internationales). Format : Nom|Ville|pays|c1|c2|note */
 const FOOT_FOREIGN_RAW = `Arsenol|Londres|Angleterre|EF0107|FFFFFF|90
 Manchester Citi|Manchester|Angleterre|6CABDD|1C2C5B|89
@@ -5435,7 +5504,7 @@ const FOOT_COMPS = [
 const FOOT = {clubs:[], byLeague:{}, foreign:[]};
 (function(){
   let id=0;
-  FOOT_LEAGUES.forEach(L=>{
+  FOOT_LEAGUES.forEach(L=>{ if(L.ext) return;
     const groups=FOOT_RAW[L.id].split('\n;\n');
     FOOT.byLeague[L.id]=[];
     groups.forEach((g,gi)=>g.trim().split('\n').forEach(line=>{
@@ -5448,6 +5517,12 @@ const FOOT = {clubs:[], byLeague:{}, foreign:[]};
     const [n,city,nat,c1,c2,r]=line.split('|');
     FOOT.foreign.push({id:++id, n, city, nat, conf:FOOT_FCONF[nat]||'eu', c1:'#'+c1, c2:'#'+c2, r:+r, foreign:true});
   });
+  /* V2.1.2 : championnats anglais et allemands */
+  FOOT_LEAGUES.filter(L=>L.ext).forEach(L=>{ const nat=L.nat; FOOT.byLeague[L.id]=[];
+    if(L.lvl===1){ FOOT.foreign.filter(c=>c.nat===L.ext).forEach(c=>{ Object.assign(c,{nat, lg:L.id, grp:0, cap:FOOT_EXT_CAP[c.n]||30000}); delete c.foreign; delete c.conf; FOOT.clubs.push(c); FOOT.byLeague[L.id].push(c); });
+      FOOT.foreign=FOOT.foreign.filter(c=>!c.lg); }
+    FOOT_EXT_RAW[L.id].trim().split('\n').forEach(line=>{ const [n,city,c1,c2,r,cap]=line.split('|');
+      const c={id:++id, n, city, nat, lg:L.id, grp:0, c1:'#'+c1, c2:'#'+c2, r:+r, cap:+cap||5000}; FOOT.clubs.push(c); FOOT.byLeague[L.id].push(c); }); });
 })();
 function footClub(id){ return FOOT.clubs.find(c=>c.id===id) || FOOT.foreign.find(c=>c.id===id); }
 
@@ -5502,7 +5577,9 @@ const FOOT_CAL = {
   hr:{s:[7,20], e:[5,24], br:[[12,15],[2,1]]},
   us:{s:[8,1],  e:[5,10], br:[[12,15],[2,15]]},
   br:{s:[2,1],  e:[12,5]},
-  cn:{s:[3,1],  e:[11,5]}
+  cn:{s:[3,1],  e:[11,5]},
+  en:{s:[8,15], e:[5,24]},
+  de:{s:[8,22], e:[5,23], br:[[12,21],[1,9]]}
 };
 const FOOT_CYCLES = {hr1:4, hr2:3};          /* la Croatie joue 4 fois et 3 fois contre chaque adversaire */
 const FOOT_PO = {us1:4, us2:4, us3:4};       /* séries éliminatoires aux États-Unis (qualifiés par groupe) */
@@ -5521,7 +5598,7 @@ function fshuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(frnd()*(
 
 /* ---------- Initialisation ---------- */
 function footInit(){
-  if(S.foot && S.foot.v===1) return S.foot;
+  if(S.foot && S.foot.v===1){ footMigrate(); return S.foot; }
   S.foot={v:1, rs:(S.rs^0x5f3759df)|0, r:{}, nat:{}, lg:{}, cup:{}, hist:{}, cupHist:{}, fav:null};
   FOOT.clubs.forEach(c=>{ S.foot.r[c.id]=c.r; });
   FOOT_LEAGUES.forEach(L=>{
@@ -5531,6 +5608,11 @@ function footInit(){
   Object.keys(FOOT_NAT).forEach(n=>footPlan(n, S.day));
   return S.foot;
 }
+/* V2.1.2 : anciennes parties : ajoute les championnats créés depuis */
+function footMigrate(){ const F=S.foot; if(F.mg===2) return; F.mg=2;
+  FOOT_LEAGUES.forEach(L=>{ if(F.lg[L.id]) return; const g=[]; FOOT.byLeague[L.id].forEach(c=>{ (g[c.grp]=g[c.grp]||[]).push(c.id); if(F.r[c.id]===undefined) F.r[c.id]=c.r; });
+    F.lg[L.id]={grp:g.map(x=>fshuffle(x.slice())), rd:0, dates:[], tab:{}, last:null, form:{}, po:null, done:true}; });
+  Object.keys(FOOT_NAT).forEach(n=>{ if(!F.nat[n]) footPlan(n, S.day); }); }
 function footR(id){ return (S.foot && S.foot.r[id]) || (footClub(id)||{}).r || 50; }
 
 /* Prépare la prochaine saison d'un pays à partir du jour donné */
@@ -7214,7 +7296,7 @@ function fcHomeGate(h,a){ const O=fcOwn(); if(!O||O.id!==h) return; const n=fcAt
       add('Prime de classement ('+(pos+1)+(pos?'e':'er')+')', tv*.55*Math.pow(Math.max(0,1-pos/n),1.5));
       if(pos===0){ add('Prime du titre', tv*.25); troAdd('lg',L.n,footSeasonLabel(nat,y0)); }
       /* V1.7.8 : places européennes réelles (Coupe d’Europe des champions puis Coupe d’Europe : Espagne 4 + 2, France 3 + 2, Croatie 1 + 2) */
-      const euN={es:7, fr:6, hr:4}[nat]||0;   /* V1.9.3 : places de la Coupe des confédérations comprises */
+      const euN={es:7, fr:6, hr:4, en:7, de:7}[nat]||0;   /* V1.9.3 : places de la Coupe des confédérations comprises */
       if(L.lvl===1&&pos>0&&pos<euN) add('Prime de qualification européenne', tv*.1);
       if(S.foot.cup[nat] && S.foot.cup[nat].champ===O.id) add('Victoire en coupe nationale', tv*.25);
       /* montée, descente (indemnité parachute sur deux saisons) */
@@ -7711,12 +7793,12 @@ function fiForeign(conf,n,exclude,capPer){
 function fiQualify(id){
   const used=new Set(), take=(lid,from,n)=>fiRanked(lid).filter(x=>!used.has(x)).slice(from,from+n).forEach(x=>{ used.add(x); out.push(x); });
   let out=[];
-  if(id==='eu1'){ take('es1',0,4); take('fr1',0,3); take('hr1',0,1); fiForeign('eu',36-out.length,used,4).forEach(x=>out.push(x)); }
-  else if(id==='eu2'){ const e1=S.foot.ic.eu1&&S.foot.ic.eu1.teams||[]; e1.forEach(x=>used.add(x)); take('es1',0,2); take('fr1',0,2); take('hr1',0,2); const ex=new Set([...used]); fiForeign('eu',36-out.length,ex,3).forEach(x=>out.push(x)); }
+  if(id==='eu1'){ take('en1',0,4); take('de1',0,4); take('es1',0,4); take('fr1',0,3); take('hr1',0,1); fiForeign('eu',36-out.length,used,4).forEach(x=>out.push(x)); }
+  else if(id==='eu2'){ const e1=S.foot.ic.eu1&&S.foot.ic.eu1.teams||[]; e1.forEach(x=>used.add(x)); take('en1',0,2); take('de1',0,2); take('es1',0,2); take('fr1',0,2); take('hr1',0,2); const ex=new Set([...used]); fiForeign('eu',36-out.length,ex,3).forEach(x=>out.push(x)); }
   else if(id==='eu3'){ /* V1.9.3 : club suivant au classement et vainqueurs de coupe non qualifiés ailleurs */
     [...(S.foot.ic.eu1&&S.foot.ic.eu1.teams||[]),...(S.foot.ic.eu2&&S.foot.ic.eu2.teams||[])].forEach(x=>used.add(x));
-    ['es','fr','hr'].forEach(n=>{ const h=S.foot.cupHist&&S.foot.cupHist[n], w=h&&h[0]&&h[0].champ; if(w&&!used.has(w)){ used.add(w); out.push(w); } });
-    take('es1',0,1); take('fr1',0,1); take('hr1',0,1); fiForeign('eu',36-out.length,new Set([...used]),3).forEach(x=>out.push(x)); }
+    ['en','de','es','fr','hr'].forEach(n=>{ const h=S.foot.cupHist&&S.foot.cupHist[n], w=h&&h[0]&&h[0].champ; if(w&&!used.has(w)){ used.add(w); out.push(w); } });
+    take('en1',0,1); take('de1',0,1); take('es1',0,1); take('fr1',0,1); take('hr1',0,1); fiForeign('eu',36-out.length,new Set([...used]),3).forEach(x=>out.push(x)); }
   else if(id==='sa1'){ take('br1',0,6); fiForeign('sa',32-out.length,used,6).forEach(x=>out.push(x)); }
   else if(id==='na1'){ take('us1',0,4); fiForeign('na',16-out.length,used,9).forEach(x=>out.push(x)); }
   else if(id==='as1'){ take('cn1',0,3); fiForeign('as',24-out.length,used,6).forEach(x=>out.push(x)); }
@@ -14853,7 +14935,7 @@ NAVSHORT.foot='Football';
 MGROUPS.splice(MGROUPS.findIndex(g=>g[0]==='Aide'),0,['Sport',['foot']]);
 MDESC.foot='Championnats, coupes, clubs';
 
-const FOOT_CUPN = {fr:'Coupe nationale', es:'Copa nacional', hr:'Kup nacional', us:'Coupe ouverte', br:'Copa nacional', cn:'Coupe de Chine'};
+const FOOT_CUPN = {fr:'Coupe nationale', es:'Copa nacional', hr:'Kup nacional', us:'Coupe ouverte', br:'Copa nacional', cn:'Coupe de Chine', en:'Coupe d’Angleterre', de:'Coupe d’Allemagne'};
 function footUi(){
   ui.fn=ui.fn&&FOOT_NAT[ui.fn]? ui.fn : 'fr';
   const ls=FOOT_LEAGUES.filter(L=>L.nat===ui.fn);
@@ -14976,7 +15058,7 @@ function footClubBody(id){
 { const _mcF=modalContent; modalContent=function(){ const m=ui.modal; if(m&&m.type==='fclub'){ footInit(); if(!footClub(m.id)){ ui.modal=null; return _mcF(); } return {title:'Club',sm:true,body:footClubBody(m.id)}; } return _mcF(); }; }
 
 /* V1.9.3 : places européennes en couleur dans les championnats de première division */
-const FT_EU={es1:[4,2,1], fr1:[3,2,1], hr1:[1,2,1]};
+const FT_EU={es1:[4,2,1], fr1:[3,2,1], hr1:[1,2,1], en1:[4,2,1], de1:[4,2,1]};
 { const _fz=footZone; footZone=function(lid,gi,pos,n){ const z=_fz(lid,gi,pos,n), E=FT_EU[lid]; if(!E||z==='down') return z;
   if(pos<E[0]) return 'c1'; if(pos<E[0]+E[1]) return 'c2'; if(pos<E[0]+E[1]+E[2]) return 'c3'; return z; }; }
 { const _fl=footLegend; footLegend=function(lid){ const h=_fl(lid), E=FT_EU[lid]; if(!E) return h;
@@ -15701,7 +15783,7 @@ function fiView(){
   }
   return h+fiPal(id);
 }
-function fiQualText(id){ return {eu3:'Qualifiés : le club suivant au classement (7e en Espagne, 6e en France, 4e en Croatie), les vainqueurs de coupe nationale non qualifiés ailleurs et des clubs européens.', eu1:'Qualifiés : les 4 premiers de la Primera Liga, les 3 premiers de la Première Ligue, le champion de Croatie et 28 grands clubs européens.', eu2:'Qualifiés : les clubs suivants des championnats européens.', sa1:'Qualifiés : les 6 premiers de la Série A brésilienne et 26 clubs sud-américains.', na1:'Qualifiés : les 4 meilleurs clubs de la Ligue majeure et 12 clubs d’Amérique du Nord et centrale.', as1:'Qualifiés : les 3 premiers de la Super Ligue chinoise et 21 clubs d’Asie.', w1:'Les champions de chaque continent se retrouvent en décembre.'}[id]; }
+function fiQualText(id){ return {eu3:'Qualifiés : le club suivant au classement (7e en Angleterre, en Allemagne et en Espagne, 6e en France, 4e en Croatie), les vainqueurs de coupe nationale non qualifiés ailleurs et des clubs européens.', eu1:'Qualifiés : les 4 premiers de la Ligue d’élite anglaise, de l’Erste Liga allemande et de la Primera Liga, les 3 premiers de la Première Ligue, le champion de Croatie et 20 grands clubs européens.', eu2:'Qualifiés : les clubs suivants des championnats européens.', sa1:'Qualifiés : les 6 premiers de la Série A brésilienne et 26 clubs sud-américains.', na1:'Qualifiés : les 4 meilleurs clubs de la Ligue majeure et 12 clubs d’Amérique du Nord et centrale.', as1:'Qualifiés : les 3 premiers de la Super Ligue chinoise et 21 clubs d’Asie.', w1:'Les champions de chaque continent se retrouvent en décembre.'}[id]; }
 function fiStatus(id,E){
   if(E.phase==='done') return 'terminée';
   if(E.phase==='lp') return (E.P.lp.k==='swiss'?'phase de ligue':'phase de groupes')+', journée '+E.ri+' sur '+E.P.lp.n+(E.P.lp.dates[E.ri]?' · prochaine le '+footDateLabel(E.P.lp.dates[E.ri],{wd:1,noY:1}):'');
@@ -16009,13 +16091,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.0.9';
+const IB_VER='V2.1.1';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Rééquilibrage','Les petits commerces (réparation, e-commerce, agence de recrutement…) saturent plus tard : jusqu’à 600 % de rendement par an. Usine électronique +15 % et transport maritime +10 % de recettes : leur directeur investit désormais à un bon rythme.','V2.1.1'],
   ['Vos marchés repliables','Dans Rivaux, la carte Vos marchés se déplie d’un toucher et indique le nombre de marchés en guerre.','V2.0.9'],
   ['Sponsor du maillot','Texte du sponsor du maillot simplifié.','V2.0.8'],
   ['Lancez vos guerres des prix','Dans Rivaux, carte Vos marchés : attaquez un concurrent présent sur l’un de vos marchés. Pendant 20 jours, prix −12 % et clients +10 % ; le rival perd du terrain et de la puissance, et quitte le marché s’il tombe à presque rien. Attention, il peut riposter.','V2.0.7'],
@@ -16881,6 +16964,24 @@ function dlCard(){ const L=S.biz.filter(b=>b.status==='active'&&dlMode(b)!=='me'
       (last? '<small class="mut">Dernier : '+esc(String(last.t||last.m||'').replace(/^Votre directeur : /,''))+'</small>' : '')+'</div>'+(x&&x.mood<35? pill('Moral bas','bad') : '')+'</div>'; });
   return '<section class="card fcd-c"><details class="fcd ag-f" data-k="bz_dl"'+(open?' open':'')+'><summary><span class="ag-s"><h2><span>Délégation</span></h2><small>'+L.length+' société'+(L.length>1?'s':'')+' confiée'+(L.length>1?'s':'')+(L.some(b=>b.boss&&b.boss.mood<35)?' · <span class="warn-t">moral bas</span>':'')+'</small></span></summary><div class="ht-t">'+rows.join('')+'</div></details></section>'; }
 { const _vbh5=vBizHome; vBizHome=function(){ const h=_vbh5(); return S.biz.length? h+dlCard() : h; }; }
+
+/* ---------- V2.1.2 : conseiller du jour (accueil) ----------
+   Au plus trois conseils, du plus urgent au plus utile : crise sans parade, guerre des prix subie,
+   société en perte sur 30 jours, offre de rachat, achat rentable à portée de trésorerie (sociétés gérées par vous). */
+function advList(){ const L=[], act=S.biz.filter(b=>b.status==='active');
+  try{ if(criOn()&&!S.cri.mit) L.push({p:100, t:'Une crise est en cours', d:'Une parade réduit ses effets de 60 %.', b:btn('Voir la crise','advcri',{c:'sm pri'})}); }catch(e){}
+  try{ const R=S.riv; if(R){ const w=R.wars.find(x=>x.resp==='hold'); if(w) L.push({p:90, t:'Guerre des prix sans riposte', d:rivDef(w.rival).n+' casse les prix : '+keyLabel(w.key)+'. Aligner les prix ou lancer une campagne limite les pertes.', b:btn('Riposter','tab',{c:'sm pri',i:'rivals'})});
+    if(R.offers.length){ const o=R.offers[0], b=S.biz.find(x=>x.id===o.b); if(b) L.push({p:60, t:'Offre de rachat pour '+b.name, d:rivDef(o.rival).n+' propose '+eur(o.price,0)+'.', b:btn('Voir l’offre','tab',{c:'sm',i:'rivals'})}); } } }catch(e){}
+  act.forEach(b=>{ const h=b.hist||[]; if(h.length<30||S.day-b.since<60) return; const n=dlNet30(b);
+    if(n<0) L.push({p:80+Math.min(9,-n/1e4), t:b.name+' perd de l’argent', d:'En moyenne '+eur(-n,0)+' par jour sur 30 jours.', b:btn('Gérer','bizopen',{c:'sm pri',i:b.id})}); });
+  act.filter(b=>dlMode(b)!=='full').forEach(b=>{ let g=null; try{ g=dlGoal(b); }catch(e){} if(!g||g.wait||!(g.c>0)||g.c>S.cash*.6) return;
+    const n=Math.max(1,dlNetL(b)); L.push({p:40+Math.min(15,n*30/g.c), t:b.name+' : '+g.n, d:'Coûte '+eur(g.c,0)+', soit '+Math.max(1,Math.round(g.c/n))+' jours de bénéfice de la société.', b:btn('Gérer','bizopen',{c:'sm',i:b.id})}); });
+  return L.sort((x,y)=>y.p-x.p).slice(0,3); }
+function advCard(){ const L=advList(); if(!L.length) return '';
+  return card('Conseiller du jour','<div class="ht-t">'+L.map(x=>'<div class="rs-d"><div><b>'+esc(x.t)+'</b><small>'+esc(x.d)+'</small></div>'+x.b+'</div>').join('')+'</div>'); }
+ACT.advcri=()=>{ pushModal({type:'cri'}); render(); };
+{ const _vh=VIEWS.home; VIEWS.home=function(){ const h=_vh.apply(this,arguments); if(!S.biz.length) return h; const c=advCard(); if(!c) return h;
+  const k=h.indexOf('<section class="card hero">'); return k>0? h.slice(0,k)+c+h.slice(k) : h+c; }; }
 
 /* ============================================================
    JEU PLUS INTUITIF (V1.1.4)
