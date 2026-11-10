@@ -1446,6 +1446,7 @@ function wpick(items, wf){ let t=0; items.forEach(i=>t+=wf(i)); let r=rnd()*t; f
 
 /* V2.1.6 : format des nombres selon la langue (anglais : 1,234.5) */
 const NLOC = (()=>{ try{ return (typeof localStorage!=='undefined'&&localStorage.getItem('idlebiz.lang')==='en')? 'en-GB' : 'fr-FR'; }catch(e){ return 'fr-FR'; } })();
+const NDEC = NLOC==='en-GB'? '.' : ',';   /* séparateur décimal des textes faits à la main */
 const NF = new Intl.NumberFormat(NLOC,{maximumFractionDigits:0});
 const NF2 = new Intl.NumberFormat(NLOC,{minimumFractionDigits:2,maximumFractionDigits:2});
 const NFD = {};
@@ -2218,7 +2219,7 @@ const csMult = b => clamp(1+0.3*(csOf(b)/100-.65),.88,1.12);
 const RV_W=30;                                   /* fenêtre glissante de la note : 30 jours */
 const starsOf = b => 1+4*csOf(b)/100;            /* note de la société, de 1 à 5 */
 const repNote = r => clamp(1+4*r/100,1,5);       /* réputation générale ramenée sur 5 */
-const fmtStar = v => v.toFixed(1).replace('.',',');
+const fmtStar = v => v.toFixed(1).replace('.',NDEC);
 const RV_CRIT=['price','service','quality','addr'], RV_WT=[.3,.3,.2,.2];
 const RV_TXT={
   price:{lo:['Beaucoup trop cher pour ce que c’est.','Les prix sont abusifs, je ne reviendrai pas.','Rapport qualité-prix décevant.'], hi:['Des prix très corrects.','Franchement pas cher pour la qualité.','Bon rapport qualité-prix, je recommande.']},
@@ -2525,7 +2526,7 @@ const clientsOf = b => b.last&&b.last.rev? b.last.rev/(D.BASKET[b.def]||100) : 0
    Familles : resto (restauration et loisirs). Les autres familles arrivent à l'étape 2.
    ============================================================ */
 /* V1.6.7 : les notes des critiques (0 à 100 en interne) s’affichent sur 5, comme les avis clients */
-function note5(v){ return (Math.round(v/2)/10).toFixed(1).replace('.',','); }
+function note5(v){ return (Math.round(v/2)/10).toFixed(1).replace('.',NDEC); }
 const MET = {};
 const MET_FAM = { resto:'Restauration et loisirs' };
 function metOf(b){ return (b&&MET[b.def])||null; }
@@ -8830,7 +8831,7 @@ MET.hotel = {
   kpis(b){ htFix(b); const m=b.m, c=htCalc(b), rp=c.N? c.rev/c.N*c.k : 0;
     return [['Taux d’occupation', Math.round((c.N?c.occ/c.N:0)*100)+' %', c.N+' chambres · '+'★'.repeat(m.st)+(m.pal?' Palace':'')],
             ['Revenu par chambre', eur(rp,0), 'Par nuit, chambres vides comprises'],
-            ['Note des clients', m.av.toFixed(1).replace('.',',')+' / 5', m.av>=4.5?'Excellente':m.av>=4?'Très bonne':m.av>=3.5?'Correcte':'Décevante'],
+            ['Note des clients', m.av.toFixed(1).replace('.',NDEC)+' / 5', m.av>=4.5?'Excellente':m.av>=4?'Très bonne':m.av>=3.5?'Correcte':'Décevante'],
             ['Saison', metSeasonName(), m.ev&&m.ev.until>=S.day? (m.ev.k==='salon'?'Salon international en ville':'Une célébrité séjourne ici') : festOf(b.city).names.length? 'Fête en ville : '+festOf(b.city).names[0] : 'Tourisme '+'★'.repeat((cityOf(b).idx&&cityOf(b).idx.tour)||3)]];
   },
   ctl(b){ htFix(b); const m=b.m, d=bizDef(b), R0=metR0(b), out=[];
@@ -8845,7 +8846,7 @@ MET.hotel = {
       else { out.push({k:'tog', act:'mar', label:'Mariages le samedi', val:m.mar, sub:'Environ '+eur(R0*.6,0)+' par mariage, une partie des chambres réservée aux invités.'});
              out.push({k:'tog', act:'sem', label:'Séminaires en semaine', val:m.sem, sub:'Environ '+eur(R0*.06,0)+' par jour de semaine et +8 % de demande pour les chambres standard et supérieures.'}); } }
     if(mxHas(b,3)) out.push(m.pres? {k:'buy', act:'pres', label:'Suite présidentielle', owned:true, sub:'Une suite par niveau de l’hôtel.'} : {k:'buy', act:'pres', label:'Suite présidentielle', cost:d.cost*.25, sub:'Une suite par niveau de l’hôtel, à 3 500 € la nuit au prix de base.'});
-    if(mxHas(b,4)) out.push(m.pal? {k:'buy', act:'pal', label:'Distinction Palace', owned:true, sub:'Nuits 15 % plus chères. Retirée si la note passe sous 4,3.'} : {k:'btn', act:'pal', label:'Demander la distinction Palace', cost:d.cost*.4, dis:m.st<5||m.av<4.5, sub:'Il faut 5 étoiles et une note des clients d’au moins 4,5 (actuellement '+m.av.toFixed(1).replace('.',',')+').'});
+    if(mxHas(b,4)) out.push(m.pal? {k:'buy', act:'pal', label:'Distinction Palace', owned:true, sub:'Nuits 15 % plus chères. Retirée si la note passe sous 4,3.'} : {k:'btn', act:'pal', label:'Demander la distinction Palace', cost:d.cost*.4, dis:m.st<5||m.av<4.5, sub:'Il faut 5 étoiles et une note des clients d’au moins 4,5 (actuellement '+m.av.toFixed(1).replace('.',NDEC)+').'});
     if(mxHas(b,5)) out.push({k:'btn', act:'rs', label:'Ouvrir un resort à l’étranger ('+m.rs+' sur 3)', cost:d.cost*1.2*(1+Math.min(.5,m.rs*.25)), dis:m.rs>=3, sub:'Chaque resort rapporte environ '+eur(R0*.3,0)+' par jour, selon la note des clients de la marque.'});
     return out;
   },
@@ -9161,7 +9162,7 @@ MET.build = {
             ['Réputation', Math.round(m.rep)+' / 100', 'Chantiers livrés à l’heure : elle monte']];
   },
   ctl(b){ const m=b.m, d=bizDef(b), R0=metR0(b), out=[];
-    const e=m.eng||0; out.push(e<3? {k:'btn', act:'eng', label:'Engins : '+BC_ENG[e].n.toLowerCase(), cost:d.cost*BC_ENG[e+1].c, sub:'Passer à « '+BC_ENG[e+1].n+' » : productivité ×'+BC_ENG[e+1].p.toFixed(1).replace('.',',')+'. Entretien '+eur(R0*.012*(e+1),0)+' / jour.'} : {k:'buy', act:'eng', label:'Engins : '+BC_ENG[3].n.toLowerCase(), owned:true, sub:'Productivité ×1,6.'});
+    const e=m.eng||0; out.push(e<3? {k:'btn', act:'eng', label:'Engins : '+BC_ENG[e].n.toLowerCase(), cost:d.cost*BC_ENG[e+1].c, sub:'Passer à « '+BC_ENG[e+1].n+' » : productivité ×'+BC_ENG[e+1].p.toFixed(1).replace('.',NDEC)+'. Entretien '+eur(R0*.012*(e+1),0)+' / jour.'} : {k:'buy', act:'eng', label:'Engins : '+BC_ENG[3].n.toLowerCase(), owned:true, sub:'Productivité ×1,6.'});
     out.push({k:'seg', act:'tmp', label:'Équipes intérimaires', val:m.tmp||0, opts:[[0,'Aucune'],[1,'1'],[2,'2'],[4,'4']], sub:'Renfort pour tenir les délais : '+eur(R0*.12,0)+' par équipe et par jour ouvré, même sans travail.'});
     if(b.boss) out.push({k:'seg', act:'mg', label:'Marge du conducteur de travaux', val:Math.round((m.mg||0)*100), opts:[[0,'0 %'],[5,'5 %'],[10,'10 %'],[15,'15 %']], sub:'En délégation, il répond aux appels d’offres avec cette marge au-dessus de l’estimation.'});
     if(mxHas(b,3)) out.push(m.lab? {k:'buy', act:'lab', label:'Label environnemental', owned:true, sub:'Chantiers verts mieux payés et plus souvent gagnés.'} : {k:'buy', act:'lab', label:'Label environnemental', cost:d.cost*.8, sub:'Certains chantiers verts se paient 15 % plus cher, et vous les gagnez plus souvent.'});
@@ -9683,7 +9684,7 @@ MET.repair = {
   },
   kpis(b){ const m=b.m, wait=m.q.filter(j=>!j.recon).length, late=m.q.filter(j=>!j.recon&&S.day>j.due).length;
     return [['En attente', String(wait), late? late+' en retard' : 'Aucun retard'],
-            ['Avis des clients', m.note.toFixed(1).replace('.',',')+' / 5', m.note>=4.5?'Excellents':m.note>=4?'Très bons':m.note>=3.5?'Corrects':'Mauvais'],
+            ['Avis des clients', m.note.toFixed(1).replace('.',NDEC)+' / 5', m.note>=4.5?'Excellents':m.note>=4?'Très bons':m.note>=3.5?'Corrects':'Mauvais'],
             ['Techniciens', String(m.tech.length), 'Recrutez des ouvriers pour en avoir plus'],
             ['Pièces en stock', ['ecr','bat','con'].map(k=>m.st[k]||0).join(' · '), 'Écrans · batteries · connecteurs']];
   },
@@ -9826,8 +9827,8 @@ MET.ecom = {
   },
   kpis(b){ const m=b.m, d=m.stats||ecDay(b,true), cv=d.vis? d.orders/d.vis : 0;
     return [['Visites / jour', fmtN(Math.round(d.vis)), fmtN(Math.round(d.carts))+' paniers'],
-            ['Commandes / jour', fmtN(Math.round(d.orders)), 'Conversion '+(cv*100).toFixed(1).replace('.',',')+' %'],
-            ['Avis', m.note.toFixed(1).replace('.',',')+' / 5', fmtN(Math.round(d.ret))+' retours / jour'],
+            ['Commandes / jour', fmtN(Math.round(d.orders)), 'Conversion '+(cv*100).toFixed(1).replace('.',NDEC)+' %'],
+            ['Avis', m.note.toFixed(1).replace('.',NDEC)+' / 5', fmtN(Math.round(d.ret))+' retours / jour'],
             ['Publicité', eur(d.ads,0)+' / j', d.ads? 'Coût par commande : '+eur(d.ads/Math.max(1,d.orders),1) : 'Visites naturelles seulement']];
   },
   ctl(b){ const m=b.m, d=bizDef(b), R0=metR0(b), out=[];
@@ -10417,7 +10418,7 @@ MET.promo = {
     return [['Opérations', act+' / '+prMax(b), ch? ch+' chantier'+(ch>1?'s':'')+' en cours' : act? 'Aucun chantier en cours' : 'Achetez un terrain'],
             ['Ventes signées à encaisser', eur(val,0), 'Encaissées au fil des chantiers'],
             ['Marché', 'Logements '+Math.round(mk.log.v*100), 'Bureaux '+Math.round(mk.bur.v*100)+' · commerces '+Math.round(mk.com.v*100)],
-            ['Taux directeur', S.macro.rate.toFixed(1).replace('.',',')+' %', m.done+' opération'+(m.done>1?'s':'')+' livrée'+(m.done>1?'s':'')]];
+            ['Taux directeur', S.macro.rate.toFixed(1).replace('.',NDEC)+' %', m.done+' opération'+(m.done>1?'s':'')+' livrée'+(m.done>1?'s':'')]];
   },
   ctl(b){ return []; },
   acts:{
@@ -10685,14 +10686,14 @@ MET.renew = {
     m.acc+=rev; m.last={prod, sell, stored, out, px:m.px, rev};
   },
   kpis(b){ const m=b.m, L=m.last, R0=metR0(b), cap=m.pl.reduce((a,p)=>a+RN_T[p.t].k*p.sz,0), sav=S.biz.reduce((a,x)=>a+renewSaving(x),0);
-    return [['Prix du jour', String(m.px.toFixed(2)).replace('.',','), m.ev&&m.ev.k==='cold'? 'Vague de froid' : m.ev&&m.ev.k==='storm'? 'Tempête' : m.px>1.15? 'Électricité chère' : m.px<.85? 'Électricité bon marché' : 'Prix normal'],
+    return [['Prix du jour', String(m.px.toFixed(2)).replace('.',NDEC), m.ev&&m.ev.k==='cold'? 'Vague de froid' : m.ev&&m.ev.k==='storm'? 'Tempête' : m.px>1.15? 'Électricité chère' : m.px<.85? 'Électricité bon marché' : 'Prix normal'],
             ['Production', L? Math.round(L.prod/Math.max(1e-9,cap)*100)+' % du maximum' : '—', m.pl.length+' centrales · '+eur(L?L.rev:0,0)+' de ventes'],
-            ['Contrat', m.ctr.sh? Math.round(m.ctr.sh*100)+' % à '+m.ctr.p.toFixed(2).replace('.',',') : 'Aucun', m.ctr.sh? 'Jusqu’au '+dateL(m.ctr.until) : 'Tout au prix du jour'],
+            ['Contrat', m.ctr.sh? Math.round(m.ctr.sh*100)+' % à '+m.ctr.p.toFixed(2).replace('.',NDEC) : 'Aucun', m.ctr.sh? 'Jusqu’au '+dateL(m.ctr.until) : 'Tout au prix du jour'],
             ['Vos autres entreprises', sav>0? eur(sav,0)+' / j' : '—', sav>0? 'économisés sur leur énergie' : 'Usines et data centers paient leur énergie moins cher']];
   },
   ctl(b){ const m=b.m, d=bizDef(b), out=[];
     out.push({k:'seg', act:'pol', label:'Batteries : '+(RN_POL[m.bat.pol]||RN_POL.pru).n.toLowerCase(), val:m.bat.pol, opts:Object.keys(RN_POL).map(k=>[k,RN_POL[k].n]), sub:m.bat.cap? 'Stockées '+Math.round(m.bat.lvl/m.bat.cap*100)+' %. « Prudent » stocke sous 0,90 et vend au-dessus de 1,15 ; « Ambitieux » stocke sous 0,95 et vend dès 1,10.' : 'Achetez d’abord une batterie.'});
-    RN_BAT.forEach((x,i)=>{ if(x.rk&&!mxHas(b,x.rk)) return; out.push({k:'btn', act:'bat', arg:i, label:'Ajouter : '+x.n.toLowerCase(), cost:d.cost*x.c, sub:'Capacité '+String(x.cap).replace('.',',')+' u. Capte l’écart entre heures creuses et heures chères chaque jour.'}); });
+    RN_BAT.forEach((x,i)=>{ if(x.rk&&!mxHas(b,x.rk)) return; out.push({k:'btn', act:'bat', arg:i, label:'Ajouter : '+x.n.toLowerCase(), cost:d.cost*x.c, sub:'Capacité '+String(x.cap).replace('.',NDEC)+' u. Capte l’écart entre heures creuses et heures chères chaque jour.'}); });
     if(mxHas(b,3)) out.push(m.h2? {k:'buy', act:'h2', label:'Électrolyseur à hydrogène', owned:true, sub:'Sous 0,75, l’électricité part en hydrogène vendu à 0,75.'} : {k:'buy', act:'h2', label:'Construire un électrolyseur', cost:d.cost*2, sub:'Sous 0,75, l’électricité part en hydrogène vendu à 0,75.'});
     if(mxHas(b,4)) out.push(m.smart? {k:'buy', act:'smart', label:'Réseau intelligent', owned:true, sub:'+6 % sur le prix du jour.'} : {k:'buy', act:'smart', label:'Passer au réseau intelligent', cost:d.cost*2.5, sub:'+6 % sur le prix du jour.'});
     if(mxHas(b,5)) out.push(m.big? {k:'buy', act:'big', label:'Parcs géants', owned:true, sub:'Vous pouvez construire des centrales trois fois plus grandes.'} : {k:'buy', act:'big', label:'Ouvrir les parcs géants', cost:d.cost*3, sub:'Centrales trois fois plus grandes, 13 % moins chères à la puissance.'});
@@ -10703,7 +10704,7 @@ MET.renew = {
     req:(b,r)=>rnReq(b,String(r)),
     sell:(b,id)=>{ const m=b.m, p=m.pl.find(x=>x.id===+id); if(!p) return err('Centrale introuvable.'); const g=rnCost(b,p.t,p.r,p.sz)*.5; payCap('b:'+b.id,'Vente d’une centrale : '+b.name,g); m.pl=m.pl.filter(x=>x!==p); return ok('Centrale revendue '+eur(g,0)+'.'); },
     ctr:(b,v)=>{ const m=b.m, sh=+v; if(![0,.3,.6,.9].includes(sh)) return err('Part inconnue.'); if(sh===0){ m.ctr={sh:0,p:1,until:0}; return ok('Contrat résilié : tout part au prix du jour.'); }
-      const avg=m.pxh.reduce((a,x)=>a+x,0)/m.pxh.length, p=Math.round(avg*.97*100)/100; m.ctr={sh, p, until:S.day+360}; metLog(b,'contrat d’un an signé : '+Math.round(sh*100)+' % de la production à '+String(p).replace('.',',')+'.',''); return ok('Contrat signé à '+String(p).replace('.',',')+'.'); },
+      const avg=m.pxh.reduce((a,x)=>a+x,0)/m.pxh.length, p=Math.round(avg*.97*100)/100; m.ctr={sh, p, until:S.day+360}; metLog(b,'contrat d’un an signé : '+Math.round(sh*100)+' % de la production à '+String(p).replace('.',NDEC)+'.',''); return ok('Contrat signé à '+String(p).replace('.',NDEC)+'.'); },
     pol:(b,v)=>{ if(!RN_POL[v]) return err('Réglage inconnu.'); b.m.bat.pol=v; return ok(''); },
     bat:(b,i)=>{ const x=RN_BAT[+i]; if(!x) return err('Batterie inconnue.'); if(x.rk&&!mxHas(b,x.rk)) return err('Palier '+x.rk+' requis.'); const c=bizDef(b).cost*x.c; if(!metBuy(b,c,x.n)) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); b.m.bat.cap+=x.cap; return ok(x.n+' installée.'); },
     h2:(b)=>rnBuy(b,'h2',2,'Électrolyseur à hydrogène',3),
@@ -10791,9 +10792,9 @@ MET.dc = {
     m.cl.forEach(c=>{ c.u0=c.u0||c.util; c.util=clamp(c.u0*(1+.12*norm()),.15,1); });
     /* pannes : surchauffe par salle, puissance du site, matériel, coupure */
     const dtR={}; let siteDt=0;
-    m.rm.forEach(r=>{ const L=dcLoad(b,r), K=dcCoolKw(b,r); let dt=0; if(L>K){ dt=Math.min(24,(L/K-1)*48); if(dt>.5) metLog(b,'surchauffe en salle '+r.id+' : '+dt.toFixed(1).replace('.',',')+' h d’arrêt.','bad'); }
+    m.rm.forEach(r=>{ const L=dcLoad(b,r), K=dcCoolKw(b,r); let dt=0; if(L>K){ dt=Math.min(24,(L/K-1)*48); if(dt>.5) metLog(b,'surchauffe en salle '+r.id+' : '+dt.toFixed(1).replace('.',NDEC)+' h d’arrêt.','bad'); }
       if(rnd()<.003/(mxHas(b,2)?4:mxHas(b,1)?2:1)) dt+=rint(1,3); dtR[r.id]=dt; });
-    const P=dcSiteLoad(b); if(P>m.pw){ siteDt=Math.min(24,(P/m.pw-1)*48); metLog(b,'la puissance souscrite est dépassée : '+siteDt.toFixed(1).replace('.',',')+' h de coupure sur tout le site.','bad'); }
+    const P=dcSiteLoad(b); if(P>m.pw){ siteDt=Math.min(24,(P/m.pw-1)*48); metLog(b,'la puissance souscrite est dépassée : '+siteDt.toFixed(1).replace('.',NDEC)+' h de coupure sur tout le site.','bad'); }
     if(rnd()<.002&&!mxHas(b,2)){ siteDt+=rint(2,5); metLog(b,'coupure de courant dans le quartier : le site s’arrête.','bad'); }
     /* clients : revenus, heures d'arrêt sur 30 jours, pénalités */
     let rev=0; const gone=[];
@@ -10816,7 +10817,7 @@ MET.dc = {
     const avail=m.cl.length? 100-m.cl.reduce((a,c)=>a+c.dt.reduce((x,y)=>x+y,0),0)/m.cl.length/(30*24)*100 : 100;
     return [['Baies louées', racks+' / '+m.rm.length*DC_SLOTS, m.cl.length+' client'+(m.cl.length>1?'s':'')],
             ['Puissance', Math.round(P)+' / '+m.pw+' kW', P>m.pw*.9? 'Proche de la limite' : 'Marge suffisante'],
-            ['Disponibilité (30 j)', avail.toFixed(2).replace('.',',')+' %', m.ev&&m.ev.k==='heat'? 'Canicule en cours' : 'Moyenne de vos clients'],
+            ['Disponibilité (30 j)', avail.toFixed(2).replace('.',NDEC)+' %', m.ev&&m.ev.k==='heat'? 'Canicule en cours' : 'Moyenne de vos clients'],
             ['Électricité', L? eur(L.ecost,0)+' / j' : '—', S.biz.some(x=>x.def==='renew'&&x.status==='active')? 'Moins chère grâce à vos centrales' : 'Charge × refroidissement']];
   },
   ctl(b){ const m=b.m, d=bizDef(b), out=[];
@@ -16130,7 +16131,7 @@ MET.build.html=function(b){
         '<div class="tag">Délai proposé</div><div class="seg">'+BC_DL.map(([v,n])=>'<button class="'+(sel.dl===v?'on':'')+'" data-a="bcset" data-i="'+b.id+'" data-j="dl" data-v="'+v+'">'+n+' ('+Math.round(o.dl*v)+' j)</button>').join('')+'</div>'+
         '<label class="fc-tg"><span>Acheter les matériaux d’avance ('+eur(mat,0)+')</span><input type="checkbox" data-a="bcset" data-i="'+b.id+'" data-j="ma" '+(sel.ma?'checked':'')+'></label>'+
         '<div class="row sp"><div><b class="num">'+eur(price,0)+'</b><div class="sub">Chance de l’emporter : '+Math.round(p*100)+' %</div></div>'+B('Envoyer l’offre','bid',o.id+':'+sel.pr+':'+sel.dl+':'+(sel.ma?1:0),{c:'sm pri'})+'</div>'+
-        '<div class="sub">Avec vos chantiers en cours, celui-ci serait fini dans environ '+Math.ceil((m.jobs.reduce((a,j)=>a+j.left,0)+o.W)/Math.max(.1,cap*.9))+' jours. Un délai court gagne plus souvent, mais chaque jour de retard coûte 1 % du prix. Votre capacité : '+cap.toFixed(1).replace('.',',')+' journées d’équipe par jour ouvré.</div></div>'; }
+        '<div class="sub">Avec vos chantiers en cours, celui-ci serait fini dans environ '+Math.ceil((m.jobs.reduce((a,j)=>a+j.left,0)+o.W)/Math.max(.1,cap*.9))+' jours. Un délai court gagne plus souvent, mais chaque jour de retard coûte 1 % du prix. Votre capacité : '+cap.toFixed(1).replace('.',NDEC)+' journées d’équipe par jour ouvré.</div></div>'; }
     return x; }).join('') : '<div class="sub">Aucun appel d’offres pour le moment.</div>';
   h+='<div class="pk-head"><b>Chantiers</b><span class="sub">Les équipes vont d’abord sur le premier de la liste</span></div>';
   const L=m.jobs.slice().sort((a,c)=>a.pr-c.pr);
@@ -16171,13 +16172,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.1.5';
+const IB_VER='V2.1.6';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['English number format','En anglais, les montants s’affichent à l’anglaise (€1,234.50, €2.5 M).','V2.1.6'],
   ['English: more translations','Guide, journal, notifications, club, rivals, cities, bank and rules are now translated. Hors noms propres, environ 97 % des textes affichés sont en anglais.','V2.1.5'],
   ['English (beta)','Réglages, carte Langue : le jeu peut s’afficher en anglais. Version bêta : l’essentiel de l’interface est traduit, certains textes restent en français.','V2.1.4'],
   ['Événement de la semaine','Chaque semaine, un de vos secteurs est à l’honneur : recettes +20 % pendant 30 jours de jeu et un défi de bénéfice qui rapporte une prime. Nouvel événement chaque lundi.','V2.1.3'],
@@ -16265,7 +16267,7 @@ MET.repair.html=function(b){
   h+= L.length? L.map(j=>{ const pb=rpPb(j.pb), late=!j.recon&&S.day>j.due;
     let x='<div class="rs-d'+(late?' bc-j late':'')+'"><div><b>'+esc(RP_DEV[j.dev].n)+' · '+esc(pb.n)+'</b><small>'+(j.recon?'Reconditionnement':j.ret?'Retour sous garantie':eur(j.price,0)+(j.ins?' · assurance':''))+' · '+(j.recon?'sans délai':late?'<span class="neg">en retard</span>':'à rendre dans '+(j.due-S.day)+' j')+(j.part?'':' · <span class="neg">pièce manquante</span>')+(j.tk?' · '+esc(j.tk):'')+'</small></div>'+
       (j.part? '<button class="btn sm ghost" data-a="rpsel" data-i="'+b.id+'" data-v="'+(sel===j.id?0:j.id)+'">'+(sel===j.id?'Fermer':'Attribuer')+'</button>' : '')+'</div>';
-    if(sel===j.id) x+='<div class="pk-list">'+m.tech.map(t=>'<button class="pk-o'+(t.sk[j.dev]>=4?' match':'')+'" data-a="met" data-i="'+b.id+'" data-v="as" data-j="'+j.id+':'+esc(t.n)+'"><span><b>'+esc(t.n)+'</b><small>'+esc(RP_DEV[j.dev].n)+' '+sk(t.sk[j.dev])+' · environ '+(j.h/rpSpeed(t,j.dev)).toFixed(1).replace('.',',')+' h</small></span></button>').join('')+'</div>';
+    if(sel===j.id) x+='<div class="pk-list">'+m.tech.map(t=>'<button class="pk-o'+(t.sk[j.dev]>=4?' match':'')+'" data-a="met" data-i="'+b.id+'" data-v="as" data-j="'+j.id+':'+esc(t.n)+'"><span><b>'+esc(t.n)+'</b><small>'+esc(RP_DEV[j.dev].n)+' '+sk(t.sk[j.dev])+' · environ '+(j.h/rpSpeed(t,j.dev)).toFixed(1).replace('.',NDEC)+' h</small></span></button>').join('')+'</div>';
     return x; }).join('') : '<div class="sub">Aucun appareil en attente.</div>';
   h+='<div class="pk-head"><b>Pièces</b><span class="sub">Livraison en 2 jours</span></div><div class="ht-t">'+Object.keys(RP_PART).filter(k=>k!=='car'||mxHas(b,1)).map(k=>{ const pend=m.ord.filter(o=>o.k===k).reduce((a,o)=>a+o.n,0);
     return '<div class="rs-d"><div><b>'+RP_PART[k].n+' : '+(m.st[k]||0)+'</b><small>'+eur(rpPartCost(b,k),0)+' pièce'+(pend?' · '+pend+' en livraison':'')+'</small></div>'+B('Commander 5','ord',k,{c:'sm'})+'</div>'; }).join('')+'</div>';
@@ -16421,7 +16423,7 @@ function gaLoop(){ if(!ui.gl||!ui.modal||ui.modal.type!=='galive'){ ui.galoop=0;
    ============================================================ */
 function prBtn(b,v,j,lab,c,dis){ return '<button class="btn sm'+(c?' '+c:'')+'" data-a="met" data-i="'+b.id+'" data-v="'+v+'" data-j="'+j+'"'+(dis?' disabled':'')+'>'+lab+'</button>'; }
 function prSeg(b,v,o,L,val){ return '<div class="seg">'+L.map(([k,n,dis])=>'<button class="'+(String(val)===String(k)?'on':'')+'" data-a="met" data-i="'+b.id+'" data-v="'+v+'" data-j="'+o.id+':'+k+'"'+(dis?' disabled':'')+'>'+n+'</button>').join('')+'</div>'; }
-function prRate(){ return (S.macro.rate+2).toFixed(1).replace('.',',')+' %'; }
+function prRate(){ return (S.macro.rate+2).toFixed(1).replace('.',NDEC)+' %'; }
 function prSize(x){ return x>=3.5?'très grande opération':x>=1.3?'grande opération':x>=.8?'opération moyenne':'petite opération'; }
 function prSteps(o){ const k=prStage(o); return '<div class="pr-steps">'+PR_ST.map((n,i)=>'<span class="'+(i<k?'done':i===k?'on':'')+'">'+n+'</span>').join('')+'</div>'; }
 MET.promo.html=function(b){
@@ -16441,7 +16443,7 @@ MET.promo.html=function(b){
       h+='<div class="sub">Instruction du permis : réponse dans '+Math.max(0,o.pe-S.day)+' jours'+(o.rc===2?' (recours en cours)':'')+'.</div>';
     } else {
       const pace=prPace(b,o);
-      h+='<div class="ht-t"><div class="rs-d"><div><b>Vendu sur plan</b><small>'+Math.round(o.sold*100)+' % de la surface · environ '+(o.sold<1?String(Math.round(pace*30000)/10).replace('.',',')+' % par mois':'tout est vendu')+'</small>'+bar(o.sold,'g')+'</div><small class="num">'+eur(o.sv,0)+'</small></div>'+
+      h+='<div class="ht-t"><div class="rs-d"><div><b>Vendu sur plan</b><small>'+Math.round(o.sold*100)+' % de la surface · environ '+(o.sold<1?String(Math.round(pace*30000)/10).replace('.',NDEC)+' % par mois':'tout est vendu')+'</small>'+bar(o.sold,'g')+'</div><small class="num">'+eur(o.sv,0)+'</small></div>'+
         (o.stage==='chantier'?'<div class="rs-d"><div><b>Chantier</b><small>Livraison dans '+Math.max(0,Math.round((1-o.cp)*o.cd))+' jours'+(o.loan?' · crédit de '+eur(o.loan,0)+' à '+prRate():'')+(o.late?' · en retard':'')+'</small>'+bar(o.cp,'')+'</div><small class="num">'+eur(o.cc,0)+'</small></div>':'')+
         '<div class="rs-d"><div><b>Encaissé</b><small>20 % à la signature, 70 % au fil du chantier, 10 % à la livraison</small></div><small class="num">'+eur(o.rec,0)+'</small></div></div>';
       if(o.sold<1) h+='<div class="met-c"><b>Prix : '+(o.pr>=1?'+':'')+Math.round((o.pr-1)*100)+' % par rapport au marché</b><div class="seg">'+[[-.05,'−5 %'],[-.02,'−2 %'],[.02,'+2 %'],[.05,'+5 %']].map(([v,n])=>'<button data-a="met" data-i="'+b.id+'" data-v="pr" data-j="'+o.id+':'+v+'">'+n+'</button>').join('')+'</div><div class="sub">Plus cher, chaque lot rapporte plus mais se vend moins vite.</div></div>';
@@ -16521,9 +16523,9 @@ MET.renew.html=function(b){
     h+='</div>'; }
   /* contrats */
   const avg=m.pxh.reduce((a,x)=>a+x,0)/m.pxh.length, p=Math.round(avg*.97*100)/100;
-  h+='<div class="pk-head"><b>Vente de l’électricité</b><span class="sub">Prix moyen des 60 derniers jours : '+avg.toFixed(2).replace('.',',')+'</span></div><div class="pk-pan">';
+  h+='<div class="pk-head"><b>Vente de l’électricité</b><span class="sub">Prix moyen des 60 derniers jours : '+avg.toFixed(2).replace('.',NDEC)+'</span></div><div class="pk-pan">';
   h+=rnSpark(m.pxh);
-  h+='<div class="met-c"><b>'+(m.ctr.sh?'Contrat en cours : '+Math.round(m.ctr.sh*100)+' % à '+m.ctr.p.toFixed(2).replace('.',',')+' jusqu’au '+dateL(m.ctr.until):'Contrat d’un an')+'</b><div class="seg">'+[[0,'Aucun'],[.3,'30 %'],[.6,'60 %'],[.9,'90 %']].map(([v,n])=>'<button class="'+(m.ctr.sh===v?'on':'')+'" data-a="met" data-i="'+b.id+'" data-v="ctr" data-j="'+v+'">'+n+'</button>').join('')+'</div><div class="sub">Un contrat vend une part de la production à prix fixe pendant un an'+(m.ctr.sh?'':' (aujourd’hui : '+String(p).replace('.',',')+')')+'. Il protège des jours bon marché, mais prive des flambées.</div></div></div>';
+  h+='<div class="met-c"><b>'+(m.ctr.sh?'Contrat en cours : '+Math.round(m.ctr.sh*100)+' % à '+m.ctr.p.toFixed(2).replace('.',NDEC)+' jusqu’au '+dateL(m.ctr.until):'Contrat d’un an')+'</b><div class="seg">'+[[0,'Aucun'],[.3,'30 %'],[.6,'60 %'],[.9,'90 %']].map(([v,n])=>'<button class="'+(m.ctr.sh===v?'on':'')+'" data-a="met" data-i="'+b.id+'" data-v="ctr" data-j="'+v+'">'+n+'</button>').join('')+'</div><div class="sub">Un contrat vend une part de la production à prix fixe pendant un an'+(m.ctr.sh?'':' (aujourd’hui : '+String(p).replace('.',NDEC)+')')+'. Il protège des jours bon marché, mais prive des flambées.</div></div></div>';
   return h;
 };
 function rnSpark(L){ const W=320, H=56, mx=Math.max(1.6,...L), mn=Math.min(.5,...L), x=i=>i*W/(L.length-1), y=v=>H-4-(v-mn)/(mx-mn)*(H-8);
@@ -16545,11 +16547,11 @@ MET.dc.html=function(b){
     if(opts.length) h+='<div class="row" style="flex-wrap:wrap;gap:6px">'+opts.map(k=>'<button class="btn sm" data-a="met" data-i="'+b.id+'" data-v="cool" data-j="'+r.id+':'+k+'"'+(cash<d.cost*DC_COOL[k].c?' disabled':'')+'>'+DC_COOL[k].n+' ('+Math.round(k==='nat'?DC_COOL[k].kw*dcColdF(b):DC_COOL[k].kw)+' kW) · '+eur(d.cost*DC_COOL[k].c,0)+'</button>').join('')+'</div>';
     const cl=m.cl.filter(c=>c.rm===r.id);
     if(cl.length) h+='<div class="ht-t">'+cl.map(c=>{ const tot=c.dt.reduce((a,x)=>a+x,0), other=m.rm.filter(x=>x!==r&&dcUsed(b,x)+c.racks<=DC_SLOTS);
-      return '<div class="rs-d"><div><b>'+esc(c.n)+'</b><small>'+c.racks+' baies · garantie '+DC_SLA[c.sla].n+' · charge '+Math.round(c.util*100)+' % · arrêt '+tot.toFixed(1).replace('.',',')+' h / '+String(DC_SLA[c.sla].h).replace('.',',')+' h permises</small></div>'+
+      return '<div class="rs-d"><div><b>'+esc(c.n)+'</b><small>'+c.racks+' baies · garantie '+DC_SLA[c.sla].n+' · charge '+Math.round(c.util*100)+' % · arrêt '+tot.toFixed(1).replace('.',NDEC)+' h / '+String(DC_SLA[c.sla].h).replace('.',NDEC)+' h permises</small></div>'+
         (other.length?'<button class="btn sm" data-a="met" data-i="'+b.id+'" data-v="move" data-j="'+c.id+':'+other[0].id+'">Vers salle '+other[0].id+'</button>':'<small class="num">'+eur(c.p,0)+' / j</small>')+'</div>'; }).join('')+'</div>';
     h+='</div>'; });
   if(m.off.length) h+='<div class="pk-head"><b>Clients qui cherchent un hébergement</b></div><div class="ht-t">'+m.off.map(c=>{ const f=dcFit(b,c), lock=DC_SLA[c.sla].rk&&!mxHas(b,DC_SLA[c.sla].rk);
-    return '<div class="ga-lot"><div class="row sp"><div><b>'+esc(c.n)+'</b><small>'+c.racks+' baies · garantie '+DC_SLA[c.sla].n+' ('+String(DC_SLA[c.sla].h).replace('.',',')+' h d’arrêt permises par mois) · charge d’environ '+Math.round(c.util*100)+' % · encore '+Math.max(0,c.until-S.day)+' j</small></div><b class="num">'+eur(c.p,0)+' / j</b></div>'+
+    return '<div class="ga-lot"><div class="row sp"><div><b>'+esc(c.n)+'</b><small>'+c.racks+' baies · garantie '+DC_SLA[c.sla].n+' ('+String(DC_SLA[c.sla].h).replace('.',NDEC)+' h d’arrêt permises par mois) · charge d’environ '+Math.round(c.util*100)+' % · encore '+Math.max(0,c.until-S.day)+' j</small></div><b class="num">'+eur(c.p,0)+' / j</b></div>'+
       '<div class="row">'+(f?'<button class="btn sm pri" data-a="met" data-i="'+b.id+'" data-v="acc" data-j="'+c.id+':'+f.r.id+'">Installer en salle '+f.r.id+'</button>'+(f.head<0?'<span class="sub">La salle risque la surchauffe</span>':''):'<span class="sub">Pas assez de baies libres</span>')+'<button class="btn sm" data-a="met" data-i="'+b.id+'" data-v="dec" data-j="'+c.id+'">Refuser</button></div></div>'; }).join('')+'</div>';
   return h;
 };
@@ -16562,7 +16564,7 @@ MET.dealer.html=function(b){
   const Bt=(lab,act,arg,o)=>'<button class="btn '+((o&&o.c)||'sm')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o&&o.dis?' disabled':'')+'>'+lab+'</button>';
   let h='<div class="pk-head"><b>Votre marque</b><span class="sub">'+esc(B.n)+' · objectif '+Q.sold+' / '+Q.obj+'</span></div>';
   h+='<div class="rs-d"><div><b>'+esc(B.n)+'</b><small>'+esc(B.d)+' · prix moyen '+eur(B.p,0)+' · marge '+Math.round(B.mg*100)+' %</small>'+
-    bar(Math.min(1,Q.sold/Math.max(1,Q.obj)),Q.sold>=Q.obj?'g':'')+'<small>Objectif du trimestre : '+Q.sold+' / '+Q.obj+' voitures neuves ; prime de '+String(Math.round(B.pr*1000)/10).replace('.',',')+' % du chiffre d’affaires du neuf si atteint. Confiance de la marque : '+Math.round(m.bt)+' / 100.</small>'+
+    bar(Math.min(1,Q.sold/Math.max(1,Q.obj)),Q.sold>=Q.obj?'g':'')+'<small>Objectif du trimestre : '+Q.sold+' / '+Q.obj+' voitures neuves ; prime de '+String(Math.round(B.pr*1000)/10).replace('.',NDEC)+' % du chiffre d’affaires du neuf si atteint. Confiance de la marque : '+Math.round(m.bt)+' / 100.</small>'+
     '<div class="fm-a"><button class="btn sm ghost" data-a="dlbr" data-i="'+b.id+'">'+(open?'Fermer':'Changer de marque')+'</button></div></div></div>';
   if(open) h+='<div class="pk-list">'+Object.entries(DL_BR).filter(([k])=>k!==m.br).map(([k,x])=>{ const lock=x.rk&&!mxHas(b,x.rk);
     return '<button class="pk-o" data-a="met" data-i="'+b.id+'" data-v="brand" data-j="'+k+'"'+(lock?' disabled':'')+'><span><b>'+esc(x.n)+'</b><small>'+esc(x.d)+' · '+eur(x.p,0)+' · marge '+Math.round(x.mg*100)+' %'+(lock?' · palier '+x.rk+' requis':'')+'</small></span></button>'; }).join('')+
@@ -16575,7 +16577,7 @@ MET.dealer.html=function(b){
   const recs=m.oc.filter(x=>x.rec).length, old=m.oc.filter(x=>S.day-x.d>90).length;
   h+='<div class="pk-head"><b>Occasions</b><span class="sub">'+m.oc.length+' en stock · '+recs+' prêtes</span></div>';
   h+='<div class="rs-d"><div><small>'+(m.oc.length? recs+' remise'+(recs>1?'s':'')+' en état, '+(m.oc.length-recs)+' à l’atelier'+(old? ' · '+old+' depuis plus de 3 mois (elles perdent de la valeur)' : '') : 'Aucune occasion : elles viennent des reprises et des enchères.')+'</small>'+
-    '<small>L’atelier remet en état environ '+(Math.round(dlRecCap(b)*10)/10).toString().replace('.',',')+' voiture(s) par jour.</small>'+
+    '<small>L’atelier remet en état environ '+(Math.round(dlRecCap(b)*10)/10).toString().replace('.',NDEC)+' voiture(s) par jour.</small>'+
     '<div class="fm-a">'+Bt('Acheter 3 aux enchères','auc',undefined,{dis:!can(40000)})+'</div></div></div>';
   if(m.fo){ const c=B.p*(1-B.mg)*m.fo.n; h+='<div class="pk-head"><b>Commande de flotte</b><span class="sub">'+m.fo.n+' voitures · '+fcCountdown(m.fo.until).toLowerCase()+'</span></div><div class="rs-d"><div><small>Vente à '+eur(B.p*.92*m.fo.n,0)+' (remise de 8 %), achat '+eur(c,0)+'. Compte pour l’objectif de la marque.</small><div class="fm-a">'+Bt('Accepter la commande','fleet',undefined,{c:'sm pri',dis:!can(c)})+'</div></div></div>'; }
   if(dlRepairLink()) h+='<div class="sub">Votre société de réparation fournit l’atelier : entretiens 15 % plus rentables.</div>';
@@ -16840,10 +16842,10 @@ function spSel(slot,cur,excl){ const L=spCandidates().filter(b=>!(excl||[]).incl
 { const _tf2=fcTabFin; fcTabFin=function(O){ const h=_tf2(O), P=spOf(O), f=spFame(O), pc=x=>Math.round(x*f*1000)/10;
   const row=(slot,label,d)=>'<div class="met-c"><b>'+label+'</b>'+spSel(slot,P[slot])+'<div class="sub">'+d+'</div></div>';
   let c='<div class="sub">Mettez vos propres sociétés en avant : elles vendent plus grâce à la visibilité du club (plus le club est connu, plus l’effet est fort), mais le club perd une partie de ses sponsors.</div>'+
-    row('kit','Sponsor du maillot','+'+pc(SP_SLOT.kit.boost).toString().replace('.',',')+' % de ventes pour la société ; le club perd 25 % de ses sponsors.')+
-    row('std','Nom du stade','+'+pc(SP_SLOT.std.boost).toString().replace('.',',')+' % de ventes ; le club perd 10 % de ses sponsors.')+
+    row('kit','Sponsor du maillot','+'+pc(SP_SLOT.kit.boost).toString().replace('.',NDEC)+' % de ventes pour la société ; le club perd 25 % de ses sponsors.')+
+    row('std','Nom du stade','+'+pc(SP_SLOT.std.boost).toString().replace('.',NDEC)+' % de ventes ; le club perd 10 % de ses sponsors.')+
     '<div class="met-c"><b>Partenaires officiels ('+P.part.length+' / 3)</b>'+P.part.map(id=>{ const b=spBiz(id); return b? '<div class="row sp sp-p"><span>'+esc(b.name)+'<small class="sub"> · '+esc(bizDef(b).n)+'</small></span><button class="btn sm ghost" data-a="sprm" data-i="'+id+'">Retirer</button></div>' : ''; }).join('')+
-      (P.part.length<3? spSel('addp',null,P.part) : '')+'<div class="sub">+'+pc(SP_SLOT.part.boost).toString().replace('.',',')+' % de ventes chacun ; le club perd 4 % de ses sponsors par partenaire.</div></div>';
+      (P.part.length<3? spSel('addp',null,P.part) : '')+'<div class="sub">+'+pc(SP_SLOT.part.boost).toString().replace('.',NDEC)+' % de ventes chacun ; le club perd 4 % de ses sponsors par partenaire.</div></div>';
   return h+card('Vos sociétés sponsors du club',c); }; }
 CH.spset=el=>after(spSet(el.dataset.i,el.value));
 ACT.sprm=el=>after(spSet('rmp',el.dataset.i));
