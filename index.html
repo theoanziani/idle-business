@@ -1173,6 +1173,11 @@ details.hmore .hm-b{display:flex;flex-direction:column;gap:18px;margin-top:18px}
 .ft tr.z-c2 td:first-child{border-left-color:#e08a1e}.ft-leg .z-c2 i{background:#e08a1e}
 .ft tr.z-c3 td:first-child{border-left-color:#1fa59a}.ft-leg .z-c3 i{background:#1fa59a}
 .fcs-r.zc1{box-shadow:inset 3px 0 0 #3b6fd8}.fcs-r.zc2{box-shadow:inset 3px 0 0 #e08a1e}.fcs-r.zc3{box-shadow:inset 3px 0 0 #1fa59a}
+/* V2.1.8 : zones tactiles d'au moins 44 px pour les petits boutons (la surface visible ne change pas) */
+.btn.sm:not([style*="position"]){position:relative}
+.btn.sm::after{content:'';position:absolute;inset:-7px -3px}
+.bz-ren::after,[data-a="bzren"]::after{content:'';position:absolute;inset:-8px}
+[data-a="bzren"]{position:relative}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -8180,7 +8185,7 @@ function dlDaily(b){
     b.dlp=Math.min(dlBudget(b)+add, Math.max(dlBudget(b),add*1080,g? g.c*1.05 : 0));
     /* V1.6.6 : plus rien à acheter : la réserve ne garde que trois mois de mise de côté */
     if(!g) b.dlp=Math.min(b.dlp,add*90); }
-  try{ m.auto(b,mode,dlQuality(b)); }catch(e){ console.error(e); }
+  try{ if(!b.m) metState(b); m.auto(b,mode,dlQuality(b)); }catch(e){ console.error(e); }   /* V2.1.8 : état du métier recréé s’il manque */
   /* V1.8.1 : en délégation totale, le directeur achète lui-même l'achat visé dès que la réserve le couvre
      (avant : seuls les achats prévus par le métier étaient faits, la réserve pouvait dormir) */
   if(mode==='full'){ try{ for(let k=0;k<3;k++){ const g=dlGoal(b); if(!g||g.wait||!(g.act||g.up||g.rel)) break;
@@ -8328,11 +8333,14 @@ const PK_IT = [
   {id:'decor', n:'Décor de la zone', k:'deco', c:.05, rk:2}
 ];
 const PK_EL=1.6;
+const PK_GC=new Map();
 const PK_K = {ride:'Attractions', food:'Restauration', shop:'Boutiques', deco:'Décors'};
 const PK_ZCOST=[0,.35,.7,1.2], PK_ZRANK=[0,0,2,4];
-const pkIt = id => PK_IT.find(x=>x.id===id);
+/* V2.1.8 : recherches mises en cache (mêmes résultats, calcul du parc plus rapide) */
+let PK_IM=null; const pkIt = id => { if(!PK_IM||PK_IM.n!==PK_IT.length){ PK_IM=new Map(PK_IT.map(x=>[x.id,x])); PK_IM.n=PK_IT.length; } return PK_IM.get(id); };
 const pkZone = i => ((i/PK_W|0)>=2?2:0)+((i%PK_W)>=3?1:0);
-function pkAdj(i){ const x=i%PK_W, y=i/PK_W|0, o=[]; if(x>0) o.push(i-1); if(x<PK_W-1) o.push(i+1); if(y>0) o.push(i-PK_W); if(y<PK_H-1) o.push(i+PK_W); return o; }
+function pkAdj0(i){ const x=i%PK_W, y=i/PK_W|0, o=[]; if(x>0) o.push(i-1); if(x<PK_W-1) o.push(i+1); if(y>0) o.push(i-PK_W); if(y<PK_H-1) o.push(i+PK_W); return o; }
+const PK_ADJ=[]; function pkAdj(i){ return PK_ADJ[i]||(PK_ADJ[i]=pkAdj0(i)); }
 const PK_MAINT=[['Économe','Peu cher, mais pannes fréquentes et risque d’accident',.004,.014],['Normal','Équilibré',.009,.006],['Renforcé','Cher, presque aucune panne',.018,.0015]];
 /* fenêtres des événements (jour de l'année, 0 = 1er janvier) */
 const PK_EV = [{n:'Halloween',a:270,z:299},{n:'Noël',a:330,z:359}];
@@ -8353,11 +8361,12 @@ const pkUp = (b,i) => { const c=b.m.cells[i]; return c && !(c.d>S.day); };
 /* calcul du parc (sans hasard) */
 function pkCalc(b){
   const m=b.m, wx=metWeather(b.city); let A=0, apC=0, apE=0, cap=0, fs=0, ss=0, nR=0, nF=0, nS=0, tags={};
+  const dz=[]; m.cells.forEach((y,j)=>{ if(y&&y.t==='decor') dz[pkZone(j)]=1; });
   m.cells.forEach((c,i)=>{ if(!c) return; const it=pkIt(c.t); if(!it) return;
     const z=m.zones[pkZone(i)], th=z.th&&PK_TH[z.th], nb=pkAdj(i).map(j=>m.cells[j]&&pkIt(m.cells[j].t)).filter(Boolean);
     if(it.k==='ride'){ nR++; if(!pkUp(b,i)) return;
       let f=1; if(th&&th.tag===it.tg) f+=.25; nb.forEach(x=>{ if(x.id==='jardin') f+=.06; else if(x.id==='fontaine') f+=.10; });
-      if(th&&m.cells.some((y,j)=>y&&y.t==='decor'&&pkZone(j)===pkZone(i))) f+=.12;
+      if(th&&dz[pkZone(i)]) f+=.12;
       const a=it.ap*f; A+=a; if(it.tg==='cou') apC+=a; if(it.tg==='eau') apE+=a; cap+=it.cap; tags[it.tg]=1; }
     else if(it.k==='food'||it.k==='shop'){ let f=nb.some(x=>x.k==='ride')? 1.25 : 1; if(it.id==='photo'&&nb.some(x=>x.tg==='fri')) f*=1.6; if(it.k==='shop'&&(i/PK_W|0)===PK_H-1) f*=1.15;
       if(it.k==='food'){ nF++; fs+=it.sp*f; } else { nS++; ss+=it.sp*f; } }
@@ -8436,7 +8445,8 @@ MET.park = {
   /* achat visé : une construction sur une case libre, sinon un nouveau terrain ; parc complet → agrandissement (générique).
      Les remplacements se font au fil de l'eau, sans bloquer la réserve. */
   goal(b){ try{ pkFix(b); const m=b.m, free=m.cells.some((c,i)=>!c&&m.zones[pkZone(i)].own);
-    if(free){ const x=pkOptimize(b,1,Infinity); if(x&&x.rm===undefined){ const it=pkIt(x.id); return {n:'Construire « '+it.n+' »', c:pkItemCost(b,it)}; } return null; }
+    if(free){ const sig=m.cells.map(c=>c?c.t+(c.d>S.day?'*':''):'').join(',')+'|'+m.zones.map(z=>z.own).join(''), ca=PK_GC.get(b.id);   /* V2.1.8 : résultat gardé 7 jours tant que le parc ne change pas */
+      const x= ca&&ca.sig===sig&&S.day-ca.day<7&&ca.day<=S.day ? ca.x : pkOptimize(b,1,Infinity); if(!ca||ca.x!==x) PK_GC.set(b.id,{sig,day:S.day,x}); if(x&&x.rm===undefined){ const it=pkIt(x.id); return {n:'Construire « '+it.n+' »', c:pkItemCost(b,it)}; } return null; }
     const z=m.zones.findIndex((x,k)=>!x.own&&mxHas(b,PK_ZRANK[k])); if(z>0) return {n:'Nouveau terrain (zone '+(z+1)+')', c:bizDef(b).cost*PK_ZCOST[z]}; }catch(e){} return null; }
 };
 function pkItemCost(b,it){ return bizDef(b).cost*it.c; }
@@ -16172,13 +16182,15 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.1.6';
+const IB_VER='V2.1.8';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Corrections et fluidité','Les petits boutons se touchent plus facilement (zone tactile agrandie, apparence inchangée). Une erreur de la délégation totale sur certaines boutiques de réparation et de vente en ligne est corrigée. Le calcul des parcs d’attractions délégués est plus rapide sur les longues parties.','V2.1.8'],
+  ['English version complete','La traduction anglaise couvre désormais la banque, le service RH, l’immobilier, les achats de luxe, les règles complètes et les fenêtres plus rares. Les décimales s’affichent à l’anglaise.','V2.1.7'],
   ['English number format','En anglais, les montants s’affichent à l’anglaise (€1,234.50, €2.5 M).','V2.1.6'],
   ['English: more translations','Guide, journal, notifications, club, rivals, cities, bank and rules are now translated. Hors noms propres, environ 97 % des textes affichés sont en anglais.','V2.1.5'],
   ['English (beta)','Réglages, carte Langue : le jeu peut s’afficher en anglais. Version bêta : l’essentiel de l’interface est traduit, certains textes restent en français.','V2.1.4'],
