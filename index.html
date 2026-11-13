@@ -8160,6 +8160,11 @@ const dlSkipped = (b,k) => !!(b.dlSkip&&b.dlSkip[k]>S.day);
 const dlNet30 = b => { const h=(b.hist||[]).slice(-30); return h.length? h.reduce((a,x)=>a+x,0)/h.length : 0; };
 /* V2.0.2 : bénéfice moyen sur environ 120 jours (activités à cycles : collections, récoltes, films) */
 const dlNetL = b => b.dlE!==undefined? Math.max(b.dlE,dlNet30(b)) : dlNet30(b);
+/* V2.1.9 : bâtiment visé pour grandir : le meilleur emplacement, puis le loyer le plus bas parmi ceux qui permettent
+   au moins trois niveaux de plus (avant : toujours le plus grand, au loyer souvent démesuré pour l’activité) */
+function dlRelocPick(b){ const L=relocCands(b,1).filter(x=>x.mx>b.lvl); if(!L.length) return null; const need=Math.min(MAXLVL,b.lvl+3);
+  const top=Math.max(...L.map(x=>x.fit)), T=L.filter(x=>x.fit===top), big=T.filter(x=>x.mx>=need);
+  return (big.length? big : T).sort((x,y)=>big.length? bldRent(x.bd)-bldRent(y.bd) : (y.mx-x.mx)||(bldRent(x.bd)-bldRent(y.bd)))[0]; }
 function dlGoal(b){ const mm=metOf(b); if(!mm||b.status!=='active') return null; let best=null;
   try{ metCtl(b).forEach(c=>{ if((c.k==='buy'||(c.k==='btn'&&c.once))&&!c.owned&&!c.dis&&c.cost>0&&c.act&&!dlSkipped(b,c.act+':'+c.arg)&&(!best||c.cost<best.c)) best={n:c.label, c:c.cost, act:c.act, arg:c.arg}; });
     if(mm.goal){ const g=mm.goal(b); if(g&&(!best||g.c<best.c)) best=g; } }catch(e){}
@@ -8171,7 +8176,7 @@ function dlGoal(b){ const mm=metOf(b); if(!mm||b.status!=='active') return null;
   if(!best&&!b.up&&b.lvl<MAXLVL&&upOk){ const bd=b.bld&&bldById(b.bld), full=bd&&b.lvl+1>bldMaxLvl(bd,b.def);
     if(!full) best={n:'Agrandir l’entreprise (niveau '+(b.lvl+1)+')', c:upgradeCost(b), up:1, wait:dlSkipped(b,'up')?1:0};
     /* V1.8.3 : bâtiment trop petit pour grandir : déménager dans la même ville vers un bâtiment plus grand */
-    else if(full&&!dlSkipped(b,'rel')){ try{ const C=relocCands(b,1).filter(x=>x.mx>b.lvl).sort((x,y)=>(y.fit-x.fit)||(y.mx-x.mx))[0];
+    else if(full&&!dlSkipped(b,'rel')){ try{ const C=dlRelocPick(b);
       if(C) best={n:'Déménager au '+C.bd.addr+' pour grandir (niveau '+C.mx+' au plus)', c:relocCost(b), rel:C.bd.id}; }catch(e){} } }
   return best; }
 /* achat d'une action métier payée sur la trésorerie, décomptée de la réserve */
@@ -8510,7 +8515,9 @@ function pkAuto(b,mode,q){
   /* V1.8.2 : le directeur évalue chaque attraction possible sur chaque case libre (et le remplacement
      des moins utiles quand le parc est plein) avec le calcul du jeu, puis retient l'achat qui se
      rapporte le plus par jour (remboursé en moins de 30 mois). Un directeur moins bon se trompe parfois de case. */
-  const best=pkOptimize(b,q); if(!best) return;
+  /* V2.1.9 : parc plein et agrandissement visé : les remplacements ne prennent que la réserve au-delà de son prix */
+  let cap; if(!free.length){ const g=dlGoal(b); if(g&&(g.up||g.rel)){ cap=dlBudget(b)-g.c; if(cap<=0) return; } }
+  const best=pkOptimize(b,q,cap); if(!best) return;
   if(best.rm!==undefined) pkRemove(b,best.rm);
   pkPlace(b,best.cell+':'+best.id,true);
 }
@@ -9957,7 +9964,9 @@ MET.staffing = {
     m.jobs=m.jobs.filter(j=>j.exp>=S.day||j.prop);
     let nj=.12*rec*sf*(m.excl?1.4:1)*(m.intl?1.4:1)*(m.ev&&m.ev.k==='mass'?2:1);
     while(nj>0){ if(rnd()<Math.min(1,nj)) stJob(b, rnd()<.04); nj--; }
-    if(m.jobs.length>14) m.jobs.splice(0,m.jobs.length-14);
+    /* V2.1.9 : au-delà de 14 postes, on retire d’abord les plus anciens sans candidature (avant : les candidatures en attente
+       étaient supprimées avant la réponse du client, et une grande agence ne plaçait plus personne) */
+    if(m.jobs.length>14){ let ex=m.jobs.length-14; m.jobs=m.jobs.filter(j=>{ if(ex>0&&!j.prop){ ex--; return false; } return true; }); }
     /* réponses des clients */
     m.jobs=m.jobs.filter(j=>{ if(!j.prop||S.day<j.prop.d) return true; const c=j.prop.c;
       if(rnd()<j.prop.p&&rnd()>.06){ if(j.cdi){ const f=stFee(b,j,c); m.pend+=f; metLog(b,c.n+' est embauché(e) chez '+j.cl.replace('Client exclusif · ','')+' : commission de '+eur(f,0)+'.','good'); }
@@ -16182,13 +16191,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.1.8';
+const IB_VER='V2.1.9';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Directeurs plus efficaces','Agence de recrutement : les candidatures en attente ne disparaissent plus quand les postes affluent, une grande agence place enfin ses candidats. Atelier de réparation : pour grandir, le directeur choisit un local au loyer raisonnable au lieu du plus grand. Parc d’attractions : il met de côté pour s’agrandir au lieu de tout dépenser en remplacements.','V2.1.9'],
   ['Corrections et fluidité','Les petits boutons se touchent plus facilement (zone tactile agrandie, apparence inchangée). Une erreur de la délégation totale sur certaines boutiques de réparation et de vente en ligne est corrigée. Le calcul des parcs d’attractions délégués est plus rapide sur les longues parties.','V2.1.8'],
   ['English version complete','La traduction anglaise couvre désormais la banque, le service RH, l’immobilier, les achats de luxe, les règles complètes et les fenêtres plus rares. Les décimales s’affichent à l’anglaise.','V2.1.7'],
   ['English number format','En anglais, les montants s’affichent à l’anglaise (€1,234.50, €2.5 M).','V2.1.6'],
