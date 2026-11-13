@@ -9800,8 +9800,9 @@ const ecTr = (m,id) => m.tr[id].v*(m.tr[id].vir>0?2.2:1);
 /* une journée de l'entonnoir (sans hasard si sim=true, pour les prévisions) */
 function ecDay(b,sim){ const m=b.m, k=ecK(b), R0=metR0(b);
   const sale=m.ev&&m.ev.k==='soldes'&&m.ev.until>=S.day, late=m.ev&&m.ev.k==='retard'&&m.ev.until>=S.day;
-  let vis={org:1020*k*/* V1.5.6 : +20 % de visiteurs naturels */(.5+.25*m.note)*(m.fid?1.25:1)*(m.intl?1.6:1)*(m.mkt?1.3:1)};
-  Object.keys(EC_CH).forEach(c=>{ vis[c]=R0*EC_BUD[m.ch[c]]/EC_CH[c].cpc*(m.intl?1.2:1); });
+  const sat=(typeof BAL_DEM!=='undefined'&&BAL_DEM.includes('ecom'))? (b.satF||1) : 1;   /* V2.2.4 : la saturation agit sur la demande */
+  let vis={org:sat*1020*k*/* V1.5.6 : +20 % de visiteurs naturels */(.5+.25*m.note)*(m.fid?1.25:1)*(m.intl?1.6:1)*(m.mkt?1.3:1)};
+  Object.keys(EC_CH).forEach(c=>{ vis[c]=sat*R0*EC_BUD[m.ch[c]]/EC_CH[c].cpc*(m.intl?1.2:1); });
   const tot=Object.values(vis).reduce((a,x)=>a+x,0);
   const L=m.cat.map(it=>{ const p=ecP(it.id); return {it, p, w:ecTr(m,it.id)}; }), wsum=L.reduce((a,x)=>a+x.w,0)||1;
   let rev=0, cost=0, carts=0, orders=0, ret=0, lost=0, gc=0;
@@ -12050,7 +12051,9 @@ const BAL_F={office:8, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2, 
 const BAL_ROI=4.5;          /* 450 % par an, soit un remboursement en 80 jours environ */
 const BAL_ROI_D={resto:6};  /* V2.0.6 : le restaurant gastronomique sature plus tard (600 % par an) */
 function balInv(b){ const d=bizDef(b); return Math.max(1,(b.inv$||d.cost)+Math.max(0,bizInvested(b)-d.cost)); }
-const BAL_SKIP=['promo','build'];   /* ventes par programmes : recettes trop irrégulières pour la saturation */
+const BAL_SKIP=['promo','build'];
+/* V2.2.4 : pour ces métiers, la saturation réduit la demande (commandes et achats de marchandises) au lieu des seules recettes */
+const BAL_DEM=['ecom'];   /* ventes par programmes : recettes trop irrégulières pour la saturation */
 /* V1.9.5 : les petits commerces du début (paliers 0 et 1) ne saturent pas tant qu'ils restent sous le niveau 4 */
 const balFree = b => (bizDef(b).tier||0)<=1 && b.lvl<4;
 function balStep(){ S.biz.forEach(b=>{ if(b.status!=='active'||!metOf(b)||BAL_SKIP.includes(b.def)) return; if(balFree(b)){ b.satF=1; return; }
@@ -12063,8 +12066,8 @@ function balStep(){ S.biz.forEach(b=>{ if(b.status!=='active'||!metOf(b)||BAL_SK
   const RT=BAL_ROI_D[b.def]||((bizDef(b).tier||0)<=1? 6 : BAL_ROI),   /* V2.1.1 : petits commerces 600 % */ tgt= roi1>RT? clamp((RT*inv/360+C)/R,.05,1) : 1;
   b.satF=clamp(f0+(tgt-f0)*.03,.05,1); }); }
 { const _mm=metMods; metMods=function(b){ const z=_mm(b); if(!b||b.status!=='active') return z;
-  const f=(BAL_F[b.def]||1)*(b.satF||1); if(f!==1){ z.vol*=f; z.rev*=f; } return z; }; }
-{ const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé','recettes −'+Math.round((1-b.satF)*100)+' %. Ce n’est pas une crise : la société rapporte plus de '+Math.round((BAL_ROI_D[b.def]||((bizDef(b).tier||0)<=1? 6 : BAL_ROI))*100)+' % par an de ce qu’elle a coûté. Le plafond monte avec chaque agrandissement ou rénovation ; sinon, ouvrez la même activité dans une autre ville.',1]); return L; }; }
+  const f=(BAL_F[b.def]||1)*(BAL_DEM.includes(b.def)?1:(b.satF||1)); if(f!==1){ z.vol*=f; z.rev*=f; } return z; }; }
+{ const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé',(BAL_DEM.includes(b.def)?'commandes −':'recettes −')+Math.round((1-b.satF)*100)+' %. Ce n’est pas une crise : la société rapporte plus de '+Math.round((BAL_ROI_D[b.def]||((bizDef(b).tier||0)<=1? 6 : BAL_ROI))*100)+' % par an de ce qu’elle a coûté. Le plafond monte avec chaque agrandissement ou rénovation ; sinon, ouvrez la même activité dans une autre ville.',1]); return L; }; }
 
 /* ---------- V2.1.3 : événement de la semaine ----------
    Semaine réelle (du lundi au dimanche). Un secteur où vous êtes présent est mis à l'honneur :
@@ -16200,13 +16203,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.2.3';
+const IB_VER='V2.2.4';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['E-commerce : saturation plus juste','Quand une boutique en ligne très rentable sature son marché, elle reçoit moins de commandes au lieu de vendre moins cher : les achats de marchandises baissent avec les ventes. Fini les journées dans le rouge pendant les soldes, et une grande boutique rapporte environ un tiers de plus.','V2.2.4'],
   ['Démarrage plus rapide','Les illustrations des villes et des activités sont désormais stockées compressées : le jeu est plus de deux fois plus léger et s’ouvre environ 30 % plus vite sur téléphone.','V2.2.3'],
   ['Construction : révision des prix','La main-d’œuvre des chantiers en cours suit désormais le tarif actuel de votre société : un chantier signé avant un agrandissement est payé au nouveau tarif (les matériaux restent au prix signé). Le prix révisé s’affiche sur chaque chantier.','V2.2.2'],
   ['Construction : carnet de commandes maîtrisé','Le conducteur de travaux ne s’engage plus sur plus de trois mois de chantiers. Les prix étant fixés à la signature, un carnet trop long se payait aux tarifs d’avant les agrandissements : la société déléguée grandit désormais bien plus vite.','V2.2.1'],
