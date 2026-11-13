@@ -9107,6 +9107,10 @@ function bcInit(b){ const m={v:1, off:[], jobs:[], mi:1, eng:0, tmp:0, lab:0, re
   /* un premier chantier déjà signé, pour démarrer */
   const o=m.off.shift(); o.bid={pr:0,dl:1.25,ma:0,p:1,d:S.day}; o.dl=Math.max(o.dl,Math.ceil(o.W/Math.max(.5,bcCapDay(b))*1.2)); bcStart(b,o); m.log=[]; return m; }
 function bcUnit(b){ return metR0(b)*1.2/bcCrews(b); }
+/* V2.2.1 : révision des prix : la main-d’œuvre d’un chantier en cours suit le tarif actuel de la société (jamais à la baisse, ×4 au plus) ;
+   les matériaux restent au prix signé. Anciennes sauvegardes : le tarif de référence est celui du jour de la mise à jour. */
+function bcIdx(b,j){ if(!(j.u0>0)) j.u0=bcUnit(b); return clamp(bcUnit(b)/j.u0,1,4); }
+function bcRev(b,j){ return j.price*(BC_MAT+(1-BC_MAT)*bcIdx(b,j)); }
 function bcNewOffer(b){
   const m=b.m, L=BC_KIND.filter(x=>mxHas(b,x.rk)), K=wpick(L,x=>x.rk===0?3:x.rk>=4?1:1.5);
   const W=Math.round(K.W[0]+(K.W[1]-K.W[0])*rnd()), cap=Math.max(.5,bcCapDay(b));
@@ -9124,7 +9128,7 @@ function bcBid(b,arg,auto){ const [sid,spr,sdl,sma]=String(arg).split(':'), m=b.
   o.bid={pr, dl, ma:+sma?1:0, p:bcWin(b,o,pr,dl), d:S.day+2}; if(!auto) metLog(b,'offre envoyée pour « '+o.n+' » ('+eur(o.ref*(1+pr),0)+', '+Math.round(o.dl*dl)+' jours).','');
   return ok('Offre envoyée. Réponse dans 2 jours.'); }
 function bcStart(b,o){ const m=b.m, price=o.ref*(1+o.bid.pr), mat=price*BC_MAT/(1+o.bid.pr)*(o.k==='oa'?1.1:1);
-  const j={id:o.id, n:o.n, cl:o.cl, k:o.k, W:o.W, left:o.W, price, mat, matPaid:0, due:S.day+Math.round(o.dl*o.bid.dl), pr:m.jobs.length, sub:0, stop:0, green:o.green};
+  const j={id:o.id, n:o.n, cl:o.cl, k:o.k, W:o.W, left:o.W, price, u0:bcUnit(b), mat, matPaid:0, due:S.day+Math.round(o.dl*o.bid.dl), pr:m.jobs.length, sub:0, stop:0, green:o.green};
   if(o.bid.ma){ const c=mat*m.mi; m.pendC+=c; j.matPaid=mat; }
   m.jobs.push(j); m.rep=clamp(m.rep+.5,0,100);
   metLog(b,'chantier remporté : « '+o.n+' » pour '+eur(price,0)+', livraison le '+footDateLabel(j.due,{noY:1})+'.','good'); }
@@ -9160,7 +9164,7 @@ MET.build = {
       let w=0; const maxC=Math.max(1,Math.ceil(j.W/25));
       if(cap>0){ w=Math.min(j.left, cap, maxC*BC_ENG[m.eng||0].p); cap-=w; }
       if(j.sub){ const ws=Math.min(j.left-w, Math.max(1,j.W/40)); w+=ws; cost+=ws/j.W*j.price*.55; }
-      if(w<=0) return; j.left-=w; const f=w/j.W; rev+=f*j.price;
+      if(w<=0) return; j.left-=w; const f=w/j.W; rev+=f*bcRev(b,j);
       if(j.matPaid<j.mat){ const add=Math.min(j.mat-j.matPaid,f*j.mat); j.matPaid+=add; cost+=add*m.mi; }
       if(j.W>100&&rnd()<.0015){ const n=rint(10,20); j.stop=S.day+n; j.due+=n; metLog(b,'découverte archéologique sur « '+j.n+' » : chantier suspendu '+n+' jours, délai prolongé.','warn'); }
     });
@@ -9174,7 +9178,7 @@ MET.build = {
   },
   kpis(b){ const m=b.m, cap=bcCapDay(b), back=m.jobs.reduce((a,j)=>a+j.left,0), late=m.jobs.filter(j=>S.day>j.due).length;
     return [['Chantiers en cours', String(m.jobs.length), late? late+' en retard' : 'Aucun retard'],
-            ['Carnet de commandes', Math.round(back/Math.max(.1,cap))+' jours', eur(m.jobs.reduce((a,j)=>a+j.price*j.left/j.W,0),0)+' à facturer'],
+            ['Carnet de commandes', Math.round(back/Math.max(.1,cap))+' jours', eur(m.jobs.reduce((a,j)=>a+bcRev(b,j)*j.left/j.W,0),0)+' à facturer'],
             ['Prix des matériaux', Math.round(m.mi*100)+' %', m.mi>1.1? 'Cher : achetez au fil de l’eau' : m.mi<.9? 'Bas : achetez d’avance' : 'Proche de la normale'],
             ['Réputation', Math.round(m.rep)+' / 100', 'Chantiers livrés à l’heure : elle monte']];
   },
@@ -16152,10 +16156,10 @@ MET.build.html=function(b){
         '<div class="row sp"><div><b class="num">'+eur(price,0)+'</b><div class="sub">Chance de l’emporter : '+Math.round(p*100)+' %</div></div>'+B('Envoyer l’offre','bid',o.id+':'+sel.pr+':'+sel.dl+':'+(sel.ma?1:0),{c:'sm pri'})+'</div>'+
         '<div class="sub">Avec vos chantiers en cours, celui-ci serait fini dans environ '+Math.ceil((m.jobs.reduce((a,j)=>a+j.left,0)+o.W)/Math.max(.1,cap*.9))+' jours. Un délai court gagne plus souvent, mais chaque jour de retard coûte 1 % du prix. Votre capacité : '+cap.toFixed(1).replace('.',NDEC)+' journées d’équipe par jour ouvré.</div></div>'; }
     return x; }).join('') : '<div class="sub">Aucun appel d’offres pour le moment.</div>';
-  h+='<div class="pk-head"><b>Chantiers</b><span class="sub">Les équipes vont d’abord sur le premier de la liste</span></div>';
+  h+='<div class="pk-head"><b>Chantiers</b><span class="sub">Les équipes vont d’abord sur le premier de la liste. La main-d’œuvre des chantiers en cours suit votre tarif actuel.</span></div>';
   const L=m.jobs.slice().sort((a,c)=>a.pr-c.pr);
   h+= L.length? L.map((j,i)=>{ const done=1-j.left/j.W, late=S.day>j.due, left=j.due-S.day;
-    return '<div class="rs-d bc-j'+(late?' late':'')+'"><div><b>'+esc(j.n)+'</b><small>'+eur(j.price,0)+' · '+(late? '<span class="neg">'+(-left)+' jours de retard</span>' : 'livraison dans '+left+' jours')+(j.stop>S.day?' · suspendu (fouilles)':'')+(j.sub?' · sous-traité en partie':'')+'</small>'+bar(done,late?'r':'g')+'</div><div class="bc-a">'+(i>0?B('Priorité','pr',j.id,{c:'sm ghost'}):'')+B(j.sub?'Sous-traitance : oui':'Sous-traiter','sub',j.id,{c:'sm ghost'})+'</div></div>'; }).join('') : '<div class="sub">Aucun chantier : répondez aux appels d’offres.</div>';
+    return '<div class="rs-d bc-j'+(late?' late':'')+'"><div><b>'+esc(j.n)+'</b><small>'+eur(bcRev(b,j),0)+(bcIdx(b,j)>1.005?' (révisé +'+Math.round((bcRev(b,j)/j.price-1)*100)+' %)':'')+' · '+(late? '<span class="neg">'+(-left)+' jours de retard</span>' : 'livraison dans '+left+' jours')+(j.stop>S.day?' · suspendu (fouilles)':'')+(j.sub?' · sous-traité en partie':'')+'</small>'+bar(done,late?'r':'g')+'</div><div class="bc-a">'+(i>0?B('Priorité','pr',j.id,{c:'sm ghost'}):'')+B(j.sub?'Sous-traitance : oui':'Sous-traiter','sub',j.id,{c:'sm ghost'})+'</div></div>'; }).join('') : '<div class="sub">Aucun chantier : répondez aux appels d’offres.</div>';
   return h;
 };
 ACT.bcsel=el=>{ const v=+el.dataset.v; ui.bc= v? {b:+el.dataset.i, id:v, pr:0, dl:1, ma:0} : null; render(); };
@@ -16191,13 +16195,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.2.1';
+const IB_VER='V2.2.2';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Construction : révision des prix','La main-d’œuvre des chantiers en cours suit désormais le tarif actuel de votre société : un chantier signé avant un agrandissement est payé au nouveau tarif (les matériaux restent au prix signé). Le prix révisé s’affiche sur chaque chantier.','V2.2.2'],
   ['Construction : carnet de commandes maîtrisé','Le conducteur de travaux ne s’engage plus sur plus de trois mois de chantiers. Les prix étant fixés à la signature, un carnet trop long se payait aux tarifs d’avant les agrandissements : la société déléguée grandit désormais bien plus vite.','V2.2.1'],
   ['Directeurs plus efficaces','Agence de recrutement : les candidatures en attente ne disparaissent plus quand les postes affluent, une grande agence place enfin ses candidats. Atelier de réparation : pour grandir, le directeur choisit un local au loyer raisonnable au lieu du plus grand. Parc d’attractions : il met de côté pour s’agrandir au lieu de tout dépenser en remplacements.','V2.1.9'],
   ['Corrections et fluidité','Les petits boutons se touchent plus facilement (zone tactile agrandie, apparence inchangée). Une erreur de la délégation totale sur certaines boutiques de réparation et de vente en ligne est corrigée. Le calcul des parcs d’attractions délégués est plus rapide sur les longues parties.','V2.1.8'],
