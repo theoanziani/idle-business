@@ -9206,7 +9206,7 @@ function bcAuto(b,mode,q){
   m.jobs.forEach(j=>{ const need=j.left/Math.max(1,j.due-S.day); j.sub= S.day>j.due-5&&j.left>cap*Math.max(1,j.due-S.day)*.8? 1 : 0; });
   let load=back+pending;
   m.off.filter(o=>!o.bid).forEach(o=>{ if(o.eng&&(m.eng||0)<o.eng) return;
-    const fin=(load+o.W)/Math.max(.1,cap*.85); if(fin>o.dl*1.25) return;
+    const fin=(load+o.W)/Math.max(.1,cap*.85); if(fin>o.dl*1.25) return; if(fin>90) return;   /* V2.2.1 : carnet limité à 90 jours (les prix sont fixés à la signature ; un carnet de plus d’un an se payait aux tarifs d’avant les agrandissements) */
     const dl= fin>o.dl? 1.25 : 1, mg=(m.mg||.05)+(1-q)*.08*(rnd()-.5); load+=o.W*.5;
     const pr=[-.1,0,.1,.2].reduce((a,x)=>Math.abs(x-mg)<Math.abs(a-mg)?x:a,0);
     bcBid(b,o.id+':'+pr+':'+dl+':'+(m.mi<.92?1:0),true); });
@@ -16191,13 +16191,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.1.9';
+const IB_VER='V2.2.1';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Construction : carnet de commandes maîtrisé','Le conducteur de travaux ne s’engage plus sur plus de trois mois de chantiers. Les prix étant fixés à la signature, un carnet trop long se payait aux tarifs d’avant les agrandissements : la société déléguée grandit désormais bien plus vite.','V2.2.1'],
   ['Directeurs plus efficaces','Agence de recrutement : les candidatures en attente ne disparaissent plus quand les postes affluent, une grande agence place enfin ses candidats. Atelier de réparation : pour grandir, le directeur choisit un local au loyer raisonnable au lieu du plus grand. Parc d’attractions : il met de côté pour s’agrandir au lieu de tout dépenser en remplacements.','V2.1.9'],
   ['Corrections et fluidité','Les petits boutons se touchent plus facilement (zone tactile agrandie, apparence inchangée). Une erreur de la délégation totale sur certaines boutiques de réparation et de vente en ligne est corrigée. Le calcul des parcs d’attractions délégués est plus rapide sur les longues parties.','V2.1.8'],
   ['English version complete','La traduction anglaise couvre désormais la banque, le service RH, l’immobilier, les achats de luxe, les règles complètes et les fenêtres plus rares. Les décimales s’affichent à l’anglaise.','V2.1.7'],
