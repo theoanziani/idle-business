@@ -9297,6 +9297,9 @@ const txQ = d => Math.floor(((d||S.day)-1)/90);
 const txSeasonName = q => TX_SEAS[((q%4)+4)%4]+' '+(FOOT_Y0+Math.floor(q/4));
 const txCap = b => 100*(b.lvl||1)*(b.m.auto?1.3:1);
 const txUnit = b => .9*metR0(b);
+/* V2.2.7 : affichage en pièces, l'unité de la production et des débouchés (un lot vaut txUnit, une pièce le prix de référence des vêtements) */
+const txPcs = b => txUnit(b)/D.GOODS.vet.v;
+const txP = (b,x) => fmtN(Math.round(x*txPcs(b)/10)*10);
 function txPop(b){ const o={}; TX_ST.forEach(s=>{ o[s.id]=clamp(Math.exp(.55*norm()),.25,3); }); return o; }
 function txForecast(b,pop){ const e=b.m.bur? .12 : .35, o={}; Object.keys(pop).forEach(k=>{ o[k]=clamp(pop[k]*Math.exp(e*norm()),.2,3.2); }); return o; }
 function txNewPlan(b,q,prev){ const pop=txPop(b);
@@ -9321,7 +9324,7 @@ function txOpenSale(b,P){ const m=b.m, u=txUnit(b), mat=TX_MAT.find(x=>x.id===P.
   return {q:P.q, stock, dem, sold:{}, price, mat:P.mat, sub:P.sub, scand:0};
 }
 function txClose(b){ const m=b.m, S0=m.sale; if(!S0) return; let left=0; Object.keys(S0.stock).forEach(k=>left+=S0.stock[k]);
-  if(left>.5){ m.pend+=left*S0.price*.4; metLog(b,'fin de saison : '+Math.round(left)+' lots invendus partent en soldes ('+eur(left*S0.price*.4,0)+').',left>txCap(b)*.25?'warn':''); } }
+  if(left>.5){ m.pend+=left*S0.price*.4; metLog(b,'fin de saison : '+txP(b,left)+' pièces invendues partent en soldes ('+eur(left*S0.price*.4,0)+').',left>txCap(b)*.25?'warn':''); } }
 function txRoll(b){ const m=b.m; txClose(b); m.sale=txOpenSale(b,m.prod); m.prod=m.plan; m.prod.sf=1; m.plan=txNewPlan(b,m.prod.q+1,m.prod); txFill(b,m.plan,.9,.6); m.q=txQ();
   if(m.ev&&m.ev.k==='coton') m.ev=null; if(rnd()<.2){ m.ev={k:'coton'}; metLog(b,'hausse du coton : la collection en fabrication coûte 20 % plus cher.','bad'); }
   metLog(b,'nouvelle saison : la collection « '+txSeasonName(m.sale.q)+' » est en vente.','good'); }
@@ -9355,8 +9358,8 @@ MET.textile = {
   kpis(b){ const m=b.m, SA=m.sale; let st=0, so=0; if(SA){ Object.values(SA.stock).forEach(x=>st+=x); Object.values(SA.sold).forEach(x=>so+=x); }
     const left=90-((S.day-1)%90);
     return [['En vente', txSeasonName(SA?SA.q:txQ()), left+' jours avant les soldes'],
-            ['Vendu cette saison', Math.round(so)+' lots', Math.round(st)+' lots en stock'],
-            ['Capacité', Math.round(txCap(b))+' lots / saison', m.auto?'Usine automatisée':'Par niveau de l’usine'],
+            ['Vendu cette saison', txP(b,so)+' pièces', txP(b,st)+' pièces en stock'],
+            ['Capacité', txP(b,txCap(b))+' pièces / saison', m.auto?'Usine automatisée':'Par niveau de l’usine'],
             ['Marque', m.own?'Marque propre':'Pour les autres', m.bur?'Bureau de tendances':'Prévisions approximatives']];
   },
   ctl(b){ const m=b.m, d=bizDef(b), out=[];
@@ -16311,14 +16314,14 @@ MET.textile.html=function(b){
   const nm=k=>k==='cap'?'Capsule':(TX_ST.find(s=>s.id===k)||{}).n;
   let h='<div class="pk-head"><b>En vente : '+txSeasonName(SA.q)+'</b><span class="sub">'+(TX_MAT.find(x=>x.id===SA.mat)||{}).n+'</span></div><div class="ht-t">';
   Object.keys(SA.stock).forEach(k=>{ const so=SA.sold[k]||0, st=SA.stock[k], all=so+st; if(all<.5) return;
-    h+='<div class="tx-r"><span>'+esc(nm(k))+'</span>'+bar(all? so/all:0, st<.5?'g':'')+'<small class="num">'+Math.round(so)+' / '+Math.round(all)+'</small></div>'; });
-  h+='</div><div class="sub">Lots vendus sur la saison. Ce qui reste au dernier jour part en soldes à 40 % du prix.</div>';
+    h+='<div class="tx-r"><span>'+esc(nm(k))+'</span>'+bar(all? so/all:0, st<.5?'g':'')+'<small class="num">'+txP(b,so)+' / '+txP(b,all)+'</small></div>'; });
+  h+='</div><div class="sub">Pièces vendues sur la saison. Ce qui reste au dernier jour part en soldes à 40 % du prix.</div>';
   let pn=0; Object.values(PR.qty).forEach(x=>pn+=x);
-  h+='<div class="pk-head"><b>En fabrication : '+txSeasonName(PR.q)+'</b><span class="sub">'+Math.round(pn)+' lots'+(PR.caps?' + capsule':'')+'</span></div>';
-  h+='<div class="pk-head"><b>À préparer : '+txSeasonName(P.q)+'</b><span class="sub '+(tot>cap?'neg':'')+'">'+tot+' / '+cap+' lots</span></div><div class="ht-t">';
+  h+='<div class="pk-head"><b>En fabrication : '+txSeasonName(PR.q)+'</b><span class="sub">'+txP(b,pn)+' pièces'+(PR.caps?' + capsule':'')+'</span></div>';
+  h+='<div class="pk-head"><b>À préparer : '+txSeasonName(P.q)+'</b><span class="sub '+(tot>cap?'neg':'')+'">'+txP(b,tot)+' / '+txP(b,cap)+' pièces</span></div><div class="ht-t">';
   TX_ST.forEach(s=>{ const f=P.fc[s.id], n=P.qty[s.id]||0;
     h+='<div class="ht-r"><div class="ht-n"><b>'+s.n+(P.show===s.id?' · défilé':'')+'</b><small>Tendance prévue : '+txTrend(f).toLowerCase()+'</small>'+bar(f/3,f>=1.15?'g':f>=.8?'':'a')+'</div>'+
-      '<div class="ht-p">'+B('−','q',s.id+':-5',{c:'sm ghost ht-b',l:'Moins de '+s.n})+'<span><b class="num">'+n+'</b><small>lots</small></span>'+B('+','q',s.id+':5',{c:'sm ghost ht-b',l:'Plus de '+s.n})+'</div></div>'; });
+      '<div class="ht-p">'+B('−','q',s.id+':-5',{c:'sm ghost ht-b',l:'Moins de '+s.n})+'<span><b class="num">'+txP(b,n)+'</b><small>pièces</small></span>'+B('+','q',s.id+':5',{c:'sm ghost ht-b',l:'Plus de '+s.n})+'</div></div>'; });
   h+='</div><div class="row sp"><span class="sub">Les prévisions sont '+(m.bur?'assez fiables':'approximatives')+'.</span>'+B('Répartir selon les prévisions','fill','',{c:'sm'})+'</div>';
   const seg=(lab,act,L,val,sub)=>'<div class="met-c"><b>'+lab+'</b><div class="seg">'+L.map(([v,n])=>'<button class="'+(String(val)===String(v)?'on':'')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'" data-j="'+v+'">'+n+'</button>').join('')+'</div>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>';
   h+=seg('Matière',  'mat', TX_MAT.map(x=>[x.id,x.n]), P.mat, {cot:'Le choix de base.',bio:'Coûte 30 % de plus, se vend 22 % plus cher.',syn:'25 % moins cher à produire, vendu 15 % moins cher.'}[P.mat]);
@@ -16330,13 +16333,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.2.6';
+const IB_VER='V2.2.7';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Fiches : chiffres clés et textile en pièces','L’usine textile compte tout en pièces, comme sa production et ses ventes au grossiste (avant : des lots d’un côté, des pièces de l’autre). Les fiches des services affichent leur propre chiffre clé : chantiers en cours, intérimaires en mission, occupation, passagers, production…','V2.2.7'],
   ['Usines et fiches repensées','Vos usines fournissent maintenant vos autres sociétés : la ferme vos restaurants, hôtels et parcs ; l’usine textile vos maisons de couture et boutiques en ligne ; l’usine de composants vos ateliers, data centers et concessions. Elles achètent au prix de gros et économisent 20 % (moins le transport). La fiche d’une usine montre toute la chaîne dans l’onglet Production : production, stock, puis contrats, vos sociétés et grossiste. Les fiches s’adaptent à chaque famille d’activité (chiffres clés, nom de l’onglet, ligne « À faire »), et l’écran Usines devient une vue d’ensemble.','V2.2.6'],
   ['Start-up tech plus solide','Quand une start-up très rentable sature son marché, elle a moins d’abonnés payants et donc moins de serveurs à payer, au lieu de garder tous ses coûts. Une cyberattaque ne la fait plus plonger dans le rouge pendant des jours. Le bénéfice reste du même ordre.','V2.2.5'],
   ['E-commerce : saturation plus juste','Quand une boutique en ligne très rentable sature son marché, elle reçoit moins de commandes au lieu de vendre moins cher : les achats de marchandises baissent avec les ventes. Fini les journées dans le rouge pendant les soldes, et une grande boutique rapporte environ un tiers de plus.','V2.2.4'],
@@ -17309,12 +17313,15 @@ const FAM_UI = {
   num:{defs:['saas','dc','ecom'], tab:'Plateforme'},
   serv:{defs:[], tab:'Activité'}
 };
+const FAM_KPI={build:0, staffing:2, promo:0, office:0, studio:0, warehouse:0, shipping:0, renew:1, airline:0, gallery:1, couture:0, dealer:0, hotel:0, park:0, dc:0};
 function famOf(b){ for(const k in FAM_UI) if(FAM_UI[k].defs.includes(b.def)) return k; return 'serv'; }
 /* chiffre central du résumé : [libellé, valeur] */
 function famStat(b){ const f=famOf(b), l=b.last, m=b.m||{};
   if(f==='usine') return ['Production / j', fmtN(b.prodDay||0)+' '+D.GOODS[goodOf(b)].u];
   if(b.def==='saas'&&m.P!==undefined) return ['Abonnés payants', fmtN(Math.round((m.P||0)+(m.E||0)))];
   if(b.def==='ecom'&&m.stats) return ['Commandes / j', fmtN(Math.round(m.stats.orders||0))];
+  /* V2.2.7 : chiffre clé propre à l'activité (indice de l'indicateur du métier) */
+  if(FAM_KPI[b.def]!==undefined){ try{ const k=metKpis(b)[FAM_KPI[b.def]]; if(k&&k[1]&&k[1]!=='—') return [k[0].replace(/ \/ ?jour$/,' / j'),k[1]]; }catch(e){} }
   if(f==='public'){ try{ const k=metKpis(b)[0]; if(k&&/\/ ?jour|par jour/.test(k[0])) return [k[0].replace(/ \/ ?jour| par jour/,' / j'),k[1]]; }catch(e){} return null; }
   return ['Ventes / j', l&&l.rev? eur(l.rev,0) : '—']; }
 /* une action utile maintenant, ou rien */
