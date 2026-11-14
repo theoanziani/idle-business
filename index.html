@@ -9527,7 +9527,9 @@ MET.saas = {
   mods(b){ const m=b.m, R0=metR0(b), k=saK(b);
     const serv=(m.F*.004+m.P*.06+m.E*1.2)*(S.biz.some(x=>x.def==='dc'&&x.status==='active')?.7:1);
     const inv= m.own<1&&b.last&&b.last.net>0? (1-m.own)*b.last.net : 0;
-    return { vol:0, cogs:0, rev:saMRR(b)/30+saApi(b)+m.pend, fixed:serv+R0*SA_MK[m.mk]+inv+m.pendC };
+    /* V2.2.5 : saturation du marché : moins d’abonnés payants, donc moins de serveurs (avant : seules les recettes baissaient) */
+    const sat=(typeof BAL_DEM!=='undefined'&&BAL_DEM.includes('saas'))? (b.satF||1) : 1;
+    return { vol:0, cogs:0, rev:(saMRR(b)/30+saApi(b))*sat+m.pend, fixed:serv*sat+R0*SA_MK[m.mk]+inv+m.pendC };
   },
   daily(b,ctx){ const m=b.m, R0=metR0(b), q=saQual(b), tam=saTam(b);
     if(ctx.open){ m.pend=0; m.pendC=0; }
@@ -12049,25 +12051,26 @@ function criMit(){ if(!criOn()) return err('Aucune crise en cours.'); if(S.cri.m
    ============================================================ */
 const BAL_F={office:8, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2, resto:1.35, electronics:1.15, shipping:1.1};   /* V2.1.1 : électronique +15 %, maritime +10 % */   /* V2.0.6 : resto +35 % */
 const BAL_ROI=4.5;          /* 450 % par an, soit un remboursement en 80 jours environ */
-const BAL_ROI_D={resto:6};  /* V2.0.6 : le restaurant gastronomique sature plus tard (600 % par an) */
+const BAL_ROI_D={resto:6, saas:11, ecom:8.5};   /* V2.2.5 : SaaS et e-commerce : plafond relevé pour garder leur bénéfice avec la nouvelle saturation */  /* V2.0.6 : le restaurant gastronomique sature plus tard (600 % par an) */
 function balInv(b){ const d=bizDef(b); return Math.max(1,(b.inv$||d.cost)+Math.max(0,bizInvested(b)-d.cost)); }
 const BAL_SKIP=['promo','build'];
 /* V2.2.4 : pour ces métiers, la saturation réduit la demande (commandes et achats de marchandises) au lieu des seules recettes */
-const BAL_DEM=['ecom'];   /* ventes par programmes : recettes trop irrégulières pour la saturation */
+const BAL_DEM=['ecom','saas'];   /* ventes par programmes : recettes trop irrégulières pour la saturation */
 /* V1.9.5 : les petits commerces du début (paliers 0 et 1) ne saturent pas tant qu'ils restent sous le niveau 4 */
 const balFree = b => (bizDef(b).tier||0)<=1 && b.lvl<4;
 function balStep(){ S.biz.forEach(b=>{ if(b.status!=='active'||!metOf(b)||BAL_SKIP.includes(b.def)) return; if(balFree(b)){ b.satF=1; return; }
   const L=b.last; if(!L||L.day!==S.day-1&&L.day!==S.day) return;
   /* V1.9.6 : on suit les recettes et le bénéfice « sans saturation » (indépendants du réglage), ce qui évite les à-coups */
-  const f0=b.satF||1, raw=L.rev/f0, netRaw=L.net+raw-L.rev, a=1/60;
+  /* V2.2.5 : métiers de BAL_DEM : la saturation réduit aussi les coûts variables, le bénéfice « sans saturation » est donc estimé en proportion */
+  const dem=BAL_DEM.includes(b.def), f0=b.satF||1, raw=L.rev/f0, netRaw=dem? (L.rev-L.cogs-L.extra)/f0-(L.wages+L.upkeep+L.rent+L.sec+L.ins+L.mkt) : L.net+raw-L.rev, a=1/60;
   b.rawR= b.rawR===undefined? raw : b.rawR+(raw-b.rawR)*a; b.rawN= b.rawN===undefined? netRaw : b.rawN+(netRaw-b.rawN)*a; b.rawK=(b.rawK||0)+1;
   if(b.rawK<30) return;
   const inv=balInv(b), R=Math.max(1,b.rawR), C=R-b.rawN, roi1=b.rawN*360/inv;
-  const RT=BAL_ROI_D[b.def]||((bizDef(b).tier||0)<=1? 6 : BAL_ROI),   /* V2.1.1 : petits commerces 600 % */ tgt= roi1>RT? clamp((RT*inv/360+C)/R,.05,1) : 1;
-  b.satF=clamp(f0+(tgt-f0)*.03,.05,1); }); }
+  const RT=BAL_ROI_D[b.def]||((bizDef(b).tier||0)<=1? 6 : BAL_ROI),   /* V2.1.1 : petits commerces 600 % */ lo=dem?.005:.05, tgt= roi1>RT? clamp(dem? RT*inv/360/Math.max(1,b.rawN) : (RT*inv/360+C)/R,lo,1) : 1;
+  b.satF=clamp(f0+(tgt-f0)*.03,lo,1); }); }
 { const _mm=metMods; metMods=function(b){ const z=_mm(b); if(!b||b.status!=='active') return z;
   const f=(BAL_F[b.def]||1)*(BAL_DEM.includes(b.def)?1:(b.satF||1)); if(f!==1){ z.vol*=f; z.rev*=f; } return z; }; }
-{ const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé',(BAL_DEM.includes(b.def)?'commandes −':'recettes −')+Math.round((1-b.satF)*100)+' %. Ce n’est pas une crise : la société rapporte plus de '+Math.round((BAL_ROI_D[b.def]||((bizDef(b).tier||0)<=1? 6 : BAL_ROI))*100)+' % par an de ce qu’elle a coûté. Le plafond monte avec chaque agrandissement ou rénovation ; sinon, ouvrez la même activité dans une autre ville.',1]); return L; }; }
+{ const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé',(b.def==='saas'?'abonnés payants −':BAL_DEM.includes(b.def)?'commandes −':'recettes −')+Math.round((1-b.satF)*100)+' %. Ce n’est pas une crise : la société rapporte plus de '+Math.round((BAL_ROI_D[b.def]||((bizDef(b).tier||0)<=1? 6 : BAL_ROI))*100)+' % par an de ce qu’elle a coûté. Le plafond monte avec chaque agrandissement ou rénovation ; sinon, ouvrez la même activité dans une autre ville.',1]); return L; }; }
 
 /* ---------- V2.1.3 : événement de la semaine ----------
    Semaine réelle (du lundi au dimanche). Un secteur où vous êtes présent est mis à l'honneur :
@@ -16203,13 +16206,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.2.4';
+const IB_VER='V2.2.5';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Start-up tech plus solide','Quand une start-up très rentable sature son marché, elle a moins d’abonnés payants et donc moins de serveurs à payer, au lieu de garder tous ses coûts. Une cyberattaque ne la fait plus plonger dans le rouge pendant des jours. Le bénéfice reste du même ordre.','V2.2.5'],
   ['E-commerce : saturation plus juste','Quand une boutique en ligne très rentable sature son marché, elle reçoit moins de commandes au lieu de vendre moins cher : les achats de marchandises baissent avec les ventes. Fini les journées dans le rouge pendant les soldes, et une grande boutique rapporte environ un tiers de plus.','V2.2.4'],
   ['Démarrage plus rapide','Les illustrations des villes et des activités sont désormais stockées compressées : le jeu est plus de deux fois plus léger et s’ouvre environ 30 % plus vite sur téléphone.','V2.2.3'],
   ['Construction : révision des prix','La main-d’œuvre des chantiers en cours suit désormais le tarif actuel de votre société : un chantier signé avant un agrandissement est payé au nouveau tarif (les matériaux restent au prix signé). Le prix révisé s’affiche sur chaque chantier.','V2.2.2'],
