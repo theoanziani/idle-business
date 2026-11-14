@@ -1178,6 +1178,21 @@ details.hmore .hm-b{display:flex;flex-direction:column;gap:18px;margin-top:18px}
 .btn.sm::after{content:'';position:absolute;inset:-7px -3px}
 .bz-ren::after,[data-a="bzren"]::after{content:'';position:absolute;inset:-8px}
 [data-a="bzren"]{position:relative}
+/* V2.2.6 : débouchés d'une usine */
+.fo-flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:4px;margin-bottom:6px}
+.fo-flow>div{background:var(--paper);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;min-width:0}
+.fo-flow span{font-size:11px;font-weight:700;color:var(--ink-3)}
+.fo-flow b{font:800 16px var(--f-display);overflow:hidden;text-overflow:ellipsis}
+.fo-flow small{font-size:11px;color:var(--ink-3);line-height:1.25}
+.fo-flow i{font-style:normal;font-weight:800;color:var(--ink-3)}
+.fo-s{border-top:1px solid var(--line);padding-top:10px;margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.fo-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.fo-h small{color:var(--ink-3);font-size:12px}
+.fo-r{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fo-r>div{display:flex;flex-direction:column;min-width:0}
+.fo-r small{color:var(--ink-3);font-size:12px;line-height:1.3}
+/* V2.2.6 : tuiles du métier sur deux lignes au lieu d'être coupées */
+.met-k b{white-space:normal;overflow-wrap:anywhere;line-height:1.15}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -3783,6 +3798,43 @@ function indStep(){
   });
 }
 function goodsNW(){ let v=0; S.biz.forEach(b=>{ if(b.goods) v+=b.goods*gPrice(goodOf(b))*.9; }); if(S.ind) S.ind.ship.forEach(s=>{ v+=s.qty*D.GOODS[s.g].v*.9; }); return v; }
+
+/* ============================================================
+   V2.2.6 : APPROVISIONNEMENT DE VOS SOCIÉTÉS
+   Une usine fournit d'abord vos propres sociétés clientes de son produit : la ferme vos restaurants,
+   hôtels et parcs ; l'usine textile vos maisons de couture et boutiques en ligne ; l'usine de composants
+   vos ateliers de réparation, data centers et concessions. Le client paie le prix de gros du jour
+   (recette de l'usine le lendemain) et économise 20 % de ses achats de ce produit, moins le transport.
+   Ordre de priorité de la production : contrats signés, vos sociétés, puis grossiste ou stock.
+   État : b.fsup (usine : 0 = n'approvisionne pas vos sociétés ; défaut : oui), b.supRev (recette à
+   encaisser), b.supOut (unités livrées hier) ; client : b.supSave (économie à compter), b.supIn (valeur reçue hier).
+   ============================================================ */
+const SUP_USE = {alim:{resto:.25, hotel:.08, park:.06}, vet:{couture:.12, ecom:.15}, comp:{repair:.20, dc:.06, dealer:.04}};
+const SUP_DISC = .20;
+/* produit acheté par une société cliente (ou null) */
+function supGood(b){ for(const g in SUP_USE) if(SUP_USE[g][b.def]) return g; return null; }
+/* besoin du jour en euros : part de ses recettes consacrée à ce produit */
+function supNeedV(b){ const g=supGood(b); if(!g||b.status!=='active'||!b.last||!b.last.open) return 0; return Math.max(0,b.last.rev||0)*SUP_USE[g][b.def]; }
+const supOn = f => f.fsup!==0;
+function supClients(g){ return S.biz.filter(x=>supGood(x)===g&&x.status==='active'); }
+function supFacts(g){ return S.biz.filter(x=>isFact(x)&&goodOf(x)===g&&x.status==='active'&&supOn(x)); }
+/* unités à garder en sell mode pour vos sociétés (un jour et demi de besoin, partagé entre les usines) */
+function supReserve(g,b){ if(!supOn(b)) return 0; const F=supFacts(g); if(!F.length) return 0; const need=supClients(g).reduce((a,x)=>a+supNeedV(x),0)*1.5/gPrice(g); return need/F.length; }
+{ const _rf=reserveFor; reserveFor=function(g,b){ return _rf(g,b)+supReserve(g,b); }; }
+/* recette des livraisons d'hier encaissée par l'usine */
+{ const _fd=factoryDay; factoryDay=function(b,revEq){ const r=_fd(b,revEq), s=b.supRev||0; b.supRev=0; return r+s; }; }
+/* économie d'hier comptée en moins des charges du client */
+{ const _mm=metMods; metMods=function(b){ const z=_mm(b); if(b&&b.supSave>0&&z) z.fixed=(z.fixed||0)-b.supSave; return z; }; }
+function supStep(){
+  S.biz.forEach(b=>{ if(isFact(b)) b.supOut=0; if(supGood(b)){ b.supSave=0; b.supIn=0; } });
+  Object.keys(SUP_USE).forEach(g=>{ const F=supFacts(g); if(!F.length) return; const P=gPrice(g);
+    supClients(g).forEach(c=>{ let need=supNeedV(c)/P; if(need<=0) return;
+      F.slice().sort((a,b)=>route(a.city,c.city).rate-route(b.city,c.city).rate).forEach(f=>{ if(need<=0) return; const u=Math.min(need,f.goods||0); if(u<=0) return;
+        const v=u*P, R=route(f.city,c.city); f.goods-=u; f.supRev=(f.supRev||0)+v; f.supOut=(f.supOut||0)+u; need-=u;
+        c.supIn=(c.supIn||0)+v; c.supSave=(c.supSave||0)+v*Math.max(0,SUP_DISC-R.rate); }); }); });
+}
+{ const _is=indStep; indStep=function(){ _is(); try{ supStep(); }catch(e){ console.error(e); } }; }
+function setFsup(b,v){ if(!isFact(b)) return err('Ce n’est pas une usine.'); b.fsup=v?1:0; return ok(v?'L’usine approvisionne vos sociétés.':'L’usine n’approvisionne plus vos sociétés.'); }
 
 /* ============================================================
    TERRAINS ET CONSTRUCTION, DIRECTEURS SPÉCIALISÉS, DIRECTEURS DE SITE NOMMÉS
@@ -13876,6 +13928,78 @@ Object.assign(ACT,{
 });
 
 /* ============================================================
+   V2.2.6 : DÉBOUCHÉS D'UNE USINE ET APPROVISIONNEMENT DES CLIENTS, DANS LA FICHE
+   La fiche d'une usine montre la chaîne : production → stock → débouchés, dans l'ordre où la
+   production part (contrats, vos sociétés, grossiste ou stock). Une société cliente voit ce que
+   vos usines lui fournissent.
+   ============================================================ */
+function gIdxTxt(g){ const i=gIdx(g), p=Math.round((i-1)*100); return p===0? '=' : (p>0?'+':'−')+Math.abs(p)+' %'; }
+const gLiv = g => g==='comp'? 'livrés' : 'livrées';
+function factOutHtml(b){
+  const g=goodOf(b), G=D.GOODS[g], I=indInit(), st=b.goods||0, cap=factCap(b), P=gPrice(g);
+  const cl=supClients(g), act=I.active.filter(c=>c.g===g), off=I.offers.filter(o=>o.g===g);
+  const res=act.filter(c=>c.st==='open').reduce((a,c)=>a+c.qty,0);
+  let h='<div class="met-out" data-t="Débouchés" data-s="'+esc(fmtN(b.prodDay||0)+' '+G.u+' par jour · '+(b.fmode==='store'?'stockage':'vente au grossiste'))+'">';
+  h+='<div class="fo-flow"><div><span>Production</span><b class="num">'+fmtN(b.prodDay||0)+'</b><small>'+esc(G.u)+' par jour</small></div><i aria-hidden="true">›</i>'+
+     '<div><span>Stock</span><b class="num">'+fmtN(st)+'</b><small>sur '+fmtN(cap)+'</small></div><i aria-hidden="true">›</i>'+
+     '<div><span>Prix de gros</span><b class="num">'+eur(P,2)+'</b><small>'+gIdxTxt(g)+' vs référence</small></div></div>'+bar(st/cap,st/cap>.9?'r':'g');
+  /* 1. contrats */
+  h+='<div class="fo-s"><div class="fo-h"><b>1. Contrats</b><small>'+(act.length? act.length+' en cours'+(res? ' · '+fmtN(res)+' '+G.u+' réservés' : '') : 'Aucun en cours')+'</small></div>';
+  act.forEach(c=>{ const sh=I.ship.find(s=>s.cid===c.id), R=route(b.city,c.city);
+    h+='<div class="fo-r"><div><b>'+esc(c.client)+'</b><small>'+fmtN(c.qty)+' '+esc(G.u)+' à livrer à '+esc(cityName(c.city))+' avant le '+dateL(c.due)+' · '+eur(c.qty*c.px,0)+'</small></div>'+
+      (sh? pill('En route','info') : btn('Expédier','ctship',{c:'sm',i:c.id,j:b.id,dis:st<c.qty}))+'</div>'+(!sh&&st<c.qty? '<div class="sub">Stock insuffisant ici : '+fmtN(st)+' / '+fmtN(c.qty)+'. L’expédition part seule dès qu’une de vos usines a le stock.</div>' : !sh? '<div class="sub">Transport '+R.days+' j, '+eur(c.qty*G.v*R.rate,0)+'.</div>' : ''); });
+  off.slice(0,3).forEach(o=>{ h+='<div class="fo-r"><div><b>'+esc(o.client)+'</b><small>Propose '+fmtN(o.qty)+' '+esc(G.u)+' à '+eur(o.px,2)+' ('+(o.px>=P?'+':'−')+Math.abs(Math.round((o.px/P-1)*100))+' % vs gros) · '+esc(cityName(o.city))+' · avant le '+dateL(o.due)+'</small></div>'+btn('Signer','ctacc',{c:'sm pri',i:o.id,dis:I.active.length>=5})+'</div>'; });
+  if(!act.length&&!off.length) h+='<div class="sub">Des clients proposent régulièrement des commandes, 15 à 45 % au-dessus du prix de gros.</div>';
+  h+='</div>';
+  /* 2. vos sociétés */
+  h+='<div class="fo-s"><div class="fo-h"><b>2. Vos sociétés</b><div class="seg"><button class="'+(supOn(b)?'on':'')+'" data-a="fsup" data-i="'+b.id+'" data-v="1">Fournir</button><button class="'+(!supOn(b)?'on':'')+'" data-a="fsup" data-i="'+b.id+'" data-v="0">Non</button></div></div>';
+  if(cl.length){ h+=cl.map(c=>'<div class="fo-r"><div><b>'+esc(c.name)+'</b><small>'+esc(bizDef(c).n)+' · '+esc(cityName(c.city))+' · besoin '+eur(supNeedV(c),0)+' par jour</small></div><span class="num sub">'+(c.supIn? eur(c.supIn,0)+' livrés' : '—')+'</span></div>').join('');
+    h+='<div class="sub">Vos sociétés paient le prix de gros et économisent '+Math.round(SUP_DISC*100)+' % de ces achats, moins le transport'+(b.supOut? ' · hier : '+fmtN(b.supOut)+' '+esc(G.u)+' '+gLiv(g) : '')+'.</div>'; }
+  else h+='<div class="sub">Aucune de vos sociétés n’utilise '+esc(G.n.toLowerCase())+'. '+esc(SUP_HINT[g])+'</div>';
+  h+='</div>';
+  /* 3. le reste */
+  h+='<div class="fo-s"><div class="fo-h"><b>3. Le reste</b><div class="seg"><button class="'+(b.fmode!=='store'?'on':'')+'" data-a="fmode" data-i="'+b.id+'" data-v="sell">Vendre au gros</button><button class="'+(b.fmode==='store'?'on':'')+'" data-a="fmode" data-i="'+b.id+'" data-v="store">Stocker</button></div></div>'+
+     '<div class="sub">'+(b.fmode==='store'? 'La production s’accumule (valeur '+eur(st*P,0)+'). Vendez quand le prix de gros est haut ; au-delà de la capacité, l’excédent part avec 15 % de décote.' : 'Chaque jour, ce qui n’est pas réservé part au grossiste au prix du jour.')+'</div>'+
+     (st>=1? '<div class="row">'+btn('Vendre le stock : '+eur(st*P,0),'gsell',{c:'sm',i:b.id})+'</div>' : '')+'</div>';
+  return h+'</div>';
+}
+const SUP_HINT={alim:'Un restaurant, un hôtel ou un parc d’attractions à vous achèterait vos produits.', vet:'Une maison de couture ou une boutique en ligne à vous achèterait vos vêtements.', comp:'Un atelier de réparation, un data center ou une concession à vous achèterait vos composants.'};
+function supInHtml(b){ const g=supGood(b); if(!g) return ''; const G=D.GOODS[g], F=S.biz.filter(x=>isFact(x)&&goodOf(x)===g&&x.status==='active'), n=supNeedV(b);
+  const fn={alim:'ferme',vet:'usine textile',comp:'usine de composants'}[g];
+  let h='<div class="met-out" data-t="Approvisionnement" data-s="'+esc(b.supIn? eur(b.supIn,0)+' fournis hier par vos usines' : F.length? 'Vos usines n’ont rien livré hier' : 'Acheté au fournisseur')+'">';
+  h+='<div class="sub">Achats de '+esc(G.n.toLowerCase())+' : environ '+eur(n,0)+' par jour.</div>';
+  if(F.length) h+=F.map(f=>'<div class="fo-r"><div><b>'+esc(f.name)+'</b><small>'+esc(cityName(f.city))+' · stock '+fmtN(f.goods||0)+' '+esc(G.u)+(supOn(f)?'':' · ne fournit pas vos sociétés')+'</small></div>'+btn('Ouvrir','bizopen',{c:'sm ghost',i:f.id})+'</div>').join('')+
+    '<div class="sub">'+(b.supIn? 'Hier : '+eur(b.supIn,0)+' livrés, '+eur(b.supSave||0,0)+' économisés.' : 'Hier : rien de livré (stock vide ou réservé aux contrats).')+' Vos usines vous vendent au prix de gros, '+Math.round(SUP_DISC*100)+' % moins cher que le fournisseur, transport déduit.</div>';
+  else h+='<div class="sub">Avec une '+fn+' à vous, ces achats coûteraient '+Math.round(SUP_DISC*100)+' % de moins (transport déduit) et feraient tourner votre usine.</div>';
+  return h+'</div>'; }
+{ const _mc=metCard; metCard=function(b){ const h=_mc(b); if(!h) return h; let x=''; try{ x= isFact(b)? factOutHtml(b) : supInHtml(b); }catch(e){ console.error(e); } if(!x) return h; let k=h.indexOf('<div class="met-cs">'); if(k<0) k=h.lastIndexOf('</section>'); return h.slice(0,k)+x+h.slice(k); }; }
+factPilot=function(b){ return '<div class="stack"><b>Production et ventes</b><div class="sub">Contrats, approvisionnement de vos sociétés et vente au grossiste : onglet Production.</div></div>'; };
+ACT.fsup=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); after(setFsup(b,el.dataset.v==='1')); };
+/* V2.2.6 : l'écran Usines devient une vue d'ensemble ; les actions se font dans la fiche de chaque usine */
+vLogi=function(){
+  const I=indInit(), facts=S.biz.filter(isFact);
+  let h=head('Usines et logistique','Vue d’ensemble. Contrats, approvisionnement et ventes se règlent dans l’onglet Production de chaque usine.');
+  h+=card('Prix de gros','<div class="stack">'+Object.keys(D.GOODS).filter(g=>g!=='tel').map(g=>{ const G=D.GOODS[g], hst=gpInit()[g].h, ch=hst.length>1? hst[hst.length-1]/hst[0]-1:0;
+    return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:6px"><div><b>'+G.n+'</b><div class="sub">'+eur(gPrice(g),2)+' ('+gIdxTxt(g)+' vs référence '+eur(G.v,2)+')</div></div><div class="fxs">'+spark(hst,70,26)+'<small class="'+cls(ch)+'">'+(ch>=0?'+':'')+(ch*100).toFixed(1)+' %</small></div></div>'; }).join('')+'</div>');
+  h+=card('Vos usines', facts.length? '<div class="stack">'+facts.map(b=>{ const g=goodOf(b), G=D.GOODS[g], cap=factCap(b), st=b.goods||0;
+    return '<div class="stack" style="gap:6px;border-bottom:1px solid var(--line);padding-bottom:10px"><div class="row sp"><div style="min-width:0"><b>'+esc(b.name)+'</b><div class="sub">'+esc(cityName(b.city))+' · '+fmtN(b.prodDay||0)+' '+esc(G.u)+' par jour · '+(b.fmode==='store'?'stockage':'vente au gros')+(supOn(b)&&b.supOut? ' · '+fmtN(b.supOut)+' '+gLiv(g)+' à vos sociétés' : '')+'</div></div>'+btn('Ouvrir','bizopen',{c:'sm ghost',i:b.id})+'</div>'+
+      bar(st/cap,st/cap>.9?'r':'g')+'<div class="sub">Stock '+fmtN(st)+' / '+fmtN(cap)+' '+esc(G.u)+' · '+eur(st*gPrice(g),0)+'</div></div>'; }).join('')+'</div>'
+    : '<div class="notice info">Construisez une usine textile, une usine de composants ou une ferme sur un terrain ou dans un entrepôt.</div>');
+  const flows=Object.keys(SUP_USE).map(g=>{ const C=supClients(g); if(!C.length) return ''; const F=S.biz.filter(x=>isFact(x)&&goodOf(x)===g&&x.status==='active'), v=C.reduce((a,c)=>a+(c.supIn||0),0), sv=C.reduce((a,c)=>a+(c.supSave||0),0), need=C.reduce((a,c)=>a+supNeedV(c),0);
+    return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:6px"><div style="min-width:0"><b>'+D.GOODS[g].n+'</b><div class="sub">'+C.length+' société'+(C.length>1?'s':'')+' cliente'+(C.length>1?'s':'')+' · besoin '+eur(need,0)+' par jour'+(F.length? '' : ' · aucune usine pour les fournir')+'</div></div><div class="sub r">'+(v? eur(v,0)+' livrés<br>'+eur(sv,0)+' économisés' : '—')+'</div></div>'; }).join('');
+  if(flows) h+=card('Approvisionnement de vos sociétés (hier)','<div class="stack">'+flows+'</div>');
+  const act=I.active, off=I.offers;
+  h+=card('Contrats', (act.length||off.length? '<div class="stack">'+act.map(c=>{ const G=D.GOODS[c.g], sh=I.ship.find(s=>s.cid===c.id);
+      return '<div class="row sp"><div style="min-width:0"><b>'+esc(c.client)+'</b><div class="sub">'+fmtN(c.qty)+' '+esc(G.u)+' → '+esc(cityName(c.city))+' · avant le '+dateL(c.due)+'</div></div>'+pill(sh?'En route':'À livrer',sh?'info':'warn')+'</div>'; }).join('')+
+      off.map(o=>'<div class="row sp"><div style="min-width:0"><b>'+esc(o.client)+'</b><div class="sub">Propose '+fmtN(o.qty)+' '+esc(D.GOODS[o.g].u)+' de '+esc(D.GOODS[o.g].n.toLowerCase())+' · expire le '+dateL(o.exp)+'</div></div>'+pill('À signer','good')+'</div>').join('')+'</div>' : '<div class="sub">Aucun contrat pour le moment.</div>')+
+    '<div class="sub">Signez et expédiez depuis l’onglet Production de l’usine concernée. Les livraisons partent seules dès qu’une usine a le stock.</div>');
+  h+=card('Transport','<div class="tw"><table class="tbl"><thead><tr><th>Trajet</th><th class="r">Durée</th><th class="r">Coût</th></tr></thead><tbody>'+
+    [['Même ville','paris','paris'],['Même pays','paris','toulouse'],['Même continent','paris','barcelone'],['Autre continent','paris','miami']].map(x=>{ const R=route(x[1],x[2]); return '<tr><td>'+x[0]+'</td><td class="r">'+R.days+' j</td><td class="r">'+Math.round(R.rate*100)+' %</td></tr>'; }).join('')+
+    '</tbody></table></div><div class="sub">Coût en part de la valeur transportée. Il s’applique aussi à l’approvisionnement de vos sociétés : une usine dans la même ville que ses clients leur fait économiser le plus.</div>');
+  return h;
+};
+
+/* ============================================================
    PREMIERS PAS : liste guidée sur l'accueil et conseils contextuels
    ============================================================ */
 const TUT=[
@@ -16206,13 +16330,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.2.5';
+const IB_VER='V2.2.6';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Usines et fiches repensées','Vos usines fournissent maintenant vos autres sociétés : la ferme vos restaurants, hôtels et parcs ; l’usine textile vos maisons de couture et boutiques en ligne ; l’usine de composants vos ateliers, data centers et concessions. Elles achètent au prix de gros et économisent 20 % (moins le transport). La fiche d’une usine montre toute la chaîne dans l’onglet Production : production, stock, puis contrats, vos sociétés et grossiste. Les fiches s’adaptent à chaque famille d’activité (chiffres clés, nom de l’onglet, ligne « À faire »), et l’écran Usines devient une vue d’ensemble.','V2.2.6'],
   ['Start-up tech plus solide','Quand une start-up très rentable sature son marché, elle a moins d’abonnés payants et donc moins de serveurs à payer, au lieu de garder tous ses coûts. Une cyberattaque ne la fait plus plonger dans le rouge pendant des jours. Le bénéfice reste du même ordre.','V2.2.5'],
   ['E-commerce : saturation plus juste','Quand une boutique en ligne très rentable sature son marché, elle reçoit moins de commandes au lieu de vendre moins cher : les achats de marchandises baissent avec les ventes. Fini les journées dans le rouge pendant les soldes, et une grande boutique rapporte environ un tiers de plus.','V2.2.4'],
   ['Démarrage plus rapide','Les illustrations des villes et des activités sont désormais stockées compressées : le jeu est plus de deux fois plus léger et s’ouvre environ 30 % plus vite sur téléphone.','V2.2.3'],
@@ -16952,10 +17077,11 @@ ACT.upall=()=>{ const I=upAllInfo(); if(!I.n) return after(upgradeAll());
 const MF_SPLIT=/^(Le chef|Directeur artistique|Égérie|Artisans)/;
 function mfTxt(el){ return ((el&&el.textContent)||'').replace(/\s+/g,' ').trim(); }
 function mfHead(el){ const h=el.querySelector('.tag,h3,b'); return mfTxt(h); }
-function mfCut(t,n){ n=n||70; return t.length>n? t.slice(0,n-1).trim()+'…' : t; }
+function mfCut(t,n){ n=n||70; try{ if(typeof LANG!=='undefined'&&LANG!=='fr') t=tr(t); }catch(e){} return t.length>n? t.slice(0,n-1).trim()+'…' : t; }
 function mfOn(el){ const o=el.querySelector('.seg .on'); return o? mfTxt(o) : ''; }
-function mfWrap(def,key,title,sum,nodes){
-  const d=document.createElement('details'); d.className='mf'; d.dataset.k=def+':'+key; if(S.mfold&&S.mfold[d.dataset.k]) d.open=true;
+/* V2.2.6 : S.mfold[k] : 1 ouvert, 0 fermé par le joueur ; sans valeur, ouvert si le bloc l’est par défaut (premier bloc du métier, débouchés) */
+function mfWrap(def,key,title,sum,nodes,defOpen){
+  const d=document.createElement('details'); d.className='mf'; d.dataset.k=def+':'+key; const v=S.mfold&&S.mfold[d.dataset.k]; if(v===1||v===true||(v===undefined&&defOpen)) d.open=true;
   d.innerHTML='<summary><span><b>'+esc(title)+'</b>'+(sum?'<small>'+esc(sum)+'</small>':'')+'</span></summary>';
   const box=document.createElement('div'); box.className='mf-b'; nodes.forEach(n=>box.appendChild(n)); d.appendChild(box); return d;
 }
@@ -16969,8 +17095,9 @@ function mfApply(){
       if(head||!g||MF_SPLIT.test(t)){ g={title: t||'Gestion', sum: head? mfTxt(el).replace(t,'').trim() : '', nodes:[]}; groups.push(g); if(head) return; }
       g.nodes.push(el); });
     groups.forEach((g,i)=>{ if(!g.sum){ const s=g.nodes.map(n=>n.querySelector('small,.sub')).find(Boolean); g.sum= g.nodes.length>1? g.nodes.length+' éléments' : mfTxt(s); }
-      out.push(mfWrap(def,'p'+i+':'+g.title,g.title,mfCut(g.sum),g.nodes)); });
+      out.push(mfWrap(def,'p'+i+':'+g.title,g.title,mfCut(g.sum),g.nodes,i===0)); });
     plan.remove(); }
+  M.querySelectorAll(':scope > .met-out').forEach(el=>{ out.push(mfWrap(def,'out:'+el.dataset.t,el.dataset.t,mfCut(el.dataset.s||''),[el],true)); });
   /* réglages, délégation, paliers et achats */
   const cs=M.querySelector(':scope > .met-cs');
   if(cs){ const reg=[], buy=[]; let dl=null;
@@ -16986,7 +17113,7 @@ function mfApply(){
   out.forEach(d=>M.appendChild(d));
 }
 { const _r=render; render=function(){ const o=_r.apply(this,arguments); try{ mfApply(); }catch(e){ console.error(e); } return o; }; }
-document.addEventListener('toggle',e=>{ const d=e.target; if(!d||!d.classList||!d.classList.contains('mf')) return; if(!S) return; S.mfold=S.mfold||{}; if(d.open) S.mfold[d.dataset.k]=1; else delete S.mfold[d.dataset.k]; },true);
+document.addEventListener('toggle',e=>{ const d=e.target; if(!d||!d.classList||!d.classList.contains('mf')) return; if(!S) return; S.mfold=S.mfold||{}; S.mfold[d.dataset.k]=d.open?1:0; },true);
 
 /* V1.4.6 : dans l'agence, les listes qui grandissent avec le nombre d'entreprises deviennent des menus déroulants
    à partir de AG_FOLD lignes ; repliées par défaut, l'état est retenu (S.fcfold, clés ag_*) */
@@ -17168,6 +17295,47 @@ ACT.fsset=el=>{ try{ localStorage.setItem('idlebiz.fs',el.dataset.v); }catch(e){
 { const _vs=VIEWS.set; VIEWS.set=function(){ const h=_vs.apply(this,arguments), v=fsGet();
   return h+card('Taille du texte','<div class="stack"><div class="seg">'+FS_OPT.map(o=>'<button class="'+(o[0]===v?'on':'')+'" data-a="fsset" data-v="'+o[0]+'">'+o[1]+'</button>').join('')+'</div><div class="sub">Agrandit ou réduit tout le jeu sur cet appareil.</div></div>'); }; }
 try{ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fsApply); else fsApply(); }catch(e){}
+
+/* ============================================================
+   V2.2.6 : FICHES PAR FAMILLE D'ACTIVITÉ
+   Les chiffres du résumé, le nom de l'onglet principal et une ligne « À faire » dépendent de la famille :
+   usine, accueil du public, numérique, services. (Affichage seulement, aucun état sauvegardé.)
+   ============================================================ */
+/* V2.2.6 : noms de familles manquants (le badge affichait « Métier ») */
+Object.assign(MET_FAM,{num:'Numérique', com:'Commerce et services', lux:'Luxe et création', imm:'Immobilier et construction'}, MET_FAM);
+const FAM_UI = {
+  usine:{defs:['textile','electronics','farm'], tab:'Production'},
+  public:{defs:['resto','hotel','park','repair','dealer','gallery','couture'], tab:'Activité'},
+  num:{defs:['saas','dc','ecom'], tab:'Plateforme'},
+  serv:{defs:[], tab:'Activité'}
+};
+function famOf(b){ for(const k in FAM_UI) if(FAM_UI[k].defs.includes(b.def)) return k; return 'serv'; }
+/* chiffre central du résumé : [libellé, valeur] */
+function famStat(b){ const f=famOf(b), l=b.last, m=b.m||{};
+  if(f==='usine') return ['Production / j', fmtN(b.prodDay||0)+' '+D.GOODS[goodOf(b)].u];
+  if(b.def==='saas'&&m.P!==undefined) return ['Abonnés payants', fmtN(Math.round((m.P||0)+(m.E||0)))];
+  if(b.def==='ecom'&&m.stats) return ['Commandes / j', fmtN(Math.round(m.stats.orders||0))];
+  if(f==='public'){ try{ const k=metKpis(b)[0]; if(k&&/\/ ?jour|par jour/.test(k[0])) return [k[0].replace(/ \/ ?jour| par jour/,' / j'),k[1]]; }catch(e){} return null; }
+  return ['Ventes / j', l&&l.rev? eur(l.rev,0) : '—']; }
+/* une action utile maintenant, ou rien */
+function famTodo(b){ if(b.status!=='active') return null; const l=b.last, roles=entRoles(b).reduce((a,x)=>a+x[1],0), hc=headcount(b);
+  if(isFact(b)){ const g=goodOf(b), I=indInit(), st=b.goods||0, cap=factCap(b);
+    if(b.fmode==='store'&&st>cap*.9) return ['Stock presque plein','Vendez le stock ou passez en vente au gros (onglet Production).'];
+    const o=I.offers.find(x=>x.g===g); if(o&&I.active.length<5) return ['Contrat à signer',o.client+' propose '+fmtN(o.qty)+' '+D.GOODS[g].u+' à '+eur(o.px,2)+' (onglet Production).'];
+    if(!supClients(g).length&&!b.dlg) return null; }
+  if(hc<roles) return ['Postes vacants',(roles-hc)+' poste'+(roles-hc>1?'s':'')+' à pourvoir : recrutez dans l’onglet Équipe.'];
+  const h=(b.hist||[]).slice(-30); if(b.def!=='saas'&&h.length>=20&&h.reduce((a,x)=>a+x,0)<0) return ['Pertes sur 30 jours','Vérifiez les prix et les réglages de l’onglet '+FAM_UI[famOf(b)].tab+', ou confiez la société à son directeur.'];
+  const g=supGood(b); if(g&&!S.biz.some(x=>isFact(x)&&goodOf(x)===g&&x.status==='active')&&(l&&l.rev>0)) return null;
+  return null; }
+{ const _mb=modalBiz; modalBiz=function(b){ const r=_mb(b); if(!r||!r.body) return r;
+  try{ const st=famStat(b);
+    if(st) r.body=r.body.replace(/<div><span>Clients \/ j<\/span><b class="num">[^<]*<\/b><\/div>/,'<div><span>'+esc(st[0])+'</span><b class="num">'+esc(st[1])+'</b></div>');
+    r.body=r.body.replace('<span>Fidélité moyenne</span>','<span>Fidélité de l’équipe</span>');
+    const t=famTodo(b); if(t){ const k=r.body.indexOf('<div class="mini">'); const x='<div class="notice info fam-todo"><b>À faire : '+esc(t[0].toLowerCase())+'</b> · '+esc(t[1])+'</div>'; if(k>=0) r.body=r.body.slice(0,k)+x+r.body.slice(k); }
+  }catch(e){ console.error(e); }
+  return r; }; }
+/* nom de l'onglet principal selon la famille */
+{ const _fa=ftApply; ftApply=function(){ try{ const b=ui.modal&&ui.modal.type==='biz'&&S.biz.find(x=>x.id===ui.modal.id); FT_TABS[0][1]= b? FAM_UI[famOf(b)].tab : 'Métier'; }catch(e){} return _fa(); }; }
 
 /* ============================================================
    JEU PLUS INTUITIF (V1.1.4)
