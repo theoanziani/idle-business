@@ -11632,7 +11632,9 @@ function shAuto(b,mode,q){ const m=b.m;
     /* une ligne nouvelle avec un navire loué : il essaie plusieurs destinations et garde la plus rentable (V1.6.6) */
     const cands=[]; m.tm.forEach(h=>shDests(b,h).filter(x=>!shCanLine(b,h,x.id)).forEach(x=>cands.push([h,x]))); cands.sort((x,y)=>y[1].sz-x[1].sz);
     if(cands.length&&mDlp(b)>SH_TY.p5.ls*30){ const r=shGet(b,'p5','lease',true); if(r.ok){ const p=m.fl[m.fl.length-1]; let best=null, bv=0;
-      cands.slice(0,6).forEach(([h,x])=>{ const l={id:-1, a:h, b:x.id, p:1}; m.ln.push(l); p.ln=-1; const v=shLineDay(b,l).net; if(v>bv){ bv=v; best=[h,x.id]; } m.ln.pop(); p.ln=0; });
+      /* V2.2.8 : il étudie toutes les destinations (avant : les 6 plus grands ports) ; un directeur moins bon se trompe plus souvent et prend une des bonnes au lieu de la meilleure */
+      const sc=[]; cands.forEach(([h,x])=>{ const l={id:-1, a:h, b:x.id, p:1}; m.ln.push(l); p.ln=-1; const v=shLineDay(b,l).net; if(v>0) sc.push([v,[h,x.id]]); m.ln.pop(); p.ln=0; });
+      sc.sort((x,y)=>y[0]-x[0]); if(sc.length){ const k= rnd()<(1-q)*.8? Math.floor(rnd()*Math.min(5,sc.length)) : 0; bv=sc[k][0]; best=sc[k][1]; }
       if(best){ shOpen(b,best[0],best[1],p.id); } else shDrop(b,p.id); } }
     /* quais pleins partout : il agrandit le terminal le plus fréquenté */
     if(!cands.length&&m.tm.length){ const h=m.tm.slice().sort((x,y)=>shTmUsed(b,y)-shTmUsed(b,x))[0]; if(mDlp(b)>=shExtCost(b,h)) shExt(b,h,true); }
@@ -12104,7 +12106,7 @@ function criMit(){ if(!criOn()) return err('Aucune crise en cours.'); if(S.cri.m
      rapporté à tout l'argent investi), le marché se sature et les recettes baissent
      progressivement (b.satF, lissé chaque jour). Évite les remboursements en quelques jours.
    ============================================================ */
-const BAL_F={office:8, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2, resto:1.35, electronics:1.15, shipping:1.1};   /* V2.1.1 : électronique +15 %, maritime +10 % */   /* V2.0.6 : resto +35 % */
+const BAL_F={office:8, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2, resto:1.35, electronics:1.15, shipping:1.4};   /* V2.1.1 : électronique +15 % ; V2.2.8 : maritime +40 % (rentabilité 139 % → 180 % par an des capitaux engagés) */   /* V2.0.6 : resto +35 % */
 const BAL_ROI=4.5;          /* 450 % par an, soit un remboursement en 80 jours environ */
 const BAL_ROI_D={resto:6, saas:11, ecom:8.5};   /* V2.2.5 : SaaS et e-commerce : plafond relevé pour garder leur bénéfice avec la nouvelle saturation */  /* V2.0.6 : le restaurant gastronomique sature plus tard (600 % par an) */
 function balInv(b){ const d=bizDef(b); return Math.max(1,(b.inv$||d.cost)+Math.max(0,bizInvested(b)-d.cost)); }
@@ -16333,13 +16335,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.2.7';
+const IB_VER='V2.2.8';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Maritime plus rentable','Les lignes maritimes rapportent 40 % de recettes en plus. Le directeur de site étudie désormais toutes les destinations avant d’ouvrir une ligne (avant : seulement les plus grands ports), et un bon directeur choisit plus souvent la meilleure. En délégation, une compagnie maritime gagne environ trois fois plus qu’avant.','V2.2.8'],
   ['Fiches : chiffres clés et textile en pièces','L’usine textile compte tout en pièces, comme sa production et ses ventes au grossiste (avant : des lots d’un côté, des pièces de l’autre). Les fiches des services affichent leur propre chiffre clé : chantiers en cours, intérimaires en mission, occupation, passagers, production…','V2.2.7'],
   ['Usines et fiches repensées','Vos usines fournissent maintenant vos autres sociétés : la ferme vos restaurants, hôtels et parcs ; l’usine textile vos maisons de couture et boutiques en ligne ; l’usine de composants vos ateliers, data centers et concessions. Elles achètent au prix de gros et économisent 20 % (moins le transport). La fiche d’une usine montre toute la chaîne dans l’onglet Production : production, stock, puis contrats, vos sociétés et grossiste. Les fiches s’adaptent à chaque famille d’activité (chiffres clés, nom de l’onglet, ligne « À faire »), et l’écran Usines devient une vue d’ensemble.','V2.2.6'],
   ['Start-up tech plus solide','Quand une start-up très rentable sature son marché, elle a moins d’abonnés payants et donc moins de serveurs à payer, au lieu de garder tous ses coûts. Une cyberattaque ne la fait plus plonger dans le rouge pendant des jours. Le bénéfice reste du même ordre.','V2.2.5'],
