@@ -11188,7 +11188,9 @@ const AL_PRICE=[.8,1,1.2,1.4], AL_CAB=[0,.08,.15];
 const alAp = id => AL_AP[id];
 function alDist(a,b){ const A=alAp(a), B=alAp(b), r=Math.PI/180, dl=(B.lat-A.lat)*r, dn=(B.lon-A.lon)*r, x=Math.sin(dl/2)**2+Math.cos(A.lat*r)*Math.cos(B.lat*r)*Math.sin(dn/2)**2; return Math.round(2*6371*Math.asin(Math.sqrt(x))); }
 /* conditions d'une place dans la tour : prix et image de marque minimale */
-function alHubCost(id){ const A=alAp(id); return Math.round((9e6+A.sz*7.8e5)/1e5)*1e5; }
+/* V2.3.1 : avions, location et places dans les tours à 30 % de leur ancien prix */
+const AL_ASSET=.3; Object.values(AL_TY).forEach(T=>{ T.pr*=AL_ASSET; T.ls=Math.round(T.ls*AL_ASSET); });
+function alHubCost(id){ const A=alAp(id); return Math.round((9e6+A.sz*7.8e5)*AL_ASSET/1e5)*1e5; }
 function alHubReq(b,id){ const A=alAp(id), home=AL_CO[alHomeCo(b)]; return Math.round(28+A.sz*.35+(home&&AL_CO[A.co].ct!==home.ct?15:0)); }
 function alHomeCo(b){ const cc=b&&b.city, map={paris:'fr',toulouse:'fr',marseille:'fr',madrid:'es',barcelone:'es',seville:'es',miami:'us',newyork:'us',losangeles:'us',rio:'br',saopaulo:'br',salvador:'br',pekin:'cn',shanghai:'cn',shenzhen:'cn'}; return map[cc]||'de'; }
 function alStartHub(b){ return {fr:'CDG',es:'MAD',us:'JFK',br:'GRU',cn:'PEK',de:'FRA'}[alHomeCo(b)]||'FRA'; }
@@ -11448,7 +11450,9 @@ function shRot(b,t,a,bb){ const m=b.m, T=SH_TY[t], P=shPath(a,bb,m,!T.pan), sea=
 /* prix moyen du transport d'un EVP selon la distance */
 function shRate(d){ return 150+.012*d; }
 function shHomeTm(b){ return {paris:'LEH',toulouse:'LEH',marseille:'FOS',barcelone:'BCN',madrid:'VLC',seville:'VLC',zagreb:'RJK',split:'RJK',dubrovnik:'RJK',miami:'MIA',newyork:'NYC',losangeles:'LAX',rio:'SSZ',saopaulo:'SSZ',salvador:'SSZ',pekin:'SHA',shanghai:'SHA',shenzhen:'SZX'}[b&&b.city]||'RTM'; }
-function shTmCost(id){ const P=shPt(id); return Math.round((7e6+P.sz*6e5)/1e5)*1e5; }
+/* V2.3.1 : navires, location et terminaux à 30 % de leur ancien prix (les capitaux réinvestis rapportaient trop peu) */
+const SH_ASSET=.3; Object.values(SH_TY).forEach(T=>{ T.pr*=SH_ASSET; T.ls=Math.round(T.ls*SH_ASSET); });
+function shTmCost(id){ const P=shPt(id); return Math.round((7e6+P.sz*6e5)*SH_ASSET/1e5)*1e5; }
 function shTmReq(b,id){ const P=shPt(id), H=shPt(shHomeTm(b)); return Math.round(26+P.sz*.55+(H&&P.rg!==H.rg&&!SH_NB[H.rg].includes(P.rg)?12:0)); }
 function shTmCap(b,id){ return 3+2*((b.m.ext&&b.m.ext[id])||0); }
 function shTmUsed(b,id){ return b.m.ln.filter(l=>l.a===id).length; }
@@ -11711,7 +11715,8 @@ function ofOffers(b){ const m=b.m, C=D.CITIES[b.city]; m.bo=m.bo.filter(o=>o.exp
     const o={id:m.nid++, n, dist:dd.id, nf, m2, std, cond, occ, exp:S.day+45+Math.floor(rnd()*30)}; o.price=ofValue(b,o); m.bo.push(o); } }
 /* valeur d'un immeuble : surface, quartier, standing, état ; les baux en place ajoutent un peu */
 function ofValue(b,B){ const dd=ofDist(b,B.dist), C=D.CITIES[b.city], occ= B.fl? B.fl.filter(Boolean).length : (B.occ||0);
-  return Math.round(B.m2*dd.p*fxOf(C.ccy)*.62*(OF_STDF[B.std]||1)*(.7+.3*B.cond/100)*(1+.12*occ/B.nf)/1e4)*1e4; }
+  return Math.round(B.m2*dd.p*fxOf(C.ccy)*.62*.3*(OF_STDF[B.std]||1)   /* V2.3.1 : immeubles à 30 % de l’ancien prix (achat et revente) */
+    *(.7+.3*B.cond/100)*(1+.12*occ/B.nf)/1e4)*1e4; }
 function ofSrvOn(B,k){ return !!(B.srv&&B.srv[k]); }
 /* une journée d'un immeuble (sans hasard) */
 function ofBdDay(b,B){ const m=b.m, m2f=ofM2f(B), T=m.tn.filter(t=>t.bd===B.id); let rev=0, cost=0;
@@ -11839,7 +11844,7 @@ function ofData(){ return {OF_SRV, OF_WORK, OF_STD}; }
 function ofGoals(b){ const m=b.m, out=[], fm=m.fm?.9:1, smax=m.pre?5:4;
   const nf=m.bd.reduce((a,B)=>a+B.nf,0), occ=m.bd.reduce((a,B)=>a+B.fl.filter(Boolean).length,0), lf=nf? occ/nf : 0;
   /* recettes réelles / loyers bruts (bonus de la société, niveau, marché) */
-  const r0=ofDay(b).rev, kx= r0>0&&b.last&&b.last.rev>0? clamp(b.last.rev/r0,1,12) : (BAL_F.office||1)*(b.satF||1);
+  const r0=ofDay(b).rev, kx= r0>0&&b.last&&b.last.rev>0? clamp(b.last.rev/r0,1,300) : balF(b)*(b.satF||1);
   const ann=B=>ofMkt(b,B)*B.m2*Math.max(.5,lf)/360*kx;         /* loyers de marché par jour d'un immeuble */
   m.bd.forEach(B=>{ if(ofWorks(B)) return; const a=ann(B);
     if(B.std<smax){ const c=Math.round(OF_WORK.reno.c(B)*fm/1000)*1000, g=a*((OF_STDF[B.std+1]||1)/(OF_STDF[B.std]||1)-1); out.push({n:'Rénovation lourde de '+B.n+' ('+OF_STD[B.std+1]+')', c, g, act:'work', arg:B.id+':reno'}); }
@@ -12119,9 +12124,12 @@ function criMit(){ if(!criOn()) return err('Aucune crise en cours.'); if(S.cri.m
      rapporté à tout l'argent investi), le marché se sature et les recettes baissent
      progressivement (b.satF, lissé chaque jour). Évite les remboursements en quelques jours.
    ============================================================ */
-const BAL_F={office:12, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2, resto:1.35, electronics:1.15, shipping:1.4};   /* V2.1.1 : électronique +15 % ; V2.2.8 : maritime +40 % (rentabilité 139 % → 180 % par an des capitaux engagés) ; V2.2.9 : bureaux 8 → 12 */   /* V2.0.6 : resto +35 % */
+const BAL_F={office:12, airline:3, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2, resto:1.35, electronics:1.15, shipping:3};   /* V2.1.1 : électronique +15 % ; V2.2.8 : maritime +40 % (rentabilité 139 % → 180 % par an des capitaux engagés) ; V2.2.9 : bureaux 8 → 12 */   /* V2.0.6 : resto +35 % */
+/* V2.3.1 : pour les activités à gros actifs, le coup de pouce grandit avec le niveau (un agrandissement y coûte très cher) */
+const BAL_FL={shipping:1.35, airline:1.25, office:1.6};
+function balF(b){ return (BAL_F[b.def]||1)*Math.pow(BAL_FL[b.def]||1,Math.max(0,(b.lvl||1)-1)); }
 const BAL_ROI=4.5;          /* 450 % par an, soit un remboursement en 80 jours environ */
-const BAL_ROI_D={resto:6, saas:11, ecom:8.5};   /* V2.2.5 : SaaS et e-commerce : plafond relevé pour garder leur bénéfice avec la nouvelle saturation */  /* V2.0.6 : le restaurant gastronomique sature plus tard (600 % par an) */
+const BAL_ROI_D={resto:6, saas:11, ecom:8.5, shipping:5.5, airline:5.5, office:5.5};   /* V2.3.1 : maritime, aérien et bureaux au niveau de la moyenne (remboursement en 65 à 75 jours) */   /* V2.2.5 : SaaS et e-commerce : plafond relevé pour garder leur bénéfice avec la nouvelle saturation */  /* V2.0.6 : le restaurant gastronomique sature plus tard (600 % par an) */
 function balInv(b){ const d=bizDef(b); return Math.max(1,(b.inv$||d.cost)+Math.max(0,bizInvested(b)-d.cost)); }
 const BAL_SKIP=['promo','build'];
 /* V2.2.4 : pour ces métiers, la saturation réduit la demande (commandes et achats de marchandises) au lieu des seules recettes */
@@ -12139,7 +12147,7 @@ function balStep(){ S.biz.forEach(b=>{ if(b.status!=='active'||!metOf(b)||BAL_SK
   const RT=BAL_ROI_D[b.def]||((bizDef(b).tier||0)<=1? 6 : BAL_ROI),   /* V2.1.1 : petits commerces 600 % */ lo=dem?.005:.05, tgt= roi1>RT? clamp(dem? RT*inv/360/Math.max(1,b.rawN) : (RT*inv/360+C)/R,lo,1) : 1;
   b.satF=clamp(f0+(tgt-f0)*.03,lo,1); }); }
 { const _mm=metMods; metMods=function(b){ const z=_mm(b); if(!b||b.status!=='active') return z;
-  const f=(BAL_F[b.def]||1)*(BAL_DEM.includes(b.def)?1:(b.satF||1)); if(f!==1){ z.vol*=f; z.rev*=f; } return z; }; }
+  const f=balF(b)*(BAL_DEM.includes(b.def)?1:(b.satF||1)); if(f!==1){ z.vol*=f; z.rev*=f; } return z; }; }
 { const _ll2=lkList; lkList=function(b){ const L=_ll2(b); if(b&&b.satF<.97) L.push(['sat','Marché saturé',(b.def==='saas'?'abonnés payants −':BAL_DEM.includes(b.def)?'commandes −':'recettes −')+Math.round((1-b.satF)*100)+' %. Ce n’est pas une crise : la société rapporte plus de '+Math.round((BAL_ROI_D[b.def]||((bizDef(b).tier||0)<=1? 6 : BAL_ROI))*100)+' % par an de ce qu’elle a coûté. Le plafond monte avec chaque agrandissement ou rénovation ; sinon, ouvrez la même activité dans une autre ville.',1]); return L; }; }
 
 /* ---------- V2.1.3 : événement de la semaine ----------
@@ -16348,13 +16356,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.2.9';
+const IB_VER='V2.3.1';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Maritime, aérien et bureaux rentables','Les compagnies maritimes, les compagnies aériennes et les immeubles de bureaux rapportent désormais autant que la moyenne des activités, voire un peu plus : elles remboursent ce qu’elles ont coûté en 65 à 75 jours environ, au lieu de 9 à 19 mois. Navires, avions, terminaux, places dans les tours et immeubles coûtent 70 % de moins, et leurs recettes progressent avec chaque agrandissement.','V2.3.1'],
   ['Directeurs qui réinvestissent','En délégation totale, les directeurs de compagnie maritime, de compagnie aérienne et d’immeubles de bureaux réinvestissent leur réserve chaque semaine : nouvelles lignes étudiées sur toutes les destinations, terminaux et places dans les tours, quais et créneaux, rachat des navires et avions loués, rénovation des immeubles boudés. Les bureaux rapportent aussi 50 % de loyers en plus. Sur 5 ans, une compagnie maritime gagne environ 5 fois plus, une compagnie aérienne 3 à 4 fois plus et des bureaux 2,3 fois plus.','V2.2.9'],
   ['Maritime plus rentable','Les lignes maritimes rapportent 40 % de recettes en plus. Le directeur de site étudie désormais toutes les destinations avant d’ouvrir une ligne (avant : seulement les plus grands ports), et un bon directeur choisit plus souvent la meilleure. En délégation, une compagnie maritime gagne environ trois fois plus qu’avant.','V2.2.8'],
   ['Fiches : chiffres clés et textile en pièces','L’usine textile compte tout en pièces, comme sa production et ses ventes au grossiste (avant : des lots d’un côté, des pièces de l’autre). Les fiches des services affichent leur propre chiffre clé : chantiers en cours, intérimaires en mission, occupation, passagers, production…','V2.2.7'],
