@@ -11340,20 +11340,29 @@ function alAuto(b,mode,q){ const m=b.m;
   if(S.day%7===0) m.ln.forEach(l=>{ let best=l.p, bv=-1e18; const save=l.p; for(let p=0;p<4;p++){ l.p=p; const x=alLineDay(b,l,true); if(x.net>bv){ bv=x.net; best=p; } } l.p= rnd()<(1-q)*.3? save : best;
     const save2=l.cab; let bc=l.cab; bv=-1e18; for(let c=0;c<3;c++){ l.cab=c; const x=alLineDay(b,l,true); if(x.net>bv){ bv=x.net; bc=c; } } l.cab=bc; });
   if(mode!=='full') return;
-  if(S.day%30===15) alInvest(b);
+  /* V2.2.9 : chaque semaine, la réserve sert : nouvelles lignes étudiées sur toutes les destinations (avion acheté si la
+     loué puis racheté), créneaux, places dans les tours, rachat des avions loués ; jusqu’à 6 opérations (avant : une ligne
+     par mois vers le plus grand aéroport d’une plateforme tirée au hasard) */
+  if(S.day%7===3) for(let k=0;k<6;k++){ if(!alNewLine(b,q)&&!alInvest(b)) break; }
   if(S.day%30===0){ if(!m.hedge&&m.fp<.75) alHedge(b);
-    /* une nouvelle ligne intérieure avec un avion loué si elle s'annonce rentable */
-    const h=m.hubs[Math.floor(rnd()*m.hubs.length)], cand=alDests(b,h).filter(x=>!alCanLine(b,h,x.id)).sort((x,y)=>y.sz-x.sz)[0];
-    if(cand){ const d=alDist(h,cand.id), t=d<=1500? 'm180' : d<=6000? 'm180' : 'l300'; if(AL_TY[t].rg>=d&&mDlp(b)>AL_TY[t].ls*30){ const r=alGet(b,t,false,true); if(r.ok){ const p=m.fl[m.fl.length-1]; alOpen(b,h,cand.id,p.id); const l=m.ln[m.ln.length-1]; if(l&&alLineDay(b,l,true).net<0){ alClose(b,l.id); alDrop(b,p.id); } } } }
     for(const [k,f,l,rk] of [['fid',1.5,'Programme de fidélité',1],['sal',3,'Salons à l’aéroport',2],['mnt',5,'Maintenance maison',3],['ali',8,'Alliance de compagnies',4],['fret',12,'Fret en soute',5]]) if(!m[k]&&mxHas(b,rk)&&alBuyR(b,k,f,l,rk,true).ok) break; }
 }
 /* V1.5.8 : en délégation totale, la réserve achète aussi des places dans les tours et remplace les avions loués des lignes rentables */
 function alNextHub(b){ const m=b.m; return Object.values(AL_AP).filter(a=>a.hub&&!m.hubs.includes(a.id)&&alHubReq(b,a.id)<=m.img).sort((x,y)=>y.sz-x.sz)[0]; }
 function alLeasedOnGood(b){ const m=b.m; return m.fl.filter(p=>!p.own&&p.ln).map(p=>({p,l:alLine(b,p.ln)})).filter(x=>x.l&&(x.l.st||alLineDay(b,x.l,true)).net>0).sort((x,y)=>AL_TY[x.p.t].pr-AL_TY[y.p.t].pr)[0]; }
+function alNewLine(b,q){ const m=b.m, cands=[]; m.hubs.forEach(h=>alDests(b,h).filter(x=>!alCanLine(b,h,x.id)).forEach(x=>cands.push([h,x.id])));
+  if(!cands.length){ const h=m.hubs.slice().sort((x,y)=>alHubUsed(b,y)-alHubUsed(b,x))[0]; return !!h&&((m.ext&&m.ext[h])||0)<3&&mDlp(b)>=alExtCost(b,h)&&alExt(b,h,true).ok; }
+  const sc=[]; ['r70','m180','l300'].forEach(t=>{ const T=AL_TY[t]; if(mDlp(b)<=T.ls*30) return; const own=false;   /* location : la croissance reste rapide, le rachat vient ensuite (alInvest) */
+    const tp={id:-7, t, own:own?1:0, ln:-1, down:0, dep:0}; m.fl.push(tp);
+    cands.forEach(([h,x])=>{ if(T.rg<alDist(h,x)) return; const l={id:-1, a:h, b:x, p:1, cab:1}; m.ln.push(l); const v=alLineDay(b,l,true).net; m.ln.pop(); if(v>0) sc.push([v,v,h,x,t,own]); });
+    m.fl.pop(); });
+  if(!sc.length) return false; sc.sort((x,y)=>y[0]-x[0]);
+  const k= rnd()<(1-q)*.8? Math.floor(rnd()*Math.min(5,sc.length)) : 0, c=sc[k];
+  const r=alGet(b,c[4],c[5],true); if(!r.ok) return false; const p=m.fl[m.fl.length-1]; return alOpen(b,c[2],c[3],p.id).ok; }
 function alInvest(b){ const m=b.m, H=alNextHub(b);
-  if(H&&alBuyHub(b,H.id,true).ok) return;
-  const x=alLeasedOnGood(b); if(!x||mDlp(b)<AL_TY[x.p.t].pr) return;
-  const r=alGet(b,x.p.t,true,true); if(!r.ok) return; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; alDrop(b,x.p.id); metLog(b,'le directeur achète l’'+AL_TY[n.t].n+' de la ligne '+alAp(x.l.a).n+' – '+alAp(x.l.b).n+' au lieu de le louer.',''); }
+  if(H&&alBuyHub(b,H.id,true).ok) return true;
+  const x=alLeasedOnGood(b); if(!x||mDlp(b)<AL_TY[x.p.t].pr) return false;
+  const r=alGet(b,x.p.t,true,true); if(!r.ok) return false; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; alDrop(b,x.p.id); metLog(b,'le directeur achète l’'+AL_TY[n.t].n+' de la ligne '+alAp(x.l.a).n+' – '+alAp(x.l.b).n+' au lieu de le louer.',''); return true; }
 MET.airline.goal=function(b){ const H=alNextHub(b); if(H) return {n:'Place dans la tour : '+H.n, c:alHubCost(H.id), act:'hub', arg:H.id}; const x=alLeasedOnGood(b); return x? {n:AL_TY[x.p.t].n+' acheté', c:AL_TY[x.p.t].pr} : null; };
 function alData(){ return {AL_AP, AL_CO, AL_TY}; }
 
@@ -11627,26 +11636,28 @@ function shAuto(b,mode,q){ const m=b.m;
   m.fl.filter(p=>SH_TY[p.t].k!=='box'&&shFree(m,p)).forEach(p=>{ const T=SH_TY[p.t]; const o=m.off.filter(o=>o.k===T.k&&o.q<=T.cap).map(o=>{ const days=Math.ceil(2*o.d/(T.kn*1.852*24)+5); return {o, v:o.pay/days}; }).sort((x,y)=>y.v-x.v)[0];
     if(o&&o.v>shMaint(m,p)+T.crew+T.fuel*shBunk(m)*.85) shCharter(b,o.o.id,p.id); });
   if(mode!=='full') return;
-  if(S.day%30===15) shInvest(b);
+  /* V2.2.9 : la réserve sert chaque semaine : nouvelles lignes (navire acheté d’occasion si la réserve le permet), quais,
+     terminaux, rachat des navires loués ; jusqu’à 6 opérations tant que la réserve suit (avant : une par mois) */
+  if(S.day%7===3) for(let k=0;k<6;k++){ if(!shNewLine(b,q)&&!shInvest(b)) break; }
   if(S.day%30===0){
-    /* une ligne nouvelle avec un navire loué : il essaie plusieurs destinations et garde la plus rentable (V1.6.6) */
-    const cands=[]; m.tm.forEach(h=>shDests(b,h).filter(x=>!shCanLine(b,h,x.id)).forEach(x=>cands.push([h,x]))); cands.sort((x,y)=>y[1].sz-x[1].sz);
-    if(cands.length&&mDlp(b)>SH_TY.p5.ls*30){ const r=shGet(b,'p5','lease',true); if(r.ok){ const p=m.fl[m.fl.length-1]; let best=null, bv=0;
-      /* V2.2.8 : il étudie toutes les destinations (avant : les 6 plus grands ports) ; un directeur moins bon se trompe plus souvent et prend une des bonnes au lieu de la meilleure */
-      const sc=[]; cands.forEach(([h,x])=>{ const l={id:-1, a:h, b:x.id, p:1}; m.ln.push(l); p.ln=-1; const v=shLineDay(b,l).net; if(v>0) sc.push([v,[h,x.id]]); m.ln.pop(); p.ln=0; });
-      sc.sort((x,y)=>y[0]-x[0]); if(sc.length){ const k= rnd()<(1-q)*.8? Math.floor(rnd()*Math.min(5,sc.length)) : 0; bv=sc[k][0]; best=sc[k][1]; }
-      if(best){ shOpen(b,best[0],best[1],p.id); } else shDrop(b,p.id); } }
-    /* quais pleins partout : il agrandit le terminal le plus fréquenté */
-    if(!cands.length&&m.tm.length){ const h=m.tm.slice().sort((x,y)=>shTmUsed(b,y)-shTmUsed(b,x))[0]; if(mDlp(b)>=shExtCost(b,h)) shExt(b,h,true); }
     for(const [k,f,l,rk] of [['plan',1.5,'Planification des escales',1],['ali',3,'Alliance maritime',2],['eco',5,'Navires économes',3],['esc',6,'Sûreté et escortes',4],['d2d',10,'Logistique porte-à-porte',5]]) if(!m[k]&&mxHas(b,rk)&&shBuyR(b,k,f,l,rk,true).ok) break; }
 }
 /* V1.5.8 : en délégation totale, la réserve achète aussi des terminaux et remplace les navires loués des lignes rentables */
 function shNextTm(b){ const m=b.m; return Object.values(SH_PT).filter(a=>a.tm&&!m.tm.includes(a.id)&&shTmReq(b,a.id)<=m.img).sort((x,y)=>shTmCost(x.id)-shTmCost(y.id))[0]; }
 function shLeasedOnGood(b){ const m=b.m; return m.fl.filter(p=>!p.own&&p.ln&&SH_TY[p.t].k==='box').map(p=>({p,l:shLine(b,p.ln)})).filter(x=>x.l&&(x.l.st||shLineDay(b,x.l)).net>0).sort((x,y)=>SH_TY[x.p.t].pr-SH_TY[y.p.t].pr)[0]; }
+function shNewLine(b,q){ const m=b.m; const cands=[]; m.tm.forEach(h=>shDests(b,h).filter(x=>!shCanLine(b,h,x.id)).forEach(x=>cands.push([h,x])));
+  if(!cands.length){ if(!m.tm.length) return false; const h=m.tm.slice().sort((x,y)=>shTmUsed(b,y)-shTmUsed(b,x))[0]; return mDlp(b)>=shExtCost(b,h)&&shExt(b,h,true).ok; }
+  const own=mDlp(b)>=SH_TY.p5.pr*SH_OCC*1.2; if(!own&&mDlp(b)<=SH_TY.p5.ls*30) return false;
+  /* étude avec un navire fictif : rien n’est acheté si aucune ligne n’est rentable */
+  const t={id:-7, t:'p5', own:own?1:0, occ:own?1:0, ln:-1, down:0, dep:0, yard:0}; m.fl.push(t); const sc=[];
+  cands.forEach(([h,x])=>{ const l={id:-1, a:h, b:x.id, p:1}; m.ln.push(l); const v=shLineDay(b,l).net; if(v>0) sc.push([v,[h,x.id]]); m.ln.pop(); });
+  m.fl.pop(); if(!sc.length) return false; sc.sort((x,y)=>y[0]-x[0]);
+  const k= rnd()<(1-q)*.8? Math.floor(rnd()*Math.min(5,sc.length)) : 0;
+  const r=shGet(b,'p5',own?'occ':'lease',true); if(!r.ok) return false; const p=m.fl[m.fl.length-1]; return shOpen(b,sc[k][1][0],sc[k][1][1],p.id).ok; }
 function shInvest(b){ const m=b.m, T=shNextTm(b);
-  if(T&&shBuyTm(b,T.id,true).ok) return;
-  const x=shLeasedOnGood(b); if(!x) return; const c=SH_TY[x.p.t].pr*SH_OCC; if(mDlp(b)<c) return;
-  const r=shGet(b,x.p.t,'occ',true); if(!r.ok) return; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; shDrop(b,x.p.id); metLog(b,'le directeur rachète d’occasion le '+SH_TY[n.t].n+' de la ligne '+shPt(x.l.a).n+' – '+shPt(x.l.b).n+'.',''); }
+  if(T&&shBuyTm(b,T.id,true).ok) return true;
+  const x=shLeasedOnGood(b); if(!x) return false; const c=SH_TY[x.p.t].pr*SH_OCC; if(mDlp(b)<c) return false;
+  const r=shGet(b,x.p.t,'occ',true); if(!r.ok) return false; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; shDrop(b,x.p.id); metLog(b,'le directeur rachète d’occasion le '+SH_TY[n.t].n+' de la ligne '+shPt(x.l.a).n+' – '+shPt(x.l.b).n+'.',''); return true; }
 MET.shipping.goal=function(b){ const m=b.m; if(m.tm.length&&m.tm.every(h=>shTmUsed(b,h)>=shTmCap(b,h))){ const h=m.tm[0]; if((m.ext&&m.ext[h]||0)<3) return {n:'Quais à '+shPt(h).n, c:shExtCost(b,h), act:'ext', arg:h}; } const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id), act:'tm', arg:T.id}; const x=shLeasedOnGood(b); return x? {n:SH_TY[x.p.t].n+' d’occasion', c:SH_TY[x.p.t].pr*SH_OCC} : null; };
 function shData(){ return {SH_PT, SH_TY, SH_RG, SH_NB}; }
 
@@ -11815,6 +11826,8 @@ function ofRisks(b){ const m=b.m, r=rnd();
 function ofAuto(b,mode,q){ const m=b.m;
   if(S.day%3===0) m.pr.slice().sort((x,y)=>y.mult-x.mult).forEach(P=>{ const B=m.bd.filter(B=>!ofWorks(B)&&B.std>=P.std&&ofFree(B).length>=P.k).sort((x,y)=>ofMkt(b,y)-ofMkt(b,x))[0]; if(B&&(P.mult>=.9||rnd()<q)) ofSign(b,P.id,B.id,0); });
   if(mode!=='full'||S.day%30) return;
+  /* V2.2.9 : un immeuble vide aux deux tiers et de standing modeste est rénové (les locataires le boudent) */
+  m.bd.forEach(B=>{ if(!ofWorks(B)&&B.std<3&&B.fl.filter(Boolean).length<B.nf/3&&mDlp(b)>OF_WORK.reno.c(B)*1.2) ofWork(b,B.id,'reno',true); });
   m.bd.forEach(B=>{ if(!ofWorks(B)&&B.cond<55) ofWork(b,B.id,'ref',true); ['conc','reu','rest'].forEach(k=>{ if(!ofSrvOn(B,k)&&B.fl.filter(Boolean).length>=B.nf*.6) ofSrv(b,B.id,k,true); }); });
   const o=m.bo.slice().sort((x,y)=>x.price/x.m2-y.price/y.m2)[0]; if(o&&mDlp(b)>o.price*1.1) ofBuyBd(b,o.id,true);
   for(const [k,f,l,rk] of [['chg',1,'Gestion des charges',1],['com',2,'Commercialisation',2],['bl',3,'Baux longs',3],['fm',4,'Facility management',4],['pre',6,'Immeubles de prestige',5]]) if(!m[k]&&mxHas(b,rk)&&ofBuyR(b,k,f,l,rk,true).ok) break; }
@@ -12106,7 +12119,7 @@ function criMit(){ if(!criOn()) return err('Aucune crise en cours.'); if(S.cri.m
      rapporté à tout l'argent investi), le marché se sature et les recettes baissent
      progressivement (b.satF, lissé chaque jour). Évite les remboursements en quelques jours.
    ============================================================ */
-const BAL_F={office:8, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2, resto:1.35, electronics:1.15, shipping:1.4};   /* V2.1.1 : électronique +15 % ; V2.2.8 : maritime +40 % (rentabilité 139 % → 180 % par an des capitaux engagés) */   /* V2.0.6 : resto +35 % */
+const BAL_F={office:12, airline:1.5, dealer:1.6, renew:1.35, hotel:1.15, dc:1.2, resto:1.35, electronics:1.15, shipping:1.4};   /* V2.1.1 : électronique +15 % ; V2.2.8 : maritime +40 % (rentabilité 139 % → 180 % par an des capitaux engagés) ; V2.2.9 : bureaux 8 → 12 */   /* V2.0.6 : resto +35 % */
 const BAL_ROI=4.5;          /* 450 % par an, soit un remboursement en 80 jours environ */
 const BAL_ROI_D={resto:6, saas:11, ecom:8.5};   /* V2.2.5 : SaaS et e-commerce : plafond relevé pour garder leur bénéfice avec la nouvelle saturation */  /* V2.0.6 : le restaurant gastronomique sature plus tard (600 % par an) */
 function balInv(b){ const d=bizDef(b); return Math.max(1,(b.inv$||d.cost)+Math.max(0,bizInvested(b)-d.cost)); }
@@ -16335,13 +16348,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.2.8';
+const IB_VER='V2.2.9';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Directeurs qui réinvestissent','En délégation totale, les directeurs de compagnie maritime, de compagnie aérienne et d’immeubles de bureaux réinvestissent leur réserve chaque semaine : nouvelles lignes étudiées sur toutes les destinations, terminaux et places dans les tours, quais et créneaux, rachat des navires et avions loués, rénovation des immeubles boudés. Les bureaux rapportent aussi 50 % de loyers en plus. Sur 5 ans, une compagnie maritime gagne environ 5 fois plus, une compagnie aérienne 3 à 4 fois plus et des bureaux 2,3 fois plus.','V2.2.9'],
   ['Maritime plus rentable','Les lignes maritimes rapportent 40 % de recettes en plus. Le directeur de site étudie désormais toutes les destinations avant d’ouvrir une ligne (avant : seulement les plus grands ports), et un bon directeur choisit plus souvent la meilleure. En délégation, une compagnie maritime gagne environ trois fois plus qu’avant.','V2.2.8'],
   ['Fiches : chiffres clés et textile en pièces','L’usine textile compte tout en pièces, comme sa production et ses ventes au grossiste (avant : des lots d’un côté, des pièces de l’autre). Les fiches des services affichent leur propre chiffre clé : chantiers en cours, intérimaires en mission, occupation, passagers, production…','V2.2.7'],
   ['Usines et fiches repensées','Vos usines fournissent maintenant vos autres sociétés : la ferme vos restaurants, hôtels et parcs ; l’usine textile vos maisons de couture et boutiques en ligne ; l’usine de composants vos ateliers, data centers et concessions. Elles achètent au prix de gros et économisent 20 % (moins le transport). La fiche d’une usine montre toute la chaîne dans l’onglet Production : production, stock, puis contrats, vos sociétés et grossiste. Les fiches s’adaptent à chaque famille d’activité (chiffres clés, nom de l’onglet, ligne « À faire »), et l’écran Usines devient une vue d’ensemble.','V2.2.6'],
