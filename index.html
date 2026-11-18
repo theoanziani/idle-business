@@ -8264,6 +8264,7 @@ function dlTopUp(b,c,label){ if(!b||!b.dlg||!(c>0)) return; const r=dlBudget(b);
   if(S.cash-need<finBuf()) return; b.dlp=r+need; metLog(b,'priorité du groupe : '+eur(need,0)+' de la trésorerie générale pour « '+String(label||'un achat').toLowerCase()+' ».'); }
 { const _ds=dlSpend; dlSpend=function(b,c,l){ dlTopUp(b,c,l); return _ds(b,c,l); }; }
 function dlCan(b,c,l){ dlTopUp(b,c,l); return dlBudget(b)>=c; }
+{ const _da=dlAct; dlAct=function(b,c,fn){ dlTopUp(b,c); return _da(b,c,fn); }; }
 
 /* ============================================================
    DÉMÉNAGEMENT : une entreprise au niveau maximal de son bâtiment peut partir vers un plus grand
@@ -8966,7 +8967,7 @@ function htAuto(b,mode,q){
      au-dessus du tarif normal tant que la note n'atteint pas 4,5 (puis 4,4 pour la garder) */
   m.chase= mode==='full'&&m.st===5&&mxHas(b,4)&&(m.pal? m.av<4.4 : m.av<4.55) ? 1 : 0;
   if(m.chase) m.ob=0;
-  if(mode==='full'&&!m.pal&&m.st===5&&mxHas(b,4)&&m.av>=4.5){ const c=bizDef(b).cost*.4; if(dlBudget(b)>=c) dlAct(b,c,()=>metAct(b,'pal')); }
+  if(mode==='full'&&!m.pal&&m.st===5&&mxHas(b,4)&&m.av>=4.5){ const c=bizDef(b).cost*.4; if(dlCan(b,c,'Palace')) dlAct(b,c,()=>metAct(b,'pal')); }
   if(mode!=='full'||S.day%14!==0) return;
   if(m.st<5&&htStar(b,true).ok) return;
   for(const [k,f,l,rk] of [['spa',.3,'Spa',0],['resto',.15,'Restaurant de l’hôtel',0],['salles',.2,'Salles de réception',2],['pres',.25,'Suite présidentielle',3]]){ if(!m[k]&&mxHas(b,rk)){ if(htBuy(b,k,f,l,rk,true).ok) return; } }
@@ -10397,7 +10398,7 @@ function gaAuto(b,mode,q){ const m=b.m, R0=metR0(b);
       L.forEach(w=>{ w.res= rnd()<q? 'm' : pick(['b','h']); }); m.cat=L.map(w=>w.id); gaPrep(b); } }
   if(mode==='full'){
     if(mxHas(b,1)&&S.day%20===0){ if(m.art.filter(a=>a.em&&!a.dead).length<3&&dlBudget(b)>R0*6) { const c=R0*1.5; if(dlBudget(b)>=c){ b.dlp-=c; MET.gallery.acts.scout(b); } }
-      m.atl.slice().forEach(x=>{ const a=gaArt(b,x.a), p=x.e0*(a?a.c:1)*.7; if(a&&a.t>0&&rnd()<q&&dlBudget(b)>=p&&m.st.length<gaCap(b)-2){ if(MET.gallery.acts.buyw(b,x.id).ok) b.dlp-=p; } }); }
+      m.atl.slice().forEach(x=>{ const a=gaArt(b,x.a), p=x.e0*(a?a.c:1)*.7; if(a&&a.t>0&&rnd()<q&&m.st.length<gaCap(b)-2&&dlCan(b,p,'Achat d’une œuvre')){ if(MET.gallery.acts.buyw(b,x.id).ok) b.dlp-=p; } }); }
     if(S.day%30===0) for(const [k,f,l,rk] of [['intl',2,'Ventes internationales',2],['fair',3,'Foire d’art',3],['lab',2,'Laboratoire d’expertise',4],['mus',6,'Musée privé',5]]) if(!m[k]&&mxHas(b,rk)&&gaBuy(b,k,f,l,rk,true).ok) break;
   }
 }
@@ -10534,7 +10535,7 @@ function prAuto(b,mode,q){ const m=b.m, mx=mode==='full'?prMax(b):Math.min(2,prM
   });
   const act=m.ops.filter(o=>o.stage!=='livre').length;
   if(act<mx&&S.day%5===0){ const L=m.land.filter(x=>!x.big||mode==='full').sort((x,y)=>(y.q/y.price*(1-y.r))-(x.q/x.price*(1-x.r)))[0];
-    if(L){ if(mode==='full'){ if(dlBudget(b)>=L.price){ if(prBuyLand(b,L.id).ok) b.dlp-=L.price; } else if(act===0) prBuyLand(b,L.id); } else prBuyLand(b,L.id); } }
+    if(L){ if(mode==='full'){ if(dlCan(b,L.price,'Achat d’un terrain')){ if(prBuyLand(b,L.id).ok) b.dlp-=L.price; } else if(act===0) prBuyLand(b,L.id); } else prBuyLand(b,L.id); } }
 }
 
 /* ============================================================
@@ -10677,7 +10678,7 @@ function hcAuto(b,mode,q){ const m=b.m, R0=metR0(b), lic=b.boss&&b.boss.id%2===1
   /* licences : selon le style du directeur */
   const lim= lic? 45 : 55; if(m.pres>lim+5&&!m.lic.acc) m.lic.acc=1; if(m.pres<lim-5&&m.lic.acc) m.lic.acc=0;
   if(mxHas(b,2)){ if(m.pres>lim+15&&!m.lic.par) m.lic.par=1; if(m.pres<lim&&m.lic.par) m.lic.par=0; }
-  if(mode==='full'){ if(m.eg<=S.day&&m.pres<70&&dlBudget(b)>=R0*14){ b.dlp-=R0*14; MET.couture.acts.eg(b); }
+  if(mode==='full'){ if(m.eg<=S.day&&m.pres<70&&dlCan(b,R0*14,'Défilé')){ b.dlp-=R0*14; MET.couture.acts.eg(b); }
     if(S.day%30===0) for(const [k,f,l,rk] of [['fw',2,'Semaine de la mode',1],['bq',3,'Boutiques dans les capitales',3],['ada',2,'Ateliers d’art',4],['myth',5,'Maison mythique',5]]) if(!m[k]&&mxHas(b,rk)&&hcBuy(b,k,f,l,rk,true).ok) break; }
 }
 
@@ -10813,8 +10814,8 @@ function rnAuto(b,mode,q){ const m=b.m;
     const regs=Object.keys(RN_REG).filter(r=>!RN_REG[r].rk||mxHas(b,RN_REG[r].rk));
     const nf=regs.find(r=>!m.reg[r].auth&&!m.reg[r].req&&m.reg[r].ban<=S.day); if(nf&&dlBudget(b)>metR0(b)){ b.dlp-=metR0(b); rnReq(b,nf); }
     let best=null, bv=0; regs.forEach(r=>Object.keys(RN_T).forEach(t=>{ if(rnCanBuild(b,t,r)) return; const sz=m.big?3:1, v=RN_T[t].k*sz*(RN_T[t].rs==='s'?RN_REG[r].s:RN_T[t].rs==='w'?RN_REG[r].w:RN_REG[r].h)*(r==='mer'?1.2:1)/rnCost(b,t,r,sz); if(v>bv){ bv=v; best=[t,r,sz]; } }));
-    if(best&&dlBudget(b)>=rnCost(b,...best)) rnBuild(b,best[0],best[1],best[2],true);
-    if(m.bat.cap<.6&&dlBudget(b)>=bizDef(b).cost*.15) { if(dlSpend(b,bizDef(b).cost*.15,'Batterie')) m.bat.cap+=.3; }
+    if(best&&dlCan(b,rnCost(b,...best),'Nouvelle centrale')) rnBuild(b,best[0],best[1],best[2],true);
+    if(m.bat.cap<.6&&dlCan(b,bizDef(b).cost*.15,'Batteries')) { if(dlSpend(b,bizDef(b).cost*.15,'Batterie')) m.bat.cap+=.3; }
     for(const [k,f,l,rk] of [['h2',2,'Électrolyseur à hydrogène',3],['smart',2.5,'Réseau intelligent',4],['big',3,'Parcs géants',5]]) if(!m[k]&&mxHas(b,rk)&&rnBuy(b,k,f,l,rk,true).ok) break; }
 }
 
@@ -16365,7 +16366,7 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.3.2';
+const IB_VER='V2.3.3';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
