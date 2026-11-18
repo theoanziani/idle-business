@@ -3883,7 +3883,7 @@ D.MGR={
   ceo:{n:'Directeur général', hire:50000, day:600, txt:'Réduit de 4 % les salaires et les frais fixes de toutes vos sociétés, et ajuste chaque semaine les prix et le marketing des commerces classiques.'},
   prop:{n:'Gestionnaire immobilier', hire:20000, day:250, txt:'Négocie vos loyers (−5 %) et résilie les baux des locaux vides depuis 10 jours.'},
   cont:{n:'Responsable des contrats', hire:15000, day:200, txt:'Accepte seul les contrats que vos usines peuvent livrer à temps.'},
-  fin:{n:'Directeur financier', hire:30000, day:350, txt:'Chaque lundi, rembourse vos emprunts les plus chers puis place sur le livret la trésorerie qui dépasse un mois de dépenses ; reprend sur le livret si la trésorerie baisse trop.'},
+  fin:{n:'Directeur financier', hire:30000, day:350, txt:'Chaque lundi, rembourse vos emprunts les plus chers puis place sur le livret la trésorerie qui dépasse un mois de dépenses (réglable dans Épargne automatique) ; reprend sur le livret si la trésorerie baisse trop.'},
   del:{n:'Service de livraison', hire:8000, day:120, txt:'Marchandises livrées le jour même dans vos boutiques, expéditions nationales plus rapides et 30 % moins chères.'}
 };
 const mgrOn = k => !!(S.mgr&&S.mgr[k]);
@@ -3912,7 +3912,8 @@ function mgrStep(){
 function finBuf(){ let e=0; S.biz.forEach(b=>{ if(b.status==='active'&&b.last) e+=Math.max(0,b.last.rev-b.last.net); }); return Math.max(20000*progMult(),e*30); }
 function finStep(){ const buf=finBuf(); let ex=S.cash-buf, rp=0, dp=0;
   S.debts.slice().sort((a,b)=>b.r-a.r).forEach(d=>{ if(ex<=1) return; const a=Math.min(ex,d.p); if(repay(d.id,a).ok){ ex-=a; rp+=a; } });
-  if(ex>1&&!S.debts.length&&livretMove(Math.floor(ex)).ok) dp=Math.floor(ex);
+  /* V2.3.4 : le placement de l'excédent sur le livret se coupe (S.finLiv=0) ; remboursements et reprises continuent */
+  if(ex>1&&!S.debts.length&&S.finLiv!==0&&livretMove(Math.floor(ex)).ok) dp=Math.floor(ex);
   if(S.cash<buf*.5&&S.livret.bal>0){ const w=Math.min(S.livret.bal,buf-S.cash); livretMove(-w); log('info','Directeur financier : '+eur(w,0)+' repris sur le livret.'); }
   if(rp>0) log('info','Directeur financier : '+eur(rp,0)+' d’emprunts remboursés.'); if(dp>=1000*progMult()) log('info','Directeur financier : '+eur(dp,0)+' placés sur le livret.'); }
 
@@ -13819,7 +13820,12 @@ function modalAsset(cls,id){
 }
 function orderRow(o){ const a=assetInfo(o.cls,o.aid); return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:6px"><div><b>'+esc(a?a.name:o.aid)+'</b><div class="sub">'+ORDN[o.kind]+' '+eur(o.px,o.px<10?4:2)+(o.kind==='buy'?' · '+eur(o.amt,0):' · '+Math.round(o.amt*100)+' %')+' · jusqu’au '+dateL(o.exp)+'</div></div>'+btn('Annuler','ocancel',{c:'sm ghost',i:o.id})+'</div>'; }
 function ordersCard(cls){ const os=(S.orders||[]).filter(o=>o.cls===cls); return card('Ordres automatiques', os.length? '<div class="stack">'+os.map(orderRow).join('')+'</div>' : '<div class="sub">Touchez le nom d’un actif pour voir son graphique et placer un achat limite, une vente limite ou un stop-loss.</div>'); }
-function saveCard(){ const p=(S.save&&S.save.pct)||0; return card('Épargne automatique','<div class="stack"><div class="sub">Chaque jour, une part du bénéfice de vos entreprises part sur le livret.</div><div class="seg">'+[0,.1,.25,.5].map(x=>'<button class="'+(p===x?'on':'')+'" data-a="saveset" data-v="'+x+'">'+(x?Math.round(x*100)+' %':'Non')+'</button>').join('')+'</div></div>'); }
+function saveCard(){ const p=(S.save&&S.save.pct)||0;
+  /* V2.3.4 : le directeur financier place aussi l'excédent de trésorerie sur le livret chaque lundi, même sur « Non » :
+     c'est maintenant indiqué ici et réglable à part */
+  const fin=mgrOn('fin')? '<div class="row sp" style="margin-top:6px"><div style="min-width:0"><b>Directeur financier</b><div class="sub">Chaque lundi, il place sur le livret la trésorerie au-delà d’un mois de dépenses.</div></div><div class="seg"><button class="'+(S.finLiv!==0?'on':'')+'" data-a="finliv" data-v="1">Oui</button><button class="'+(S.finLiv===0?'on':'')+'" data-a="finliv" data-v="0">Non</button></div></div>' : '';
+  return card('Épargne automatique','<div class="stack"><div class="sub">Chaque jour, une part du bénéfice de vos entreprises part sur le livret.</div><div class="seg">'+[0,.1,.25,.5].map(x=>'<button class="'+(p===x?'on':'')+'" data-a="saveset" data-v="'+x+'">'+(x?Math.round(x*100)+' %':'Non')+'</button>').join('')+'</div>'+fin+'</div>'); }
+ACT.finliv=el=>{ S.finLiv=+el.dataset.v; toast(S.finLiv? 'Le directeur financier place l’excédent sur le livret.' : 'Le directeur financier ne place plus l’excédent sur le livret.'); render(); };
 function electionCard(){
   if(S.country) return '';
   const E=elecInit();
@@ -16366,13 +16372,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.3.3';
+const IB_VER='V2.3.4';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Épargne : directeur financier réglable','Même sur « Non », de l’argent partait sur le livret : c’était votre directeur financier, qui y place chaque lundi la trésorerie au-delà d’un mois de dépenses. Ce placement se règle maintenant à part, dans la carte Épargne automatique (Marchés). Il continue de rembourser vos emprunts et de reprendre sur le livret si la trésorerie manque.','V2.3.4'],
   ['Priorité du groupe pour tous les achats','La « priorité du groupe » aide maintenant le directeur pour tous ses achats, pas seulement l’agrandissement : terminaux, quais, navires, places dans les tours, créneaux, avions, immeubles, travaux, améliorations… Dès que sa réserve couvre la moitié du prix, la trésorerie générale complète (sans descendre sous un mois de dépenses du groupe).','V2.3.2'],
   ['Maritime, aérien et bureaux rentables','Les compagnies maritimes, les compagnies aériennes et les immeubles de bureaux rapportent désormais autant que la moyenne des activités, voire un peu plus : elles remboursent ce qu’elles ont coûté en 65 à 75 jours environ, au lieu de 9 à 19 mois. Navires, avions, terminaux, places dans les tours et immeubles coûtent 70 % de moins, et leurs recettes progressent avec chaque agrandissement.','V2.3.1'],
   ['Directeurs qui réinvestissent','En délégation totale, les directeurs de compagnie maritime, de compagnie aérienne et d’immeubles de bureaux réinvestissent leur réserve chaque semaine : nouvelles lignes étudiées sur toutes les destinations, terminaux et places dans les tours, quais et créneaux, rachat des navires et avions loués, rénovation des immeubles boudés. Les bureaux rapportent aussi 50 % de loyers en plus. Sur 5 ans, une compagnie maritime gagne environ 5 fois plus, une compagnie aérienne 3 à 4 fois plus et des bureaux 2,3 fois plus.','V2.2.9'],
