@@ -13068,7 +13068,7 @@ function vSet(){
     '<div class="sep"></div>'+btn('Retour au menu principal','menu',{c:'sm'})+'</div>')+
     card('Barre du bas','<div class="row">'+btn('Personnaliser','baredit',{c:'sm'})+'</div>')+card('Rapport de période','<div class="row">'+btn('Organiser le rapport','rpedit',{c:'sm'})+'</div>')+
     card('Affichage','<div class="stack"><div class="row"><b>Thème</b><div class="seg">'+[['auto','Système'],['light','Clair'],['dark','Sombre']].map(x=>'<button class="'+((ui.theme||'auto')===x[0]?'on':'')+'" data-a="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>'+'<div class="row sp" style="margin-top:10px"><b>Ciel des villes</b><div class="seg">'+[['cycle','Jour et nuit animés'],['real','Heure réelle']].map(x=>'<button class="'+(cityTimeMode()===x[0]?'on':'')+'" data-a="citytime" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>'+'</div>')+'</div>';
-  h+=card('Guide du jeu','<div class="row">'+btn('Ouvrir le guide','tab',{c:'pri',i:'guide'})+'</div>');
+  h+=card('Guide du jeu','<div class="row">'+btn('Ouvrir le guide','tab',{c:'pri',i:'guide'})+btn('Revoir les aides des écrans','tipsreset',{c:'sm'})+'</div>');
   return h+'<div class="sub" style="text-align:center">Idle Business · V2</div>';
 }
 
@@ -16625,13 +16625,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.3.9';
+const IB_VER='V2.4.1';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Traductions et aides','Les événements du journal (intempéries, soldes, retours sous garantie, tendances, paliers de maîtrise, ruptures de produit) et les noms des clients sont traduits en anglais. Dans Réglages, le bouton « Revoir les aides des écrans » réaffiche les aides de première visite.','V2.4.1'],
   ['Plus intuitif','Un bouton grisé se touche toujours et dit pourquoi il est indisponible (trésorerie manquante, palier requis, délai…). La fiche d’une société commence par « À faire maintenant » : jusqu’à trois urgences, chacune avec un bouton Voir vers le bon onglet. Chaque écran affiche une aide à la première visite. Le vocabulaire est unifié : « société » partout, « valeur nette » au lieu de « patrimoine total ».','V2.3.9'],
   ['Plus clair','Les postes de direction n’affichent plus « Oui / Non » : chaque poste indique s’il est vacant ou pourvu, avec un bouton Recruter (et son coût) ou Licencier, confirmé avant de partir. Le responsable des achats devient l’acheteur des boutiques, pour ne plus le confondre avec le directeur des achats. Les options automatiques affichent Activé / Désactivé, les assurances et la mutuelle Aucune / Souscrite.','V2.3.8'],
   ['Directeur des achats','Dernière étape de la refonte de l’approvisionnement : recrutez un directeur des achats (Direction). Chaque lundi, il choisit le fournisseur de chacune de vos sociétés clientes, règle la répartition et la qualité de vos usines selon les besoins du groupe et fait garder du stock d’avance. En pénurie, il sert d’abord les sociétés qui en dépendent. Il gagne en compétence avec l’ancienneté. Touchez un réglage pour reprendre la main sur une société ou une usine.','V2.3.7'],
@@ -17681,6 +17682,7 @@ function tipPass(){ const v=document.getElementById('view'); if(!v||!TIP1[ui.tab
   if(S.tips[ui.tab]||v.querySelector('.tip1')) return;
   const d=document.createElement('div'); d.className='notice info tip1'; d.innerHTML='<span>'+esc(TIP1[ui.tab])+'</span><button class="btn sm ghost tip-x" data-a="tipx" data-v="'+ui.tab+'" aria-label="Fermer">OK</button>';
   const h=v.querySelector('h1'); if(h) h.after(d); else v.prepend(d); }
+ACT.tipsreset=()=>{ S.tips={}; Object.keys(TIP1).forEach(k=>S.tips[k]=0); toast('Les aides réapparaîtront à la prochaine visite de chaque écran.','good'); render(); };
 ACT.tipx=el=>{ S.tips=S.tips||{}; S.tips[el.dataset.v]=1; render(); };
 { const _r=render; render=function(){ const out=_r.apply(this,arguments); try{ tipPass(); }catch(e){ console.error(e); } return out; }; }
 
