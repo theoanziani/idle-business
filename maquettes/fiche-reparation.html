@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Atelier de réparation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  /* identité de l'atelier : tapis antistatique, panneau perforé, étiquettes orange, acier */
+  --mat:#2C7A74; --mat-2:#23625D; --peg:#D9B98A; --peg-2:#C6A170; --tag:#F28C28; --tag-2:#FFF0DE; --steel:#5E6B7A; --steel-2:#E6EAEF; --paper:#FFFDF6;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif; --fm:'Space Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#d4dcdf;color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.note-top{max-width:390px;margin:0 auto;padding:14px 16px 0;font-size:13px;color:#3E4A7A}
+.phone{max-width:390px;margin:10px auto 30px;background:var(--steel-2);border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--mat);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 #C9D1D9;font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 #C9D1D9}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(12,30,32,.88))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:700 25px/1.05 var(--fm);color:#fff;letter-spacing:-.5px}
+.hero .sub{color:#D9EEEC;font-size:13px;margin-top:3px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--good-bg)}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--mat);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 #C9D1D9;flex:0 0 auto}
+h2.sec{font:700 15px var(--fm);color:var(--steel);margin:22px 4px 8px;display:flex;justify-content:space-between;align-items:baseline;text-transform:uppercase;letter-spacing:.5px}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3);text-transform:none;letter-spacing:0}
+
+/* 1. LE COMPTOIR : appareils déposés, en attente */
+.counter{background:var(--peg);border-radius:20px;padding:12px 0 12px 12px;box-shadow:0 4px 0 var(--peg-2);background-image:radial-gradient(circle,rgba(90,60,20,.28) 2px,transparent 2.5px);background-size:18px 18px}
+.counter .hd{display:flex;justify-content:space-between;align-items:center;padding-right:12px;font-size:13px;color:#5A3D16}
+.counter .hd b{font:800 15px var(--fb);color:#3A2708}
+.tags{display:flex;gap:10px;overflow-x:auto;padding:12px 12px 6px 0}
+.tg{flex:0 0 126px;background:var(--paper);border-radius:6px 16px 16px 16px;padding:10px 10px 9px;position:relative;box-shadow:0 3px 0 rgba(90,60,20,.3);transform:rotate(-1.2deg);border:0;text-align:left;font:inherit;color:inherit}
+.tg:nth-child(even){transform:rotate(1.2deg)}
+.tg::before{content:'';position:absolute;top:8px;right:10px;width:10px;height:10px;border-radius:50%;background:var(--peg);box-shadow:inset 0 1px 2px rgba(0,0,0,.4)}
+.tg .dv{font-size:24px}
+.tg b{display:block;font:800 13.5px var(--fb);margin-top:2px}
+.tg small{display:block;font-size:11.5px;color:var(--ink-3)}
+.tg .ft{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.tg .px{font:700 14px var(--fm)}
+.tg .dl{font:800 10.5px var(--fb);border-radius:6px;padding:2px 6px;background:var(--steel-2);color:var(--steel)}
+.tg .dl.late{background:#FFE4E0;color:var(--red)}
+.tg.sel{box-shadow:0 0 0 3px var(--tag),0 3px 0 rgba(90,60,20,.3)}
+
+/* 2. L'ÉTABLI : un poste par technicien */
+.bench{background:var(--mat);border-radius:20px;padding:10px;box-shadow:0 4px 0 var(--mat-2);background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:16px 16px}
+.auto{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#D9EEEC;font-size:12.5px;padding:2px 4px 10px}
+.auto b{display:block;color:#fff;font-size:14px}
+.post{display:grid;grid-template-columns:44px minmax(0,1fr) 78px;gap:8px;align-items:center;background:rgba(0,0,0,.18);border-radius:16px;padding:10px;margin-top:8px;color:#fff}
+.post:first-of-type{margin-top:0}
+.av{width:44px;height:44px;border-radius:14px;background:#E9F6F4;color:var(--mat);display:grid;place-items:center;font:800 16px var(--fd)}
+.post .n b{display:block;font-size:14px}
+.post .n small{font-size:11.5px;color:#BFE0DC}
+.sk{display:flex;gap:6px;margin-top:5px;font-size:10.5px;color:#D9EEEC}
+.sk span{display:flex;align-items:center;gap:3px}
+.sk i{display:inline-block;width:5px;height:10px;border-radius:2px;background:rgba(255,255,255,.18);margin-right:1px}
+.sk i.f{background:var(--lime)}
+.slot{border-radius:12px;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:11px;color:#D9EEEC;padding:4px}
+.slot.busy{background:rgba(255,255,255,.1)}
+.slot.busy .dv{font-size:22px}
+.slot .pg{width:60px;height:6px;border-radius:3px;background:rgba(255,255,255,.18);margin-top:4px;overflow:hidden}
+.slot .pg i{display:block;height:100%;background:var(--lime)}
+.slot.free{border:2px dashed rgba(255,255,255,.4);color:#fff;font:800 12px var(--fb);background:none;cursor:pointer}
+.tog{position:relative;width:52px;height:30px;border-radius:15px;background:rgba(0,0,0,.25);border:0;flex:0 0 auto}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s}
+.tog.on{background:var(--good-bg)}.tog.on::after{left:25px}
+.tog.lt{background:#C9D1D9}.tog.lt.on{background:var(--good-bg)}
+
+/* 3. LES TIROIRS À PIÈCES */
+.cab{background:var(--steel);border-radius:20px;padding:10px;box-shadow:0 4px 0 #46515E}
+.drawers{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dr{background:linear-gradient(#EEF1F4,#D9DEE4);border-radius:12px;padding:9px 10px 8px;position:relative;border:0;text-align:left;font:inherit;color:inherit;min-height:76px}
+.dr::after{content:'';position:absolute;left:50%;bottom:8px;width:34px;height:6px;margin-left:-17px;border-radius:3px;background:#9AA5B1}
+.dr .lb{display:inline-block;font:700 11px var(--fm);background:var(--tag-2);color:#8A4A08;border-radius:4px;padding:1px 6px}
+.dr b{display:block;font:800 20px var(--fd);margin-top:2px}
+.dr b small{font:700 11.5px var(--fb);color:var(--ink-3)}
+.dr.low .lb{background:#FFE4E0;color:var(--red)}
+.dr.low b{color:var(--red)}
+.cab .ft{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;color:#E6EAEF;font-size:12.5px}
+.cab .ft b{color:#fff;display:block;font-size:14px}
+.truck{display:flex;align-items:center;gap:8px;margin-top:8px;background:rgba(0,0,0,.18);border-radius:12px;padding:8px 10px;color:#fff;font-size:12.5px}
+.btn{border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:#fff;color:var(--ink);box-shadow:0 3px 0 #C9D1D9,inset 0 0 0 1.5px #C9D1D9}
+.btn.or{background:var(--tag);color:#fff;box-shadow:0 3px 0 #C46A12}
+
+/* 4. L'ÉTAGÈRE DU RECONDITIONNÉ */
+.shelf{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 #C9D1D9}
+.planks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.pk{text-align:center;font:800 11.5px var(--fb);color:var(--ink-3)}
+.pk .ph{display:flex;justify-content:center;gap:3px;align-items:flex-end;height:46px;border-bottom:5px solid var(--peg-2);margin-bottom:5px}
+.pk .ph i{width:16px;height:30px;border-radius:4px;background:#5E6B7A;position:relative}
+.pk .ph i::after{content:'';position:absolute;inset:3px 2px 6px;border-radius:2px;background:#9AA5B1}
+.pk.br .ph i::after{background:repeating-linear-gradient(45deg,#9AA5B1 0 3px,#C5CCD4 3px 5px)}
+.pk.ok .ph i{background:var(--mat)}
+.pk.ok .ph i::after{background:#BDEBDD}
+.pk b{display:block;font:800 16px var(--fd);color:var(--ink)}
+.shelf .ft{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:var(--ink-3)}
+
+/* 5. GARANTIE ET AVIS */
+.rating{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rt{background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 #C9D1D9}
+.rt small{display:block;font:700 11.5px var(--fb);color:var(--ink-3)}
+.rt b{font:800 24px var(--fd)}
+.rt .st{color:#F2B705;letter-spacing:1px}
+.rt .st s{text-decoration:none;color:#D4DCEC}
+
+/* 6. LES PALIERS */
+.path{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 #C9D1D9}
+.steps{display:flex;align-items:flex-start;gap:0;margin-top:6px}
+.steps .p{flex:0 0 58px;text-align:center;font:800 10px/1.2 var(--fb);color:var(--ink-3)}
+.steps .p i{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:12px;background:var(--steel-2);font-style:normal;font-size:18px}
+.steps .p.now i{background:var(--tag);box-shadow:0 0 0 3px var(--tag-2)}
+.steps .ln{flex:1;height:3px;margin-top:18px;background:var(--steel-2)}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:8px}
+
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 #C9D1D9;font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 #C9D1D9;font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+.legend{max-width:390px;margin:0 auto 50px;padding:0 16px;font-size:14px;color:#3E4A7A}
+.legend h2{font:800 19px var(--fd);color:var(--ink);margin:12px 0 6px}
+.legend li{margin:4px 0}
+</style>
+</head>
+<body>
+<p class="note-top"><b>Maquette · Atelier de réparation.</b> Le cœur du métier : donner chaque appareil au bon technicien, avoir les pièces à temps et rendre dans les délais promis.</p>
+
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a01c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a01gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a01bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a01bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a01gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a01vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a01lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a01sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4E92DA"></stop><stop offset="1" stop-color="#D6ECFA"></stop></linearGradient></defs><g clip-path="url(#a01c)"><rect width="640" height="360" fill="url(#a01sky)"></rect><g><g fill="#FFFFFF" opacity=".85"><ellipse cx="90" cy="54" rx="40" ry="12"></ellipse><ellipse cx="114" cy="46" rx="26" ry="12"></ellipse><ellipse cx="470" cy="34" rx="34" ry="10"></ellipse><ellipse cx="492" cy="28" rx="22" ry="10"></ellipse></g><animateTransform attributeName="transform" type="translate" values="0 0;50 0;0 0" dur="34s" repeatCount="indefinite"></animateTransform></g><g fill="#A9BDD3" opacity=".55"><rect x="0" y="172" width="40" height="78"></rect><rect x="44" y="168" width="45" height="82"></rect><rect x="92" y="205" width="55" height="45"></rect><rect x="151" y="151" width="31" height="99"></rect><rect x="186" y="194" width="40" height="56"></rect><rect x="230" y="177" width="70" height="73"></rect><rect x="304" y="177" width="63" height="73"></rect><rect x="372" y="199" width="56" height="51"></rect><rect x="431" y="149" width="55" height="101"></rect><rect x="490" y="158" width="51" height="92"></rect><rect x="545" y="206" width="57" height="44"></rect><rect x="606" y="169" width="60" height="81"></rect></g><rect x="0" y="292" width="640" height="68" fill="#8E8C86"></rect><rect x="0" y="284" width="640" height="8" fill="#C9C6BE"></rect><rect x="0" y="326" width="640" height="3" fill="#E9E3C8" opacity=".7"></rect><rect x="150" y="134" width="340" height="150" fill="#C9B79A"></rect><rect x="405" y="134" width="85" height="150" fill="#000" opacity="0.14"></rect><rect x="168.8" y="144.0" width="22.4" height="11.0" fill="#57555E"></rect><rect x="208.8" y="144.0" width="22.4" height="11.0" fill="#6C6A73"></rect><rect x="248.8" y="144.0" width="22.4" height="11.0" fill="#57555E"></rect><rect x="288.8" y="144.0" width="22.4" height="11.0" fill="#6C6A73"></rect><rect x="328.8" y="144.0" width="22.4" height="11.0" fill="#6C6A73"></rect><rect x="368.8" y="144.0" width="22.4" height="11.0" fill="#57555E"></rect><rect x="408.8" y="144.0" width="22.4" height="11.0" fill="#57555E"></rect><rect x="448.8" y="144.0" width="22.4" height="11.0" fill="#6C6A73"></rect><rect x="168.8" y="164.0" width="22.4" height="11.0" fill="#57555E"></rect><rect x="208.8" y="164.0" width="22.4" height="11.0" fill="#6C6A73"></rect><rect x="248.8" y="164.0" width="22.4" height="11.0" fill="#57555E"></rect><rect x="288.8" y="164.0" width="22.4" height="11.0" fill="#6C6A73"></rect><rect x="328.8" y="164.0" width="22.4" height="11.0" fill="#57555E"></rect><rect x="368.8" y="164.0" width="22.4" height="11.0" fill="#57555E"></rect><rect x="408.8" y="164.0" width="22.4" height="11.0" fill="#57555E"></rect><rect x="448.8" y="164.0" width="22.4" height="11.0" fill="#57555E"></rect><rect x="190" y="194" width="140" height="90" fill="#3A3D46"></rect><rect x="190" y="194" width="140" height="18" fill="#9AA0AB"></rect><rect x="190" y="196" width="140" height="2" fill="#7E848E"></rect><rect x="190" y="200" width="140" height="2" fill="#7E848E"></rect><rect x="190" y="204" width="140" height="2" fill="#7E848E"></rect><rect x="190" y="208" width="140" height="2" fill="#7E848E"></rect><rect x="206" y="250" width="110" height="10" fill="#8A5A3A"></rect><rect x="214" y="260" width="6" height="24" fill="#5E3E28"></rect><rect x="302" y="260" width="6" height="24" fill="#5E3E28"></rect><path d="M212 222v18M209 222h6" stroke="#C9CDD4" stroke-width="2"></path><path d="M230 222v18M227 222h6" stroke="#C9CDD4" stroke-width="2"></path><path d="M248 222v18M245 222h6" stroke="#C9CDD4" stroke-width="2"></path><path d="M266 222v18M263 222h6" stroke="#C9CDD4" stroke-width="2"></path><path d="M284 222v18M281 222h6" stroke="#C9CDD4" stroke-width="2"></path><path d="M302 222v18M299 222h6" stroke="#C9CDD4" stroke-width="2"></path><circle cx="250" cy="244" r="3" fill="#FFB547"></circle><path d="M250 244l-10 -9" stroke="#FFD27A" stroke-width="1.6"><animate attributeName="opacity" values="1;0;1;0;0" dur=".9s" begin="0.00s" repeatCount="indefinite"></animate></path><path d="M250 244l-5 -14" stroke="#FFD27A" stroke-width="1.6"><animate attributeName="opacity" values="1;0;1;0;0" dur=".9s" begin="0.12s" repeatCount="indefinite"></animate></path><path d="M250 244l1 -15" stroke="#FFD27A" stroke-width="1.6"><animate attributeName="opacity" values="1;0;1;0;0" dur=".9s" begin="0.24s" repeatCount="indefinite"></animate></path><path d="M250 244l7 -13" stroke="#FFD27A" stroke-width="1.6"><animate attributeName="opacity" values="1;0;1;0;0" dur=".9s" begin="0.36s" repeatCount="indefinite"></animate></path><path d="M250 244l11 -7" stroke="#FFD27A" stroke-width="1.6"><animate attributeName="opacity" values="1;0;1;0;0" dur=".9s" begin="0.48s" repeatCount="indefinite"></animate></path><rect x="350" y="214" width="110" height="50" fill="#BFD8EE"></rect><circle cx="380" cy="246" r="10" fill="none" stroke="#3A3D46" stroke-width="3"></circle><circle cx="425" cy="246" r="10" fill="none" stroke="#3A3D46" stroke-width="3"></circle><path d="M380 246l15-14h20l10 14" stroke="#E04B3B" stroke-width="3" fill="none"></path><rect x="350" y="214" width="38.5" height="50" fill="#FFFFFF" opacity=".18"></rect><rect x="250" y="156" width="140" height="30" rx="6" fill="#E04B3B"></rect><g transform="translate(309.412 160.412) scale(0.882353)" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6a5 5 0 0 0-6 6l-5 5 3 3 5-5a5 5 0 0 0 6-6l-3 3-3-3z"></path></g><rect x="120" y="262" width="2" height="30" fill="#2B2F3A"></rect><rect x="117.5" y="262" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><rect x="520" y="262" width="2" height="30" fill="#2B2F3A"></rect><rect x="517.5" y="262" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="20.8232s" begin="-8.7s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="278" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="282" width="7" height="11" rx="3" fill="#E04B3B"></rect><rect x="-3" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="21.2373s" begin="-6.0s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="278" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="282" width="7" height="11" rx="3" fill="#2B2B2B"></rect><rect x="-3" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="23.3344s" begin="-3.8s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="278" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="282" width="7" height="11" rx="3" fill="#E04B3B"></rect><rect x="-3" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-3.6s" repeatCount="indefinite"></animateTransform><rect x="0" y="312" width="22" height="8" rx="3" fill="#2B2B2B"></rect><rect x="5" y="308" width="12" height="5" rx="2" fill="#2B2B2B"></rect><circle cx="5" cy="320" r="2.2" fill="#222"></circle><circle cx="17" cy="320" r="2.2" fill="#222"></circle></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-11.1s" repeatCount="indefinite"></animateTransform><rect x="0" y="312" width="22" height="8" rx="3" fill="#3E7CC9"></rect><rect x="5" y="308" width="12" height="5" rx="2" fill="#3E7CC9"></rect><circle cx="5" cy="320" r="2.2" fill="#222"></circle><circle cx="17" cy="320" r="2.2" fill="#222"></circle></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-0.4s" repeatCount="indefinite"></animateTransform><rect x="0" y="312" width="22" height="8" rx="3" fill="#2B2B2B"></rect><rect x="5" y="308" width="12" height="5" rx="2" fill="#2B2B2B"></rect><circle cx="5" cy="320" r="2.2" fill="#222"></circle><circle cx="17" cy="320" r="2.2" fill="#222"></circle></g><rect width="640" height="360" fill="url(#a01lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a01gl)"><rect x="208.8" y="144.0" width="22.4" height="11.0" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.410;0.420;0.935;0.945;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="328.8" y="144.0" width="22.4" height="11.0" fill="#A8D4FF" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.284;0.294;0.918;0.928;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="448.8" y="144.0" width="22.4" height="11.0" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.432;0.442;0.954;0.964;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="168.8" y="164.0" width="22.4" height="11.0" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.479;0.489;0.943;0.953;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="248.8" y="164.0" width="22.4" height="11.0" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.337;0.347;0.957;0.967;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="328.8" y="164.0" width="22.4" height="11.0" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.457;0.467;0.933;0.943;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="368.8" y="164.0" width="22.4" height="11.0" fill="#A8D4FF" opacity="0"><animate attributeName="opacity" values="0;0;1;.3;1;.2;1;1;0;0" keyTimes="0;0.359;0.369;0.409;0.459;0.559;0.609;0.899;0.909;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="408.8" y="164.0" width="22.4" height="11.0" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.359;0.369;0.860;0.870;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="448.8" y="164.0" width="22.4" height="11.0" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.383;0.393;0.954;0.964;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><rect x="190" y="212" width="140" height="72" fill="#FFE6A6" opacity=".35"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="350" y="214" width="110" height="50" fill="#FFE6A6" opacity=".55"></rect><circle cx="380" cy="246" r="10" fill="none" stroke="#3A3D46" stroke-width="3"></circle><circle cx="425" cy="246" r="10" fill="none" stroke="#3A3D46" stroke-width="3"></circle><path d="M380 246l15-14h20l10 14" stroke="#E04B3B" stroke-width="3" fill="none"></path><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="247" y="153" width="146" height="36" rx="6" fill="#FFE6A6" opacity=".35"></rect><g transform="translate(309.412 160.412) scale(0.882353)" fill="none" stroke="#FFE6A6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 6a5 5 0 0 0-6 6l-5 5 3 3 5-5a5 5 0 0 0 6-6l-3 3-3-3z"></path></g><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><circle cx="121" cy="265" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="121" cy="265" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><circle cx="521" cy="265" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="521" cy="265" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-3.6s" repeatCount="indefinite"></animateTransform><circle cx="21" cy="315" r="2" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></circle></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-11.1s" repeatCount="indefinite"></animateTransform><circle cx="21" cy="315" r="2" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></circle></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-0.4s" repeatCount="indefinite"></animateTransform><circle cx="21" cy="315" r="2" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></circle></g></g><rect width="640" height="360" filter="url(#a01gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a01vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>Ouvert · 6 appareils en attente</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>FixLab</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Atelier de réparation · rue de Berri, Paris</div></div>
+    </div>
+    <div class="res"><div><small>Bénéfice hier</small><b class="pos">+612 €</b></div><div style="text-align:right"><small>Rendus à l'heure</small><b>92 %</b></div></div>
+    <button class="up">Agrandir l'atelier · niv. 2 <span>38 900 €</span></button>
+    <div class="todo"><span style="flex:1"><b>Plus que 2 écrans en stock</b> pour 4 écrans cassés à réparer.</span><button class="lnk">Voir</button></div>
+
+    <!-- 1. LE COMPTOIR -->
+    <h2 class="sec">Le comptoir <small>touchez un appareil, puis un poste libre</small></h2>
+    <div class="counter">
+      <div class="hd"><b>En attente · 6</b><span>délai promis au client</span></div>
+      <div class="tags">
+        <button class="tg sel"><span class="dv">📱</span><b>Écran cassé</b><small>téléphone · 1,5 h</small><div class="ft"><span class="px">89 €</span><span class="dl late">en retard</span></div></button>
+        <button class="tg"><span class="dv">💻</span><b>Batterie usée</b><small>ordinateur · 1,5 h</small><div class="ft"><span class="px">89 €</span><span class="dl">1 j</span></div></button>
+        <button class="tg"><span class="dv">📱</span><b>Connecteur</b><small>téléphone · 1,2 h</small><div class="ft"><span class="px">49 €</span><span class="dl">2 j</span></div></button>
+        <button class="tg"><span class="dv">📟</span><b>Écran cassé</b><small>tablette · 1,8 h</small><div class="ft"><span class="px">107 €</span><span class="dl">2 j</span></div></button>
+        <button class="tg"><span class="dv">📱</span><b>Logiciel</b><small>téléphone · 0,8 h</small><div class="ft"><span class="px">39 €</span><span class="dl">3 j</span></div></button>
+      </div>
+    </div>
+
+    <!-- 2. L'ÉTABLI -->
+    <h2 class="sec">L'établi <small>3 techniciens</small></h2>
+    <div class="bench">
+      <div class="auto"><span><b>Répartition automatique</b>chaque appareil part vers le technicien le plus doué pour lui</span><button class="tog" aria-label="Répartition automatique"></button></div>
+      <div class="post"><span class="av">KA</span><div class="n"><b>Karim</b><small>spécialiste téléphones</small>
+        <div class="sk"><span>📱<i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i></span><span>📟<i class="f"></i><i class="f"></i><i></i><i></i><i></i></span><span>💻<i class="f"></i><i></i><i></i><i></i><i></i></span></div></div>
+        <div class="slot busy"><span class="dv">📱</span>batterie<div class="pg"><i style="width:70%"></i></div></div></div>
+      <div class="post"><span class="av">SO</span><div class="n"><b>Sofia</b><small>polyvalente</small>
+        <div class="sk"><span>📱<i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></span><span>📟<i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></span><span>💻<i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></span></div></div>
+        <div class="slot busy"><span class="dv">💻</span>écran<div class="pg"><i style="width:30%"></i></div></div></div>
+      <div class="post"><span class="av">TO</span><div class="n"><b>Tom</b><small>débutant · ordinateurs</small>
+        <div class="sk"><span>📱<i class="f"></i><i></i><i></i><i></i><i></i></span><span>📟<i class="f"></i><i></i><i></i><i></i><i></i></span><span>💻<i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></span></div></div>
+        <button class="slot free">Poser ici</button></div>
+    </div>
+
+    <!-- 3. LES TIROIRS -->
+    <h2 class="sec">Les tiroirs à pièces</h2>
+    <div class="cab">
+      <div class="drawers">
+        <button class="dr low"><span class="lb">ÉCRANS</span><b>2 <small>· 35 € pièce</small></b></button>
+        <button class="dr"><span class="lb">BATTERIES</span><b>9 <small>· 18 € pièce</small></b></button>
+        <button class="dr"><span class="lb">CONNECTEURS</span><b>14 <small>· 8 € pièce</small></b></button>
+        <button class="dr"><span class="lb">CARTE MÈRE</span><b>0 <small>· micro-soudure</small></b></button>
+      </div>
+      <div class="truck">🚚 <span>Commande en route : 10 écrans, livraison après-demain</span></div>
+      <div class="ft"><span><b>Commande automatique</b>recommande dès qu'un tiroir se vide</span><button class="tog" aria-label="Commande automatique des pièces"></button></div>
+    </div>
+
+    <!-- 4. LE RECONDITIONNÉ -->
+    <h2 class="sec">L'étagère du reconditionné</h2>
+    <div class="shelf">
+      <div class="planks">
+        <div class="pk br"><div class="ph"><i></i><i></i><i></i></div>Rachetés cassés<b>3</b></div>
+        <div class="pk"><div class="ph"><i></i></div>En réparation<b>1</b></div>
+        <div class="pk ok"><div class="ph"><i></i><i></i></div>Prêts à vendre<b>2</b></div>
+      </div>
+      <div class="ft"><span>Achetés cassés, réparés entre deux clients, revendus avec marge.</span><button class="btn or">Racheter 5 téléphones</button></div>
+    </div>
+
+    <!-- 5. GARANTIE ET AVIS -->
+    <h2 class="sec">Garantie et avis</h2>
+    <div class="rating">
+      <div class="rt"><small>Avis des clients</small><b>4,2</b> <span class="st">★★★★<s>★</s></span></div>
+      <div class="rt"><small>Retours sous garantie</small><b>3</b> <small style="display:inline">sur 30 jours</small></div>
+    </div>
+    <p class="hint">Une réparation ratée revient gratuitement : un technicien plus doué sur l'appareil en rate moins.</p>
+
+    <!-- 6. LES PALIERS -->
+    <h2 class="sec">Les paliers <small>palier 0 sur 5</small></h2>
+    <div class="path">
+      <div class="steps">
+        <div class="p now"><i>🔬</i>Micro-soudure</div><div class="ln"></div>
+        <div class="p"><i>📄</i>Assurance</div><div class="ln"></div>
+        <div class="p"><i>📍</i>Points de dépôt</div><div class="ln"></div>
+        <div class="p"><i>♻️</i>Reconditionné certifié</div><div class="ln"></div>
+        <div class="p"><i>🏅</i>Centre agréé</div>
+      </div>
+      <p class="hint">Micro-soudure : débloque les réparations de carte mère (149 €), les plus rentables.</p>
+    </div>
+
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt">
+      <button class="mg">Équipe<small>3 / 3 · fatigue 22</small></button>
+      <button class="mg">Finances<small>+612 € hier</small></button>
+      <button class="mg">Local<small>locataire · 118 € / j</small></button>
+      <button class="mg">Sécurité<small>aucune · assurance non</small></button>
+    </div>
+    <div class="dlg"><span><b>Inès, directrice du site</b>peut répartir les réparations et commander les pièces à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+
+<div class="legend">
+  <h2>Ce qui le distingue</h2>
+  <ul>
+    <li><b>Le comptoir</b> : les appareils déposés sont des étiquettes de réparation accrochées au panneau, avec la panne, le prix et le délai promis (en rouge s'il est dépassé).</li>
+    <li><b>L'établi</b> : un poste par technicien, avec son niveau sur téléphone, tablette et ordinateur et la réparation en cours. On touche une étiquette puis un poste libre ; ou la répartition automatique s'en charge.</li>
+    <li><b>Les tiroirs à pièces</b> : le stock par pièce, les commandes en route (livrées en deux jours) et la commande automatique.</li>
+    <li><b>L'étagère du reconditionné</b> : racheter des téléphones cassés, les réparer, les revendre.</li>
+    <li><b>Garantie et avis</b>, puis <b>les paliers</b> : micro-soudure, assurance, points de dépôt, reconditionné certifié, centre agréé.</li>
+    <li>Ambiance atelier : tapis antistatique, panneau perforé, étiquettes orange, chiffres en police technique.</li>
+  </ul>
+  <p>Les montants et les noms sont des exemples.</p>
+</div>
+
+<script>
+document.querySelectorAll('.tog').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
+document.querySelectorAll('.tg').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('.tg').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); }));
+document.querySelector('.slot.free').addEventListener('click',e=>{ const t=document.querySelector('.tg.sel'); if(!t) return; e.currentTarget.outerHTML='<div class="slot busy"><span class="dv">'+t.querySelector('.dv').textContent+'</span>'+t.querySelector('b').textContent.toLowerCase()+'<div class="pg"><i style="width:5%"></i></div></div>'; t.remove(); });
+</script>
+</body>
+</html>

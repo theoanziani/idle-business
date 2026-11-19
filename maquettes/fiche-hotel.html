@@ -52,8 +52,8 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3)}
 .roof{height:14px;margin:0 18px;background:var(--brass);border-radius:6px 6px 0 0}
 .fl{display:grid;grid-template-columns:1fr auto;gap:6px 8px;align-items:center;background:var(--navy-2);border-top:2px solid var(--navy);padding:9px 10px;margin:0 6px}
 .fl:nth-of-type(odd){background:var(--navy-3)}
-.fl .win{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:3px}
-.fl .win i{width:11px;height:14px;border-radius:2px;background:var(--dark)}
+.fl .win{grid-column:1 / -1;display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
+.fl .win i{height:16px;border-radius:3px 3px 1px 1px;background:var(--dark)}.fl .win i.big{height:20px}
 .fl .win i.on{background:var(--lit);box-shadow:0 0 6px rgba(255,216,115,.6)}
 .fl .t{flex:1;min-width:0}
 .fl .t b{display:block;font:800 14px var(--fb)}
@@ -160,7 +160,7 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3)}
     <div class="facade">
       <div class="dynrow"><span><b>Prix dynamiques</b>le prix suit la demande du jour, chambre par chambre</span><button class="tog" aria-label="Prix dynamiques"></button></div>
       <div class="roof"></div>
-      <div class="fl lock"><div class="t"><b>Présidentielle</b><small>dernier étage · 3 500 € la nuit</small></div><button class="build">Aménager</button><div class="win"><i></i><i></i></div></div>
+      <div class="fl lock"><div class="t"><b>Présidentielle</b><small>dernier étage · 3 500 € la nuit</small></div><button class="build">Aménager</button><div class="win"><i class="big" style="grid-column:5 / span 4"></i></div></div>
       <div class="fl"><div class="t"><b>Suites</b><small><span id="o-ste"></span> sur 5</small></div><div class="pr"><button aria-label="Baisser">−</button><b>850 €</b><button aria-label="Monter">+</button></div><div class="win" id="w-ste"></div></div>
       <div class="fl"><div class="t"><b>Supérieures</b><small><span id="o-sup"></span> sur 10</small></div><div class="pr"><button aria-label="Baisser">−</button><b>420 €</b><button aria-label="Monter">+</button></div><div class="win" id="w-sup"></div></div>
       <div class="fl"><div class="t"><b>Standard</b><small><span id="o-std"></span> sur 24</small></div><div class="pr"><button aria-label="Baisser">−</button><b>260 €</b><button aria-label="Monter">+</button></div><div class="win" id="w-std"></div></div>
@@ -244,8 +244,8 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3)}
 </div>
 
 <script>
-function win(id,n,occ){ const el=document.getElementById(id), tot=Math.min(n,24), on=Math.round(tot*occ); let h=''; for(let i=0;i<tot;i++) h+='<i class="'+(i<on?'on':'')+'"></i>'; el.innerHTML=h; document.getElementById('o-'+id.slice(2)).textContent=Math.round(n*occ)+' occupées'; }
-win('w-ste',5,1); win('w-sup',10,.9); win('w-std',24,.83);
+function win(id,n,occ,span,start){ const el=document.getElementById(id), on=Math.round(n*occ); let h=''; for(let i=0;i<n;i++){ const st=span>1? 'grid-column:'+(start+i*span)+' / span '+span : (start>1&&i===0? 'grid-column:'+start : ''); h+='<i class="'+(i<on?'on':'')+(span>1?' big':'')+'"'+(st?' style="'+st+'"':'')+'></i>'; } el.innerHTML=h; document.getElementById('o-'+id.slice(2)).textContent=on+' occupées'; }
+win('w-ste',5,1,2,2); win('w-sup',10,.9,1,2); win('w-std',24,.83,1,1);
 const free=new Set([3,9,17,22,31]); let k=''; for(let i=1;i<=39;i++) k+='<span class="'+(free.has(i)?'':'gone')+'"><i></i><svg width="12" height="20" viewBox="0 0 12 20"><circle cx="6" cy="5" r="4" fill="none" stroke="#E6C677" stroke-width="2"/><rect x="5" y="8" width="2" height="10" fill="#E6C677"/><rect x="7" y="14" width="3" height="2" fill="#E6C677"/></svg>'+(100+i)+'</span>'; document.getElementById('keys').innerHTML=k;
 document.querySelectorAll('.tog').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
 document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))));

@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Parc d'attractions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Luckiest+Guy&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  /* identité du parc : gazon, sucre d'orge, ciel */
+  --grass:#7CC46A; --grass-2:#5FAE4E; --path:#F3DDA6; --candy:#E8485F; --candy-2:#FFE3E8; --sky:#BFE6FF; --night:#1E1B4B;
+  --z1:#f0a6c8; --z2:#7cc6c0; --z3:#f2a65a; --z4:#9aa8e8;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif; --ff:'Luckiest Guy','Baloo 2',cursive;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#cfe3d0;color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.note-top{max-width:390px;margin:0 auto;padding:14px 16px 0;font-size:13px;color:#3E4A7A}
+.phone{max-width:390px;margin:10px auto 30px;background:#F4FBEF;border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--candy);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 #D6EBCF;font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 #D6EBCF}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(30,20,60,.82))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:400 30px/1 var(--ff);color:#fff;letter-spacing:1px;text-shadow:0 3px 0 var(--candy)}
+.hero .sub{color:#EEE8FF;font-size:13px;margin-top:4px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--good-bg)}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--candy);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 #D6EBCF;flex:0 0 auto}
+h2.sec{font:400 21px var(--ff);color:var(--candy);margin:22px 4px 8px;display:flex;justify-content:space-between;align-items:baseline;letter-spacing:.5px}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0}
+
+/* 1. LE PLAN DU PARC */
+.map{background:var(--grass);border-radius:22px;padding:10px;box-shadow:0 4px 0 var(--grass-2);position:relative}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(4,1fr);gap:4px;position:relative}
+.cell{aspect-ratio:1;border-radius:10px;border:0;display:grid;place-items:center;font-size:24px;position:relative;padding:0}
+.cell small{position:absolute;bottom:2px;left:0;right:0;font:800 8.5px var(--fb);color:rgba(27,37,80,.75)}
+.cell.empty{background:rgba(255,255,255,.22);color:rgba(255,255,255,.85);font:800 22px var(--fb)}
+.cell.sel{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--candy)}
+.cell.lock{background:repeating-linear-gradient(45deg,rgba(0,0,0,.08) 0 6px,rgba(0,0,0,.14) 6px 12px);font-size:16px}
+.cell .q{position:absolute;top:-5px;right:-5px;font:800 9.5px var(--fb);background:#fff;color:var(--red);border-radius:8px;padding:1px 4px;box-shadow:0 1px 0 rgba(0,0,0,.15)}
+.zl{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.zl span{font:800 11.5px var(--fb);color:var(--ink);background:#fff;border-radius:999px;padding:4px 10px;display:inline-flex;gap:6px;align-items:center}
+.zl i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.gate{display:flex;justify-content:center;margin-top:8px}
+.gate span{font:400 14px var(--ff);color:#fff;background:var(--candy);padding:4px 16px;border-radius:10px 10px 4px 4px;letter-spacing:1px;box-shadow:0 3px 0 #B92E44}
+/* palette */
+.pal{background:#fff;border-radius:18px;padding:12px;margin-top:10px;box-shadow:0 3px 0 #D6EBCF}
+.pal .hd{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink-3)}
+.pal .hd b{color:var(--ink);font-size:14px}
+.ptabs{display:flex;gap:6px;margin:10px 0 8px;overflow-x:auto}
+.ptabs button{border:0;border-radius:999px;min-height:40px;padding:0 12px;background:#F0F5EC;font:800 12.5px var(--fb);color:var(--ink-3);white-space:nowrap}
+.ptabs button.on{background:var(--candy);color:#fff}
+.items{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.it{flex:0 0 108px;border:0;background:#F7FAF4;border-radius:14px;padding:9px 8px;text-align:left;font:800 12.5px var(--fb);color:var(--ink);min-height:110px}
+.it .e{font-size:26px;display:block;height:34px}
+.it small{display:block;font:600 11px var(--fb);color:var(--ink-3);margin-top:2px}
+.it em{display:block;font-style:normal;font:800 12px var(--fd);color:var(--candy);margin-top:4px}
+.it.lk{opacity:.5}
+
+/* 2. LES FILES D'ATTENTE */
+.queue{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 #D6EBCF}
+.qrow{display:flex;justify-content:space-between;align-items:baseline}
+.qrow b{font:800 30px var(--fd)}
+.ppl{display:flex;gap:2px;margin:8px 0 6px;flex-wrap:wrap}
+.ppl i{width:9px;height:16px;border-radius:5px 5px 2px 2px;background:#9AA8E8}
+.ppl i.out{background:#F2B8B0}
+.cap{height:12px;border-radius:6px;background:#EEF3EA;position:relative;overflow:visible;margin-top:8px}
+.cap i{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:6px;background:linear-gradient(90deg,var(--good-bg) 0 82%,#FF8A6B 82%)}
+.cap em{position:absolute;left:82%;top:-5px;bottom:-5px;width:3px;background:var(--ink);border-radius:2px}
+.cl{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3);margin-top:5px}
+.qopt{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:13px;color:var(--ink-3)}
+.qopt b{display:block;color:var(--ink);font-size:14px}
+.tog{position:relative;width:52px;height:30px;border-radius:15px;background:#DDE6D6;border:0;flex:0 0 auto}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.tog.on{background:var(--good-bg)}.tog.on::after{left:25px}
+
+/* 3. LE GUICHET */
+.ticket{display:flex;background:var(--candy);border-radius:18px;color:#fff;box-shadow:0 4px 0 #B92E44;overflow:hidden}
+.ticket .l{flex:1;padding:12px 14px;border-right:3px dashed rgba(255,255,255,.55)}
+.ticket .l small{display:block;font:800 11px var(--fb);letter-spacing:.1em;text-transform:uppercase;opacity:.85}
+.ticket .l b{font:400 40px/1.1 var(--ff)}
+.ticket .r{display:flex;flex-direction:column;justify-content:center;gap:6px;padding:10px}
+.ticket .r button{width:48px;height:44px;border:0;border-radius:12px;background:rgba(255,255,255,.22);color:#fff;font:800 20px var(--fb)}
+.spend{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.spend div{background:#fff;border-radius:14px;padding:8px 10px;box-shadow:0 3px 0 #D6EBCF}
+.spend small{display:block;font:700 11px var(--fb);color:var(--ink-3)}
+.spend b{font:800 17px var(--fd)}
+
+/* 4. LA MÉTÉO DE LA SEMAINE */
+.wx{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;background:var(--sky);border-radius:20px;padding:10px 8px;box-shadow:0 4px 0 #9ECDEB}
+.wd{text-align:center;font:800 11px var(--fb);color:var(--ink);border-radius:12px;padding:6px 0;background:rgba(255,255,255,.55)}
+.wd i{display:block;font-style:normal;font-size:22px;margin:4px 0}
+.wd small{display:block;font:800 10px var(--fd)}
+.wd.today{background:#fff;box-shadow:0 0 0 2px var(--ink)}
+.wxl{font-size:12.5px;color:var(--ink-3);margin:8px 4px 0}
+
+/* 5. LE SOIR */
+.night{background:linear-gradient(var(--night),#3B2F7A);border-radius:20px;padding:14px;color:#EEE8FF;box-shadow:0 4px 0 #120F33;position:relative;overflow:hidden}
+.night .fw{position:absolute;right:10px;top:4px;font-size:34px;opacity:.9}
+.night b{color:#fff;font-size:15px;display:block}
+.night .row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:13px}
+.night .tog{background:rgba(255,255,255,.2)}
+.night .tog.on{background:#F2B705}
+
+/* 6. ENTRETIEN */
+.maint{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 #D6EBCF}
+.seg{display:flex;background:#F0F5EC;border-radius:14px;padding:4px;gap:4px;margin-top:8px}
+.seg button{flex:1;border:0;background:none;border-radius:11px;min-height:42px;font:800 13px var(--fb);color:var(--ink-3)}
+.seg button.on{background:var(--candy);color:#fff}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 #D6EBCF;font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 #D6EBCF;font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+.legend{max-width:390px;margin:0 auto 50px;padding:0 16px;font-size:14px;color:#3E4A7A}
+.legend h2{font:800 19px var(--fd);color:var(--ink);margin:12px 0 6px}
+.legend li{margin:4px 0}
+</style>
+</head>
+<body>
+<p class="note-top"><b>Maquette · Parc d'attractions.</b> Le cœur du métier : construire un plan qui attire, sans faire exploser les files d'attente.</p>
+
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a24c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a24gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a24bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a24bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a24gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a24vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a24lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a24sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4E92DA"></stop><stop offset="1" stop-color="#FCE3C8"></stop></linearGradient></defs><g clip-path="url(#a24c)"><rect width="640" height="360" fill="url(#a24sky)"></rect><rect x="0" y="284" width="640" height="76" fill="#7AAE48"></rect><rect x="0" y="292" width="640" height="10" fill="#E9DDBF"></rect><path d="M120 284L160 160L200 284" stroke="#8A8F99" stroke-width="5" fill="none"></path><g><circle cx="160" cy="160" r="100" fill="none" stroke="#E9EDF2" stroke-width="4"></circle><path d="M160 160L260.0 160.0" stroke="#E9EDF2" stroke-width="2"></path><path d="M160 160L246.6 210.0" stroke="#E9EDF2" stroke-width="2"></path><path d="M160 160L210.0 246.6" stroke="#E9EDF2" stroke-width="2"></path><path d="M160 160L160.0 260.0" stroke="#E9EDF2" stroke-width="2"></path><path d="M160 160L110.0 246.6" stroke="#E9EDF2" stroke-width="2"></path><path d="M160 160L73.4 210.0" stroke="#E9EDF2" stroke-width="2"></path><path d="M160 160L60.0 160.0" stroke="#E9EDF2" stroke-width="2"></path><path d="M160 160L73.4 110.0" stroke="#E9EDF2" stroke-width="2"></path><path d="M160 160L110.0 73.4" stroke="#E9EDF2" stroke-width="2"></path><path d="M160 160L160.0 60.0" stroke="#E9EDF2" stroke-width="2"></path><path d="M160 160L210.0 73.4" stroke="#E9EDF2" stroke-width="2"></path><path d="M160 160L246.6 110.0" stroke="#E9EDF2" stroke-width="2"></path><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#E04B3B"><animateTransform attributeName="transform" type="rotate" values="0 0 160;-360 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><g><animateTransform attributeName="transform" type="rotate" values="30 160 160;390 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#F2B134"><animateTransform attributeName="transform" type="rotate" values="-30 0 160;-390 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><g><animateTransform attributeName="transform" type="rotate" values="60 160 160;420 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#4D7BE0"><animateTransform attributeName="transform" type="rotate" values="-60 0 160;-420 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><g><animateTransform attributeName="transform" type="rotate" values="90 160 160;450 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#2BB673"><animateTransform attributeName="transform" type="rotate" values="-90 0 160;-450 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><g><animateTransform attributeName="transform" type="rotate" values="120 160 160;480 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#E04B3B"><animateTransform attributeName="transform" type="rotate" values="-120 0 160;-480 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><g><animateTransform attributeName="transform" type="rotate" values="150 160 160;510 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#F2B134"><animateTransform attributeName="transform" type="rotate" values="-150 0 160;-510 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><g><animateTransform attributeName="transform" type="rotate" values="180 160 160;540 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#4D7BE0"><animateTransform attributeName="transform" type="rotate" values="-180 0 160;-540 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><g><animateTransform attributeName="transform" type="rotate" values="210 160 160;570 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#2BB673"><animateTransform attributeName="transform" type="rotate" values="-210 0 160;-570 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><g><animateTransform attributeName="transform" type="rotate" values="240 160 160;600 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#E04B3B"><animateTransform attributeName="transform" type="rotate" values="-240 0 160;-600 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><g><animateTransform attributeName="transform" type="rotate" values="270 160 160;630 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#F2B134"><animateTransform attributeName="transform" type="rotate" values="-270 0 160;-630 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><g><animateTransform attributeName="transform" type="rotate" values="300 160 160;660 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#4D7BE0"><animateTransform attributeName="transform" type="rotate" values="-300 0 160;-660 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><g><animateTransform attributeName="transform" type="rotate" values="330 160 160;690 160 160" dur="30s" repeatCount="indefinite"></animateTransform><g transform="translate(100 0)"><rect x="-8" y="154" width="16" height="12" rx="3" fill="#2BB673"><animateTransform attributeName="transform" type="rotate" values="-330 0 160;-690 0 160" dur="30s" repeatCount="indefinite"></animateTransform></rect></g></g><path d="M300 284C330 120 380 120 400 200S450 280 480 150S560 100 600 284" stroke="#E04B3B" stroke-width="5" fill="none"></path><path d="M330 284V170" stroke="#B5352B" stroke-width="2"></path><path d="M370 284V150" stroke="#B5352B" stroke-width="2"></path><path d="M420 284V230" stroke="#B5352B" stroke-width="2"></path><path d="M470 284V170" stroke="#B5352B" stroke-width="2"></path><path d="M520 284V140" stroke="#B5352B" stroke-width="2"></path><path d="M570 284V210" stroke="#B5352B" stroke-width="2"></path><g><rect x="-10" y="-6" width="20" height="10" rx="3" fill="#F2B134"></rect><animateMotion dur="7s" repeatCount="indefinite" rotate="auto" path="M300 284C330 120 380 120 400 200S450 280 480 150S560 100 600 284"></animateMotion></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="19.5208s" begin="-12.8s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="274" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="278" width="7" height="11" rx="3" fill="#2B2B2B"></rect><rect x="-3" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="18.4077s" begin="-14.8s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="274" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="278" width="7" height="11" rx="3" fill="#3E7CC9"></rect><rect x="-3" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="25.7152s" begin="-6.2s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="274" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="278" width="7" height="11" rx="3" fill="#3E7CC9"></rect><rect x="-3" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="26.2936s" begin="-19.0s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="274" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="278" width="7" height="11" rx="3" fill="#E04B3B"></rect><rect x="-3" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="21.9235s" begin="-3.7s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="274" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="278" width="7" height="11" rx="3" fill="#E04B3B"></rect><rect x="-3" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="26.3571s" begin="-11.0s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="274" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="278" width="7" height="11" rx="3" fill="#F2B134"></rect><rect x="-3" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="289" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;720 -30" dur="20s" begin="-2s" repeatCount="indefinite"></animateTransform><path d="M0 60q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M0 60q3 -6 7 -1q4 -5 7 1;M0 60q3 2 7 -1q4 2 7 1;M0 60q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.0s" repeatCount="indefinite"></animate></path><path d="M18 68q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M18 68q3 -6 7 -1q4 -5 7 1;M18 68q3 2 7 -1q4 2 7 1;M18 68q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.2s" repeatCount="indefinite"></animate></path><path d="M36 60q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M36 60q3 -6 7 -1q4 -5 7 1;M36 60q3 2 7 -1q4 2 7 1;M36 60q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.4s" repeatCount="indefinite"></animate></path></g><rect width="640" height="360" fill="url(#a24lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a24gl)"><g><circle cx="260.0" cy="160.0" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="256.6" cy="185.9" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="246.6" cy="210.0" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="230.7" cy="230.7" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="210.0" cy="246.6" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="185.9" cy="256.6" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="160.0" cy="260.0" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="134.1" cy="256.6" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="110.0" cy="246.6" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="89.3" cy="230.7" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="73.4" cy="210.0" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="63.4" cy="185.9" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="60.0" cy="160.0" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="63.4" cy="134.1" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="73.4" cy="110.0" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="89.3" cy="89.3" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="110.0" cy="73.4" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="134.1" cy="63.4" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="160.0" cy="60.0" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="185.9" cy="63.4" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="210.0" cy="73.4" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="230.7" cy="89.3" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="246.6" cy="110.0" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><g><circle cx="256.6" cy="134.1" r="2" fill="#FFE29A"></circle><animateTransform attributeName="transform" type="rotate" values="0 160 160;360 160 160" dur="30s" repeatCount="indefinite"></animateTransform></g><path d="M300 284C330 120 380 120 400 200S450 280 480 150S560 100 600 284" stroke="#FF8A7D" stroke-width="2" fill="none" stroke-dasharray="2 10"><animate attributeName="stroke-dashoffset" values="0;-24" dur="1s" repeatCount="indefinite"></animate></path></g><rect width="640" height="360" filter="url(#a24gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a24vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>Ouvert · 4 120 visiteurs</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Fantasia Park</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Parc d'attractions · Marne-la-Vallée</div></div>
+    </div>
+    <div class="res"><div><small>Bénéfice hier</small><b class="pos">+3 854 €</b></div><div style="text-align:right"><small>Attente moyenne</small><b style="color:var(--red)">42 min</b></div></div>
+    <button class="up">Agrandir le parc · niv. 2 <span>96 400 €</span></button>
+    <div class="todo"><span style="flex:1"><b>Le grand huit déborde</b> : 9 % des visiteurs repartent. Ajoutez une attraction à sensations.</span><button class="lnk">Voir</button></div>
+
+    <!-- 1. LE PLAN -->
+    <h2 class="sec">Le plan du parc <small>touchez une case</small></h2>
+    <div class="map">
+      <div class="grid" id="grid"></div>
+      <div class="gate"><span>Entrée</span></div>
+      <div class="zl">
+        <span><i style="background:var(--z1)"></i>Royaume des contes</span>
+        <span><i style="background:var(--z2)"></i>Terre d'aventure</span>
+        <span><i style="background:var(--z3)"></i>Frontière du frisson</span>
+        <span><i style="background:var(--z4)"></i>Base spatiale · à acheter</span>
+      </div>
+    </div>
+    <div class="pal">
+      <div class="hd"><b>Case vide · Terre d'aventure</b><span>thème : aquatique</span></div>
+      <div class="ptabs"><button class="on">Attractions</button><button>Restauration</button><button>Boutiques</button><button>Décors</button></div>
+      <div class="items">
+        <button class="it"><span class="e">🛶</span>Rivière sauvage<small>aquatique · 900 / h · bonus du thème</small><em>21 200 €</em></button>
+        <button class="it"><span class="e">🎡</span>Grande roue<small>familiale · 800 / h</small><em>23 300 €</em></button>
+        <button class="it"><span class="e">🎢</span>Grand huit<small>sensations · 1 000 / h</small><em>31 800 €</em></button>
+        <button class="it lk"><span class="e">🗼</span>Chute libre<small>palier 1 requis</small><em>31 800 €</em></button>
+      </div>
+    </div>
+
+    <!-- 2. LES FILES -->
+    <h2 class="sec">Les files d'attente</h2>
+    <div class="queue">
+      <div class="qrow"><b>42 min</b><span style="font-size:13px;color:var(--ink-3)">380 visiteurs repartis hier</span></div>
+      <div class="ppl" id="ppl"></div>
+      <div class="cap"><i></i><em></em></div>
+      <div class="cl"><span>Capacité des attractions : 3 750 / h</span><span>Affluence : 4 120</span></div>
+      <div class="qopt"><span><b>Coupe-file</b>environ 12 % des visiteurs paient 6 € de plus ; l'attente des autres augmente un peu</span><button class="tog" aria-label="Coupe-file"></button></div>
+    </div>
+
+    <!-- 3. LE GUICHET -->
+    <h2 class="sec">Le guichet</h2>
+    <div class="ticket">
+      <div class="l"><small>Billet adulte · 1 jour</small><b>39 €</b><div style="font-size:12px;opacity:.9">les familles du quartier acceptent jusqu'à environ 45 €</div></div>
+      <div class="r"><button aria-label="Monter le prix">+</button><button aria-label="Baisser le prix">−</button></div>
+    </div>
+    <div class="spend">
+      <div><small>Billet</small><b>39 €</b></div>
+      <div><small>Restauration</small><b>5,0 €</b></div>
+      <div><small>Boutiques</small><b>3,2 €</b></div>
+    </div>
+
+    <!-- 4. LA MÉTÉO -->
+    <h2 class="sec">La météo <small>la pluie vide le parc</small></h2>
+    <div class="wx">
+      <div class="wd today">Lun<i>☀️</i><small>+12 %</small></div>
+      <div class="wd">Mar<i>⛅</i><small>=</small></div>
+      <div class="wd">Mer<i>🌧️</i><small style="color:var(--red)">−35 %</small></div>
+      <div class="wd">Jeu<i>🌧️</i><small style="color:var(--red)">−35 %</small></div>
+      <div class="wd">Ven<i>⛅</i><small>=</small></div>
+      <div class="wd">Sam<i>☀️</i><small>+12 %</small></div>
+      <div class="wd">Dim<i>☀️</i><small>+12 %</small></div>
+    </div>
+    <p class="wxl">Sous la pluie, seules les attractions couvertes (train fantôme, spectacles) restent pleines ; au soleil, les attractions aquatiques font le plein.</p>
+
+    <!-- 5. LE SOIR -->
+    <h2 class="sec">Le soir</h2>
+    <div class="night">
+      <span class="fw">🎆</span>
+      <b>Nocturnes</b><span style="font-size:12.5px">trois heures de plus chaque soir : débit et fréquentation en hausse, surtout l'été</span>
+      <div class="row"><span>Ouvrir le soir</span><button class="tog" aria-label="Nocturnes"></button></div>
+      <div class="row"><span><b style="font-size:14px">Événements de saison</b>Halloween et Noël : +35 % de visiteurs pendant l'événement</span><button class="tog on" aria-label="Événements de saison"></button></div>
+    </div>
+
+    <!-- 6. ENTRETIEN -->
+    <h2 class="sec">L'entretien</h2>
+    <div class="maint">
+      <b>Entretien des attractions</b>
+      <div class="seg"><button>Économe</button><button class="on">Normal</button><button>Renforcé</button></div>
+      <p class="hint">Économe : peu cher, mais pannes fréquentes et risque d'accident. Renforcé : cher, presque aucune panne.</p>
+    </div>
+
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt">
+      <button class="mg">Équipe<small>42 / 44 · fatigue 18</small></button>
+      <button class="mg">Finances<small>+3 854 € hier</small></button>
+      <button class="mg">Terrain<small>propriétaire</small></button>
+      <button class="mg">Sécurité<small>agents · assuré</small></button>
+    </div>
+    <div class="dlg"><span><b>Manon Simon, directrice du site</b>peut construire et fixer le prix du billet à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+
+<div class="legend">
+  <h2>Ce qui le distingue</h2>
+  <ul>
+    <li><b>Le plan du parc</b> vu du dessus, 6 × 4 cases en quatre zones à thème. On touche une case vide, la palette d'attractions, de restaurants, de boutiques et de décors s'ouvre en dessous ; une attraction qui déborde affiche son attente.</li>
+    <li><b>Les files d'attente</b> : la foule face à la capacité des attractions, et les visiteurs qui repartent quand l'attente est trop longue.</li>
+    <li><b>Le guichet</b> : le prix du billet sur un vrai ticket, et ce que dépense chaque visiteur.</li>
+    <li><b>La météo de la semaine</b>, qui pèse sur l'affluence et sur les attractions couvertes ou aquatiques.</li>
+    <li><b>Le soir</b> : nocturnes et événements de saison.</li>
+    <li>Ambiance fête foraine : gazon, sucre d'orge, enseignes en lettres de manège.</li>
+  </ul>
+  <p>Les montants et les noms sont des exemples.</p>
+</div>
+
+<script>
+const Z=['#f0a6c8','#7cc6c0','#f2a65a','#9aa8e8'];
+const zone=i=>(((i/6|0)>=2)?2:0)+((i%6)>=3?1:0);
+const C={0:['🎠','Carrousel'],1:['☕','Tasses'],2:['🌷',''],3:['🛶','Rivière'],4:['🍔','Resto'],6:['👻','Fantôme'],7:['🍭','Kiosque'],8:['⛲',''],9:['🎡','Roue'],12:['🎢','Grand huit','52 min'],13:['🛍️','Boutique'],14:['📸','Photo']};
+let h=''; for(let i=0;i<24;i++){ const z=zone(i), c=C[i];
+  if(z===3) h+='<button class="cell lock" style="background-color:'+Z[3]+'">🔒</button>';
+  else if(c) h+='<button class="cell" style="background:'+Z[z]+'">'+c[0]+(c[1]?'<small>'+c[1]+'</small>':'')+(c[2]?'<span class="q">'+c[2]+'</span>':'')+'</button>';
+  else h+='<button class="cell empty'+(i===5?' sel':'')+'" style="background-color:'+Z[z]+'66">+</button>'; }
+document.getElementById('grid').innerHTML=h;
+let p=''; for(let i=0;i<60;i++) p+='<i class="'+(i>=54?'out':'')+'"></i>'; document.getElementById('ppl').innerHTML=p;
+document.querySelectorAll('.tog').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
+document.querySelectorAll('.seg button,.ptabs button').forEach(b=>b.addEventListener('click',()=>b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))));
+document.querySelectorAll('.cell.empty').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('.cell').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); }));
+</script>
+</body>
+</html>
