@@ -1189,10 +1189,18 @@ details.hmore .hm-b{display:flex;flex-direction:column;gap:18px;margin-top:18px}
 .fo-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .fo-h small{color:var(--ink-3);font-size:12px}
 .fo-r{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.fo-r>div{display:flex;flex-direction:column;min-width:0}
+.fo-r>div:not(.seg){display:flex;flex-direction:column;min-width:0}
 .fo-r small{color:var(--ink-3);font-size:12px;line-height:1.3}
 /* V2.2.6 : tuiles du métier sur deux lignes au lieu d'être coupées */
 .met-k b{white-space:normal;overflow-wrap:anywhere;line-height:1.15}
+/* V2.3.5 : lignes de production */
+.fo-l{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}
+.fo-l:last-of-type{border-bottom:0}
+.fo-l .seg button{min-height:44px}
+.fo-q{display:flex;width:100%}
+.fo-q button{flex:1}
+.fo-pm{display:flex;flex-direction:row;flex:0 0 auto}
+.fo-pm button{min-width:44px;min-height:44px}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -3837,6 +3845,113 @@ function supStep(){
 function setFsup(b,v){ if(!isFact(b)) return err('Ce n’est pas une usine.'); b.fsup=v?1:0; return ok(v?'L’usine approvisionne vos sociétés.':'L’usine n’approvisionne plus vos sociétés.'); }
 
 /* ============================================================
+   V2.3.5 : PRODUITS ET QUALITÉ (étape 1 de la refonte de l'approvisionnement)
+   Chaque usine fabrique plusieurs produits ; le joueur répartit sa capacité (b.mix, poids 0 à 10 par produit) et
+   choisit la qualité de chaque ligne (b.pq : 0 standard, 1 supérieure, 2 premium). Une qualité plus haute coûte
+   plus cher à produire (moins d'unités, QC) mais se vend plus cher (QV) ; les contrats peuvent exiger une qualité.
+   Le stock garde la qualité fabriquée : b.st[produit] = [standard, supérieure, premium] en unités.
+   Les prix de gros suivent l'indice de la famille (alimentaire, vêtements, composants).
+   Anciennes sauvegardes : le stock (b.goods) est converti en produits à valeur égale, les contrats en cours
+   portent sur le produit principal, les offres en attente sont renouvelées.
+   ============================================================ */
+D.PRODS = {
+  cer:{fac:'farm', g:'alim', n:'Céréales', u:'quintaux', v:20},
+  leg:{fac:'farm', g:'alim', n:'Légumes et fruits', u:'caisses', v:10},
+  lai:{fac:'farm', g:'alim', n:'Produits laitiers', u:'caisses', v:14},
+  oeu:{fac:'farm', g:'alim', n:'Œufs et volaille', u:'caisses', v:16},
+  vin:{fac:'farm', g:'alim', n:'Vin', u:'caisses', v:36},
+  cot:{fac:'textile', g:'vet', n:'Tissu de coton', u:'rouleaux', v:30},
+  lan:{fac:'textile', g:'vet', n:'Tissu de laine', u:'rouleaux', v:55},
+  soi:{fac:'textile', g:'vet', n:'Soie', u:'rouleaux', v:110},
+  pap:{fac:'textile', g:'vet', n:'Vêtements', u:'pièces', v:25},
+  ecr:{fac:'electronics', g:'comp', n:'Écrans', u:'lots', v:45},
+  bat:{fac:'electronics', g:'comp', n:'Batteries', u:'lots', v:30},
+  puc:{fac:'electronics', g:'comp', n:'Puces', u:'lots', v:60},
+  pau:{fac:'electronics', g:'comp', n:'Pièces automobiles', u:'lots', v:35}
+};
+const FACT_P = {farm:['cer','leg','lai','oeu','vin'], textile:['cot','lan','soi','pap'], electronics:['ecr','bat','puc','pau']};
+const MIX0 = {farm:{cer:3,leg:3,lai:2,oeu:1,vin:1}, textile:{cot:3,lan:1,soi:1,pap:5}, electronics:{ecr:3,bat:3,puc:3,pau:1}};
+const QN = ['Standard','Supérieure','Premium'], QC = [1,1.35,1.8], QV = [1,1.25,1.6];
+const pPrice = (p,q) => D.PRODS[p].v*gIdx(D.PRODS[p].g)*QV[q||0];
+const prodsOf = b => FACT_P[b.def]||[];
+/* état d'une usine, créé ou converti au besoin */
+function fpInit(b){ if(!isFact(b)||!FACT_P[b.def]) return null;
+  if(!b.mix){ b.mix=Object.assign({},MIX0[b.def]); }
+  if(!b.pq) b.pq={};
+  if(!b.st){ b.st={}; prodsOf(b).forEach(p=>b.st[p]=[0,0,0]);
+    if(b.goods>0){ const V=b.goods*D.GOODS[goodOf(b)].v, W=fpW(b); prodsOf(b).forEach(p=>{ b.st[p][0]=V*(b.mix[p]||0)/W/D.PRODS[p].v; }); } b.goods=0; }
+  return b; }
+const fpW = b => Math.max(1e-9, prodsOf(b).reduce((a,p)=>a+(b.mix[p]||0),0));
+const fpShare = (b,p) => (b.mix[p]||0)/fpW(b);
+const fpUnits = (b,p,qmin) => { const s=b.st&&b.st[p]; if(!s) return 0; let u=0; for(let q=qmin||0;q<3;q++) u+=s[q]; return u; };
+function fpValue(b){ if(!b.st) return 0; let v=0; prodsOf(b).forEach(p=>{ for(let q=0;q<3;q++) v+=(b.st[p][q]||0)*pPrice(p,q); }); return v; }
+/* capacité de stockage en valeur (prix de référence) : jours de production × production moyenne */
+factCap=function(b){ return Math.max(1,b.prodAvgV||0)*factCapDays(b); };
+function fpRefValue(b){ if(!b.st) return 0; let v=0; prodsOf(b).forEach(p=>{ for(let q=0;q<3;q++) v+=(b.st[p][q]||0)*D.PRODS[p].v*QV[q]; }); return v; }
+/* retire u unités du produit p de qualité ≥ qmin, en commençant par la qualité la plus basse acceptée */
+function fpTake(b,p,u,qmin){ const s=b.st[p]; let left=u, val=0; for(let q=qmin||0;q<3&&left>1e-9;q++){ const t=Math.min(left,s[q]); s[q]-=t; left-=t; val+=t*pPrice(p,q); } return {u:u-left, val}; }
+/* stock à garder en vente au gros : contrats ouverts puis besoins de vos sociétés */
+function fpKeep(b){ const K={}; prodsOf(b).forEach(p=>K[p]=[0,0,0]); const I=S.ind;
+  if(I) I.active.forEach(c=>{ if(c.st!=='open'||!K[c.p]) return; let need=c.qty; for(let q=c.qm||0;q<3&&need>0;q++){ const t=Math.min(need,b.st[c.p][q]-K[c.p][q]); K[c.p][q]+=t; need-=t; } });
+  let needV=supReserveV(goodOf(b),b);
+  if(needV>0) prodsOf(b).forEach(p=>{ for(let q=0;q<3&&needV>0;q++){ const free=b.st[p][q]-K[p][q], pr=pPrice(p,q); const t=Math.min(free,needV*fpShare(b,p)/pr); if(t>0){ K[p][q]+=t; } } });
+  return K; }
+/* la ferme produit ce qu'elle cultive : la répartition suit ses parcelles (valeur moyenne par jour de chaque culture) */
+const FM_PROD = {ble:'cer', mais:'cer', tourn:'cer', leg:'leg', verger:'leg', vigne:'vin', vaches:'lai', poules:'oeu'};
+function fpFarmMix(b){ const m=b.m; if(!m||!m.p||typeof fmCrop!=='function') return; const W={}; FACT_P.farm.forEach(p=>W[p]=0);
+  m.p.forEach(x=>{ if(!x) return; const c=fmCrop(x.c), p=FM_PROD[x.c]; if(!c||!p) return; const v= c.k==='elev'? c.d : c.k==='per'? c.y/360 : c.y/(c.id==='leg'?120:360); W[p]+=v; });
+  const t=Object.values(W).reduce((a,x)=>a+x,0); if(t>0) FACT_P.farm.forEach(p=>b.mix[p]=W[p]/t*10); }
+factoryDay=function(b,revEq){ fpMigInd(); fpInit(b); if(b.def==='farm') fpFarmMix(b);
+  b.pday={}; prodsOf(b).forEach(p=>{ const q=b.pq[p]||0, u=revEq*fpShare(b,p)/(D.PRODS[p].v*QC[q]); b.st[p][q]+=u; b.pday[p]=u; });
+  b.prodDayV=revEq; b.prodAvgV=(b.prodAvgV||revEq)*.9+revEq*.1; b.prodAvg=b.prodAvgV/D.GOODS[goodOf(b)].v; b.prodDay=revEq/D.GOODS[goodOf(b)].v;
+  let r=b.supRev||0; b.supRev=0;
+  if(b.fmode!=='store'){ const K=fpKeep(b); prodsOf(b).forEach(p=>{ for(let q=0;q<3;q++){ const x=b.st[p][q]-K[p][q]; if(x>0){ r+=x*pPrice(p,q); b.st[p][q]-=x; } } }); return r; }
+  const cap=factCap(b), v=fpRefValue(b);
+  if(v>cap){ const f=(v-cap)/v; prodsOf(b).forEach(p=>{ for(let q=0;q<3;q++){ const x=b.st[p][q]*f; r+=x*pPrice(p,q)*.85; b.st[p][q]-=x; } });
+    if(!b.capWarn){ b.capWarn=1; log('warn','Stock plein chez « '+b.name+' » : l’excédent part au grossiste avec 15 % de décote. Un entrepôt dans la ville agrandit le stock.'); } }
+  else b.capWarn=0;
+  return r; };
+sellGoods=function(b){ fpInit(b); const v=fpValue(b); if(v<1) return err('Aucun stock à vendre.'); prodsOf(b).forEach(p=>{ b.st[p]=[0,0,0]; }); pay('b:'+b.id,'Vente au grossiste : stock de '+b.name,v); return ok('Stock vendu '+eur(v,0)+'.'); };
+function sellProd(b,p){ fpInit(b); if(!b.st[p]) return err('Produit inconnu.'); let v=0; for(let q=0;q<3;q++) v+=b.st[p][q]*pPrice(p,q); if(v<1) return err('Aucun stock de ce produit.'); b.st[p]=[0,0,0]; pay('b:'+b.id,'Vente au grossiste : '+D.PRODS[p].n,v); return ok(D.PRODS[p].n+' vendus '+eur(v,0)+'.'); }
+function setMix(b,p,d){ fpInit(b); if(b.def==='farm') return err('La ferme produit ce que ses parcelles cultivent.'); if(!b.mix||b.mix[p]===undefined) return err('Produit inconnu.'); const n=clamp((b.mix[p]||0)+d,0,10); if(n===0&&prodsOf(b).every(x=>x===p||!b.mix[x])) return err('Il faut au moins un produit.'); b.mix[p]=n; return ok(); }
+function setPq(b,p,q){ fpInit(b); if(!b.st[p]) return err('Produit inconnu.'); b.pq[p]=clamp(q|0,0,2); return ok(); }
+/* production de ce produit par jour, toutes usines (unités) */
+function pRate(p){ let r=0; S.biz.forEach(b=>{ if(isFact(b)&&b.status==='active'&&b.mix&&b.mix[p]){ const q=(b.pq&&b.pq[p])||0; r+=(b.prodAvgV||0)*fpShare(b,p)/(D.PRODS[p].v*QC[q]); } }); return r; }
+/* contrats par produit, parfois avec une qualité minimale */
+newContract=function(){ const I=indInit(), F=S.biz.filter(x=>isFact(x)&&x.status==='active'&&fpInit(x)); if(!F.length) return;
+  const f=pick(F), L=prodsOf(f).filter(p=>f.mix[p]>0); if(!L.length) return; const p=pick(L), P=D.PRODS[p], ref=Math.max(1,pRate(p));
+  const r=rnd(), qm= r<.15? 2 : r<.45? 1 : 0;
+  const qty=Math.max(10,Math.round(ref*rint(4,9)/10)*10), cities=D.CITY_ORDER.filter(cityUnlocked), city=pick(cities);
+  I.offers.push({id:S.nid++, p, g:P.g, qm, qty, city, px:Math.round(P.v*QV[qm]*(1.15+0.3*rnd())*100)/100, due:S.day+rint(20,45), client:rnd()<.3? pick(rivAlive()).n : pick(CLIENTS), exp:S.day+8}); };
+deliverFrom=function(cid,bid){ const I=indInit(), c=I.active.find(x=>x.id===cid), b=S.biz.find(x=>x.id===bid); if(!c||c.st!=='open') return err('Contrat introuvable.');
+  if(!b||!fpInit(b)||!b.st[c.p]) return err('Cette usine ne fabrique pas ce produit.');
+  const have=fpUnits(b,c.p,c.qm); if(have<c.qty) return err('Stock insuffisant'+(c.qm?' en qualité '+QN[c.qm].toLowerCase()+' ou mieux':'')+' : '+fmtN(have)+' / '+fmtN(c.qty)+' '+D.PRODS[c.p].u+'.');
+  const R=route(b.city,c.city), cost=c.qty*D.PRODS[c.p].v*R.rate; pay('b:'+b.id,'Transport vers '+D.CITIES[c.city].n,-cost);
+  fpTake(b,c.p,c.qty,c.qm); c.st='ship'; I.ship.push({cid:c.id, from:b.city, to:c.city, arr:S.day+R.days, p:c.p, g:c.g, qty:c.qty, bid:b.id});
+  return ok('Expédition partie de '+D.CITIES[b.city].n+' : arrivée dans '+R.days+' jour(s).'); };
+function fpMigInd(){ const I=S.ind; if(!I||I.v235) return; I.v235=1;
+  I.offers=I.offers.filter(o=>o.p);
+  I.active.forEach(c=>{ if(c.p) return; const fac=Object.keys(D.FACT).find(k=>D.FACT[k]===c.g), p=(FACT_P[fac]||[])[0]; if(!p) return; const k=D.GOODS[c.g].v/D.PRODS[p].v; c.p=p; c.qm=0; c.qty=Math.max(1,Math.round(c.qty*k)); c.px=c.px/k; });
+  I.ship.forEach(s=>{ if(!s.p){ const c=I.active.find(x=>x.id===s.cid); s.p=c&&c.p; s.qty=c?c.qty:s.qty; } }); }
+{ const _is=indStep; indStep=function(){ indInit(); fpMigInd(); S.biz.forEach(b=>{ if(isFact(b)) fpInit(b); });
+  const I=S.ind;
+  /* livraisons automatiques et paiements : versions par produit */
+  I.active.forEach(c=>{ if(c.st!=='open'||!c.p) return; const src=S.biz.filter(x=>isFact(x)&&x.st&&x.st[c.p]&&fpUnits(x,c.p,c.qm)>=c.qty).sort((a,b)=>route(a.city,c.city).days-route(b.city,c.city).days)[0];
+    if(src){ const r=deliverFrom(c.id,src.id); if(r.ok) log('info','Livraison automatique pour '+c.client+' : '+r.msg); } });
+  _is(); }; }
+goodsNW=function(){ let v=0; S.biz.forEach(b=>{ if(isFact(b)&&b.st) v+=fpValue(b)*.9; }); if(S.ind) S.ind.ship.forEach(s=>{ const c=S.ind.active.find(x=>x.id===s.cid); v+=(s.qty||0)*(s.p? D.PRODS[s.p].v : D.GOODS[s.g].v)*.9; }); return v; };
+/* approvisionnement de vos sociétés (V2.2.6) : en valeur, pris dans tous les produits de la famille, qualité standard d'abord */
+function supReserveV(g,b){ if(!supOn(b)) return 0; const F=supFacts(g); if(!F.length) return 0; return supClients(g).reduce((a,x)=>a+supNeedV(x),0)*1.5/F.length; }
+supStep=function(){
+  S.biz.forEach(b=>{ if(isFact(b)) b.supOut=0; if(supGood(b)){ b.supSave=0; b.supIn=0; } });
+  Object.keys(SUP_USE).forEach(g=>{ const F=supFacts(g).filter(fpInit); if(!F.length) return;
+    supClients(g).forEach(c=>{ let needV=supNeedV(c); if(needV<=0) return;
+      F.slice().sort((a,b)=>route(a.city,c.city).rate-route(b.city,c.city).rate).forEach(f=>{ if(needV<=0) return; const R=route(f.city,c.city);
+        prodsOf(f).forEach(p=>{ if(needV<=0) return; for(let q=0;q<3&&needV>0;q++){ const pr=pPrice(p,q), u=Math.min(f.st[p][q], needV*fpShare(f,p)/pr+1e-9, needV/pr); if(u<=0) continue;
+          f.st[p][q]-=u; const v=u*pr; needV-=v; f.supRev=(f.supRev||0)+v; f.supOut=(f.supOut||0)+v/D.GOODS[g].v; c.supIn=(c.supIn||0)+v; c.supSave=(c.supSave||0)+v*Math.max(0,SUP_DISC-R.rate); } }); }); }); });
+};
+
+/* ============================================================
    TERRAINS ET CONSTRUCTION, DIRECTEURS SPÉCIALISÉS, DIRECTEURS DE SITE NOMMÉS
    ============================================================ */
 
@@ -3905,7 +4020,7 @@ function mgrStep(){
   if(S.mgr.fin&&wdOf(S.day)===0) finStep();
   /* Responsable des contrats */
   if(S.mgr.cont&&S.ind) S.ind.offers.slice().forEach(o=>{ if(S.ind.active.length>=5) return;
-    let rate=0; S.biz.forEach(b=>{ if(goodOf(b)===o.g&&b.status==='active') rate+=factRate(b); });
+    const rate= o.p? pRate(o.p) : 0;   /* V2.3.5 : production du produit demandé */
     if(rate*(o.due-S.day-9)*0.8>=o.qty){ const r=acceptContract(o.id); if(r.ok) log('info','Responsable des contrats : contrat accepté avec '+o.client+'.'); } });
 }
 
@@ -11642,7 +11757,7 @@ function shGroupCo(){ return S.biz.find(x=>x.def==='shipping'&&x.status==='activ
     if(!co||fromC===toC||!A||!B||A.country===B.country) return R;
     R.days=Math.max(1,Math.ceil(R.days*.6)); R.rate*=.5; R.ship=true; R.co=co.id; return R; }; }
 { const _df=deliverFrom; deliverFrom=function(cid,bid){ const I=indInit(), c=I.active.find(x=>x.id===cid), b=S.biz.find(x=>x.id===bid);
-    let R=null, cost=0; if(c&&b&&goodOf(b)===c.g){ R=route(b.city,c.city); cost=c.qty*D.GOODS[c.g].v*R.rate; }
+    let R=null, cost=0; if(c&&b&&c.p&&b.st&&b.st[c.p]){ R=route(b.city,c.city); cost=c.qty*D.PRODS[c.p].v*R.rate; }
     const r=_df(cid,bid); if(r&&r.ok&&R&&R.co){ const co=S.biz.find(x=>x.id===R.co); if(co&&co.m){ co.m.uf=(co.m.uf||0)+cost; co.m.uft=(co.m.uft||0)+cost; } } return r; }; }
 /* le directeur : prix chaque semaine ; en délégation totale, affrètements, navires et lignes */
 function shAuto(b,mode,q){ const m=b.m;
@@ -13978,31 +14093,40 @@ Object.assign(ACT,{
 function gIdxTxt(g){ const i=gIdx(g), p=Math.round((i-1)*100); return p===0? '=' : (p>0?'+':'−')+Math.abs(p)+' %'; }
 const gLiv = g => g==='comp'? 'livrés' : 'livrées';
 function factOutHtml(b){
-  const g=goodOf(b), G=D.GOODS[g], I=indInit(), st=b.goods||0, cap=factCap(b), P=gPrice(g);
-  const cl=supClients(g), act=I.active.filter(c=>c.g===g), off=I.offers.filter(o=>o.g===g);
-  const res=act.filter(c=>c.st==='open').reduce((a,c)=>a+c.qty,0);
-  let h='<div class="met-out" data-t="Débouchés" data-s="'+esc(fmtN(b.prodDay||0)+' '+G.u+' par jour · '+(b.fmode==='store'?'stockage':'vente au grossiste'))+'">';
-  h+='<div class="fo-flow"><div><span>Production</span><b class="num">'+fmtN(b.prodDay||0)+'</b><small>'+esc(G.u)+' par jour</small></div><i aria-hidden="true">›</i>'+
-     '<div><span>Stock</span><b class="num">'+fmtN(st)+'</b><small>sur '+fmtN(cap)+'</small></div><i aria-hidden="true">›</i>'+
-     '<div><span>Prix de gros</span><b class="num">'+eur(P,2)+'</b><small>'+gIdxTxt(g)+' vs référence</small></div></div>'+bar(st/cap,st/cap>.9?'r':'g');
+  /* V2.3.5 : plusieurs produits par usine, chacun avec sa part de la capacité et sa qualité */
+  fpInit(b); const g=goodOf(b), I=indInit(), cap=factCap(b), sv=fpRefValue(b), P=prodsOf(b);
+  const cl=supClients(g), act=I.active.filter(c=>P.includes(c.p)), off=I.offers.filter(o=>P.includes(o.p));
+  let h='<div class="met-out" data-t="Débouchés" data-s="'+esc(eur(b.prodDayV||0,0)+' produits par jour · '+(b.fmode==='store'?'stockage':'vente au grossiste'))+'">';
+  h+='<div class="fo-flow"><div><span>Production</span><b class="num">'+eur(b.prodDayV||0,0)+'</b><small>par jour</small></div><i aria-hidden="true">›</i>'+
+     '<div><span>Stock</span><b class="num">'+eur(fpValue(b),0)+'</b><small>'+Math.round(sv/cap*100)+' % de la capacité</small></div><i aria-hidden="true">›</i>'+
+     '<div><span>Prix de gros</span><b class="num">'+gIdxTxt(g)+'</b><small>vs référence</small></div></div>'+bar(sv/cap,sv/cap>.9?'r':'g');
+  /* 0. lignes de production */
+  h+='<div class="fo-s"><div class="fo-h"><b>Lignes de production</b><small>'+(b.def==='farm'? 'Selon vos parcelles ; qualité au choix' : 'Part de la capacité et qualité')+'</small></div>';
+  P.forEach(p=>{ const D0=D.PRODS[p], q=b.pq[p]||0, sh=fpShare(b,p), u=(b.pday&&b.pday[p])||0, st=b.st[p]; if(b.def==='farm'&&!(b.mix[p]>0)&&st.every(x=>x<1)) return;
+    h+='<div class="fo-l"><div class="fo-r"><div><b>'+esc(D0.n)+'</b><small>'+Math.round(sh*100)+' % · '+fmtN(u)+' '+esc(D0.u)+' par jour · '+eur(pPrice(p,q),2)+' l’unité</small></div>'+
+      (b.def==='farm'? '' : '<div class="seg fo-pm"><button data-a="fmix" data-i="'+b.id+'" data-p="'+p+'" data-v="-1" aria-label="Moins de '+esc(D0.n)+'">−</button><button data-a="fmix" data-i="'+b.id+'" data-p="'+p+'" data-v="1" aria-label="Plus de '+esc(D0.n)+'">+</button></div>')+'</div>'+
+      '<div class="seg fo-q">'+QN.map((n,k)=>'<button class="'+(q===k?'on':'')+'" data-a="fpq" data-i="'+b.id+'" data-p="'+p+'" data-v="'+k+'">'+n+'</button>').join('')+'</div>'+
+      '<small class="sub num">Stock : '+(st.every(x=>x<1)? 'vide' : [0,1,2].filter(k=>st[k]>=1).map(k=>fmtN(st[k])+' '+QN[k].toLowerCase()).join(' · '))+'</small></div>'; });
+  if(b.def==='farm'){ const off=P.filter(p=>!(b.mix[p]>0)); if(off.length) h+='<div class="sub">Pas encore produit : '+off.map(p=>esc(D.PRODS[p].n.toLowerCase())).join(', ')+'. Plantez les cultures correspondantes (vigne pour le vin, vaches pour les produits laitiers, poules pour les œufs).</div>'; }
+  h+='<div class="sub">Une qualité plus haute coûte plus cher à produire ('+QN.map((n,k)=>n.toLowerCase()+' ×'+String(QC[k]).replace('.',NDEC)).join(', ')+') mais se vend plus cher (×'+String(QV[1]).replace('.',NDEC)+', ×'+String(QV[2]).replace('.',NDEC)+'). Au grossiste, le standard rapporte le plus ; la qualité paie avec les contrats exigeants et, bientôt, auprès de vos sociétés.</div></div>';
   /* 1. contrats */
-  h+='<div class="fo-s"><div class="fo-h"><b>1. Contrats</b><small>'+(act.length? act.length+' en cours'+(res? ' · '+fmtN(res)+' '+G.u+' réservés' : '') : 'Aucun en cours')+'</small></div>';
-  act.forEach(c=>{ const sh=I.ship.find(s=>s.cid===c.id), R=route(b.city,c.city);
-    h+='<div class="fo-r"><div><b>'+esc(c.client)+'</b><small>'+fmtN(c.qty)+' '+esc(G.u)+' à livrer à '+esc(cityName(c.city))+' avant le '+dateL(c.due)+' · '+eur(c.qty*c.px,0)+'</small></div>'+
-      (sh? pill('En route','info') : btn('Expédier','ctship',{c:'sm',i:c.id,j:b.id,dis:st<c.qty}))+'</div>'+(!sh&&st<c.qty? '<div class="sub">Stock insuffisant ici : '+fmtN(st)+' / '+fmtN(c.qty)+'. L’expédition part seule dès qu’une de vos usines a le stock.</div>' : !sh? '<div class="sub">Transport '+R.days+' j, '+eur(c.qty*G.v*R.rate,0)+'.</div>' : ''); });
-  off.slice(0,3).forEach(o=>{ h+='<div class="fo-r"><div><b>'+esc(o.client)+'</b><small>Propose '+fmtN(o.qty)+' '+esc(G.u)+' à '+eur(o.px,2)+' ('+(o.px>=P?'+':'−')+Math.abs(Math.round((o.px/P-1)*100))+' % vs gros) · '+esc(cityName(o.city))+' · avant le '+dateL(o.due)+'</small></div>'+btn('Signer','ctacc',{c:'sm pri',i:o.id,dis:I.active.length>=5})+'</div>'; });
-  if(!act.length&&!off.length) h+='<div class="sub">Des clients proposent régulièrement des commandes, 15 à 45 % au-dessus du prix de gros.</div>';
+  h+='<div class="fo-s"><div class="fo-h"><b>1. Contrats</b><small>'+(act.length? act.length+' en cours' : 'Aucun en cours')+'</small></div>';
+  act.forEach(c=>{ const sh=I.ship.find(s=>s.cid===c.id), R=route(b.city,c.city), Pp=D.PRODS[c.p], have=fpUnits(b,c.p,c.qm);
+    h+='<div class="fo-r"><div><b>'+esc(c.client)+'</b><small>'+fmtN(c.qty)+' '+esc(Pp.u)+' de '+esc(Pp.n.toLowerCase())+(c.qm?' '+QN[c.qm].toLowerCase()+' ou mieux':'')+' à livrer à '+esc(cityName(c.city))+' avant le '+dateL(c.due)+' · '+eur(c.qty*c.px,0)+'</small></div>'+
+      (sh? pill('En route','info') : btn('Expédier','ctship',{c:'sm',i:c.id,j:b.id,dis:have<c.qty}))+'</div>'+(!sh&&have<c.qty? '<div class="sub">Stock insuffisant ici : '+fmtN(have)+' / '+fmtN(c.qty)+'. L’expédition part seule dès qu’une de vos usines a le stock.</div>' : !sh? '<div class="sub">Transport '+R.days+' j, '+eur(c.qty*Pp.v*R.rate,0)+'.</div>' : ''); });
+  off.slice(0,4).forEach(o=>{ const Pp=D.PRODS[o.p], ref=pPrice(o.p,o.qm); h+='<div class="fo-r"><div><b>'+esc(o.client)+'</b><small>'+fmtN(o.qty)+' '+esc(Pp.u)+' de '+esc(Pp.n.toLowerCase())+(o.qm?' '+QN[o.qm].toLowerCase()+' ou mieux':'')+' à '+eur(o.px,2)+' ('+(o.px>=ref?'+':'−')+Math.abs(Math.round((o.px/ref-1)*100))+' % vs gros) · '+esc(cityName(o.city))+' · avant le '+dateL(o.due)+'</small></div>'+btn('Signer','ctacc',{c:'sm pri',i:o.id,dis:I.active.length>=5})+'</div>'; });
+  if(!act.length&&!off.length) h+='<div class="sub">Des clients proposent régulièrement des commandes, 15 à 45 % au-dessus du prix de gros. Certains exigent une qualité supérieure ou premium.</div>';
   h+='</div>';
   /* 2. vos sociétés */
   h+='<div class="fo-s"><div class="fo-h"><b>2. Vos sociétés</b><div class="seg"><button class="'+(supOn(b)?'on':'')+'" data-a="fsup" data-i="'+b.id+'" data-v="1">Fournir</button><button class="'+(!supOn(b)?'on':'')+'" data-a="fsup" data-i="'+b.id+'" data-v="0">Non</button></div></div>';
   if(cl.length){ h+=cl.map(c=>'<div class="fo-r"><div><b>'+esc(c.name)+'</b><small>'+esc(bizDef(c).n)+' · '+esc(cityName(c.city))+' · besoin '+eur(supNeedV(c),0)+' par jour</small></div><span class="num sub">'+(c.supIn? eur(c.supIn,0)+' livrés' : '—')+'</span></div>').join('');
-    h+='<div class="sub">Vos sociétés paient le prix de gros et économisent '+Math.round(SUP_DISC*100)+' % de ces achats, moins le transport'+(b.supOut? ' · hier : '+fmtN(b.supOut)+' '+esc(G.u)+' '+gLiv(g) : '')+'.</div>'; }
-  else h+='<div class="sub">Aucune de vos sociétés n’utilise '+esc(G.n.toLowerCase())+'. '+esc(SUP_HINT[g])+'</div>';
+    h+='<div class="sub">Vos sociétés paient le prix de gros et économisent '+Math.round(SUP_DISC*100)+' % de ces achats, moins le transport.</div>'; }
+  else h+='<div class="sub">'+esc(SUP_HINT[g])+'</div>';
   h+='</div>';
   /* 3. le reste */
   h+='<div class="fo-s"><div class="fo-h"><b>3. Le reste</b><div class="seg"><button class="'+(b.fmode!=='store'?'on':'')+'" data-a="fmode" data-i="'+b.id+'" data-v="sell">Vendre au gros</button><button class="'+(b.fmode==='store'?'on':'')+'" data-a="fmode" data-i="'+b.id+'" data-v="store">Stocker</button></div></div>'+
-     '<div class="sub">'+(b.fmode==='store'? 'La production s’accumule (valeur '+eur(st*P,0)+'). Vendez quand le prix de gros est haut ; au-delà de la capacité, l’excédent part avec 15 % de décote.' : 'Chaque jour, ce qui n’est pas réservé part au grossiste au prix du jour.')+'</div>'+
-     (st>=1? '<div class="row">'+btn('Vendre le stock : '+eur(st*P,0),'gsell',{c:'sm',i:b.id})+'</div>' : '')+'</div>';
+     '<div class="sub">'+(b.fmode==='store'? 'La production s’accumule. Vendez quand le prix de gros est haut ; au-delà de la capacité, l’excédent part avec 15 % de décote.' : 'Chaque jour, ce qui n’est pas réservé part au grossiste au prix du jour.')+'</div>'+
+     (fpValue(b)>=1? '<div class="row">'+btn('Vendre tout le stock : '+eur(fpValue(b),0),'gsell',{c:'sm',i:b.id})+'</div>' : '')+'</div>';
   return h+'</div>';
 }
 const SUP_HINT={alim:'Un restaurant, un hôtel ou un parc d’attractions à vous achèterait vos produits.', vet:'Une maison de couture ou une boutique en ligne à vous achèterait vos vêtements.', comp:'Un atelier de réparation, un data center ou une concession à vous achèterait vos composants.'};
@@ -14010,7 +14134,7 @@ function supInHtml(b){ const g=supGood(b); if(!g) return ''; const G=D.GOODS[g],
   const fn={alim:'ferme',vet:'usine textile',comp:'usine de composants'}[g];
   let h='<div class="met-out" data-t="Approvisionnement" data-s="'+esc(b.supIn? eur(b.supIn,0)+' fournis hier par vos usines' : F.length? 'Vos usines n’ont rien livré hier' : 'Acheté au fournisseur')+'">';
   h+='<div class="sub">Achats de '+esc(G.n.toLowerCase())+' : environ '+eur(n,0)+' par jour.</div>';
-  if(F.length) h+=F.map(f=>'<div class="fo-r"><div><b>'+esc(f.name)+'</b><small>'+esc(cityName(f.city))+' · stock '+fmtN(f.goods||0)+' '+esc(G.u)+(supOn(f)?'':' · ne fournit pas vos sociétés')+'</small></div>'+btn('Ouvrir','bizopen',{c:'sm ghost',i:f.id})+'</div>').join('')+
+  if(F.length) h+=F.map(f=>'<div class="fo-r"><div><b>'+esc(f.name)+'</b><small>'+esc(cityName(f.city))+' · stock '+eur(fpInit(f)?fpValue(f):0,0)+(supOn(f)?'':' · ne fournit pas vos sociétés')+'</small></div>'+btn('Ouvrir','bizopen',{c:'sm ghost',i:f.id})+'</div>').join('')+
     '<div class="sub">'+(b.supIn? 'Hier : '+eur(b.supIn,0)+' livrés, '+eur(b.supSave||0,0)+' économisés.' : 'Hier : rien de livré (stock vide ou réservé aux contrats).')+' Vos usines vous vendent au prix de gros, '+Math.round(SUP_DISC*100)+' % moins cher que le fournisseur, transport déduit.</div>';
   else h+='<div class="sub">Avec une '+fn+' à vous, ces achats coûteraient '+Math.round(SUP_DISC*100)+' % de moins (transport déduit) et feraient tourner votre usine.</div>';
   return h+'</div>'; }
@@ -14023,23 +14147,26 @@ vLogi=function(){
   let h=head('Usines et logistique','Vue d’ensemble. Contrats, approvisionnement et ventes se règlent dans l’onglet Production de chaque usine.');
   h+=card('Prix de gros','<div class="stack">'+Object.keys(D.GOODS).filter(g=>g!=='tel').map(g=>{ const G=D.GOODS[g], hst=gpInit()[g].h, ch=hst.length>1? hst[hst.length-1]/hst[0]-1:0;
     return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:6px"><div><b>'+G.n+'</b><div class="sub">'+eur(gPrice(g),2)+' ('+gIdxTxt(g)+' vs référence '+eur(G.v,2)+')</div></div><div class="fxs">'+spark(hst,70,26)+'<small class="'+cls(ch)+'">'+(ch>=0?'+':'')+(ch*100).toFixed(1)+' %</small></div></div>'; }).join('')+'</div>');
-  h+=card('Vos usines', facts.length? '<div class="stack">'+facts.map(b=>{ const g=goodOf(b), G=D.GOODS[g], cap=factCap(b), st=b.goods||0;
-    return '<div class="stack" style="gap:6px;border-bottom:1px solid var(--line);padding-bottom:10px"><div class="row sp"><div style="min-width:0"><b>'+esc(b.name)+'</b><div class="sub">'+esc(cityName(b.city))+' · '+fmtN(b.prodDay||0)+' '+esc(G.u)+' par jour · '+(b.fmode==='store'?'stockage':'vente au gros')+(supOn(b)&&b.supOut? ' · '+fmtN(b.supOut)+' '+gLiv(g)+' à vos sociétés' : '')+'</div></div>'+btn('Ouvrir','bizopen',{c:'sm ghost',i:b.id})+'</div>'+
-      bar(st/cap,st/cap>.9?'r':'g')+'<div class="sub">Stock '+fmtN(st)+' / '+fmtN(cap)+' '+esc(G.u)+' · '+eur(st*gPrice(g),0)+'</div></div>'; }).join('')+'</div>'
+  h+=card('Vos usines', facts.length? '<div class="stack">'+facts.map(b=>{ fpInit(b); const cap=factCap(b), sv=fpRefValue(b);
+    return '<div class="stack" style="gap:6px;border-bottom:1px solid var(--line);padding-bottom:10px"><div class="row sp"><div style="min-width:0"><b>'+esc(b.name)+'</b><div class="sub">'+esc(cityName(b.city))+' · '+eur(b.prodDayV||0,0)+' produits par jour · '+(b.fmode==='store'?'stockage':'vente au gros')+'</div><div class="sub">'+prodsOf(b).filter(p=>b.mix[p]>0).map(p=>esc(D.PRODS[p].n)+' '+Math.round(fpShare(b,p)*100)+' %'+((b.pq[p]||0)?' ('+QN[b.pq[p]].toLowerCase()+')':'')).join(' · ')+'</div></div>'+btn('Ouvrir','bizopen',{c:'sm ghost',i:b.id})+'</div>'+
+      bar(sv/cap,sv/cap>.9?'r':'g')+'<div class="sub">Stock '+eur(fpValue(b),0)+' · '+Math.round(sv/cap*100)+' % de la capacité</div></div>'; }).join('')+'</div>'
     : '<div class="notice info">Construisez une usine textile, une usine de composants ou une ferme sur un terrain ou dans un entrepôt.</div>');
   const flows=Object.keys(SUP_USE).map(g=>{ const C=supClients(g); if(!C.length) return ''; const F=S.biz.filter(x=>isFact(x)&&goodOf(x)===g&&x.status==='active'), v=C.reduce((a,c)=>a+(c.supIn||0),0), sv=C.reduce((a,c)=>a+(c.supSave||0),0), need=C.reduce((a,c)=>a+supNeedV(c),0);
     return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:6px"><div style="min-width:0"><b>'+D.GOODS[g].n+'</b><div class="sub">'+C.length+' société'+(C.length>1?'s':'')+' cliente'+(C.length>1?'s':'')+' · besoin '+eur(need,0)+' par jour'+(F.length? '' : ' · aucune usine pour les fournir')+'</div></div><div class="sub r">'+(v? eur(v,0)+' livrés<br>'+eur(sv,0)+' économisés' : '—')+'</div></div>'; }).join('');
   if(flows) h+=card('Approvisionnement de vos sociétés (hier)','<div class="stack">'+flows+'</div>');
   const act=I.active, off=I.offers;
   h+=card('Contrats', (act.length||off.length? '<div class="stack">'+act.map(c=>{ const G=D.GOODS[c.g], sh=I.ship.find(s=>s.cid===c.id);
-      return '<div class="row sp"><div style="min-width:0"><b>'+esc(c.client)+'</b><div class="sub">'+fmtN(c.qty)+' '+esc(G.u)+' → '+esc(cityName(c.city))+' · avant le '+dateL(c.due)+'</div></div>'+pill(sh?'En route':'À livrer',sh?'info':'warn')+'</div>'; }).join('')+
-      off.map(o=>'<div class="row sp"><div style="min-width:0"><b>'+esc(o.client)+'</b><div class="sub">Propose '+fmtN(o.qty)+' '+esc(D.GOODS[o.g].u)+' de '+esc(D.GOODS[o.g].n.toLowerCase())+' · expire le '+dateL(o.exp)+'</div></div>'+pill('À signer','good')+'</div>').join('')+'</div>' : '<div class="sub">Aucun contrat pour le moment.</div>')+
+      const Pp=D.PRODS[c.p]||{n:G.n,u:G.u}; return '<div class="row sp"><div style="min-width:0"><b>'+esc(c.client)+'</b><div class="sub">'+fmtN(c.qty)+' '+esc(Pp.u)+' de '+esc(Pp.n.toLowerCase())+(c.qm?' '+QN[c.qm].toLowerCase():'')+' → '+esc(cityName(c.city))+' · avant le '+dateL(c.due)+'</div></div>'+pill(sh?'En route':'À livrer',sh?'info':'warn')+'</div>'; }).join('')+
+      off.map(o=>{ const Pp=D.PRODS[o.p]; return '<div class="row sp"><div style="min-width:0"><b>'+esc(o.client)+'</b><div class="sub">Propose '+fmtN(o.qty)+' '+esc(Pp.u)+' de '+esc(Pp.n.toLowerCase())+(o.qm?' '+QN[o.qm].toLowerCase():'')+' · expire le '+dateL(o.exp)+'</div></div>'+pill('À signer','good')+'</div>'; }).join('')+'</div>' : '<div class="sub">Aucun contrat pour le moment.</div>')+
     '<div class="sub">Signez et expédiez depuis l’onglet Production de l’usine concernée. Les livraisons partent seules dès qu’une usine a le stock.</div>');
   h+=card('Transport','<div class="tw"><table class="tbl"><thead><tr><th>Trajet</th><th class="r">Durée</th><th class="r">Coût</th></tr></thead><tbody>'+
     [['Même ville','paris','paris'],['Même pays','paris','toulouse'],['Même continent','paris','barcelone'],['Autre continent','paris','miami']].map(x=>{ const R=route(x[1],x[2]); return '<tr><td>'+x[0]+'</td><td class="r">'+R.days+' j</td><td class="r">'+Math.round(R.rate*100)+' %</td></tr>'; }).join('')+
     '</tbody></table></div><div class="sub">Coût en part de la valeur transportée. Il s’applique aussi à l’approvisionnement de vos sociétés : une usine dans la même ville que ses clients leur fait économiser le plus.</div>');
   return h;
 };
+
+ACT.fmix=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); after(setMix(b,el.dataset.p,+el.dataset.v)); };
+ACT.fpq=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); after(setPq(b,el.dataset.p,+el.dataset.v)); };
 
 /* ============================================================
    PREMIERS PAS : liste guidée sur l'accueil et conseils contextuels
@@ -16372,13 +16499,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.3.4';
+const IB_VER='V2.3.5';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Usines : plusieurs produits et qualité','Première étape de la refonte de l’approvisionnement. Chaque usine fabrique plusieurs produits : la ferme des céréales, légumes et fruits, produits laitiers, œufs et volaille, vin (selon ses parcelles) ; l’usine textile du coton, de la laine, de la soie et des vêtements ; l’usine de composants des écrans, batteries, puces et pièces automobiles. Répartissez la capacité et choisissez la qualité de chaque ligne (standard, supérieure, premium) dans l’onglet Production. Certains contrats exigent une qualité supérieure ou premium et paient davantage.','V2.3.5'],
   ['Épargne : directeur financier réglable','Même sur « Non », de l’argent partait sur le livret : c’était votre directeur financier, qui y place chaque lundi la trésorerie au-delà d’un mois de dépenses. Ce placement se règle maintenant à part, dans la carte Épargne automatique (Marchés). Il continue de rembourser vos emprunts et de reprendre sur le livret si la trésorerie manque.','V2.3.4'],
   ['Priorité du groupe pour tous les achats','La « priorité du groupe » aide maintenant le directeur pour tous ses achats, pas seulement l’agrandissement : terminaux, quais, navires, places dans les tours, créneaux, avions, immeubles, travaux, améliorations… Dès que sa réserve couvre la moitié du prix, la trésorerie générale complète (sans descendre sous un mois de dépenses du groupe).','V2.3.2'],
   ['Maritime, aérien et bureaux rentables','Les compagnies maritimes, les compagnies aériennes et les immeubles de bureaux rapportent désormais autant que la moyenne des activités, voire un peu plus : elles remboursent ce qu’elles ont coûté en 65 à 75 jours environ, au lieu de 9 à 19 mois. Navires, avions, terminaux, places dans les tours et immeubles coûtent 70 % de moins, et leurs recettes progressent avec chaque agrandissement.','V2.3.1'],
@@ -17361,7 +17489,7 @@ const FAM_KPI={build:0, staffing:2, promo:0, office:0, studio:0, warehouse:0, sh
 function famOf(b){ for(const k in FAM_UI) if(FAM_UI[k].defs.includes(b.def)) return k; return 'serv'; }
 /* chiffre central du résumé : [libellé, valeur] */
 function famStat(b){ const f=famOf(b), l=b.last, m=b.m||{};
-  if(f==='usine') return ['Production / j', fmtN(b.prodDay||0)+' '+D.GOODS[goodOf(b)].u];
+  if(f==='usine') return ['Production / j', eur(b.prodDayV||0,0)];
   if(b.def==='saas'&&m.P!==undefined) return ['Abonnés payants', fmtN(Math.round((m.P||0)+(m.E||0)))];
   if(b.def==='ecom'&&m.stats) return ['Commandes / j', fmtN(Math.round(m.stats.orders||0))];
   /* V2.2.7 : chiffre clé propre à l'activité (indice de l'indicateur du métier) */
@@ -17370,9 +17498,9 @@ function famStat(b){ const f=famOf(b), l=b.last, m=b.m||{};
   return ['Ventes / j', l&&l.rev? eur(l.rev,0) : '—']; }
 /* une action utile maintenant, ou rien */
 function famTodo(b){ if(b.status!=='active') return null; const l=b.last, roles=entRoles(b).reduce((a,x)=>a+x[1],0), hc=headcount(b);
-  if(isFact(b)){ const g=goodOf(b), I=indInit(), st=b.goods||0, cap=factCap(b);
+  if(isFact(b)){ fpInit(b); const g=goodOf(b), I=indInit(), st=fpRefValue(b), cap=factCap(b);
     if(b.fmode==='store'&&st>cap*.9) return ['Stock presque plein','Vendez le stock ou passez en vente au gros (onglet Production).'];
-    const o=I.offers.find(x=>x.g===g); if(o&&I.active.length<5) return ['Contrat à signer',o.client+' propose '+fmtN(o.qty)+' '+D.GOODS[g].u+' à '+eur(o.px,2)+' (onglet Production).'];
+    const o=I.offers.find(x=>prodsOf(b).includes(x.p)); if(o&&I.active.length<5) return ['Contrat à signer',o.client+' propose '+fmtN(o.qty)+' '+D.PRODS[o.p].u+' de '+D.PRODS[o.p].n.toLowerCase()+' à '+eur(o.px,2)+' (onglet Production).'];
     if(!supClients(g).length&&!b.dlg) return null; }
   if(hc<roles) return ['Postes vacants',(roles-hc)+' poste'+(roles-hc>1?'s':'')+' à pourvoir : recrutez dans l’onglet Équipe.'];
   const h=(b.hist||[]).slice(-30); if(b.def!=='saas'&&h.length>=20&&h.reduce((a,x)=>a+x,0)<0) return ['Pertes sur 30 jours','Vérifiez les prix et les réglages de l’onglet '+FAM_UI[famOf(b)].tab+', ou confiez la société à son directeur.'];
