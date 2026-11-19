@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Fiche restaurant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EAF4FF; --paper-2:#E1EBFA; --card:#FFFFFF; --line:#DCE6F5; --btn-line:#C7D9F2;
+  --ink:#1B2550; --ink-2:#3E4A7A; --ink-3:#56638F;
+  --lime:#FFC93C; --lime-ink:#3A2A00; --blue:#1F3C88; --blue-soft:#DCE7FF;
+  --red:#C8352A; --red-soft:#FFE4E0; --green:#16804D; --green-soft:#DFF5EA; --amber:#875C00; --amber-soft:#FFF1C7;
+  --sh:#C7D9F2; --pri-sh:#142A63; --good-bg:#2BB673; --good-sh:#1E8A55;
+  --fam:#C0507A; --fam-soft:#FBE3EC;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#cfdcef;color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.note-top{max-width:390px;margin:0 auto;padding:14px 16px 0;font-size:13px;color:var(--ink-2)}
+.phone{max-width:390px;margin:10px auto 40px;background:var(--paper);min-height:100vh;border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--blue);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:var(--card);box-shadow:0 3px 0 var(--sh);font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 24px}
+/* en-tête */
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--sh)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 14px;background:linear-gradient(transparent,rgba(20,24,50,.82))}
+.hero h1{margin:0;font:800 26px/1.05 var(--fd);color:#fff}
+.hero .sub{color:#E7ECFA;font-size:13px;margin-top:2px}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.92);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--good-bg)}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.nm{display:flex;align-items:center;gap:6px}.edit{width:44px;height:44px;margin:-8px 0;border-radius:14px;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+/* chiffres clés */
+.kpis{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:8px;margin-top:12px}
+.kpi{background:var(--card);border-radius:16px;padding:10px 10px 9px;box-shadow:0 3px 0 var(--sh);min-width:0}
+.kpi small{display:block;font:700 11.5px var(--fb);color:var(--ink-3)}
+.kpi b{display:block;font:800 21px/1.15 var(--fd);margin-top:2px;white-space:nowrap}
+.kpi i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pos{color:var(--green)}.neg{color:var(--red)}.amb{color:var(--amber)}
+.spark{display:block;margin-top:4px}
+/* action principale */
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:12px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 18px var(--fd);padding:12px 16px;min-height:56px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.up-sub{font-size:12.5px;color:var(--ink-2);margin:7px 4px 0}
+/* à faire */
+.todo{margin-top:12px;background:var(--amber-soft);border-radius:16px;padding:12px 14px}
+.todo h3{margin:0 0 4px;font:800 14px var(--fb);color:var(--amber)}
+.todo .r{display:flex;gap:10px;align-items:center}
+.todo p{margin:0;font-size:13.5px;flex:1}
+.lnk{border:0;background:var(--card);color:var(--blue);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--sh)}
+/* onglets */
+.tabs{position:sticky;top:0;z-index:5;margin:14px -16px 0;padding:8px 16px;background:var(--paper)}
+.seg{display:flex;background:var(--paper-2);border-radius:16px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:none;border-radius:12px;min-height:44px;font:800 13.5px var(--fb);color:var(--ink-2);display:flex;align-items:center;justify-content:center;gap:6px;padding:0 4px}
+.seg button.on{background:var(--blue);color:#fff;box-shadow:0 3px 0 var(--pri-sh)}
+.seg button .d{width:8px;height:8px;border-radius:50%}
+.g{background:var(--good-bg)}.a{background:#E5A800}.rr{background:#FF6B5B}
+/* cartes */
+.card{background:var(--card);border-radius:20px;padding:14px 14px 12px;margin-top:12px;box-shadow:0 4px 0 var(--sh)}
+.card>h2{margin:0;font:800 19px var(--fd);display:flex;justify-content:space-between;align-items:center}
+.card>h2 small{font:700 12.5px var(--fb);color:var(--ink-3)}
+.lead{font-size:13px;color:var(--ink-3);margin:2px 0 8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.st{background:var(--paper);border-radius:14px;padding:9px 11px}
+.st small{display:block;font:700 11.5px var(--fb);color:var(--ink-3)}
+.st b{display:block;font:800 18px var(--fd)}
+.st i{font-style:normal;font-size:12px;color:var(--ink-3)}
+.course{display:flex;justify-content:space-between;align-items:center;margin:12px 0 4px}
+.course b{font:800 14px var(--fb)}
+.course b span{color:var(--ink-3);font-weight:700}
+.add{border:0;background:var(--blue-soft);color:var(--blue);font:800 13px var(--fb);border-radius:12px;min-height:40px;padding:0 12px}
+.dish{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.dish:first-of-type{border-top:0}
+.dish .n{flex:1;min-width:0}
+.dish .n b{display:block;font:700 14.5px var(--fb)}
+.dish .n i{font-style:normal;font-size:12px;color:var(--ink-3)}
+.dots{letter-spacing:1px;color:var(--fam)}
+.dots s{text-decoration:none;color:#D4DCEC}
+.tag{display:inline-block;font:800 10.5px var(--fb);color:var(--fam);background:var(--fam-soft);border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:1px}
+.px{font:800 15px var(--fd);min-width:38px;text-align:right}
+.mini{width:44px;height:44px;border:0;border-radius:12px;background:var(--paper);color:var(--ink-3);font:800 18px var(--fb)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.lbl{font:800 14px var(--fb)}
+.stepper{display:flex;align-items:center;gap:4px;background:var(--paper);border-radius:14px;padding:3px}
+.stepper button{width:44px;height:40px;border:0;border-radius:11px;background:var(--card);font:800 18px var(--fb);color:var(--blue);box-shadow:0 2px 0 var(--sh)}
+.stepper b{min-width:56px;text-align:center;font:800 17px var(--fd)}
+.sep{height:1px;background:var(--line);margin:12px 0}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+.btn{border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:var(--card);color:var(--ink);box-shadow:0 3px 0 var(--sh),inset 0 0 0 1.5px var(--btn-line)}
+.btn.pri{background:var(--blue);color:#fff;box-shadow:0 3px 0 var(--pri-sh)}
+.btn.dng{background:var(--red-soft);color:var(--red);box-shadow:0 3px 0 #F2B8B0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.need{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13.5px;margin-top:8px}
+.need span:nth-child(even){font-weight:800;text-align:right}
+.notice{background:var(--blue-soft);border-radius:14px;padding:10px 12px;font-size:13px;margin-top:10px}
+.prog{height:10px;background:var(--paper-2);border-radius:6px;overflow:hidden;margin-top:6px}
+.prog i{display:block;height:100%;border-radius:6px;background:var(--lime)}
+.big{display:flex;align-items:baseline;gap:8px}
+.big b{font:800 40px var(--fd)}
+.stars{color:#F2B705;font-size:20px;letter-spacing:1px}
+.stars s{text-decoration:none;color:#D4DCEC}
+.fac{display:grid;grid-template-columns:64px 1fr 112px;align-items:center;gap:8px;font-size:13.5px;padding:5px 0}
+.fac .bar{height:8px;border-radius:5px;background:var(--paper-2);overflow:hidden}
+.fac .bar i{display:block;height:100%;border-radius:5px}
+.fac em{font-style:normal;font-weight:800;text-align:right;font-size:12.5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.pl{border-radius:14px;padding:9px 11px;font-size:13px}
+.pl b{display:block;font-size:12px;margin-bottom:2px}
+.rev{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}
+.rev .s{color:#F2B705;white-space:nowrap;font-size:12px}
+.rev .s s{text-decoration:none;color:#D4DCEC}
+.job{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.job:first-of-type{border-top:0}
+.job .ic{width:40px;height:40px;border-radius:12px;background:var(--fam-soft);color:var(--fam);display:grid;place-items:center;font:800 15px var(--fd)}
+.job .n{flex:1}.job .n b{display:block;font-size:14.5px}.job .n i{font-style:normal;font-size:12px;color:var(--ink-3)}
+.pill{display:inline-flex;font:800 12px var(--fb);border-radius:999px;padding:3px 10px;background:var(--paper-2);color:var(--ink-2)}
+.pill.good{background:var(--green-soft);color:var(--green)}
+.av{width:48px;height:48px;border-radius:16px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font:800 18px var(--fd)}
+.sk{display:grid;grid-template-columns:70px 1fr 34px;align-items:center;gap:8px;font-size:13px;margin-top:6px}
+.sk .bar{height:8px;border-radius:5px;background:var(--paper-2);overflow:hidden}
+.sk .bar i{display:block;height:100%;background:var(--lime);border-radius:5px}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.slot{border:0;border-radius:14px;padding:9px 6px;background:var(--paper);font:800 13px var(--fb);color:var(--ink-2);min-height:56px}
+.slot small{display:block;font-weight:600;font-size:11.5px;color:var(--ink-3)}
+.slot.on{background:var(--blue);color:#fff}.slot.on small{color:#CFDAF7}
+.range{width:100%;accent-color:var(--blue);height:32px}
+.flow{display:grid;grid-template-columns:1fr auto;gap:0 10px;font-size:14px}
+.flow span{padding:6px 0;border-top:1px solid var(--line)}
+.flow span:nth-child(-n+2){border-top:0}
+.flow span:nth-child(even){text-align:right;font-weight:800}
+.flow .tot{font-weight:800;border-top:2px solid var(--ink)!important}
+.bars30{display:flex;align-items:center;gap:3px;height:70px;margin-top:8px}
+.bars30 i{flex:1;border-radius:3px}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+.pane{display:none}.pane.on{display:block}
+.legend{max-width:390px;margin:0 auto 40px;padding:0 16px;font-size:13.5px;color:var(--ink-2)}
+.legend h2{font:800 18px var(--fd);color:var(--ink);margin:0 0 6px}
+.legend li{margin:4px 0}
+</style>
+</head>
+<body>
+<p class="note-top"><b>Maquette V1 · Fiche d'une société (exemple : restaurant).</b> Les onglets sont cliquables. Rien n'est encore branché dans le jeu.</p>
+
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+
+    <!-- 1. En-tête : illustration + identité -->
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a06c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a06gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a06bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a06bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a06gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a06vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a06lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a06sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6E8FD0"></stop><stop offset="1" stop-color="#F6D8BC"></stop></linearGradient></defs><g clip-path="url(#a06c)"><rect width="640" height="360" fill="url(#a06sky)"></rect><g><g fill="#FFFFFF" opacity=".85"><ellipse cx="90" cy="54" rx="40" ry="12"></ellipse><ellipse cx="114" cy="46" rx="26" ry="12"></ellipse><ellipse cx="470" cy="34" rx="34" ry="10"></ellipse><ellipse cx="492" cy="28" rx="22" ry="10"></ellipse></g><animateTransform attributeName="transform" type="translate" values="0 0;50 0;0 0" dur="34s" repeatCount="indefinite"></animateTransform></g><g fill="#A9BDD3" opacity=".55"><rect x="0" y="172" width="40" height="78"></rect><rect x="44" y="168" width="45" height="82"></rect><rect x="92" y="205" width="55" height="45"></rect><rect x="151" y="151" width="31" height="99"></rect><rect x="186" y="194" width="40" height="56"></rect><rect x="230" y="177" width="70" height="73"></rect><rect x="304" y="177" width="63" height="73"></rect><rect x="372" y="199" width="56" height="51"></rect><rect x="431" y="149" width="55" height="101"></rect><rect x="490" y="158" width="51" height="92"></rect><rect x="545" y="206" width="57" height="44"></rect><rect x="606" y="169" width="60" height="81"></rect></g><rect x="0" y="292" width="640" height="68" fill="#8E8C86"></rect><rect x="0" y="284" width="640" height="8" fill="#C9C6BE"></rect><rect x="0" y="326" width="640" height="3" fill="#E9E3C8" opacity=".7"></rect><rect x="110" y="114" width="420" height="170" fill="#3E2F35"></rect><rect x="425" y="114" width="105" height="170" fill="#000" opacity="0.14"></rect><rect x="128.8" y="130.0" width="22.4" height="16.5" fill="#4A3B41"></rect><rect x="168.8" y="130.0" width="22.4" height="16.5" fill="#5B4A50"></rect><rect x="208.8" y="130.0" width="22.4" height="16.5" fill="#FFE6A6"></rect><rect x="248.8" y="130.0" width="22.4" height="16.5" fill="#FFE6A6"></rect><rect x="288.8" y="130.0" width="22.4" height="16.5" fill="#5B4A50"></rect><rect x="328.8" y="130.0" width="22.4" height="16.5" fill="#4A3B41"></rect><rect x="368.8" y="130.0" width="22.4" height="16.5" fill="#FFE6A6"></rect><rect x="408.8" y="130.0" width="22.4" height="16.5" fill="#5B4A50"></rect><rect x="448.8" y="130.0" width="22.4" height="16.5" fill="#5B4A50"></rect><rect x="488.8" y="130.0" width="22.4" height="16.5" fill="#FFE6A6"><animate attributeName="opacity" values="1;1;.15;.15;1" keyTimes="0;.5;.55;.9;1" dur="15.0s" begin="-6.2s" repeatCount="indefinite"></animate></rect><rect x="128.8" y="160.0" width="22.4" height="16.5" fill="#4A3B41"></rect><rect x="168.8" y="160.0" width="22.4" height="16.5" fill="#5B4A50"></rect><rect x="208.8" y="160.0" width="22.4" height="16.5" fill="#5B4A50"></rect><rect x="248.8" y="160.0" width="22.4" height="16.5" fill="#4A3B41"></rect><rect x="288.8" y="160.0" width="22.4" height="16.5" fill="#4A3B41"></rect><rect x="328.8" y="160.0" width="22.4" height="16.5" fill="#5B4A50"></rect><rect x="368.8" y="160.0" width="22.4" height="16.5" fill="#4A3B41"></rect><rect x="408.8" y="160.0" width="22.4" height="16.5" fill="#5B4A50"></rect><rect x="448.8" y="160.0" width="22.4" height="16.5" fill="#4A3B41"></rect><rect x="488.8" y="160.0" width="22.4" height="16.5" fill="#4A3B41"></rect><rect x="110" y="196" width="420" height="16" fill="#C9A85A"></rect><rect x="130" y="220" width="120" height="64" fill="#F2D7A6"></rect><rect x="130" y="220" width="42" height="64" fill="#FFFFFF" opacity=".18"></rect><rect x="270" y="220" width="40" height="64" fill="#2A2026"></rect><rect x="330" y="220" width="180" height="64" fill="#F2D7A6"></rect><rect x="330" y="220" width="63" height="64" fill="#FFFFFF" opacity=".18"></rect><path d="M110 200Q320 230 530 200" stroke="#2A2026" fill="none"></path><rect x="130" y="298" width="40" height="5" fill="#F4F1EA"></rect><rect x="134" y="303" width="3" height="16" fill="#5E3E28"></rect><rect x="162" y="303" width="3" height="16" fill="#5E3E28"></rect><rect x="210" y="298" width="40" height="5" fill="#F4F1EA"></rect><rect x="214" y="303" width="3" height="16" fill="#5E3E28"></rect><rect x="242" y="303" width="3" height="16" fill="#5E3E28"></rect><rect x="390" y="298" width="40" height="5" fill="#F4F1EA"></rect><rect x="394" y="303" width="3" height="16" fill="#5E3E28"></rect><rect x="422" y="303" width="3" height="16" fill="#5E3E28"></rect><rect x="470" y="298" width="40" height="5" fill="#F4F1EA"></rect><rect x="474" y="303" width="3" height="16" fill="#5E3E28"></rect><rect x="502" y="303" width="3" height="16" fill="#5E3E28"></rect><circle cx="470" cy="120" r="6" fill="#E9E9E9" opacity=".0"><animate attributeName="cy" values="120;50" dur="4s" begin="0s" repeatCount="indefinite"></animate><animate attributeName="r" values="5;16" dur="4s" begin="0s" repeatCount="indefinite"></animate><animate attributeName="opacity" values=".8;0" dur="4s" begin="0s" repeatCount="indefinite"></animate><animate attributeName="cx" values="470;500" dur="4s" begin="0s" repeatCount="indefinite"></animate></circle><circle cx="470" cy="120" r="6" fill="#E9E9E9" opacity=".0"><animate attributeName="cy" values="120;50" dur="4s" begin="1s" repeatCount="indefinite"></animate><animate attributeName="r" values="5;16" dur="4s" begin="1s" repeatCount="indefinite"></animate><animate attributeName="opacity" values=".8;0" dur="4s" begin="1s" repeatCount="indefinite"></animate><animate attributeName="cx" values="470;500" dur="4s" begin="1s" repeatCount="indefinite"></animate></circle><circle cx="470" cy="120" r="6" fill="#E9E9E9" opacity=".0"><animate attributeName="cy" values="120;50" dur="4s" begin="2s" repeatCount="indefinite"></animate><animate attributeName="r" values="5;16" dur="4s" begin="2s" repeatCount="indefinite"></animate><animate attributeName="opacity" values=".8;0" dur="4s" begin="2s" repeatCount="indefinite"></animate><animate attributeName="cx" values="470;500" dur="4s" begin="2s" repeatCount="indefinite"></animate></circle><rect x="462" y="110" width="16" height="30" fill="#5B4A50"></rect><rect x="260" y="166" width="120" height="26" rx="6" fill="#C9A85A"></rect><g transform="translate(310.824 169.824) scale(0.764706)" fill="none" stroke="#2A2026" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M16 3c-2 2-2 7 0 9v9"></path></g><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="22.7359s" begin="-6.9s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="308" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="312" width="7" height="11" rx="3" fill="#F2B134"></rect><rect x="-3" y="323" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="323" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="30.1423s" begin="-13.1s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="308" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="312" width="7" height="11" rx="3" fill="#2B2B2B"></rect><rect x="-3" y="323" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="323" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="28.081s" begin="-24.3s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="308" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="312" width="7" height="11" rx="3" fill="#E04B3B"></rect><rect x="-3" y="323" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="323" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><rect width="640" height="360" fill="url(#a06lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a06gl)"><rect x="128.8" y="130.0" width="22.4" height="16.5" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.332;0.342;0.840;0.850;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="168.8" y="130.0" width="22.4" height="16.5" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.378;0.388;0.864;0.874;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="208.8" y="130.0" width="22.4" height="16.5" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.413;0.423;0.913;0.923;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="288.8" y="130.0" width="22.4" height="16.5" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.407;0.417;0.875;0.885;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="328.8" y="130.0" width="22.4" height="16.5" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.447;0.457;0.863;0.873;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="368.8" y="130.0" width="22.4" height="16.5" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.398;0.408;0.851;0.861;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="448.8" y="130.0" width="22.4" height="16.5" fill="#FFD27A" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.447;0.457;0.945;0.955;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="488.8" y="130.0" width="22.4" height="16.5" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.358;0.368;0.855;0.865;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="128.8" y="160.0" width="22.4" height="16.5" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.368;0.378;0.937;0.947;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="208.8" y="160.0" width="22.4" height="16.5" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.421;0.431;0.889;0.899;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="248.8" y="160.0" width="22.4" height="16.5" fill="#FFD27A" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.388;0.398;0.870;0.880;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="288.8" y="160.0" width="22.4" height="16.5" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.362;0.372;0.946;0.956;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="368.8" y="160.0" width="22.4" height="16.5" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.353;0.363;0.860;0.870;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="408.8" y="160.0" width="22.4" height="16.5" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.378;0.388;0.935;0.945;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="448.8" y="160.0" width="22.4" height="16.5" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.402;0.412;0.908;0.918;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="488.8" y="160.0" width="22.4" height="16.5" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.319;0.329;0.954;0.964;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><rect x="130" y="220" width="120" height="64" fill="#FFE6A6" opacity=".55"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="330" y="220" width="180" height="64" fill="#FFE6A6" opacity=".55"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="110.0" cy="200.0" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="1.5s" repeatCount="indefinite"></animate></circle><circle cx="134.7" cy="206.6" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="1.9s" repeatCount="indefinite"></animate></circle><circle cx="159.4" cy="212.5" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="2.3s" repeatCount="indefinite"></animate></circle><circle cx="184.1" cy="217.4" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="2.7s" repeatCount="indefinite"></animate></circle><circle cx="208.8" cy="221.6" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="1.5s" repeatCount="indefinite"></animate></circle><circle cx="233.5" cy="224.9" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="1.9s" repeatCount="indefinite"></animate></circle><circle cx="258.2" cy="227.4" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="2.3s" repeatCount="indefinite"></animate></circle><circle cx="282.9" cy="229.1" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="2.7s" repeatCount="indefinite"></animate></circle><circle cx="307.6" cy="229.9" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="1.5s" repeatCount="indefinite"></animate></circle><circle cx="332.4" cy="229.9" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="1.9s" repeatCount="indefinite"></animate></circle><circle cx="357.1" cy="229.1" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="2.3s" repeatCount="indefinite"></animate></circle><circle cx="381.8" cy="227.4" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="2.7s" repeatCount="indefinite"></animate></circle><circle cx="406.5" cy="224.9" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="1.5s" repeatCount="indefinite"></animate></circle><circle cx="431.2" cy="221.6" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="1.9s" repeatCount="indefinite"></animate></circle><circle cx="455.9" cy="217.4" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="2.3s" repeatCount="indefinite"></animate></circle><circle cx="480.6" cy="212.5" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="2.7s" repeatCount="indefinite"></animate></circle><circle cx="505.3" cy="206.6" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="1.5s" repeatCount="indefinite"></animate></circle><circle cx="530.0" cy="200.0" r="2.4" fill="#FFE29A"><animate attributeName="opacity" values="1;.4;1" dur="1.9s" repeatCount="indefinite"></animate></circle><ellipse cx="150" cy="294" rx="2" ry="3.4" fill="#FFB547"><animate attributeName="ry" values="3.4;2.4;3.8;3.4" dur=".7s" repeatCount="indefinite"></animate></ellipse><ellipse cx="230" cy="294" rx="2" ry="3.4" fill="#FFB547"><animate attributeName="ry" values="3.4;2.4;3.8;3.4" dur=".7s" repeatCount="indefinite"></animate></ellipse><ellipse cx="410" cy="294" rx="2" ry="3.4" fill="#FFB547"><animate attributeName="ry" values="3.4;2.4;3.8;3.4" dur=".7s" repeatCount="indefinite"></animate></ellipse><ellipse cx="490" cy="294" rx="2" ry="3.4" fill="#FFB547"><animate attributeName="ry" values="3.4;2.4;3.8;3.4" dur=".7s" repeatCount="indefinite"></animate></ellipse><g opacity="0"><rect x="257" y="163" width="126" height="32" rx="6" fill="#FFE6A6" opacity=".35"></rect><g transform="translate(310.824 169.824) scale(0.764706)" fill="none" stroke="#FFE6A6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M16 3c-2 2-2 7 0 9v9"></path></g><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g></g><rect width="640" height="360" filter="url(#a06gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a06vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>Ouvert · midi et soir</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Le Comptoir</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Restaurant gastronomique · 59 rue de Marignan, Paris</div></div>
+    </div>
+
+    <!-- 2. Trois chiffres clés propres au métier -->
+    <div class="kpis">
+      <div class="kpi"><small>Bénéfice / jour</small><b class="pos">+1 519 €</b>
+        <svg class="spark" width="100%" height="18" viewBox="0 0 100 18" preserveAspectRatio="none"><polyline fill="none" stroke="#2BB673" stroke-width="2" points="0,14 10,12 20,13 30,9 40,11 50,8 60,10 70,6 80,7 90,4 100,5"/></svg>
+        <i>moy. 30 j : +995 €</i></div>
+      <div class="kpi"><small>Couverts / jour</small><b>68</b><i>menu à 52 €</i></div>
+      <div class="kpi"><small>Note critiques</small><b>2,8<span style="font-size:14px;color:var(--ink-3)"> /5</span></b><i>étoile à 3,4</i></div>
+    </div>
+
+    <!-- 3. Une seule action principale, avec ce qu'elle apporte -->
+    <button class="up">Améliorer au niv. 2 <span>72 722 €</span></button>
+    <p class="up-sub">Plus de places en salle et une équipe plus grande. Travaux : 3 jours.</p>
+
+    <!-- 4. À faire maintenant -->
+    <div class="todo"><h3>À faire maintenant</h3>
+      <div class="r"><p><b>Qualité jugée moyenne.</b> Retirez un plat trop difficile pour le chef ou formez-le.</p><button class="lnk" data-go="cuisine">Voir</button></div>
+    </div>
+
+    <!-- 5. Onglets par question du joueur, avec un voyant d'état -->
+    <div class="tabs"><div class="seg" role="tablist">
+      <button class="on" data-t="cuisine"><span class="d a"></span>Cuisine</button>
+      <button data-t="clients"><span class="d a"></span>Clients</button>
+      <button data-t="equipe"><span class="d g"></span>Équipe</button>
+      <button data-t="gestion"><span class="d g"></span>Gestion</button>
+    </div></div>
+
+    <!-- ===== CUISINE (onglet métier : son nom change selon la famille) ===== -->
+    <section class="pane on" id="p-cuisine">
+      <div class="card">
+        <h2>La carte <small>7 plats · matières 16 € / couvert</small></h2>
+        <div class="course"><b>Entrées <span>2 / 4</span></b><button class="add">+ Ajouter</button></div>
+        <div class="dish"><div class="n"><b>Velouté du moment <span class="tag">spécialité</span></b><i><span class="dots">●●●●●<s>●●</s></span> · facile · 10 min</i></div><span class="px">3 €</span><button class="mini" aria-label="Retirer">−</button></div>
+        <div class="dish"><div class="n"><b>Tartare de saumon</b><i><span class="dots">●●●●●●●</span> · moyen · 10 min</i></div><span class="px">6 €</span><button class="mini" aria-label="Retirer">−</button></div>
+        <div class="course"><b>Plats <span>3 / 5</span></b><button class="add">+ Ajouter</button></div>
+        <div class="dish"><div class="n"><b>Blanquette de veau <span class="tag">spécialité</span></b><i><span class="dots">●●●●●●<s>●</s></span> · moyen · 40 min</i></div><span class="px">8 €</span><button class="mini" aria-label="Retirer">−</button></div>
+        <div class="dish"><div class="n"><b>Poisson du jour, beurre blanc</b><i><span class="dots">●●●●●●●</span> · moyen · 20 min</i></div><span class="px">11 €</span><button class="mini" aria-label="Retirer">−</button></div>
+        <div class="dish"><div class="n"><b>Magret, jus aux cerises</b><i><span class="dots">●●●●●●●</span> · <span class="amb">difficile</span> · 25 min</i></div><span class="px">10 €</span><button class="mini" aria-label="Retirer">−</button></div>
+        <div class="course"><b>Desserts <span>2 / 3</span></b><button class="add">+ Ajouter</button></div>
+        <div class="dish"><div class="n"><b>Mousse au chocolat</b><i><span class="dots">●●●●●●<s>●</s></span> · facile · 10 min</i></div><span class="px">2 €</span><button class="mini" aria-label="Retirer">−</button></div>
+        <div class="dish"><div class="n"><b>Crème brûlée</b><i><span class="dots">●●●●●●●</span> · facile · 15 min</i></div><span class="px">2 €</span><button class="mini" aria-label="Retirer">−</button></div>
+        <p class="hint">Une carte courte et de saison plaît aux critiques ; un plat trop difficile pour le chef fait baisser la note.</p>
+      </div>
+
+      <div class="card">
+        <h2>Le chef</h2>
+        <div class="row" style="margin-top:8px"><div class="av">AR</div><div style="flex:1"><b>Antoine Roussel</b><div class="lead" style="margin:0">Niveau 2 sur 5 · spécialité : terroir</div></div></div>
+        <div class="prog"><i style="width:40%"></i></div>
+        <div class="btns"><button class="btn">Former le chef · 1 200 €</button><button class="btn">Remplacer</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Prix et services</h2>
+        <div class="row" style="margin-top:10px"><span class="lbl">Prix du menu</span><div class="stepper"><button>−</button><b>52 €</b><button>+</button></div></div>
+        <p class="hint">Dans la moyenne du quartier (48 à 60 €).</p>
+        <div class="sep"></div>
+        <span class="lbl">Services</span>
+        <div class="seg" style="margin-top:8px"><button>Midi</button><button>Soir</button><button class="on">Midi et soir</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Approvisionnement</h2>
+        <div class="seg" style="margin-top:10px"><button>Marché</button><button class="on">Mixte</button><button>Vos usines</button></div>
+        <div class="need"><span>Légumes et fruits</span><span>283 € / j</span><span>Vin</span><span>212 € / j</span><span>Produits laitiers</span><span>177 € / j</span><span>Céréales</span><span>106 € / j</span><span>Œufs et volaille</span><span>106 € / j</span></div>
+        <div class="notice">Aucune de vos usines ne produit ces denrées : tout vient du marché. Une ferme vous ferait économiser environ 25 %.</div>
+      </div>
+
+      <div class="card">
+        <h2>Maîtrise <small>palier 0 sur 5</small></h2>
+        <div class="prog"><i style="width:35%"></i></div>
+        <p class="hint">Prochain palier : <b>Accords mets-vins</b> (+8 % de ventes le soir), dans 25 jours.</p>
+      </div>
+    </section>
+
+    <!-- ===== CLIENTS ===== -->
+    <section class="pane" id="p-clients">
+      <div class="card">
+        <h2>Avis des clients <small>20 derniers jours</small></h2>
+        <div class="big"><b>3,7</b><span class="stars">★★★<span style="color:#F2B705">★</span><s>★</s></span></div>
+        <div class="lead">En baisse sur 7 jours (3,6) · ventes +1 %</div>
+        <div class="fac"><span>Prix</span><span class="bar"><i style="width:60%;background:#E5A800"></i></span><em class="amb">Dans la moyenne</em></div>
+        <div class="fac"><span>Service</span><span class="bar"><i style="width:100%;background:var(--good-bg)"></i></span><em class="pos">Excellent</em></div>
+        <div class="fac"><span>Qualité</span><span class="bar"><i style="width:50%;background:#FF6B5B"></i></span><em class="neg">Moyenne</em></div>
+        <div class="fac"><span>Adresse</span><span class="bar"><i style="width:80%;background:var(--good-bg)"></i></span><em class="pos">Bon</em></div>
+        <div class="two">
+          <div class="pl" style="background:var(--green-soft)"><b class="pos">Ils aiment</b>Le service, l'adresse</div>
+          <div class="pl" style="background:var(--red-soft)"><b class="neg">Ils fuient</b>La qualité des plats</div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Derniers avis</h2>
+        <div class="rev" style="border-top:0"><span class="s">★★★★★</span><span>Service rapide, on se sent bien accueilli.</span></div>
+        <div class="rev"><span class="s">★★★★<s>★</s></span><span>Bon rapport qualité-prix, je recommande.</span></div>
+        <div class="rev"><span class="s">★★★<s>★★</s></span><span>Correct, sans plus.</span></div>
+        <div class="btns"><button class="btn">Voir les 20 avis</button></div>
+      </div>
+      <div class="card">
+        <h2>Agir sur la réputation</h2>
+        <div class="btns"><button class="btn">Répondre aux avis · 2 939 €</button><button class="btn">Promotion · 1 959 €</button></div>
+        <div class="grid2" style="margin-top:12px">
+          <div class="st"><small>Étoiles</small><b>Aucune</b><i>passage du guide dans 25 j</i></div>
+          <div class="st"><small>Saison</small><b>Hiver</b><i>0 % de plats de saison</i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ÉQUIPE ===== -->
+    <section class="pane" id="p-equipe">
+      <div class="card">
+        <h2>Effectif <small>5 / 5 postes</small></h2>
+        <div class="grid2" style="margin-top:8px">
+          <div class="st"><small>Fatigue</small><b class="pos">0 / 100</b><i>repos suffisant</i></div>
+          <div class="st"><small>Fidélité</small><b>59</b><i>moyenne de l'équipe</i></div>
+        </div>
+        <div class="job" style="margin-top:6px"><span class="ic">C</span><div class="n"><b>Cuisiniers · 3 / 3</b><i>productivité 60 · fiabilité 85 %</i></div><span class="pill good">Complet</span></div>
+        <div class="job"><span class="ic">S</span><div class="n"><b>Chef de salle · 1 / 1</b><i>productivité 60 · fiabilité 85 %</i></div><span class="pill good">Complet</span></div>
+        <div class="job"><span class="ic">M</span><div class="n"><b>Manager · 1 / 1</b><i>productivité 60 · fiabilité 85 %</i></div><span class="pill good">Complet</span></div>
+        <div class="btns"><button class="btn">Former l'équipe · 1 558 €</button><button class="btn">Voir les candidats</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Directeur du site</h2>
+        <div class="row" style="margin-top:8px"><div class="av">CR</div><div style="flex:1"><b>Camille Roux</b><div class="lead" style="margin:0">En poste depuis le 1er janv. · 64 € / jour</div></div><span class="pill good">Moral 61</span></div>
+        <div class="sk"><span>Gestion</span><span class="bar"><i style="width:50%"></i></span><b>5/10</b></div>
+        <div class="sk"><span>Vente</span><span class="bar"><i style="width:80%;background:var(--good-bg)"></i></span><b>8/10</b></div>
+        <div class="sk"><span>Rigueur</span><span class="bar"><i style="width:60%"></i></span><b>6/10</b></div>
+        <div class="sep"></div>
+        <span class="lbl">Qui décide ?</span>
+        <div class="seg" style="margin-top:8px"><button class="on">Moi</button><button>Le directeur</button></div>
+        <div class="btns"><button class="btn">Former · 768 €</button><button class="btn">Augmenter de 15 %</button><button class="btn">Remplacer</button></div>
+      </div>
+
+      <div class="card">
+        <h2>Horaires</h2>
+        <div class="slots"><button class="slot">Matin<small>7 h – 12 h</small></button><button class="slot on">Midi<small>12 h – 18 h</small></button><button class="slot on">Soir<small>18 h – 23 h</small></button></div>
+        <div class="row" style="margin-top:12px"><span class="lbl">Équipes</span><div class="seg" style="flex:0 0 190px"><button class="on">1 équipe</button><button>2 équipes</button></div></div>
+        <div class="row" style="margin-top:10px"><span class="lbl">Week-end</span><div class="seg" style="flex:0 0 190px"><button class="on">Ouvert</button><button>Fermé</button></div></div>
+      </div>
+
+      <div class="card">
+        <h2>Salaires</h2>
+        <div class="row"><span class="lbl">Politique salariale</span><b>100 %</b></div>
+        <input class="range" type="range" min="80" max="130" value="100" aria-label="Politique salariale">
+        <div class="row" style="margin-top:4px"><span class="lbl">Mutuelle</span><div class="seg" style="flex:0 0 190px"><button class="on">Aucune</button><button>Souscrite</button></div></div>
+        <p class="hint">Mutuelle : +5 % de salaires, fidélité +5.</p>
+      </div>
+    </section>
+
+    <!-- ===== GESTION ===== -->
+    <section class="pane" id="p-gestion">
+      <div class="card">
+        <h2>Résultat d'hier</h2>
+        <div class="flow" style="margin-top:8px">
+          <span>Ventes</span><span class="pos">3 541 €</span>
+          <span>Matières premières</span><span class="neg">−1 075 €</span>
+          <span>Salaires et charges</span><span class="neg">−590 €</span>
+          <span>Loyer</span><span class="neg">−327 €</span>
+          <span>Entretien et incidents</span><span class="neg">−30 €</span>
+          <span class="tot">Bénéfice</span><span class="tot pos">+1 519 €</span>
+        </div>
+      </div>
+      <div class="card">
+        <h2>30 derniers jours <small>moy. +995 € / j</small></h2>
+        <div class="bars30" id="b30"></div>
+      </div>
+      <div class="card">
+        <h2>Ce qui fait vos ventes</h2>
+        <div class="flow" style="margin-top:6px">
+          <span>Conjoncture</span><span class="pos">+9 %</span><span>Concurrence faible</span><span class="pos">+9 %</span><span>Réputation</span><span class="pos">+8 %</span><span>Prestige de l'adresse</span><span class="pos">+6 %</span><span>Quartier et clientèle</span><span class="neg">−4 %</span><span>Effectif et compétences</span><span class="neg">−5 %</span>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Local</h2>
+        <div class="lead">Local commercial de 220 m² · niveau 4 au maximum ici</div>
+        <div class="grid2"><div class="st"><small>Statut</small><b>Locataire</b><i>327 € / jour</i></div><div class="st"><small>Achat</small><b>2,85 M €</b><i>loyer −30 % ensuite</i></div></div>
+        <div class="btns"><button class="btn pri">Acheter le local</button><button class="btn">Déménager · 15 adresses</button></div>
+      </div>
+      <div class="card">
+        <h2>Sécurité et assurance</h2>
+        <div class="lead">Champs-Élysées : criminalité moyenne</div>
+        <span class="lbl">Sécurité</span>
+        <div class="seg" style="margin-top:8px"><button class="on">Aucune</button><button>Gardiennage</button><button>Caméras</button></div>
+        <div class="row" style="margin-top:12px"><span class="lbl">Assurance</span><div class="seg" style="flex:0 0 190px"><button class="on">Aucune</button><button>Souscrite</button></div></div>
+        <p class="hint">Assurance : 6 € / jour, pertes de vol divisées par deux.</p>
+      </div>
+      <div class="card">
+        <div class="row"><div><b>Valeur estimée</b><div class="lead" style="margin:0">72 722 €</div></div><button class="btn dng">Céder · 63 995 €</button></div>
+      </div>
+    </section>
+
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+
+<div class="legend">
+  <h2>Ce qui change</h2>
+  <ul>
+    <li><b>En-tête plus court</b> : le nom et l'adresse passent sur l'illustration ; statut et niveau en pastilles.</li>
+    <li><b>Trois chiffres clés propres au métier</b> (ici bénéfice avec la tendance sur 30 jours, couverts, note des critiques) au lieu de six chiffres répartis en deux rangées.</li>
+    <li><b>Une action principale</b>, avec ce qu'elle apporte.</li>
+    <li><b>Onglets nommés selon la question du joueur</b> : Cuisine (le métier, nom propre à chaque famille), Clients, Équipe, Gestion. Un voyant vert, orange ou rouge indique où regarder.</li>
+    <li><b>Plus d'accordéons</b> : chaque bloc est une carte courte, visible d'un coup d'œil. Les réglages éparpillés (prix, horaires, salaires, sécurité) rejoignent l'onglet où on en a besoin.</li>
+    <li><b>Le tableau d'équipe trop large</b> devient une liste de postes lisible sur téléphone.</li>
+    <li><b>Une couleur par famille</b> (rose pour la restauration) sur les pastilles et les icônes, pour que chaque fiche se reconnaisse.</li>
+  </ul>
+</div>
+
+<script>
+document.querySelectorAll('.tabs .seg button').forEach(b=>b.addEventListener('click',()=>show(b.dataset.t)));
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.go)));
+function show(t){ document.querySelectorAll('.tabs .seg button').forEach(x=>x.classList.toggle('on',x.dataset.t===t)); document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+t)); document.querySelector('.tabs').scrollIntoView({behavior:'smooth'}); }
+const v=[620,910,1050,700,1300,1180,-420,880,990,1120,1040,1250,760,930,1380,1290,1010,1160,980,1220,1340,1100,870,1260,1410,1180,1300,1450,1390,1519], mx=Math.max(...v.map(Math.abs)), h=document.getElementById('b30');
+h.innerHTML=v.map(x=>'<i style="height:'+Math.max(4,Math.abs(x)/mx*100)+'%;background:'+(x<0?'#FF6B5B':'#2BB673')+';align-self:'+(x<0?'flex-end':'flex-end')+'"></i>').join('');
+document.querySelectorAll('.seg:not([role]) button').forEach(b=>b.addEventListener('click',()=>{ b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); }));
+document.querySelectorAll('.slot').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
+</script>
+</body>
+</html>
