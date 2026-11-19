@@ -3980,7 +3980,7 @@ const supFactsP = p => S.biz.filter(x=>isFact(x)&&x.status==='active'&&supOn(x)&
 fpKeep=(function(_k){ return function(b){ const K=_k(b), I=S.ind;
   prodsOf(b).forEach(p=>{ for(let q=0;q<3;q++) K[p][q]=0; });
   if(I) I.active.forEach(c=>{ if(c.st!=='open'||!K[c.p]) return; let need=c.qty; for(let q=c.qm||0;q<3&&need>0;q++){ const t=Math.min(need,b.st[c.p][q]-K[c.p][q]); K[c.p][q]+=t; need-=t; } });
-  if(supOn(b)) prodsOf(b).forEach(p=>{ const F=supFactsP(p); if(!F.includes(b)) return; let needV=supClientsP(p).reduce((a,c)=>a+supNeedP(c,p),0)*1.5/F.length;
+  if(supOn(b)) prodsOf(b).forEach(p=>{ const F=supFactsP(p); if(!F.includes(b)) return; let needV=supClientsP(p).reduce((a,c)=>a+supNeedP(c,p),0)*1.5*(typeof achQ==='function'&&mgrOn('ach')? (1+achQ()*.9) : 1)/F.length;
     for(let q=2;q>=0&&needV>0;q--){ const free=b.st[p][q]-K[p][q], pr=pPrice(p,q), t=Math.min(free,needV/pr); if(t>0){ K[p][q]+=t; needV-=t*pr; } } });
   return K; }; })(fpKeep);
 supStep=function(){
@@ -3990,7 +3990,11 @@ supStep=function(){
     const need=C.map(c=>supNeedP(c,p)), totNeed=need.reduce((a,x)=>a+x,0); if(totNeed<=0) return;
     let avail=0; F.forEach(f=>{ for(let q=0;q<3;q++) avail+=f.st[p][q]*pPrice(p,q); });
     const ratio=Math.min(1,avail/totNeed);   /* pénurie : chaque client reçoit la même part de son besoin */
-    C.forEach((c,i)=>{ let want=need[i]*ratio; const own=supSrc(c)==='own', disc=own? SUP_OWN : SUP_DISC; let got=0, qs=0;
+    /* V2.3.7 : avec le directeur des achats, en pénurie, d'abord « vos usines seulement », puis le plus gros bonus de qualité */
+    const ach=typeof mgrOn==='function'&&mgrOn('ach')&&ratio<1; let left=avail; const ord=C.map((c,i)=>i);
+    if(ach) ord.sort((a,b)=>((supSrc(C[b])==='own')-(supSrc(C[a])==='own'))||((SUP_QB[C[b].def]||0)-(SUP_QB[C[a].def]||0)));
+    const share=new Array(C.length).fill(0); ord.forEach(i=>{ const w= ach? Math.min(need[i],left) : need[i]*ratio; share[i]=w; left-=w; });
+    C.forEach((c,i)=>{ let want=share[i]; const own=supSrc(c)==='own', disc=own? SUP_OWN : SUP_DISC; let got=0, qs=0;
       F.slice().sort((a,b)=>route(a.city,c.city).rate-route(b.city,c.city).rate).forEach(f=>{ if(want<=1e-6) return; const R=route(f.city,c.city);
         for(let q=2;q>=0&&want>1e-6;q--){ const pr=pPrice(p,q), u=Math.min(f.st[p][q],want/pr); if(u<=0) continue; f.st[p][q]-=u; const v=u*pr; want-=v; got+=v; qs+=v*q;
           f.supRev=(f.supRev||0)+v; f.supOut=(f.supOut||0)+v/D.GOODS[D.PRODS[p].g].v; c.supSave+=v*Math.max(0,disc-R.rate); } });
@@ -4124,6 +4128,45 @@ function hireBoss(b,i){ const c=bossCands(b)[i]; if(!c) return err('Candidat int
 function trainBoss(b,k){ const x=b.boss; if(!x) return err('Aucun directeur.'); if(S.day-x.tr<30) return err('Prochaine formation dans '+(30-(S.day-x.tr))+' jours.'); if(x.sk[k]>=10) return err('Compétence au maximum.');
   const c=x.sal*12*x.sk[k]/5; if(!bizCanPay(b,c)) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); pay('b:'+b.id,'Formation : '+x.name,-c); x.sk[k]++; x.tr=S.day; x.mood=clamp(x.mood+5,0,100); return ok(x.name+' progresse en '+SKN[k].toLowerCase()+' ('+x.sk[k]+'/10).'); }
 function raiseBoss(b){ const x=b.boss; if(!x) return err('Aucun directeur.'); x.sal*=1.15; x.mood=clamp(x.mood+20,0,100); return ok('Salaire de '+x.name+' augmenté de 15 %.'); }
+
+/* ============================================================
+   V2.3.7 : DIRECTEUR DES ACHATS (étape 3 de la refonte de l'approvisionnement)
+   Recruté au niveau du groupe. Chaque lundi : choisit le fournisseur de chaque société cliente (vos usines seulement
+   si elles couvrent sans risque le besoin, mixte sinon, marché si aucune ne produit), règle la répartition et la
+   qualité des lignes de vos usines (textile et composants ; la ferme suit ses parcelles, il n'y règle que la qualité)
+   selon les besoins du groupe, et fait garder plus de stock d'avance. En pénurie, il sert d'abord les sociétés en
+   « vos usines seulement », puis celles qui gagnent le plus à la qualité.
+   Compétence : grandit avec l'ancienneté (S.achD, jour d'embauche) de 55 à 95 %. Le joueur peut reprendre la main
+   sur une société (b.srcMan) ou une usine (b.fpMan) : le directeur ne la touche plus.
+   ============================================================ */
+D.MGR.ach={n:'Directeur des achats', hire:40000, day:450, txt:'Chaque lundi, choisit le fournisseur de chaque société cliente de vos usines, règle la production et la qualité de vos usines selon les besoins du groupe et fait garder du stock d’avance pour éviter les ruptures.'};
+{ const _sm=setMgr; setMgr=function(k,v){ const was=mgrOn(k), r=_sm(k,v); if(k==='ach'&&r&&r.ok&&v&&!was) S.achD=S.day; return r; }; }
+const achQ = () => mgrOn('ach')? clamp(.55+(S.day-(S.achD||S.day))/720*.4,.55,.95) : 0;
+function achStep(){ if(!mgrOn('ach')) return; const q=achQ(), I=S.ind;
+  /* 1. production : répartition et qualité des usines (demande de toutes vos sociétés clientes, quel que soit leur fournisseur) */
+  const allC = p => S.biz.filter(c=>SUP_NEED[c.def]&&SUP_NEED[c.def][p]&&c.status==='active');
+  const nF = p => Math.max(1,S.biz.filter(x=>isFact(x)&&x.status==='active'&&fpInit(x)&&x.st[p]).length);
+  S.biz.filter(f=>isFact(f)&&f.status==='active'&&!f.fpMan&&fpInit(f)).forEach(f=>{ const P=prodsOf(f), V=f.prodAvgV||0; if(V<=0) return;
+    const dem={}; P.forEach(p=>{ dem[p]=allC(p).reduce((a,c)=>a+supNeedP(c,p),0)/nF(p); });
+    if(I) I.active.forEach(c=>{ if(c.st==='open'&&P.includes(c.p)) dem[c.p]+=c.qty*pPrice(c.p,c.qm)/Math.max(5,c.due-S.day); });
+    const tot=P.reduce((a,p)=>a+dem[p],0);
+    /* le surplus au-delà des besoins reste réparti comme avant (vente au gros) */
+    if(f.def!=='farm'&&tot>0){ const k=Math.min(1,tot/V); P.forEach(p=>{ const base=(f.mix[p]||0)/fpW(f); f.mix[p]=Math.max(dem[p]>0?.3:0, (dem[p]/tot*k+base*(1-k))*10); }); }
+    /* qualité : celle qui rapporte le plus au groupe (bonus de ventes des clients − manque à gagner de l'usine) */
+    P.forEach(p=>{ const Vp=V*fpShare(f,p); if(dem[p]<=0){ f.pq[p]=0; return; } let best=0, bv=-1e18;
+      for(let k=0;k<3;k++){ const sup=Vp*QV[k]/QC[k], cov=Math.min(1,sup/dem[p]);
+        const gain=allC(p).reduce((a,c)=>{ const N=SUP_NEED[c.def], w=N[p]/Object.values(N).reduce((x,y)=>x+y,0); return a+Math.max(0,c.last&&c.last.rev||0)*(SUP_QB[c.def]||0)*k/2*w*cov/nF(p); },0)*(.25+q*.25) - Vp*(1-QV[k]/QC[k]);
+        if(gain>bv){ bv=gain; best=k; } } f.pq[p]=best; }); });
+  /* 2. fournisseur de chaque société cliente */
+  S.biz.filter(c=>SUP_NEED[c.def]&&c.status==='active'&&!c.srcMan).forEach(c=>{ const N=SUP_NEED[c.def]; let need=0, cov=0;
+    Object.keys(N).forEach(p=>{ const n=supNeedP(c,p); need+=n; const F=supFactsP(p); if(!F.length) return;
+      const cap=F.reduce((a,f)=>a+(f.prodAvgV||0)*fpShare(f,p)*QV[f.pq[p]||0]/QC[f.pq[p]||0],0), dmd=Math.max(1,supClientsP(p).reduce((a,x)=>a+supNeedP(x,p),0));
+      cov+=n*Math.min(1,cap/dmd); });
+    const r= need>0? cov/need : 0; c.src= r>=1.25-q*.2? 'own' : r>0? 'mix' : 'mkt'; });
+}
+{ const _ms=mgrStep; mgrStep=function(){ _ms(); try{ if(mgrOn('ach')&&wdOf(S.day)===0) achStep(); }catch(e){ console.error(e); } }; }
+/* réserve : plus de stock d'avance avec le directeur (2 à 3,5 jours au lieu de 1,5) */
+supReserveV=(function(_r){ return function(g,b){ return _r(g,b)*(mgrOn('ach')? (1.35+achQ()*1.0) : 1); }; })(supReserveV);
 
 /* ============================================================
    MACRO, ÉVÉNEMENTS, MARCHÉS FINANCIERS, CAPITAL-RISQUE, CRÉDIT
@@ -14154,6 +14197,7 @@ function factOutHtml(b){
      '<div><span>Stock</span><b class="num">'+eur(fpValue(b),0)+'</b><small>'+Math.round(sv/cap*100)+' % de la capacité</small></div><i aria-hidden="true">›</i>'+
      '<div><span>Prix de gros</span><b class="num">'+gIdxTxt(g)+'</b><small>vs référence</small></div></div>'+bar(sv/cap,sv/cap>.9?'r':'g');
   /* 0. lignes de production */
+  if(mgrOn('ach')) h+='<div class="notice info">'+(b.fpMan? 'Vous réglez vous-même cette usine.' : 'Répartition et qualité réglées chaque lundi par votre directeur des achats, selon les besoins de vos sociétés. Toucher un réglage vous rend la main.')+'</div>'+(b.fpMan? '<div class="row">'+btn('Confier au directeur des achats','fpauto',{c:'sm ghost',i:b.id})+'</div>' : '');
   h+='<div class="fo-s"><div class="fo-h"><b>Lignes de production</b><small>'+(b.def==='farm'? 'Selon vos parcelles ; qualité au choix' : 'Part de la capacité et qualité')+'</small></div>';
   P.forEach(p=>{ const D0=D.PRODS[p], q=b.pq[p]||0, sh=fpShare(b,p), u=(b.pday&&b.pday[p])||0, st=b.st[p]; if(b.def==='farm'&&!(b.mix[p]>0)&&st.every(x=>x<1)) return;
     h+='<div class="fo-l"><div class="fo-r"><div><b>'+esc(D0.n)+'</b><small>'+Math.round(sh*100)+' % · '+fmtN(u)+' '+esc(D0.u)+' par jour · '+eur(pPrice(p,q),2)+' l’unité</small></div>'+
@@ -14191,6 +14235,7 @@ function supInHtml(b){ const N=SUP_NEED[b.def]; if(!N) return '';
   const qb=(SUP_QB[b.def]||0)*clamp(b.supQ||0,0,2)/2, miss=b.supMiss||0;
   let h='<div class="met-out" data-t="Approvisionnement" data-s="'+esc({mkt:'Marché',mix:'Vos usines puis le marché',own:'Vos usines seulement'}[src]+(b.supIn? ' · '+eur(b.supIn,0)+' livrés hier' : ''))+'">';
   h+='<div class="fo-h"><b>Fournisseur</b><div class="seg">'+[['mkt','Marché'],['mix','Mixte'],['own','Vos usines']].map(([k,n])=>'<button class="'+(src===k?'on':'')+'" data-a="fsrc" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div></div>';
+  if(mgrOn('ach')) h+='<div class="sub">'+(b.srcMan? 'Vous gérez ce fournisseur vous-même.' : 'Choisi chaque lundi par votre directeur des achats. Toucher un bouton vous rend la main.')+'</div>'+(b.srcMan? '<div class="row">'+btn('Confier au directeur des achats','fsrcauto',{c:'sm ghost',i:b.id})+'</div>' : '');
   h+='<div class="sub">'+{mkt:'Tout est acheté au prix du marché, en qualité standard.', mix:'Vos usines livrent d’abord (prix de gros, '+Math.round(SUP_DISC*100)+' % d’économie moins le transport, leur meilleure qualité) ; le marché complète.', own:'Seulement vos usines : '+Math.round(SUP_OWN*100)+' % d’économie moins le transport, mais ce qu’elles ne livrent pas fait perdre des ventes.'}[src]+'</div>';
   P.forEach(p=>{ const Pp=D.PRODS[p], x=(b.supP&&b.supP[p])||[supNeedP(b,p),0,0], cov=x[0]>0? x[1]/x[0] : 0;
     h+='<div class="fo-r"><div><b>'+esc(Pp.n)+'</b><small>besoin '+eur(x[0],0)+' par jour'+(src==='mkt'? '' : x[1]>0? ' · vos usines : '+Math.round(cov*100)+' %, qualité '+QN[Math.round(x[2])].toLowerCase() : hasF(p)? ' · rien de livré hier' : ' · aucune de vos usines n’en produit')+'</small></div></div>'; });
@@ -14223,9 +14268,11 @@ vLogi=function(){
   return h;
 };
 
-ACT.fsrc=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); after(setSrc(b,el.dataset.v)); };
-ACT.fmix=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); after(setMix(b,el.dataset.p,+el.dataset.v)); };
-ACT.fpq=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); after(setPq(b,el.dataset.p,+el.dataset.v)); };
+ACT.fsrc=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b&&mgrOn('ach')) b.srcMan=1; after(setSrc(b,el.dataset.v)); };
+ACT.fsrcauto=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b){ b.srcMan=0; try{ achStep(); }catch(e){} } after(ok('Le directeur des achats choisit le fournisseur.')); };
+ACT.fpauto=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b){ b.fpMan=0; try{ achStep(); }catch(e){} } after(ok('Le directeur des achats règle cette usine.')); };
+ACT.fmix=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b&&mgrOn('ach')) b.fpMan=1; after(setMix(b,el.dataset.p,+el.dataset.v)); };
+ACT.fpq=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(b&&mgrOn('ach')) b.fpMan=1; after(setPq(b,el.dataset.p,+el.dataset.v)); };
 
 /* ============================================================
    PREMIERS PAS : liste guidée sur l'accueil et conseils contextuels
@@ -16558,13 +16605,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.3.6';
+const IB_VER='V2.3.7';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Directeur des achats','Dernière étape de la refonte de l’approvisionnement : recrutez un directeur des achats (Direction). Chaque lundi, il choisit le fournisseur de chacune de vos sociétés clientes, règle la répartition et la qualité de vos usines selon les besoins du groupe et fait garder du stock d’avance. En pénurie, il sert d’abord les sociétés qui en dépendent. Il gagne en compétence avec l’ancienneté. Touchez un réglage pour reprendre la main sur une société ou une usine.','V2.3.7'],
   ['Approvisionnement par produit','Deuxième étape. Restaurants, hôtels, parcs, maisons de couture, boutiques en ligne, ateliers de réparation, data centers et concessions consomment des produits précis (légumes, vin, soie, écrans, batteries, pièces automobiles…). Dans leur fiche, choisissez le fournisseur : Marché, Mixte (vos usines d’abord) ou Vos usines seulement (économie plus forte, mais ventes perdues en cas de manque). Vos usines livrent leur meilleure qualité, qui augmente les ventes du client (jusqu’à +10 %). Les anciennes remises automatiques (« Produits de votre ferme » −15 %, tissus « Vos filatures » sans livraison) disparaissent : ce sont désormais les livraisons réelles qui comptent.','V2.3.6'],
   ['Usines : plusieurs produits et qualité','Première étape de la refonte de l’approvisionnement. Chaque usine fabrique plusieurs produits : la ferme des céréales, légumes et fruits, produits laitiers, œufs et volaille, vin (selon ses parcelles) ; l’usine textile du coton, de la laine, de la soie et des vêtements ; l’usine de composants des écrans, batteries, puces et pièces automobiles. Répartissez la capacité et choisissez la qualité de chaque ligne (standard, supérieure, premium) dans l’onglet Production. Certains contrats exigent une qualité supérieure ou premium et paient davantage.','V2.3.5'],
   ['Épargne : directeur financier réglable','Même sur « Non », de l’argent partait sur le livret : c’était votre directeur financier, qui y place chaque lundi la trésorerie au-delà d’un mois de dépenses. Ce placement se règle maintenant à part, dans la carte Épargne automatique (Marchés). Il continue de rembourser vos emprunts et de reprendre sur le livret si la trésorerie manque.','V2.3.4'],
