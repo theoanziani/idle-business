@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Concession automobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  /* identité de la concession : sol laqué, chrome, rouge course, asphalte */
+  --gloss:#F7F8FA; --chrome:#C9CED6; --chrome-2:#9AA2AE; --race:#D62828; --race-2:#A51C1C; --asphalt:#3A3F47; --asphalt-2:#2B2F35; --line:#E3E6EB; --brand:#1F4AA8;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif; --fx:'Bebas Neue',Impact,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#d7dbe1;color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.note-top{max-width:390px;margin:0 auto;padding:14px 16px 0;font-size:13px;color:#3E4A7A}
+.phone{max-width:390px;margin:10px auto 30px;background:var(--gloss);border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--race);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 var(--line);font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--line)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(15,17,22,.88))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:400 34px/1 var(--fx);color:#fff;letter-spacing:1.5px}
+.hero .sub{color:#E3E6EB;font-size:13px;margin-top:2px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--good-bg)}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--race);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--line);flex:0 0 auto}
+h2.sec{font:400 24px var(--fx);color:var(--asphalt);margin:22px 4px 6px;display:flex;justify-content:space-between;align-items:baseline;letter-spacing:1px}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0}
+
+/* 1. LA MARQUE ET SON OBJECTIF */
+.brand{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--line);display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:center}
+.logo{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,var(--chrome) 60%,var(--chrome-2));display:grid;place-items:center;box-shadow:inset 0 0 0 3px #fff,0 2px 4px rgba(0,0,0,.2)}
+.logo b{font:400 26px var(--fx);color:var(--brand)}
+.brand .t b{font:800 16px var(--fb)}
+.brand .t small{display:block;font-size:12px;color:var(--ink-3)}
+.obj{grid-column:1 / -1}
+.obj .l{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-3)}
+.obj .l b{color:var(--ink)}
+.road{position:relative;height:22px;margin-top:6px;border-radius:11px;background:var(--asphalt);overflow:hidden}
+.road::before{content:'';position:absolute;left:0;right:0;top:10px;height:2px;background:repeating-linear-gradient(90deg,#fff 0 12px,transparent 12px 24px);opacity:.6}
+.road i{position:absolute;left:0;top:0;bottom:0;width:64%;background:linear-gradient(90deg,rgba(214,40,40,.6),rgba(214,40,40,.9))}
+.road em{position:absolute;left:calc(64% - 14px);top:1px;font-style:normal;font-size:16px}
+.road span{position:absolute;right:6px;top:2px;font-size:14px}
+
+/* 2. LE SHOWROOM (neuf) */
+.show{background:linear-gradient(#FFFFFF,#ECEFF3);border-radius:22px;padding:12px;box-shadow:0 4px 0 var(--line);position:relative}
+.floor{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;padding:10px;border-radius:16px;background:repeating-linear-gradient(90deg,#fff 0 38px,#F1F3F6 38px 76px);box-shadow:inset 0 0 0 2px var(--line)}
+.car{border:0;background:none;text-align:center;font:800 11.5px var(--fb);color:var(--ink);padding:4px 0}
+.car svg{display:block;margin:0 auto 2px;filter:drop-shadow(0 4px 3px rgba(0,0,0,.18))}
+.car small{display:block;font:700 11px var(--fb);color:var(--ink-3)}
+.car.old small{color:var(--red)}
+.car.empty{border:2px dashed var(--chrome);border-radius:14px;color:var(--chrome-2);min-height:80px}
+.ship{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--asphalt);color:#fff;border-radius:14px;padding:8px 12px;font-size:12.5px}
+.ship b{font:400 20px var(--fx);letter-spacing:1px}
+.opt{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:var(--ink-3)}
+.opt b{display:block;color:var(--ink);font-size:14px}
+.seg{display:flex;background:#EEF0F3;border-radius:14px;padding:4px;gap:4px;margin-top:6px}
+.seg button{flex:1;border:0;background:none;border-radius:11px;min-height:42px;font:800 13px var(--fb);color:var(--ink-3)}
+.seg button.on{background:var(--race);color:#fff;box-shadow:0 2px 0 var(--race-2)}
+.lb{font:800 14px var(--fb);margin-top:12px;display:block}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:5px}
+.tog{position:relative;width:52px;height:30px;border-radius:15px;background:#D5DAE0;border:0;flex:0 0 auto}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.tog.on{background:var(--good-bg)}.tog.on::after{left:25px}
+
+/* 3. LE PARC D'OCCASIONS (dehors) */
+.lot{background:var(--asphalt);border-radius:22px;padding:12px;box-shadow:0 4px 0 var(--asphalt-2);color:#fff}
+.bays{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:8px;border-top:3px solid #fff}
+.bay{border-right:3px solid rgba(255,255,255,.85);padding:10px 2px 8px;text-align:center;font:800 10.5px var(--fb);color:#E3E6EB;min-height:104px;position:relative}
+.bay:first-child{border-left:3px solid rgba(255,255,255,.85)}
+.bay svg{display:block;margin:0 auto}
+.tag{display:inline-block;margin-top:4px;background:#FFD23F;color:#3A2A00;border-radius:4px;padding:1px 5px;font:400 15px var(--fx);letter-spacing:.5px}
+.tag.cut{background:#FF8A6B}
+.bay small{display:block;font:700 10px var(--fb);margin-top:2px}
+.bay .rec{position:absolute;top:2px;right:2px;font-size:12px}
+.lot .seg{background:rgba(255,255,255,.12)}
+.lot .seg button{color:#E3E6EB}
+.lot .hint{color:#C9CED6}
+.lot .lb{color:#fff}
+
+/* 4. L'ATELIER APRÈS-VENTE */
+.shop{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--line)}
+.lifts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.lift{border-radius:14px;background:#EEF0F3;padding:8px 6px;text-align:center;font:800 11.5px var(--fb);color:var(--ink-3);min-height:90px}
+.lift .p{height:6px;margin:4px 10px 0;border-radius:3px;background:#FFD23F}
+.lift.on{background:#FFF6D8;color:var(--ink)}
+.lift.lock{background:repeating-linear-gradient(45deg,#EEF0F3 0 6px,#E4E7EB 6px 12px)}
+.btn{white-space:nowrap;border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--line),inset 0 0 0 1.5px var(--line)}
+.btn.red{background:var(--race);color:#fff;box-shadow:0 3px 0 var(--race-2)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:var(--ink-3)}
+
+/* 5. LES PALIERS */
+.path{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--line)}
+.steps{display:flex;align-items:flex-start}
+.steps .p{flex:0 0 58px;text-align:center;font:800 10px/1.2 var(--fb);color:var(--ink-3)}
+.steps .p i{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:50%;background:#EEF0F3;font-style:normal;font-size:17px}
+.steps .p.now i{background:var(--race);box-shadow:0 0 0 3px #FFD9D9}
+.steps .ln{flex:1;height:3px;margin-top:18px;background:#EEF0F3}
+
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 var(--line);font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--line);font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+.legend{max-width:390px;margin:0 auto 50px;padding:0 16px;font-size:14px;color:#3E4A7A}
+.legend h2{font:800 19px var(--fd);color:var(--ink);margin:12px 0 6px}
+.legend li{margin:4px 0}
+</style>
+</head>
+<body>
+<p class="note-top"><b>Maquette · Concession automobile.</b> Le cœur du métier : peu de marge sur le neuf, l'argent se fait sur l'occasion, les reprises et l'atelier, sous l'œil de la marque.</p>
+
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a23c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a23gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a23bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a23bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a23gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a23vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a23lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a23sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4E92DA"></stop><stop offset="1" stop-color="#D6ECFA"></stop></linearGradient></defs><g clip-path="url(#a23c)"><rect width="640" height="360" fill="url(#a23sky)"></rect><g><g fill="#FFFFFF" opacity=".85"><ellipse cx="90" cy="54" rx="40" ry="12"></ellipse><ellipse cx="114" cy="46" rx="26" ry="12"></ellipse><ellipse cx="470" cy="34" rx="34" ry="10"></ellipse><ellipse cx="492" cy="28" rx="22" ry="10"></ellipse></g><animateTransform attributeName="transform" type="translate" values="0 0;50 0;0 0" dur="34s" repeatCount="indefinite"></animateTransform></g><g fill="#A9BDD3" opacity=".55"><rect x="0" y="172" width="40" height="78"></rect><rect x="44" y="168" width="45" height="82"></rect><rect x="92" y="205" width="55" height="45"></rect><rect x="151" y="151" width="31" height="99"></rect><rect x="186" y="194" width="40" height="56"></rect><rect x="230" y="177" width="70" height="73"></rect><rect x="304" y="177" width="63" height="73"></rect><rect x="372" y="199" width="56" height="51"></rect><rect x="431" y="149" width="55" height="101"></rect><rect x="490" y="158" width="51" height="92"></rect><rect x="545" y="206" width="57" height="44"></rect><rect x="606" y="169" width="60" height="81"></rect></g><rect x="0" y="292" width="640" height="68" fill="#8E8C86"></rect><rect x="0" y="284" width="640" height="8" fill="#C9C6BE"></rect><rect x="0" y="326" width="640" height="3" fill="#E9E3C8" opacity=".7"></rect><rect x="80" y="144" width="480" height="140" fill="#E9EDF2"></rect><rect x="440" y="144" width="120" height="140" fill="#000" opacity="0.14"></rect><rect x="80" y="144" width="480" height="14" fill="#1F3C88"></rect><rect x="100" y="170" width="440" height="110" fill="#BFD8EE"></rect><ellipse cx="200" cy="268" rx="50" ry="8" fill="#9AA0AB"></ellipse><g><path d="M162 262l8-16h60l10 16v8h-78z" fill="#E04B3B"></path><path d="M176 248h46l6 10h-58z" fill="#9CC8FF"></path><circle cx="178" cy="270" r="7" fill="#222"></circle><circle cx="226" cy="270" r="7" fill="#222"></circle><animateTransform attributeName="transform" type="matrix" values="1 0 0 1 0 0;-1 0 0 1 400 0;1 0 0 1 0 0" dur="6s" repeatCount="indefinite"></animateTransform></g><g><path d="M300 262l8-14h50l8 14v8h-66z" fill="#2B2B2B"></path><path d="M312 250h40l5 8h-50z" fill="#9CC8FF"></path><circle cx="312" cy="270" r="6" fill="#222"></circle><circle cx="354" cy="270" r="6" fill="#222"></circle></g><g><path d="M420 262l8-14h50l8 14v8h-66z" fill="#F4F4F4"></path><path d="M432 250h40l5 8h-50z" fill="#9CC8FF"></path><circle cx="432" cy="270" r="6" fill="#222"></circle><circle cx="474" cy="270" r="6" fill="#222"></circle></g><rect x="270" y="116" width="100" height="26" rx="6" fill="#1F3C88"></rect><g transform="translate(310.824 119.824) scale(0.764706)" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15l2-6h14l2 6v4H3zM7 19v2M17 19v2"></path><circle cx="7" cy="15" r="1"></circle><circle cx="17" cy="15" r="1"></circle></g><rect x="40" y="150" width="3" height="134" fill="#8A8F99"></rect><path d="M43 152h26v40h-26z" fill="#4D7BE0"><animate attributeName="d" values="M43 152h26v40h-26z;M43 152q13 6 26 0v40q-13 6 -26 0z;M43 152h26v40h-26z" dur="1.6s" repeatCount="indefinite"></animate></path><rect x="600" y="150" width="3" height="134" fill="#8A8F99"></rect><path d="M603 152h26v40h-26z" fill="#4D7BE0"><animate attributeName="d" values="M603 152h26v40h-26z;M603 152q13 6 26 0v40q-13 6 -26 0z;M603 152h26v40h-26z" dur="1.6s" repeatCount="indefinite"></animate></path><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-12.5s" repeatCount="indefinite"></animateTransform><rect x="0" y="314" width="22" height="8" rx="3" fill="#3E7CC9"></rect><rect x="5" y="310" width="12" height="5" rx="2" fill="#3E7CC9"></rect><circle cx="5" cy="322" r="2.2" fill="#222"></circle><circle cx="17" cy="322" r="2.2" fill="#222"></circle></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-0.2s" repeatCount="indefinite"></animateTransform><rect x="0" y="314" width="22" height="8" rx="3" fill="#E04B3B"></rect><rect x="5" y="310" width="12" height="5" rx="2" fill="#E04B3B"></rect><circle cx="5" cy="322" r="2.2" fill="#222"></circle><circle cx="17" cy="322" r="2.2" fill="#222"></circle></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-5.9s" repeatCount="indefinite"></animateTransform><rect x="0" y="314" width="22" height="8" rx="3" fill="#3E7CC9"></rect><rect x="5" y="310" width="12" height="5" rx="2" fill="#3E7CC9"></rect><circle cx="5" cy="322" r="2.2" fill="#222"></circle><circle cx="17" cy="322" r="2.2" fill="#222"></circle></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-5.0s" repeatCount="indefinite"></animateTransform><rect x="0" y="314" width="22" height="8" rx="3" fill="#2B2B2B"></rect><rect x="5" y="310" width="12" height="5" rx="2" fill="#2B2B2B"></rect><circle cx="5" cy="322" r="2.2" fill="#222"></circle><circle cx="17" cy="322" r="2.2" fill="#222"></circle></g><rect width="640" height="360" fill="url(#a23lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a23gl)"><g opacity="0"><rect x="100" y="170" width="440" height="110" fill="#FFF3C8" opacity=".22"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="267" y="113" width="106" height="32" rx="6" fill="#FFE6A6" opacity=".35"></rect><g transform="translate(310.824 119.824) scale(0.764706)" fill="none" stroke="#FFE6A6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15l2-6h14l2 6v4H3zM7 19v2M17 19v2"></path><circle cx="7" cy="15" r="1"></circle><circle cx="17" cy="15" r="1"></circle></g><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-12.5s" repeatCount="indefinite"></animateTransform><circle cx="21" cy="317" r="2" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></circle></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-0.2s" repeatCount="indefinite"></animateTransform><circle cx="21" cy="317" r="2" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></circle></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-5.9s" repeatCount="indefinite"></animateTransform><circle cx="21" cy="317" r="2" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></circle></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;700 0" dur="14s" begin="-5.0s" repeatCount="indefinite"></animateTransform><circle cx="21" cy="317" r="2" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></circle></g></g><rect width="640" height="360" filter="url(#a23gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a23vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>Ouvert · 3 ventes aujourd'hui</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Garage du Parc</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Concession Valmont · boulevard de Belleville, Paris</div></div>
+    </div>
+    <div class="res"><div><small>Bénéfice hier</small><b class="pos">+38 622 €</b></div><div style="text-align:right"><small>Voitures vendues ce mois</small><b>41</b></div></div>
+    <button class="up">Agrandir · niv. 2 <span>240 000 €</span></button>
+    <div class="todo"><span style="flex:1"><b>Deux occasions traînent depuis plus de 60 jours</b> : elles perdent de la valeur chaque semaine.</span><button class="lnk">Voir</button></div>
+
+    <!-- 1. LA MARQUE -->
+    <h2 class="sec">La marque <small>confiance 72 / 100</small></h2>
+    <div class="brand">
+      <div class="logo"><b>V</b></div>
+      <div class="t"><b>Valmont</b><small>Généraliste : la valeur sûre · marge 9 % sur le neuf</small></div>
+      <div class="obj">
+        <div class="l"><span>Objectif du trimestre : <b>58 / 90 voitures</b></span><span>encore 34 jours</span></div>
+        <div class="road"><i></i><em>🚗</em><span>🏁</span></div>
+        <div class="hint">Objectif atteint : prime de la marque d'environ 3,5 % des ventes de neuf du trimestre.</div>
+      </div>
+    </div>
+
+    <!-- 2. LE SHOWROOM -->
+    <h2 class="sec">Le showroom <small>stock neuf : 22 voitures</small></h2>
+    <div class="show">
+      <div class="floor" id="floor"></div>
+      <div class="ship"><span style="font-size:22px">🚛</span><span style="flex:1">Camion de la marque : <b>8 voitures</b> livrées dans 4 jours</span></div>
+      <div class="opt"><span><b>Commande automatique</b>garde environ trois semaines de ventes en stock</span><button class="tog on" aria-label="Commande automatique des voitures neuves"></button></div>
+      <span class="lb">Remise sur le neuf</span>
+      <div class="seg"><button>Aucune</button><button class="on">3 %</button><button>6 %</button><button>9 %</button></div>
+      <div class="hint">Chaque point de remise attire environ 7 % de clients en plus, mais la marge du neuf est faible.</div>
+    </div>
+
+    <!-- 3. LE PARC D'OCCASIONS -->
+    <h2 class="sec">Le parc d'occasions <small>11 voitures</small></h2>
+    <div class="lot">
+      <div class="bays" id="bays"></div>
+      <span class="lb">Reprises des anciennes voitures</span>
+      <div class="seg"><button>Stricte</button><button class="on">Normale</button><button>Généreuse</button></div>
+      <div class="hint">Généreuse : plus de ventes de neuf et plus d'occasions à revendre, mais rachetées plus cher.</div>
+      <span class="lb">Marge sur l'occasion</span>
+      <div class="seg"><button>5 %</button><button class="on">10 %</button><button>15 %</button><button>20 %</button></div>
+      <div class="hint">🔧 = remise en état faite. Une occasion non remise en état se vend 15 % moins cher.</div>
+    </div>
+
+    <!-- 4. L'ATELIER -->
+    <h2 class="sec">L'atelier après-vente <small>niveau 1 sur 3</small></h2>
+    <div class="shop">
+      <div class="lifts">
+        <div class="lift on">🚙<br>Remise en état<div class="p" style="width:60%"></div></div>
+        <div class="lift on">🚗<br>Entretien client<div class="p" style="width:25%"></div></div>
+        <div class="lift lock">🔒<br>Pont 3<br><small>niveau 2</small></div>
+      </div>
+      <div class="row"><span>Forte marge sur l'entretien du parc de vos clients.</span><button class="btn red">Agrandir · 96 000 €</button></div>
+    </div>
+
+    <!-- 5. LES PALIERS -->
+    <h2 class="sec">Les paliers <small>palier 1 sur 5</small></h2>
+    <div class="path">
+      <div class="steps">
+        <div class="p now"><i>✅</i>Occasions certifiées</div><div class="ln"></div>
+        <div class="p"><i>🎨</i>Carrosserie</div><div class="ln"></div>
+        <div class="p"><i>💎</i>Vitrine haut de gamme</div><div class="ln"></div>
+        <div class="p"><i>🏢</i>Flottes d'entreprise</div><div class="ln"></div>
+        <div class="p"><i>🏁</i>Groupe de distribution</div>
+      </div>
+      <p class="hint">Vitrine haut de gamme : ouvre la marque Ardena (peu de ventes, grosses marges).</p>
+    </div>
+
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt">
+      <button class="mg">Équipe<small>14 / 14 · fatigue 9</small></button>
+      <button class="mg">Finances<small>+38 622 € hier</small></button>
+      <button class="mg">Local<small>propriétaire</small></button>
+      <button class="mg">Sécurité<small>caméras · assuré</small></button>
+    </div>
+    <div class="dlg"><span><b>Julien Vincent, directeur du site</b>peut commander, fixer les remises et gérer les reprises à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+
+<div class="legend">
+  <h2>Ce qui la distingue</h2>
+  <ul>
+    <li><b>La marque</b> : son logo, la confiance qu'elle vous accorde et l'objectif du trimestre sur une route vers le drapeau à damier, avec la prime au bout.</li>
+    <li><b>Le showroom</b> vu du dessus : les voitures neuves exposées, le camion de la marque qui arrive, la remise sur le neuf.</li>
+    <li><b>Le parc d'occasions</b> sur l'asphalte : une place par voiture, l'étiquette de prix, l'âge (rouge quand elle traîne) et la remise en état ; les reprises et la marge s'y règlent.</li>
+    <li><b>L'atelier après-vente</b> : les ponts élévateurs, remise en état et entretien.</li>
+    <li><b>Les paliers</b> : occasions certifiées, carrosserie, vitrine haut de gamme, flottes d'entreprise, groupe de distribution.</li>
+    <li>Ambiance showroom : sol laqué, chrome, rouge course, chiffres en lettres de compteur.</li>
+  </ul>
+  <p>Les montants et les noms sont des exemples.</p>
+</div>
+
+<script>
+const car=(c,w)=>'<svg width="'+(w||64)+'" height="'+Math.round((w||64)*.5)+'" viewBox="0 0 64 32"><path d="M6 22 Q6 14 14 13 L20 7 Q22 5 26 5 L40 5 Q44 5 47 8 L52 13 Q60 14 60 22 L60 25 L6 25Z" fill="'+c+'"/><path d="M21 12 L25 8 L32 8 L32 12Z M35 12 L35 8 L41 8 Q43 8 45 10 L47 12Z" fill="#CFE6F5"/><circle cx="18" cy="25" r="5" fill="#2B2F35"/><circle cx="18" cy="25" r="2" fill="#C9CED6"/><circle cx="48" cy="25" r="5" fill="#2B2F35"/><circle cx="48" cy="25" r="2" fill="#C9CED6"/></svg>';
+const N=[['#1F4AA8','Citadine','19 200 €'],['#D62828','Berline','28 400 €'],['#F7F8FA','SUV','34 900 €'],['#3A3F47','Break','29 800 €'],['#1F4AA8','SUV','34 900 €']];
+document.getElementById('floor').innerHTML=N.map(x=>'<button class="car">'+car(x[0])+x[1]+'<small>'+x[2]+'</small></button>').join('')+'<button class="car empty">+ commander</button>';
+const O=[['#8A5A44','12 400 €','8 j',1],['#5C6A84','9 900 €','21 j',1],['#2F8FA8','15 800 €','34 j',0],['#B07A12','7 200 €','67 j',1,1],['#C0507A','11 300 €','12 j',0],['#1B7547','13 900 €','5 j',1],['#9AA2AE','6 400 €','72 j',0,1],['#1F4AA8','16 900 €','2 j',0]];
+document.getElementById('bays').innerHTML=O.map(x=>'<div class="bay">'+(x[3]?'<span class="rec">🔧</span>':'')+car(x[0],56)+'<span class="tag'+(x[4]?' cut':'')+'">'+x[1]+'</span><small style="'+(x[4]?'color:#FF8A6B':'')+'">'+x[2]+'</small></div>').join('');
+document.querySelectorAll('.tog').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))));
+</script>
+</body>
+</html>

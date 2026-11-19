@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Galerie d'art</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  /* identité de la galerie : cube blanc, cadres dorés, velours de la salle des ventes */
+  --wall:#FBFAF7; --wall-2:#EFECE6; --frame:#B8913F; --frame-2:#8C6B26; --velvet:#6E1423; --velvet-2:#4E0D18; --charcoal:#1E1E22;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif; --fs:'Playfair Display',Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#dcd8d0;color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.note-top{max-width:390px;margin:0 auto;padding:14px 16px 0;font-size:13px;color:#3E4A7A}
+.phone{max-width:390px;margin:10px auto 30px;background:var(--wall);border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--charcoal);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 var(--wall-2);font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--wall-2)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(20,18,22,.88))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:italic 600 30px/1 var(--fs);color:#fff}
+.hero .sub{color:#ECE7DE;font-size:13px;margin-top:4px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:#E5A800}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--velvet);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--wall-2);flex:0 0 auto}
+h2.sec{font:700 22px var(--fs);color:var(--charcoal);margin:24px 4px 8px;display:flex;justify-content:space-between;align-items:baseline}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3)}
+
+/* 1. LES CIMAISES : la réserve exposée */
+.wallbox{background:linear-gradient(var(--wall) 0 82%,#D9D2C4 82%);border-radius:20px;padding:16px 12px 26px;box-shadow:0 4px 0 var(--wall-2),inset 0 0 0 1px var(--wall-2);position:relative}
+.wallbox::before{content:'';position:absolute;left:12px;right:12px;top:8px;height:2px;background:#D6CFC1}
+.hang{display:flex;gap:12px;overflow-x:auto;padding:8px 2px 4px;align-items:flex-end}
+.art{flex:0 0 auto;border:0;background:none;padding:0;text-align:center;font:inherit;color:inherit}
+.art .fr{padding:6px;background:linear-gradient(135deg,#E2C478,var(--frame) 50%,var(--frame-2));box-shadow:0 6px 10px rgba(0,0,0,.18);margin:0 auto}
+.art .cv{display:block}
+.art .cartel{margin-top:8px;background:#fff;border-radius:3px;padding:4px 6px;box-shadow:0 1px 2px rgba(0,0,0,.12);font-size:10.5px;color:var(--ink-3);text-align:left;width:118px}
+.art .cartel b{display:block;font:italic 600 12px var(--fs);color:var(--charcoal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.art .cartel em{display:block;font-style:normal;font-weight:800;color:var(--ink)}
+.art .warn{display:inline-block;margin-top:3px;font:800 9.5px var(--fb);color:var(--red);background:#FFE4E0;border-radius:4px;padding:1px 5px}
+.art.sel .fr{outline:3px solid var(--velvet);outline-offset:3px}
+.bench{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:var(--ink-3)}
+.btn{border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--wall-2),inset 0 0 0 1.5px var(--wall-2)}
+.btn.vel{background:var(--velvet);color:#fff;box-shadow:0 3px 0 var(--velvet-2)}
+.btn.gold{background:var(--frame);color:#fff;box-shadow:0 3px 0 var(--frame-2)}
+
+/* 2. LES DÉPÔTS PROPOSÉS : lettres de collectionneurs */
+.letter{background:#FFFDF8;border-radius:6px;padding:12px 14px;box-shadow:0 3px 8px rgba(0,0,0,.08);border-left:4px solid var(--frame);margin-top:8px}
+.letter .h{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--ink-3)}
+.letter p{margin:6px 0 8px;font:italic 600 15px/1.35 var(--fs);color:var(--charcoal)}
+.letter .bt{display:flex;gap:8px}
+
+/* 3. LA SALLE DES VENTES */
+.room{background:radial-gradient(ellipse at 50% 0%,#8A1E30,var(--velvet) 55%,var(--velvet-2));border-radius:22px;padding:14px 12px;color:#F7E9EC;box-shadow:0 4px 0 #3A0911}
+.room .hd{display:flex;justify-content:space-between;align-items:center}
+.room .hd b{font:italic 600 20px var(--fs);color:#fff}
+.heat{margin-top:10px}
+.heat .l{display:flex;justify-content:space-between;font-size:12px;color:#EBC9D0}
+.therm{height:12px;border-radius:6px;background:linear-gradient(90deg,#7DA7E8,#F2B705 55%,#FF5A3C);position:relative;margin-top:5px}
+.therm em{position:absolute;left:58%;top:-5px;width:6px;height:22px;border-radius:3px;background:#fff;box-shadow:0 0 0 2px var(--velvet-2)}
+.cat{margin-top:12px;background:rgba(0,0,0,.2);border-radius:16px;padding:6px 8px}
+.lotr{display:grid;grid-template-columns:30px 40px minmax(0,1fr) 106px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid rgba(255,255,255,.12)}
+.lotr:first-child{border-top:0}
+.lotr .no{font:700 18px var(--fs);color:#E9C46A;text-align:center}
+.lotr .mini{width:40px;height:40px;border:3px solid var(--frame);border-radius:2px}
+.lotr .t b{display:block;font:italic 600 13.5px var(--fs);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lotr .t small{font-size:11px;color:#EBC9D0}
+.res3{display:flex;background:rgba(255,255,255,.1);border-radius:10px;padding:2px;gap:2px}
+.res3 button{flex:1;border:0;background:none;color:#EBC9D0;font:800 10.5px var(--fb);border-radius:8px;min-height:40px;padding:0}
+.res3 button.on{background:#F7E9EC;color:var(--velvet)}
+.order{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12px;color:#EBC9D0}
+.gavel{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:12px;border:0;border-radius:16px;min-height:56px;background:#F2D27A;color:#3A2108;font:700 19px var(--fs);box-shadow:0 4px 0 #A9842E}
+.last{margin-top:12px;font-size:12.5px;color:#EBC9D0}
+.last b{color:#fff}
+
+/* 4. ARTISTES ET EXPERTISE */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.box{background:#fff;border-radius:18px;padding:12px;box-shadow:0 3px 0 var(--wall-2);font-size:12.5px;color:var(--ink-3)}
+.box b{display:block;font:700 16px var(--fs);color:var(--charcoal);margin-bottom:2px}
+.box .big{font:800 24px var(--fd);color:var(--ink)}
+.bar{height:8px;border-radius:4px;background:var(--wall-2);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--frame)}
+
+/* 5. LES PALIERS */
+.path{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--wall-2)}
+.steps{display:flex;align-items:flex-start}
+.steps .p{flex:0 0 58px;text-align:center;font:800 10px/1.2 var(--fb);color:var(--ink-3)}
+.steps .p i{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:4px;background:var(--wall-2);font-style:normal;font-size:17px;box-shadow:inset 0 0 0 3px #fff}
+.steps .p.now i{background:var(--frame);box-shadow:inset 0 0 0 3px #E2C478}
+.steps .ln{flex:1;height:2px;margin-top:18px;background:var(--wall-2)}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:8px}
+
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 var(--wall-2);font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--wall-2);font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+.legend{max-width:390px;margin:0 auto 50px;padding:0 16px;font-size:14px;color:#3E4A7A}
+.legend h2{font:800 19px var(--fd);color:var(--ink);margin:12px 0 6px}
+.legend li{margin:4px 0}
+</style>
+</head>
+<body>
+<p class="note-top"><b>Maquette · Galerie d'art et maison d'enchères.</b> Le cœur du métier : réunir de belles œuvres, composer la vente, puis la jouer en direct.</p>
+
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a18c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a18gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a18bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a18bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a18gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a18vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a18lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a18sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6A8FD0"></stop><stop offset="1" stop-color="#EDE4D8"></stop></linearGradient></defs><g clip-path="url(#a18c)"><rect width="640" height="360" fill="url(#a18sky)"></rect><g><g fill="#FFFFFF" opacity=".85"><ellipse cx="90" cy="54" rx="40" ry="12"></ellipse><ellipse cx="114" cy="46" rx="26" ry="12"></ellipse><ellipse cx="470" cy="34" rx="34" ry="10"></ellipse><ellipse cx="492" cy="28" rx="22" ry="10"></ellipse></g><animateTransform attributeName="transform" type="translate" values="0 0;50 0;0 0" dur="34s" repeatCount="indefinite"></animateTransform></g><g fill="#A9BDD3" opacity=".55"><rect x="0" y="172" width="40" height="78"></rect><rect x="44" y="168" width="45" height="82"></rect><rect x="92" y="205" width="55" height="45"></rect><rect x="151" y="151" width="31" height="99"></rect><rect x="186" y="194" width="40" height="56"></rect><rect x="230" y="177" width="70" height="73"></rect><rect x="304" y="177" width="63" height="73"></rect><rect x="372" y="199" width="56" height="51"></rect><rect x="431" y="149" width="55" height="101"></rect><rect x="490" y="158" width="51" height="92"></rect><rect x="545" y="206" width="57" height="44"></rect><rect x="606" y="169" width="60" height="81"></rect></g><rect x="0" y="292" width="640" height="68" fill="#8E8C86"></rect><rect x="0" y="284" width="640" height="8" fill="#C9C6BE"></rect><rect x="0" y="326" width="640" height="3" fill="#E9E3C8" opacity=".7"></rect><rect x="110" y="104" width="420" height="180" fill="#EFE8DA"></rect><rect x="425" y="104" width="105" height="180" fill="#000" opacity="0.14"></rect><path d="M100 104L320 60L540 104z" fill="#E1D7C3"></path><rect x="100" y="104" width="440" height="10" fill="#D6CAB2"></rect><rect x="130" y="120" width="12" height="164" fill="#F6F1E6"></rect><rect x="180" y="120" width="12" height="164" fill="#F6F1E6"></rect><rect x="230" y="120" width="12" height="164" fill="#F6F1E6"></rect><rect x="280" y="120" width="12" height="164" fill="#F6F1E6"></rect><rect x="330" y="120" width="12" height="164" fill="#F6F1E6"></rect><rect x="380" y="120" width="12" height="164" fill="#F6F1E6"></rect><rect x="430" y="120" width="12" height="164" fill="#F6F1E6"></rect><rect x="480" y="120" width="12" height="164" fill="#F6F1E6"></rect><rect x="146" y="150" width="30" height="100" fill="#3A3530"></rect><rect x="152" y="180" width="18" height="24" fill="#E04B3B"></rect><rect x="196" y="150" width="30" height="100" fill="#3A3530"></rect><rect x="202" y="180" width="18" height="24" fill="#4D7BE0"></rect><rect x="246" y="150" width="30" height="100" fill="#3A3530"></rect><rect x="252" y="180" width="18" height="24" fill="#F2B134"></rect><rect x="296" y="150" width="30" height="100" fill="#3A3530"></rect><rect x="302" y="180" width="18" height="24" fill="#2BB673"></rect><rect x="346" y="150" width="30" height="100" fill="#3A3530"></rect><rect x="352" y="180" width="18" height="24" fill="#7A4DB0"></rect><rect x="396" y="150" width="30" height="100" fill="#3A3530"></rect><rect x="402" y="180" width="18" height="24" fill="#F28C3B"></rect><rect x="446" y="150" width="30" height="100" fill="#3A3530"></rect><rect x="452" y="180" width="18" height="24" fill="#2F8FA8"></rect><rect x="496" y="150" width="30" height="100" fill="#3A3530"></rect><rect x="502" y="180" width="18" height="24" fill="#E04B3B"></rect><rect x="80" y="130" width="14" height="80" fill="#E04B3B"></rect><rect x="546" y="130" width="14" height="80" fill="#E04B3B"></rect><rect x="270" y="66" width="100" height="30" rx="6" fill="#2E2620"></rect><g transform="translate(309.412 70.4118) scale(0.882353)" fill="none" stroke="#D9B44A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6M11 7l6 6M8 10l6 6-2 2-6-6zM3 21l6-6"></path></g><path d="M260 284h120v6H260z" fill="#C8312B"></path><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="23.2908s" begin="-11.7s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="278" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="282" width="7" height="11" rx="3" fill="#3E7CC9"></rect><rect x="-3" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="23.8729s" begin="-4.8s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="278" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="282" width="7" height="11" rx="3" fill="#F2B134"></rect><rect x="-3" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="22.0272s" begin="-23.4s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="278" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="282" width="7" height="11" rx="3" fill="#2BB673"></rect><rect x="-3" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><rect x="60" y="262" width="2" height="30" fill="#2B2F3A"></rect><rect x="57.5" y="262" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><rect x="580" y="262" width="2" height="30" fill="#2B2F3A"></rect><rect x="577.5" y="262" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><rect width="640" height="360" fill="url(#a18lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a18gl)"><g opacity="0"><rect x="146" y="150" width="30" height="100" fill="#FFE6A6" opacity=".6"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="196" y="150" width="30" height="100" fill="#FFE6A6" opacity=".6"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="246" y="150" width="30" height="100" fill="#FFE6A6" opacity=".6"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="296" y="150" width="30" height="100" fill="#FFE6A6" opacity=".6"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="346" y="150" width="30" height="100" fill="#FFE6A6" opacity=".6"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="396" y="150" width="30" height="100" fill="#FFE6A6" opacity=".6"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="446" y="150" width="30" height="100" fill="#FFE6A6" opacity=".6"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="496" y="150" width="30" height="100" fill="#FFE6A6" opacity=".6"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="267" y="63" width="106" height="36" rx="6" fill="#FFD27A" opacity=".35"></rect><g transform="translate(309.412 70.4118) scale(0.882353)" fill="none" stroke="#FFD27A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6M11 7l6 6M8 10l6 6-2 2-6-6zM3 21l6-6"></path></g><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><circle cx="61" cy="265" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="61" cy="265" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><circle cx="581" cy="265" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="581" cy="265" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g></g><rect width="640" height="360" filter="url(#a18gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a18vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>Prochaine vente samedi</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Galerie Varga</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Galerie et maison d'enchères · le Marais, Paris</div></div>
+    </div>
+    <div class="res"><div><small>Dernière vente</small><b class="pos">+18 640 €</b></div><div style="text-align:right"><small>Notoriété</small><b>46 / 100</b></div></div>
+    <button class="up">Agrandir la galerie · niv. 2 <span>74 000 €</span></button>
+    <div class="todo"><span style="flex:1"><b>« Portrait de femme » n'est pas expertisé</b> : s'il s'agit d'un faux, votre notoriété chutera.</span><button class="lnk">Voir</button></div>
+
+    <!-- 1. LES CIMAISES -->
+    <h2 class="sec">Les cimaises <small>8 œuvres en réserve</small></h2>
+    <div class="wallbox">
+      <div class="hang" id="hang"></div>
+      <div class="bench"><span>Touchez une œuvre pour l'ajouter à la prochaine vente ou la rendre à son déposant.</span></div>
+    </div>
+
+    <!-- 2. LES DÉPÔTS PROPOSÉS -->
+    <h2 class="sec">Le courrier <small>2 propositions de dépôt</small></h2>
+    <div class="letter">
+      <div class="h"><span>Un collectionneur lyonnais</span><span>expire dans 3 j</span></div>
+      <p>« Je souhaite vous confier <b>Le Port au matin</b> de Pierre Castel. Estimation : 12 000 à 16 000 €. »</p>
+      <div class="bt"><button class="btn vel">Accepter le dépôt</button><button class="btn">Refuser</button></div>
+    </div>
+    <div class="letter">
+      <div class="h"><span>Une succession</span><span>expire dans 5 j</span></div>
+      <p>« Trois études à l'encre d'Ada Lindqvist, à disperser au mieux. Estimation : 4 500 € le lot. »</p>
+      <div class="bt"><button class="btn vel">Accepter le dépôt</button><button class="btn">Refuser</button></div>
+    </div>
+
+    <!-- 3. LA SALLE DES VENTES -->
+    <h2 class="sec">La salle des ventes <small>samedi · 4 lots</small></h2>
+    <div class="room">
+      <div class="hd"><b>Catalogue de la vente</b><span style="font-size:12px">commission 10 % + 20 %</span></div>
+      <div class="heat"><div class="l"><span>Salle froide</span><span>ambiance prévue : animée</span><span>Salle brûlante</span></div><div class="therm"><em></em></div></div>
+      <div class="cat" id="cat"></div>
+      <div class="order"><span>Chaque lot vendu réchauffe la salle, chaque lot ravalé la refroidit : ouvrez avec une valeur sûre, gardez la pièce maîtresse pour la fin.</span></div>
+      <button class="gavel">🔨 Ouvrir la vente</button>
+      <div class="last">Dernière vente : <b>5 lots vendus sur 6</b> · meilleure enchère <b>9 800 €</b> au téléphone.</div>
+    </div>
+
+    <!-- 4. ARTISTES ET EXPERTISE -->
+    <h2 class="sec">L'atelier et l'expertise</h2>
+    <div class="two">
+      <div class="box"><b>Artistes émergents</b>Vous signez de jeunes artistes et vendez leurs œuvres sans dépôt.<div class="big" style="margin-top:6px">🔒</div>palier 1</div>
+      <div class="box"><b>Expertise</b>Faire expertiser une œuvre écarte les faux avant la vente.<div class="bar"><i style="width:75%"></i></div><span>6 œuvres sur 8 expertisées</span></div>
+    </div>
+
+    <!-- 5. LES PALIERS -->
+    <h2 class="sec">Les paliers <small>palier 0 sur 5</small></h2>
+    <div class="path">
+      <div class="steps">
+        <div class="p now"><i>🎨</i>Artistes émergents</div><div class="ln"></div>
+        <div class="p"><i>🌍</i>Ventes internationales</div><div class="ln"></div>
+        <div class="p"><i>🎪</i>Foire d'art</div><div class="ln"></div>
+        <div class="p"><i>🔬</i>Laboratoire d'expertise</div><div class="ln"></div>
+        <div class="p"><i>🏛️</i>Musée privé</div>
+      </div>
+      <p class="hint">Les œuvres achetées dans l'onglet Luxe peuvent aussi être confiées à la galerie : exposées, leur cote monte, puis on les revend aux enchères.</p>
+    </div>
+
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt">
+      <button class="mg">Équipe<small>6 / 6 · fatigue 4</small></button>
+      <button class="mg">Finances<small>+18 640 € la dernière vente</small></button>
+      <button class="mg">Local<small>locataire · 210 € / j</small></button>
+      <button class="mg">Sécurité<small>alarme · assuré</small></button>
+    </div>
+    <div class="dlg"><span><b>Clara Weiss, directrice du site</b>peut accepter les dépôts et composer les ventes à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+
+<div class="legend">
+  <h2>Ce qui la distingue</h2>
+  <ul>
+    <li><b>Les cimaises</b> : la réserve accrochée au mur, chaque œuvre dans son cadre doré avec son cartel (titre, artiste, estimation) et un avertissement si elle n'est pas expertisée.</li>
+    <li><b>Le courrier</b> : les propositions de dépôt arrivent comme des lettres de collectionneurs, à accepter ou refuser avant leur expiration.</li>
+    <li><b>La salle des ventes</b> : le catalogue dans l'ordre de passage, le prix de réserve de chaque lot (basse, moyenne, haute), la chaleur de la salle, puis le marteau pour lancer la vente en direct.</li>
+    <li><b>L'atelier et l'expertise</b>, puis <b>les paliers</b> : artistes émergents, ventes internationales, foire d'art, laboratoire d'expertise, musée privé.</li>
+    <li>Ambiance cube blanc et velours : murs clairs, cadres dorés, titres en italique de catalogue.</li>
+  </ul>
+  <p>Les montants, les titres et les noms sont des exemples.</p>
+</div>
+
+<script>
+const P=[['#2F5D8A','#E9C46A','Composition bleue','Hélène Varga','6 – 8 000 €',0,80,100],['#E8D9A8','#C0503A','Nature morte aux citrons','Jean Morel','3 – 4 000 €',0,70,70],['#5A3A2E','#D9B48A','Portrait de femme','attribué à P. Sorel','15 – 22 000 €',1,74,96],['#DCE6EE','#7A8CA0','Paysage d\'hiver','Ada Lindqvist','5 – 7 000 €',0,110,72],['#B22D2D','#1E1E22','Abstraction rouge','Mira Okafor','9 – 12 000 €',0,84,84]];
+const cv=(a,b,w,h,k)=>'<svg class="cv" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><rect width="'+w+'" height="'+h+'" fill="'+a+'"/>'+(k%2? '<circle cx="'+(w*.6)+'" cy="'+(h*.45)+'" r="'+(Math.min(w,h)*.22)+'" fill="'+b+'"/>' : '<rect x="'+(w*.18)+'" y="'+(h*.2)+'" width="'+(w*.45)+'" height="'+(h*.55)+'" fill="'+b+'" opacity=".85"/>')+'<path d="M0 '+(h*.8)+' Q'+(w/2)+' '+(h*.65)+' '+w+' '+(h*.82)+' L'+w+' '+h+' L0 '+h+'Z" fill="'+b+'" opacity=".35"/></svg>';
+document.getElementById('hang').innerHTML=P.map((x,i)=>'<button class="art'+(i===2?' sel':'')+'"><div class="fr" style="width:'+(x[6]+12)+'px">'+cv(x[0],x[1],x[6],x[7],i)+'</div><div class="cartel"><b>'+x[2]+'</b>'+x[3]+'<em>'+x[4]+'</em>'+(x[5]?'<span class="warn">non expertisée</span>':'')+'</div></button>').join('');
+const L=[[1,'Nature morte aux citrons','Jean Morel · est. 3 – 4 000 €','m'],[2,'Paysage d\'hiver','Ada Lindqvist · est. 5 – 7 000 €','m'],[3,'Abstraction rouge','Mira Okafor · est. 9 – 12 000 €','b'],[4,'Composition bleue','Hélène Varga · est. 6 – 8 000 €','h']];
+document.getElementById('cat').innerHTML=L.map(x=>{ const p=P.find(y=>y[2]===x[1]); return '<div class="lotr"><span class="no">'+x[0]+'</span>'+cv(p[0],p[1],40,40,x[0]).replace('class="cv"','class="mini"')+'<div class="t"><b>'+x[1]+'</b><small>'+x[2]+'</small></div><div class="res3">'+[['b','Basse'],['m','Moy.'],['h','Haute']].map(r=>'<button class="'+(r[0]===x[3]?'on':'')+'">'+r[1]+'</button>').join('')+'</div></div>'; }).join('')+'<div class="lotr"><span class="no">+</span><span></span><div class="t"><b style="color:#EBC9D0">Ajouter un lot</b><small>depuis les cimaises</small></div><span></span></div>';
+document.querySelectorAll('.res3 button').forEach(b=>b.addEventListener('click',()=>b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))));
+document.querySelectorAll('.art').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('.art').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); }));
+</script>
+</body>
+</html>
