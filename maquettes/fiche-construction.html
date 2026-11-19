@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Construction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  /* identité du chantier : jaune engin, noir, bleu de plan, béton */
+  --bg:#F3F1EC; --bg-2:#E2DED4; --yel:#F2C94C; --yel-2:#C9A030; --blk:#1D1F23; --bp:#1D4F91; --bp-2:#143a6b; --con:#C9CED6;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif; --fo:'Oswald',Impact,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#dcd6c8;color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.phone{max-width:390px;margin:10px auto 30px;background:var(--bg);border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--blk);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 var(--bg-2);font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--bg-2)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(20,18,12,.88))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:700 28px/1 var(--fo);color:#fff;text-transform:uppercase;letter-spacing:1px}
+.hero .sub{color:#EDE6D6;font-size:13px;margin-top:3px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--good-bg)}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--blk);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--bg-2);flex:0 0 auto}
+h2.sec{font:700 20px var(--fo);color:var(--blk);margin:22px 4px 8px;display:flex;justify-content:space-between;align-items:baseline;text-transform:uppercase;letter-spacing:.5px}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3);text-transform:none;letter-spacing:0}
+.hz{height:8px;border-radius:4px;background:repeating-linear-gradient(-45deg,var(--yel) 0 8px,var(--blk) 8px 16px);margin:0 4px 8px}
+
+/* 1. LE CHANTIER PHARE */
+.site{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 0 var(--bg-2)}
+.site .info{padding:10px 12px}
+.site .info b{display:block;font:700 16px var(--fo);text-transform:uppercase}
+.site .info small{font-size:12px;color:var(--ink-3)}
+.pg{height:10px;border-radius:5px;background:var(--bg-2);margin-top:6px;overflow:hidden;position:relative}
+.pg i{display:block;height:100%;background:repeating-linear-gradient(-45deg,var(--yel) 0 6px,#e0b730 6px 12px)}
+.pg em{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--red)}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.kv div{background:var(--bg);border-radius:10px;padding:6px 8px;font-size:11px;color:var(--ink-3)}
+.kv b{display:block;font:700 15px var(--fo);color:var(--ink)}
+
+/* 2. LES APPELS D'OFFRES */
+.tender{background:var(--bp);border-radius:20px;padding:10px;color:#DCE8FB;box-shadow:0 4px 0 var(--bp-2);margin-bottom:10px}
+.tender .hd{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:center}
+.tender .hd b{display:block;color:#fff;font:700 15px var(--fo);text-transform:uppercase;letter-spacing:.3px}
+.tender .hd small{display:block;font-size:11.5px}
+.tender .hd .bpw{border-radius:8px;overflow:hidden;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+.bid{margin-top:10px}
+.bid .l{display:flex;justify-content:space-between;font-size:12px}
+.bid .l b{color:#fff;font:700 15px var(--fo)}
+.bid input{width:100%;accent-color:var(--yel);height:30px}
+.chance{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:12px}
+.chance .bar{flex:1;height:10px;border-radius:5px;background:rgba(255,255,255,.15);overflow:hidden}
+.chance .bar i{display:block;height:100%;background:linear-gradient(90deg,#FF7A3C,#F2C94C,#3CF29B)}
+.tender .ft{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px}
+.seg{display:flex;background:rgba(0,0,0,.2);border-radius:12px;padding:3px;gap:3px}
+.seg button{border:0;border-radius:9px;min-height:40px;padding:0 10px;background:none;color:#DCE8FB;font:800 12px var(--fb)}
+.seg button.on{background:#fff;color:var(--bp)}
+.btn{border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--bg-2),inset 0 0 0 1.5px var(--bg-2);white-space:nowrap}
+.btn.y{background:var(--yel);color:var(--blk);box-shadow:0 3px 0 var(--yel-2)}
+
+/* 3. LE PLANNING DES ÉQUIPES */
+.plan{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg-2)}
+.wk{display:grid;grid-template-columns:96px repeat(8,1fr);font:700 10px var(--fo);color:var(--ink-3);text-align:center;margin-bottom:4px;letter-spacing:.3px}
+.job{display:grid;grid-template-columns:96px 1fr;align-items:center;min-height:38px;border-top:1px solid var(--bg-2)}
+.job b{font:800 12px var(--fb)}
+.job small{display:block;font-size:10.5px;color:var(--ink-3)}
+.lane{position:relative;height:22px}
+.lane i{position:absolute;top:2px;bottom:2px;border-radius:6px;display:flex;align-items:center;padding:0 6px;font:800 10px var(--fb);color:#fff;white-space:nowrap;overflow:hidden}
+.lane em{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--red)}
+.lane em::after{content:'⚑';position:absolute;top:-10px;left:-3px;font-size:10px;color:var(--red);font-style:normal}
+.crews{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:11.5px;color:var(--ink-3)}
+.crews span{display:inline-flex;align-items:center;gap:4px}
+.crews i{width:10px;height:10px;border-radius:3px}
+
+/* 4. LE PARC D'ENGINS */
+.park{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.en{border:0;background:#fff;border-radius:16px;padding:6px 6px 10px;text-align:center;font:800 12.5px var(--fb);color:var(--ink);box-shadow:0 3px 0 var(--bg-2)}
+.en svg{display:block;margin:0 auto}
+.en small{display:block;font:600 11px var(--fb);color:var(--ink-3)}
+.en em{display:inline-block;margin-top:4px;font-style:normal;font:800 11px var(--fb);border-radius:8px;padding:2px 8px;background:var(--bg);color:var(--green)}
+.en em.buy{background:var(--yel);color:var(--blk)}
+.en.off svg{filter:grayscale(.9);opacity:.55}
+.opts{background:#fff;border-radius:18px;padding:12px;margin-top:8px;box-shadow:0 3px 0 var(--bg-2)}
+.opts .row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-3)}
+.opts .row+.row{margin-top:10px;padding-top:10px;border-top:1px solid var(--bg-2)}
+.opts b{display:block;color:var(--ink);font-size:14px}
+.opts .seg{background:var(--bg)}
+.opts .seg button{color:var(--ink-3)}
+.opts .seg button.on{background:var(--blk);color:var(--yel)}
+
+/* 5. LES MATÉRIAUX */
+.mat{background:var(--blk);border-radius:20px;padding:12px;color:#CFCBC0;box-shadow:0 4px 0 #000}
+.mt{display:grid;grid-template-columns:40px 1fr 74px 50px;gap:8px;align-items:center;padding:7px 0;border-top:1px solid rgba(255,255,255,.08);font-size:13px}
+.mt:first-child{border-top:0}
+.mt .sw{width:40px;height:30px;border-radius:6px}
+.mt b{color:#fff;display:block}
+.mt em{font-style:normal;text-align:right;font:700 14px var(--fo)}
+.mat .ft{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;font-size:12px}
+
+/* 6. LES PALIERS */
+.path{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg-2)}
+.steps{display:flex;align-items:flex-start}
+.steps .p{flex:0 0 58px;text-align:center;font:800 10px/1.2 var(--fb);color:var(--ink-3)}
+.steps .p i{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:8px;background:var(--bg);font-style:normal;font-size:17px}
+.steps .p.now i{background:var(--yel);box-shadow:0 0 0 3px var(--blk)}
+.steps .ln{flex:1;height:4px;margin-top:17px;background:repeating-linear-gradient(-45deg,var(--yel) 0 4px,var(--blk) 4px 8px);opacity:.6}
+
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 var(--bg-2);font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--bg-2);font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a09c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a09gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a09bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a09bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a09gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a09vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a09lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a09sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4E92DA"></stop><stop offset="1" stop-color="#D6ECFA"></stop></linearGradient></defs><g clip-path="url(#a09c)"><rect width="640" height="360" fill="url(#a09sky)"></rect><g><g fill="#FFFFFF" opacity=".85"><ellipse cx="90" cy="54" rx="40" ry="12"></ellipse><ellipse cx="114" cy="46" rx="26" ry="12"></ellipse><ellipse cx="470" cy="34" rx="34" ry="10"></ellipse><ellipse cx="492" cy="28" rx="22" ry="10"></ellipse></g><animateTransform attributeName="transform" type="translate" values="0 0;50 0;0 0" dur="34s" repeatCount="indefinite"></animateTransform></g><g fill="#A9BDD3" opacity=".55"><rect x="0" y="172" width="40" height="78"></rect><rect x="44" y="168" width="45" height="82"></rect><rect x="92" y="205" width="55" height="45"></rect><rect x="151" y="151" width="31" height="99"></rect><rect x="186" y="194" width="40" height="56"></rect><rect x="230" y="177" width="70" height="73"></rect><rect x="304" y="177" width="63" height="73"></rect><rect x="372" y="199" width="56" height="51"></rect><rect x="431" y="149" width="55" height="101"></rect><rect x="490" y="158" width="51" height="92"></rect><rect x="545" y="206" width="57" height="44"></rect><rect x="606" y="169" width="60" height="81"></rect></g><rect x="0" y="292" width="640" height="68" fill="#A08A63"></rect><rect x="0" y="284" width="640" height="8" fill="#C9C6BE"></rect><rect x="0" y="326" width="640" height="3" fill="#E9E3C8" opacity=".7"></rect><rect x="160" y="110" width="240" height="174" fill="none" stroke="#8A8F99" stroke-width="4"></rect><path d="M160 140H400" stroke="#8A8F99" stroke-width="4"></path><path d="M160 170H400" stroke="#8A8F99" stroke-width="4"></path><path d="M160 200H400" stroke="#8A8F99" stroke-width="4"></path><path d="M160 230H400" stroke="#8A8F99" stroke-width="4"></path><path d="M160 260H400" stroke="#8A8F99" stroke-width="4"></path><path d="M200 110V284" stroke="#8A8F99" stroke-width="4"></path><path d="M240 110V284" stroke="#8A8F99" stroke-width="4"></path><path d="M280 110V284" stroke="#8A8F99" stroke-width="4"></path><path d="M320 110V284" stroke="#8A8F99" stroke-width="4"></path><path d="M360 110V284" stroke="#8A8F99" stroke-width="4"></path><rect x="160" y="230" width="240" height="54" fill="#B9B3A6"></rect><rect x="174.4" y="244.8" width="21.3" height="24.2" fill="#6C6A73"></rect><rect x="212.4" y="244.8" width="21.3" height="24.2" fill="#57555E"></rect><rect x="250.4" y="244.8" width="21.3" height="24.2" fill="#6C6A73"></rect><rect x="288.4" y="244.8" width="21.3" height="24.2" fill="#57555E"></rect><rect x="326.4" y="244.8" width="21.3" height="24.2" fill="#6C6A73"></rect><rect x="364.4" y="244.8" width="21.3" height="24.2" fill="#6C6A73"></rect><path d="M156 110V284" stroke="#F2B134" stroke-width="2" stroke-dasharray="4 6"></path><path d="M404 110V284" stroke="#F2B134" stroke-width="2" stroke-dasharray="4 6"></path><rect x="470" y="40" width="10" height="244" fill="#F2B134"></rect><path d="M470 40l10 10M480 40l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 50l10 10M480 50l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 60l10 10M480 60l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 70l10 10M480 70l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 80l10 10M480 80l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 90l10 10M480 90l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 100l10 10M480 100l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 110l10 10M480 110l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 120l10 10M480 120l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 130l10 10M480 130l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 140l10 10M480 140l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 150l10 10M480 150l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 160l10 10M480 160l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 170l10 10M480 170l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 180l10 10M480 180l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 190l10 10M480 190l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 200l10 10M480 200l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 210l10 10M480 210l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 220l10 10M480 220l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 230l10 10M480 230l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 240l10 10M480 240l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 250l10 10M480 250l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 260l10 10M480 260l-10 10" stroke="#C98A00" stroke-width="1.4"></path><path d="M470 270l10 10M480 270l-10 10" stroke="#C98A00" stroke-width="1.4"></path><g><rect x="300" y="36" width="240" height="8" fill="#F2B134"></rect><rect x="520" y="44" width="16" height="16" fill="#8A8F99"></rect><path d="M340 44V120" stroke="#333" stroke-width="1.4"><animate attributeName="d" values="M340 44V120;M340 44V180;M340 44V120" dur="8s" repeatCount="indefinite"></animate></path><rect x="328" y="120" width="24" height="6" fill="#8A5A3A"><animate attributeName="y" values="120;180;120" dur="8s" repeatCount="indefinite"></animate></rect><animateTransform attributeName="transform" type="rotate" values="-6 475 40;6 475 40;-6 475 40" dur="16s" repeatCount="indefinite"></animateTransform></g><rect x="40" y="270" width="80" height="20" rx="3" fill="#E9EDF2"></rect><g><ellipse cx="80" cy="262" rx="26" ry="14" fill="#F2B134"></ellipse><path d="M60 262H100" stroke="#C98A00" stroke-width="3"></path><animateTransform attributeName="transform" type="rotate" values="0 80 262;360 80 262" dur="3s" repeatCount="indefinite"></animateTransform></g><circle cx="56" cy="292" r="7" fill="#222"></circle><circle cx="104" cy="292" r="7" fill="#222"></circle><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="33.3746s" begin="-25.7s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="284" r="3.4" fill="#F2B134"></circle><rect x="-3.5" y="288" width="7" height="11" rx="3" fill="#F2B134"></rect><rect x="-3" y="299" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="299" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="26.2159s" begin="-17.6s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="284" r="3.4" fill="#F2B134"></circle><rect x="-3.5" y="288" width="7" height="11" rx="3" fill="#F2B134"></rect><rect x="-3" y="299" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="299" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="26.2341s" begin="-18.4s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="284" r="3.4" fill="#F2B134"></circle><rect x="-3.5" y="288" width="7" height="11" rx="3" fill="#7A4DB0"></rect><rect x="-3" y="299" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="299" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><rect width="640" height="360" fill="url(#a09lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a09gl)"><rect x="174.4" y="244.8" width="21.3" height="24.2" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;.3;1;.2;1;1;0;0" keyTimes="0;0.453;0.463;0.503;0.553;0.653;0.703;0.841;0.851;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="212.4" y="244.8" width="21.3" height="24.2" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.356;0.366;0.924;0.934;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="250.4" y="244.8" width="21.3" height="24.2" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.465;0.475;0.911;0.921;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="288.4" y="244.8" width="21.3" height="24.2" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.325;0.335;0.935;0.945;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="326.4" y="244.8" width="21.3" height="24.2" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.422;0.432;0.841;0.851;1" dur="32s" repeatCount="indefinite"></animate></rect><circle cx="475" cy="36" r="3" fill="#FF3B30"><animate attributeName="opacity" values="1;.15;1" dur="1.2s" begin="-0s" repeatCount="indefinite"></animate></circle></g><rect width="640" height="360" filter="url(#a09gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a09vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>3 chantiers en cours</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Bâtir Martin</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Construction · dépôt de Saint-Ouen</div></div>
+    </div>
+    <div class="res"><div><small>Bénéfice hier</small><b class="pos">+3 410 €</b></div><div style="text-align:right"><small>Réputation</small><b>68 / 100</b></div></div>
+    <button class="up">Agrandir le dépôt · niv. 2 <span>118 000 €</span></button>
+    <div class="todo"><span style="flex:1"><b>La résidence étudiante va dépasser son délai</b> : 4 jours de retard, pénalités en vue.</span><button class="lnk">Voir</button></div>
+
+    <!-- 1. LE CHANTIER PHARE -->
+    <h2 class="sec">Le chantier en cours <small>1 sur 3</small></h2>
+    <div class="site">
+      <span id="site"></span>
+      <div class="info"><b>Résidence étudiante · Belleville</b><small>pour la Région · 6 étages, le 4e est en coffrage</small>
+        <div class="pg"><i style="width:62%"></i><em style="left:70%"></em></div>
+        <div class="kv"><div>Avancement<b>62 %</b></div><div>Livraison<b style="color:var(--red)">J −11</b></div><div>Prix signé<b>1,48 M €</b></div></div></div>
+    </div>
+
+    <!-- 2. LES APPELS D'OFFRES -->
+    <h2 class="sec">Les appels d'offres <small>2 ouverts</small></h2>
+    <div class="hz"></div>
+    <div class="tender">
+      <div class="hd"><span class="bpw" id="bp1"></span><div><b>Pont routier · Seine</b><small>Département · 640 journées d'équipe · ouvrage d'art</small><small>clôture dans 3 jours</small></div></div>
+      <div class="bid"><div class="l"><span>Votre prix</span><b>2,9 M €</b><span>prix juste : 2,7 M €</span></div><input type="range" min="80" max="140" value="107" aria-label="Prix proposé">
+        <div class="chance"><span>Chances</span><span class="bar"><i style="width:46%"></i></span><b style="color:#fff">46 %</b></div></div>
+      <div class="ft"><div class="seg"><button>Délai court</button><button class="on">Normal</button><button>Large</button></div><button class="btn y">Répondre</button></div>
+    </div>
+    <div class="tender" style="background:#2a5ea6">
+      <div class="hd"><span class="bpw" id="bp2"></span><div><b>Maison individuelle · Vincennes</b><small>Famille Durand · 40 journées d'équipe</small><small>clôture dans 6 jours</small></div></div>
+      <div class="bid"><div class="l"><span>Votre prix</span><b>118 000 €</b><span>prix juste : 124 000 €</span></div><input type="range" min="80" max="140" value="95" aria-label="Prix proposé">
+        <div class="chance"><span>Chances</span><span class="bar"><i style="width:78%"></i></span><b style="color:#fff">78 %</b></div></div>
+    </div>
+
+    <!-- 3. LE PLANNING -->
+    <h2 class="sec">Le planning <small>8 semaines</small></h2>
+    <div class="plan">
+      <div class="wk"><span></span><span>S1</span><span>S2</span><span>S3</span><span>S4</span><span>S5</span><span>S6</span><span>S7</span><span>S8</span></div>
+      <div class="job"><div><b>Résidence étudiante</b><small>priorité 1 · 3 équipes</small></div><div class="lane"><i style="left:0;width:42%;background:#1D4F91">gros œuvre</i><i style="left:42%;width:22%;background:#C8352A">retard</i><em style="left:56%"></em></div></div>
+      <div class="job"><div><b>Cabinet médical</b><small>priorité 2 · 2 équipes</small></div><div class="lane"><i style="left:0;width:30%;background:#2BB673">finitions</i><em style="left:36%"></em></div></div>
+      <div class="job"><div><b>Extension de maison</b><small>priorité 3 · 1 équipe</small></div><div class="lane"><i style="left:8%;width:40%;background:#E5A800">attend une équipe</i><em style="left:62%"></em></div></div>
+      <div class="crews"><span><i style="background:#1D4F91"></i>en cours</span><span><i style="background:#2BB673"></i>dans les temps</span><span><i style="background:#C8352A"></i>en retard</span><span style="color:var(--red);font-weight:800">⚑ date de livraison</span></div>
+    </div>
+
+    <!-- 4. LES ENGINS -->
+    <h2 class="sec">Le parc d'engins <small>engins 2 sur 3</small></h2>
+    <div class="park" id="park"></div>
+    <div class="opts">
+      <div class="row"><span><b>Équipes intérimaires</b>renforts pour tenir les délais, plus chers</span><div class="seg"><button>0</button><button class="on">1</button><button>2</button><button>3</button></div></div>
+      <div class="row"><span><b>Marge du conducteur de travaux</b>délai de sécurité ajouté à chaque devis</span><div class="seg"><button>Serrée</button><button class="on">Normale</button><button>Large</button></div></div>
+    </div>
+
+    <!-- 5. LES MATÉRIAUX -->
+    <h2 class="sec">Les matériaux <small>indice du jour</small></h2>
+    <div class="mat">
+      <div class="mt"><span class="sw" style="background:repeating-linear-gradient(45deg,#9aa2ae 0 3px,#b9c0ca 3px 6px)"></span><span><b>Béton</b>prêt à l'emploi</span><svg width="74" height="22" viewBox="0 0 74 22"><polyline points="0,14 12,13 24,12 36,10 48,9 60,8 74,6" fill="none" stroke="#FF7A3C" stroke-width="2"/></svg><em style="color:#FF7A3C">+6 %</em></div>
+      <div class="mt"><span class="sw" style="background:linear-gradient(#5e6b7a,#8fa0b8,#5e6b7a)"></span><span><b>Acier</b>armatures, poutres</span><svg width="74" height="22" viewBox="0 0 74 22"><polyline points="0,8 12,9 24,12 36,11 48,13 60,14 74,15" fill="none" stroke="#3CF29B" stroke-width="2"/></svg><em style="color:#3CF29B">−4 %</em></div>
+      <div class="mt"><span class="sw" style="background:repeating-linear-gradient(90deg,#c99b66 0 5px,#a87a48 5px 6px)"></span><span><b>Bois</b>charpente, coffrages</span><svg width="74" height="22" viewBox="0 0 74 22"><polyline points="0,11 12,10 24,12 36,11 48,11 60,10 74,11" fill="none" stroke="#CFCBC0" stroke-width="2"/></svg><em>=</em></div>
+      <div class="ft"><span>Acheter d'avance fige le prix des chantiers signés.</span><button class="btn y">Acheter d'avance</button></div>
+    </div>
+
+    <!-- 6. LES PALIERS -->
+    <h2 class="sec">Les paliers <small>palier 1 sur 5</small></h2>
+    <div class="path">
+      <div class="steps">
+        <div class="p now"><i>🏢</i>Grands chantiers</div><div class="ln"></div>
+        <div class="p"><i>🌉</i>Ouvrages d'art</div><div class="ln"></div>
+        <div class="p"><i>🌿</i>Label vert</div><div class="ln"></div>
+        <div class="p"><i>🏛️</i>Marchés publics</div><div class="ln"></div>
+        <div class="p"><i>🏗️</i>Grands projets</div>
+      </div>
+    </div>
+
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt">
+      <button class="mg">Équipe<small>6 équipes · fatigue 27</small></button>
+      <button class="mg">Finances<small>+3 410 € hier</small></button>
+      <button class="mg">Dépôt<small>propriétaire</small></button>
+      <button class="mg">Sécurité<small>gardiennage · assuré</small></button>
+    </div>
+    <div class="dlg"><span><b>Karim Dubois, directeur des travaux</b>peut répondre aux appels d'offres et organiser le planning à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+<script>
+/* Chantier : immeuble en construction avec grue, échafaudages, engins */
+let BD_N=0;
+function site(floorsDone,floorsTotal,W){ const id='bs'+(++BD_N), H=Math.round(W*.75); let s='';
+  s+='<defs><linearGradient id="'+id+'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd0f0"/><stop offset="1" stop-color="#e8f4fb"/></linearGradient></defs>';
+  s+='<rect width="200" height="150" fill="url(#'+id+'k)"/><circle cx="170" cy="24" r="10" fill="#fff3c4"/>';
+  s+='<rect x="0" y="128" width="200" height="22" fill="#b89a6a"/><rect x="0" y="126" width="200" height="4" fill="#9a7a4a"/>';
+  /* palissade rayée */
+  s+='<rect x="0" y="118" width="200" height="12" fill="#f2c94c"/>'+Array.from({length:20},(_,i)=>'<path d="M'+(i*10)+' 130 L'+(i*10+6)+' 118 L'+(i*10+10)+' 118 L'+(i*10+4)+' 130Z" fill="#1d1f23"/>').join('');
+  /* immeuble : étages finis en béton, en cours en coffrage, restants en pointillés */
+  const fx=60, fw=80, fh=13;
+  for(let f=0;f<floorsTotal;f++){ const y=118-(f+1)*fh;
+    if(f<floorsDone){ s+='<rect x="'+fx+'" y="'+y+'" width="'+fw+'" height="'+fh+'" fill="#c9ced6" stroke="#9aa2ae" stroke-width=".6"/>'; for(let w=0;w<5;w++) s+='<rect x="'+(fx+6+w*15)+'" y="'+(y+3)+'" width="9" height="7" fill="'+(f<floorsDone-1?'#7fa4bf':'#3a3f47')+'"/>'; }
+    else if(f===floorsDone){ s+='<rect x="'+fx+'" y="'+(y+8)+'" width="'+fw+'" height="5" fill="#a8b0ba"/>'+[0,1,2,3,4,5].map(k=>'<rect x="'+(fx+2+k*15)+'" y="'+y+'" width="3" height="9" fill="#9aa2ae"/>').join('')+'<rect x="'+(fx+30)+'" y="'+(y+3)+'" width="22" height="5" fill="#d9a552"/>'; }
+    else s+='<rect x="'+fx+'" y="'+y+'" width="'+fw+'" height="'+fh+'" fill="none" stroke="#5e6b7a" stroke-width=".8" stroke-dasharray="3 3" opacity=".6"/>'; }
+  /* échafaudage */
+  const top=118-(floorsDone+1)*fh; s+='<g stroke="#d9a552" stroke-width="1.2">'+[fx-8,fx+fw+2].map(x=>'<line x1="'+x+'" y1="118" x2="'+x+'" y2="'+top+'"/><line x1="'+(x+6)+'" y1="118" x2="'+(x+6)+'" y2="'+top+'"/>'+Array.from({length:floorsDone+1},(_,k)=>'<line x1="'+x+'" y1="'+(118-k*fh)+'" x2="'+(x+6)+'" y2="'+(118-(k+1)*fh)+'"/><line x1="'+(x-1)+'" y1="'+(118-k*fh)+'" x2="'+(x+7)+'" y2="'+(118-k*fh)+'"/>').join('')).join('')+'</g>';
+  /* grue à tour */
+  s+='<g><rect x="150" y="20" width="6" height="108" fill="#f2c94c"/>'+Array.from({length:12},(_,k)=>'<path d="M150 '+(28+k*8.4)+' L156 '+(32+k*8.4)+'" stroke="#c9a030" stroke-width="1"/>').join('')+
+    '<rect x="70" y="16" width="120" height="5" fill="#f2c94c"/>'+Array.from({length:15},(_,k)=>'<path d="M'+(72+k*8)+' 21 L'+(76+k*8)+' 16" stroke="#c9a030" stroke-width="1"/>').join('')+
+    '<path d="M153 20 L153 6 L176 16" fill="none" stroke="#c9a030" stroke-width="1.4"/><rect x="172" y="21" width="16" height="9" fill="#5e6b7a"/><rect x="148" y="21" width="10" height="8" fill="#1d6fb2"/>'+
+    '<line x1="96" y1="21" x2="96" y2="'+(top-6)+'" stroke="#2b2f35" stroke-width=".8"/><rect x="88" y="'+(top-8)+'" width="16" height="4" fill="#8a6340"/><rect x="92" y="18" width="8" height="4" fill="#2b2f35"/></g>';
+  /* ouvriers casqués */
+  [[66,top+2],[120,top+2],[30,124],[44,124]].forEach(([x,y])=>{ s+='<circle cx="'+x+'" cy="'+(y-6)+'" r="2" fill="#e9c3a6"/><path d="M'+(x-2.4)+' '+(y-7)+' a2.4 2.4 0 0 1 4.8 0Z" fill="#f2c94c"/><rect x="'+(x-2)+'" y="'+(y-4)+'" width="4" height="5" fill="#ff7a3c"/>'; });
+  /* bétonnière */
+  s+='<g transform="translate(8 108)"><rect x="0" y="6" width="34" height="10" rx="2" fill="#e9edf3" stroke="#9aa2ae"/><ellipse cx="18" cy="2" rx="13" ry="8" fill="#ff7a3c" transform="rotate(-12 18 2)"/><path d="M8 -2 L28 6 M10 4 L26 -2" stroke="#d9501a" stroke-width="1.2"/><circle cx="7" cy="17" r="3.4" fill="#1d1f23"/><circle cx="28" cy="17" r="3.4" fill="#1d1f23"/><rect x="30" y="4" width="6" height="8" fill="#1d6fb2"/></g>';
+  return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 200 150" style="display:block">'+s+'</svg>'; }
+function engine(k,W){ let s='';
+  if(k==='pelle') s='<rect x="10" y="62" width="56" height="12" rx="6" fill="#2b2f35"/>'+[16,28,40,52,62].map(x=>'<circle cx="'+x+'" cy="68" r="4" fill="#5e6b7a"/>').join('')+'<rect x="16" y="40" width="40" height="22" rx="3" fill="#f2c94c"/><rect x="40" y="26" width="18" height="18" rx="2" fill="#9fd0e6" stroke="#f2c94c" stroke-width="3"/><path d="M56 44 L78 22 L90 40" fill="none" stroke="#f2c94c" stroke-width="6" stroke-linecap="round"/><path d="M84 38 L96 44 L90 56 L80 50Z" fill="#5e6b7a"/>';
+  if(k==='grue') s='<rect x="44" y="10" width="6" height="66" fill="#f2c94c"/><rect x="14" y="10" width="76" height="5" fill="#f2c94c"/><path d="M47 10 V2 L70 10" stroke="#c9a030" fill="none" stroke-width="1.4"/><rect x="74" y="15" width="12" height="7" fill="#5e6b7a"/><line x1="24" y1="15" x2="24" y2="44" stroke="#2b2f35"/><rect x="18" y="44" width="12" height="6" fill="#8a6340"/><rect x="36" y="76" width="22" height="6" fill="#9aa2ae"/>';
+  if(k==='toupie') s='<rect x="8" y="56" width="74" height="12" rx="3" fill="#e9edf3" stroke="#9aa2ae"/><ellipse cx="40" cy="44" rx="26" ry="14" fill="#ff7a3c" transform="rotate(-10 40 44)"/><path d="M20 38 L60 52 M24 50 L58 36" stroke="#d9501a" stroke-width="2"/><rect x="66" y="34" width="20" height="22" rx="3" fill="#1d6fb2"/><rect x="70" y="38" width="12" height="8" fill="#9fd0e6"/><circle cx="20" cy="70" r="7" fill="#1d1f23"/><circle cx="50" cy="70" r="7" fill="#1d1f23"/><circle cx="76" cy="70" r="7" fill="#1d1f23"/>';
+  return '<svg width="'+W+'" height="'+Math.round(W*.85)+'" viewBox="0 0 100 85">'+s+'</svg>'; }
+/* plan d'architecte en vignette */
+function blueprint(kind,W){ let s='<rect width="100" height="70" fill="#1d4f91"/><pattern id="bpg'+(++BD_N)+'" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M6 0 H0 V6" fill="none" stroke="rgba(255,255,255,.12)" stroke-width=".5"/></pattern><rect width="100" height="70" fill="url(#bpg'+BD_N+')"/>';
+  const L='stroke="#e8f1ff" stroke-width="1.2" fill="none"';
+  if(kind==='mais') s+='<path d="M20 60 V32 L50 12 L80 32 V60Z" '+L+'/><rect x="44" y="42" width="12" height="18" '+L+'/><rect x="26" y="36" width="10" height="9" '+L+'/><rect x="64" y="36" width="10" height="9" '+L+'/><path d="M14 64 H86" '+L+' stroke-dasharray="2 2"/>';
+  if(kind==='imm') s+='<rect x="28" y="8" width="44" height="54" '+L+'/>'+[0,1,2,3,4].map(r=>[0,1,2].map(c=>'<rect x="'+(33+c*13)+'" y="'+(12+r*10)+'" width="8" height="6" '+L+'/>').join('')).join('');
+  if(kind==='oa') s+='<path d="M4 46 H96" '+L+'/><path d="M10 46 Q30 14 50 46 Q70 14 90 46" '+L+'/>'+[18,30,42,58,70,82].map(x=>'<line x1="'+x+'" y1="46" x2="'+x+'" y2="'+(46-Math.abs(Math.sin((x-10)/40*Math.PI))*24)+'" '+L+'/>').join('')+'<path d="M4 62 H96" '+L+' stroke-dasharray="3 2"/>';
+  if(kind==='comm') s+='<rect x="14" y="24" width="72" height="36" '+L+'/><path d="M14 24 L50 10 L86 24" '+L+'/><rect x="24" y="36" width="20" height="24" '+L+'/><rect x="54" y="34" width="24" height="12" '+L+'/>';
+  s+='<text x="94" y="66" text-anchor="end" font-family="monospace" font-size="5" fill="#e8f1ff" opacity=".8">ÉCH. 1:200</text>';
+  return '<svg width="'+W+'" height="'+Math.round(W*.7)+'" viewBox="0 0 100 70" style="display:block">'+s+'</svg>'; }
+
+document.getElementById('site').innerHTML=site(3,6,358);
+document.getElementById('bp1').innerHTML=blueprint('oa',110); document.getElementById('bp2').innerHTML=blueprint('mais',110);
+document.getElementById('park').innerHTML=[['pelle','Pelleteuse','terrassement','actif',''],['toupie','Toupie béton','coulage','actif',''],['grue','Grue à tour','grands chantiers','86 000 €','buy']].map(x=>'<button class="en'+(x[4]?' off':'')+'">'+engine(x[0],88)+x[1]+'<small>'+x[2]+'</small><em class="'+x[4]+'">'+x[3]+'</em></button>').join('');
+document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>g.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)))));
+</script>
+</body>
+</html>
