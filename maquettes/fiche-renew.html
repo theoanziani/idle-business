@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Énergies renouvelables</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Exo+2:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif;
+  --page:#d6e2d8;--bg:#F0F6F1;--bg2:#DCE9DF;--acc:#13865B;--acc2:#0d6143;--hcol:#123B2C;--h1:800 26px/1 'Exo 2',sans-serif;--h2:800 18px 'Exo 2',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.phone{max-width:390px;margin:10px auto 30px;background:var(--bg);border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--acc);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 var(--bg2);font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--bg2)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(12,14,24,.88))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:var(--h1);color:#fff}
+.hero .sub{color:#E3E6EF;font-size:13px;margin-top:3px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--good-bg)}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--acc);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--bg2);flex:0 0 auto}
+h2.sec{font:var(--h2);color:var(--hcol);margin:22px 4px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0;text-transform:none}
+.card{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg2)}
+.btn{border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--bg2),inset 0 0 0 1.5px var(--bg2);white-space:nowrap}
+.btn.a{background:var(--acc);color:#fff;box-shadow:0 3px 0 var(--acc2)}
+.seg{display:flex;background:var(--bg);border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:none;border-radius:11px;min-height:42px;font:800 12.5px var(--fb);color:var(--ink-3);padding:0 6px}
+.seg button.on{background:var(--acc);color:#fff}
+.tog{position:relative;width:52px;height:30px;border-radius:15px;background:#d5dae2;border:0;flex:0 0 auto}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.tog.on{background:var(--good-bg)}.tog.on::after{left:25px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-3)}
+.row b{display:block;color:var(--ink);font-size:14px}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+.path{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg2)}
+.steps{display:flex;align-items:flex-start}
+.steps .p{flex:0 0 58px;text-align:center;font:800 10px/1.2 var(--fb);color:var(--ink-3)}
+.steps .p i{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:12px;background:var(--bg);font-style:normal;font-size:17px}
+.steps .p.now i{background:var(--acc);box-shadow:0 0 0 3px var(--bg2)}
+.steps .ln{flex:1;height:3px;margin-top:18px;background:var(--acc);opacity:.3;border-radius:2px}
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 var(--bg2);font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--bg2);font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+
+.regs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rg{border:0;padding:0;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 3px 0 var(--bg2);text-align:left;font:inherit;color:inherit}
+.rg .sc{height:110px;position:relative}
+.rg .sc svg{display:block;width:100%;height:100%}
+.rg .bd{padding:7px 9px 9px}
+.rg b{display:block;font:800 13.5px 'Exo 2',sans-serif}
+.rg .rt{display:flex;gap:6px;font:800 10.5px var(--fb);color:var(--ink-3);margin-top:2px}
+.rg .rt span{display:inline-flex;align-items:center;gap:2px}
+.rg em{display:inline-block;font-style:normal;margin-top:4px;font:800 10.5px var(--fb);border-radius:6px;padding:1px 7px;background:var(--bg);color:var(--acc)}
+.rg em.no{background:#FFE4E0;color:var(--red)}
+.rg.lock .sc{filter:grayscale(.7) brightness(.95)}
+.day{background:#0e2433;border-radius:20px;padding:12px;color:#cfe3d8;box-shadow:0 4px 0 #061620}
+.day .top2{display:flex;justify-content:space-between;align-items:baseline}
+.day .top2 b{font:800 24px 'Exo 2',sans-serif;color:#fff}
+.day .lgd{display:flex;gap:10px;font-size:11px;margin-top:4px}
+.day .lgd i{display:inline-block;width:10px;height:4px;border-radius:2px;margin-right:4px;vertical-align:2px}
+.bat{display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:center}
+.bat .cell{position:relative;width:90px;height:132px;border-radius:14px;background:#1d2a33;padding:6px;box-shadow:inset 0 0 0 3px #3a4a55}
+.bat .cell::before{content:'';position:absolute;top:-8px;left:30px;width:30px;height:10px;border-radius:4px 4px 0 0;background:#3a4a55}
+.bat .lv{position:absolute;left:6px;right:6px;bottom:6px;height:62%;border-radius:9px;background:linear-gradient(#5ef0a8,#13865B);box-shadow:0 0 14px rgba(94,240,168,.5)}
+.bat .lv::after{content:'62 %';position:absolute;top:8px;left:0;right:0;text-align:center;font:800 16px 'Exo 2',sans-serif;color:#0d3b28}
+.bat .bolt{position:absolute;left:50%;top:22px;transform:translateX(-50%);font-size:22px}
+
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a21c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a21gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a21bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a21bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a21gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a21vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a21lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a21sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4F9BE0"></stop><stop offset="1" stop-color="#DDF0FA"></stop></linearGradient></defs><g clip-path="url(#a21c)"><rect width="640" height="360" fill="url(#a21sky)"></rect><circle cx="110" cy="70" r="26" fill="#FFF0C0" opacity=".35"><animate attributeName="r" values="26;35.1;26" dur="6s" repeatCount="indefinite"></animate><animate attributeName="opacity" values=".35;.15;.35" dur="6s" repeatCount="indefinite"></animate></circle><circle cx="110" cy="70" r="20" fill="#FFE29A"></circle><path d="M0 190Q160 160 320 180T640 170V360H0z" fill="#9BCB6E"></path><path d="M0 250Q300 230 640 250V360H0z" fill="#86B95A"></path><path d="M177 190L180 70L183 190z" fill="#F2F4F7"></path><g><path d="M180 70l-3 -54h6z" fill="#FFFFFF" transform="rotate(0 180 70)"></path><path d="M180 70l-3 -54h6z" fill="#FFFFFF" transform="rotate(120 180 70)"></path><path d="M180 70l-3 -54h6z" fill="#FFFFFF" transform="rotate(240 180 70)"></path><animateTransform attributeName="transform" type="rotate" values="0 180 70;360 180 70" dur="6s" repeatCount="indefinite"></animateTransform></g><path d="M297 176L300 36L303 176z" fill="#F2F4F7"></path><g><path d="M300 36l-3 -63h6z" fill="#FFFFFF" transform="rotate(0 300 36)"></path><path d="M300 36l-3 -63h6z" fill="#FFFFFF" transform="rotate(120 300 36)"></path><path d="M300 36l-3 -63h6z" fill="#FFFFFF" transform="rotate(240 300 36)"></path><animateTransform attributeName="transform" type="rotate" values="0 300 36;360 300 36" dur="7s" repeatCount="indefinite"></animateTransform></g><path d="M427 186L430 60L433 186z" fill="#F2F4F7"></path><g><path d="M430 60l-3 -56.7h6z" fill="#FFFFFF" transform="rotate(0 430 60)"></path><path d="M430 60l-3 -56.7h6z" fill="#FFFFFF" transform="rotate(120 430 60)"></path><path d="M430 60l-3 -56.7h6z" fill="#FFFFFF" transform="rotate(240 430 60)"></path><animateTransform attributeName="transform" type="rotate" values="0 430 60;360 430 60" dur="5.5s" repeatCount="indefinite"></animateTransform></g><path d="M537 196L540 86L543 196z" fill="#F2F4F7"></path><g><path d="M540 86l-3 -49.5h6z" fill="#FFFFFF" transform="rotate(0 540 86)"></path><path d="M540 86l-3 -49.5h6z" fill="#FFFFFF" transform="rotate(120 540 86)"></path><path d="M540 86l-3 -49.5h6z" fill="#FFFFFF" transform="rotate(240 540 86)"></path><animateTransform attributeName="transform" type="rotate" values="0 540 86;360 540 86" dur="6.5s" repeatCount="indefinite"></animateTransform></g><path d="M20 280h38l-8 16h-38z" fill="#24427A"></path><path d="M20 285h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M64 280h38l-8 16h-38z" fill="#24427A"></path><path d="M64 285h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M108 280h38l-8 16h-38z" fill="#24427A"></path><path d="M108 285h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M152 280h38l-8 16h-38z" fill="#24427A"></path><path d="M152 285h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M196 280h38l-8 16h-38z" fill="#24427A"></path><path d="M196 285h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M240 280h38l-8 16h-38z" fill="#24427A"></path><path d="M240 285h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M284 280h38l-8 16h-38z" fill="#24427A"></path><path d="M284 285h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M34 302h38l-8 16h-38z" fill="#24427A"></path><path d="M34 307h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M78 302h38l-8 16h-38z" fill="#24427A"></path><path d="M78 307h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M122 302h38l-8 16h-38z" fill="#24427A"></path><path d="M122 307h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M166 302h38l-8 16h-38z" fill="#24427A"></path><path d="M166 307h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M210 302h38l-8 16h-38z" fill="#24427A"></path><path d="M210 307h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M254 302h38l-8 16h-38z" fill="#24427A"></path><path d="M254 307h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M298 302h38l-8 16h-38z" fill="#24427A"></path><path d="M298 307h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M48 324h38l-8 16h-38z" fill="#24427A"></path><path d="M48 329h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M92 324h38l-8 16h-38z" fill="#24427A"></path><path d="M92 329h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M136 324h38l-8 16h-38z" fill="#24427A"></path><path d="M136 329h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M180 324h38l-8 16h-38z" fill="#24427A"></path><path d="M180 329h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M224 324h38l-8 16h-38z" fill="#24427A"></path><path d="M224 329h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M268 324h38l-8 16h-38z" fill="#24427A"></path><path d="M268 329h38" stroke="#7FA6D8" stroke-width="1"></path><path d="M312 324h38l-8 16h-38z" fill="#24427A"></path><path d="M312 329h38" stroke="#7FA6D8" stroke-width="1"></path><g opacity="0"><path d="M20 280h330v60H20z" fill="#FFFFFF"></path><animate attributeName="opacity" values="0;.12;0" dur="5s" repeatCount="indefinite"></animate></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;720 -30" dur="22s" begin="-4s" repeatCount="indefinite"></animateTransform><path d="M0 90q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M0 90q3 -6 7 -1q4 -5 7 1;M0 90q3 2 7 -1q4 2 7 1;M0 90q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.0s" repeatCount="indefinite"></animate></path><path d="M18 98q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M18 98q3 -6 7 -1q4 -5 7 1;M18 98q3 2 7 -1q4 2 7 1;M18 98q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.2s" repeatCount="indefinite"></animate></path><path d="M36 90q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M36 90q3 -6 7 -1q4 -5 7 1;M36 90q3 2 7 -1q4 2 7 1;M36 90q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.4s" repeatCount="indefinite"></animate></path></g><rect width="640" height="360" fill="url(#a21lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a21gl)"><circle cx="180" cy="68" r="2" fill="#FF3B30"><animate attributeName="opacity" values="1;.15;1" dur="1.5s" begin="-0s" repeatCount="indefinite"></animate></circle><circle cx="300" cy="34" r="2" fill="#FF3B30"><animate attributeName="opacity" values="1;.15;1" dur="1.5s" begin="-0.3s" repeatCount="indefinite"></animate></circle><circle cx="430" cy="58" r="2" fill="#FF3B30"><animate attributeName="opacity" values="1;.15;1" dur="1.5s" begin="-0.6s" repeatCount="indefinite"></animate></circle><circle cx="540" cy="84" r="2" fill="#FF3B30"><animate attributeName="opacity" values="1;.15;1" dur="1.5s" begin="-0.9s" repeatCount="indefinite"></animate></circle></g><rect width="640" height="360" filter="url(#a21gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a21vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>Production 82 MWh aujourd'hui</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Vent d'Ouest</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Énergies renouvelables · siège à Paris</div></div>
+    </div>
+    
+<div class="res"><div><small>Bénéfice hier</small><b class="pos">+6 340 €</b></div><div style="text-align:right"><small>Prix du jour</small><b>78 € / MWh</b></div></div>
+<button class="up">Agrandir le parc · niv. 2 <span>320 000 €</span></button>
+<div class="todo"><span style="flex:1"><b>Tempête annoncée sur la Bretagne</b> : production éolienne en hausse, risque d'avarie.</span><button class="lnk">Voir</button></div>
+
+<h2 class="sec">Les régions <small>une autorisation par région</small></h2>
+<div class="regs" id="regs"></div>
+
+<h2 class="sec">La journée électrique</h2>
+<div class="day"><div class="top2"><span style="font-size:12.5px">Production et prix heure par heure</span><b>82 MWh</b></div>
+ <svg width="100%" height="132" viewBox="0 0 300 132" preserveAspectRatio="none">
+  <path d="M0 110 L40 110 C70 108 90 40 150 30 S230 100 260 110 L300 110 L300 120 L0 120Z" fill="rgba(242,201,76,.55)"/>
+  <path d="M0 80 C40 70 70 86 110 78 S190 60 230 72 S280 66 300 70 L300 120 L0 120Z" fill="rgba(94,200,240,.35)"/>
+  <path d="M0 60 C40 70 70 50 100 64 S160 92 200 70 S250 20 300 34" fill="none" stroke="#ff8a6b" stroke-width="2.4"/>
+  <g font-size="8" fill="#9fb8ab" font-family="sans-serif"><text x="2" y="10">prix</text><text x="0" y="130">0 h</text><text x="140" y="130">12 h</text><text x="276" y="130">24 h</text></g>
+  <line x1="200" y1="0" x2="200" y2="112" stroke="#fff" stroke-dasharray="2 3" opacity=".5"/><text x="204" y="18" font-size="8" fill="#fff" font-family="sans-serif">maintenant</text>
+ </svg>
+ <div class="lgd"><span><i style="background:#F2C94C"></i>solaire</span><span><i style="background:#5ec8f0"></i>éolien</span><span><i style="background:#ff8a6b"></i>prix de l'électricité</span></div>
+ <div class="row" style="margin-top:10px;color:#cfe3d8"><span><b style="color:#fff">Vente de l'électricité</b>au prix du jour, ou une part fixée pour un an</span><div class="seg" style="flex:0 0 160px;background:rgba(255,255,255,.08)"><button class="on">Au jour</button><button style="color:#cfe3d8">Contrat 1 an</button></div></div>
+</div>
+
+<h2 class="sec">Les batteries <small>stocker quand c'est bon marché</small></h2>
+<div class="card bat"><div class="cell"><span class="lv"></span><span class="bolt">⚡</span></div>
+ <div><b style="font-size:15px">40 MWh de stockage</b><span style="display:block;font-size:12.5px;color:var(--ink-3)">charge la nuit et les jours de vent, revend aux heures chères</span>
+  <div class="seg" style="margin-top:10px"><button>Prudente</button><button class="on">Équilibrée</button><button>Agressive</button></div>
+  <button class="btn a" style="margin-top:8px;width:100%">Ajouter 20 MWh · 180 000 €</button></div></div>
+
+    <h2 class="sec">Les paliers <small>palier 1 sur 5</small></h2>
+    <div class="path"><div class="steps"><div class="p now"><i>🌊</i>Éolien en mer</div><div class="ln"></div><div class="p"><i>🔋</i>Stockage géant</div><div class="ln"></div><div class="p"><i>💧</i>Hydrogène</div><div class="ln"></div><div class="p"><i>🧠</i>Réseau intelligent</div><div class="ln"></div><div class="p"><i>🏞️</i>Parcs géants</div></div></div>
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt"><button class="mg">Équipe<small>14 / 14 · fatigue 10</small></button><button class="mg">Finances<small>+6 340 € hier</small></button><button class="mg">Terrains<small>4 régions</small></button><button class="mg">Sécurité<small>télésurveillance · assuré</small></button></div>
+    <div class="dlg"><span><b>Lina Mercier, directrice de la production</b>peut installer les centrales, vendre l'électricité et piloter les batteries à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>g.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)))));
+document.querySelectorAll('.tog').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
+
+
+const sun=(n,x0)=>Array.from({length:n},(_,i)=>{ const x=x0+(i%3)*30, y=56+Math.floor(i/3)*14; return '<g transform="translate('+x+' '+y+')"><path d="M0 10 L26 10 L22 0 L4 0Z" fill="#1d3f7a" stroke="#c9d6ea" stroke-width=".6"/><path d="M8.5 0 L7 10 M13 0 V10 M17.5 0 L19 10 M3 5 H23" stroke="#5f85c4" stroke-width=".5"/><line x1="13" y1="10" x2="13" y2="14" stroke="#9aa2ae" stroke-width="1.4"/></g>'; }).join('');
+const wind=(x,y,s,d)=>'<g transform="translate('+x+' '+y+') scale('+s+')"><path d="M-1.2 0 L-2.6 46 L2.6 46 L1.2 0Z" fill="#f4f6fa" stroke="#c9ced6" stroke-width=".5"/><g><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="'+d+'s" repeatCount="indefinite"/>'+[0,120,240].map(a=>'<path d="M0 0 L-2 -2 L-1 -26 L1.2 -26 Z" fill="#fff" stroke="#c9ced6" stroke-width=".5" transform="rotate('+a+')"/>').join('')+'</g><circle r="2.4" fill="#c9ced6"/></g>';
+const dam='<path d="M40 40 L120 40 L112 96 L48 96Z" fill="#c9ced6" stroke="#9aa2ae"/><path d="M0 30 L40 40 L40 70 L0 70Z" fill="#3C8BFF" opacity=".85"/><path d="M48 96 Q80 70 112 96" fill="#7fd3ff" opacity=".8"/>'+[0,1,2].map(i=>'<path d="M'+(64+i*12)+' 50 V90" stroke="#7fd3ff" stroke-width="3" opacity=".8"/>').join('')+'<path d="M120 40 L160 30 L160 70 L120 70Z" fill="#5a9a3c"/>';
+const scene=(k,sky)=>{ let s='<svg viewBox="0 0 160 110" preserveAspectRatio="xMidYMid slice"><rect width="160" height="110" fill="'+sky+'"/>';
+  if(k==='prov') s+='<circle cx="130" cy="22" r="12" fill="#ffd36b"/><path d="M0 70 Q40 56 80 66 T160 62 L160 110 L0 110Z" fill="#c9b06a"/>'+Array.from({length:6},(_,i)=>'<path d="M0 '+(80+i*6)+' Q80 '+(72+i*6)+' 160 '+(78+i*6)+'" stroke="#9a7ac4" stroke-width="3" fill="none" opacity=".7"/>').join('')+sun(9,40);
+  if(k==='bret') s+='<path d="M0 30 q20 -8 40 0" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/><path d="M60 20 q20 -8 40 0" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/><path d="M0 74 Q60 60 160 76 L160 110 L0 110Z" fill="#6fae4c"/><path d="M0 92 L160 92 L160 110 L0 110Z" fill="#3a7fb8"/>'+wind(36,52,.75,2.4)+wind(84,46,.85,2)+wind(132,56,.7,2.8);
+  if(k==='alpes') s+='<path d="M0 60 L30 20 L50 44 L80 8 L112 46 L134 24 L160 54 L160 110 L0 110Z" fill="#8a9ab0"/><path d="M80 8 L90 20 L84 22 L80 16 L74 20Z M30 20 L38 30 L28 32Z" fill="#fff"/><g transform="translate(0 12)">'+dam+'</g>';
+  if(k==='nord') s+='<path d="M0 66 Q80 56 160 68 L160 110 L0 110Z" fill="#7fae5a"/>'+wind(36,50,.75,3)+'<g transform="translate(56 4)">'+sun(6,10)+'</g>';
+  return s+'</svg>'; };
+document.getElementById('regs').innerHTML=[['prov','#bfe6ff','Provence','☀️ 5','💨 2','💧 1','12 MW solaires',''],['bret','#a9c6d8','Bretagne','☀️ 2','💨 5','💧 1','3 éoliennes',''],['alpes','#cfe6f5','Alpes','☀️ 3','💨 2','💧 5','1 barrage',''],['nord','#dbe4ea','Hauts-de-France','☀️ 2','💨 4','💧 1','opposition locale','no']].map(r=>'<button class="rg'+(r[7]?' lock':'')+'"><div class="sc">'+scene(r[0],r[1])+'</div><div class="bd"><b>'+r[2]+'</b><div class="rt"><span>'+r[3]+'</span><span>'+r[4]+'</span><span>'+r[5]+'</span></div><em class="'+r[7]+'">'+r[6]+'</em></div></button>').join('');
+
+</script>
+</body>
+</html>

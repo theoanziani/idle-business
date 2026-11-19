@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Entrepôt logistique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Barlow+Condensed:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif;
+  --page:#d9dcd6;--bg:#F2F3EF;--bg2:#E0E3DB;--acc:#E86A10;--acc2:#B8520A;--hcol:#22303A;--h1:800 30px/1 'Barlow Condensed',sans-serif;--h2:800 21px 'Barlow Condensed',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.phone{max-width:390px;margin:10px auto 30px;background:var(--bg);border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--acc);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 var(--bg2);font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--bg2)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(12,14,24,.88))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:var(--h1);color:#fff}
+.hero .sub{color:#E3E6EF;font-size:13px;margin-top:3px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--good-bg)}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--acc);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--bg2);flex:0 0 auto}
+h2.sec{font:var(--h2);color:var(--hcol);margin:22px 4px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0;text-transform:none}
+.card{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg2)}
+.btn{border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--bg2),inset 0 0 0 1.5px var(--bg2);white-space:nowrap}
+.btn.a{background:var(--acc);color:#fff;box-shadow:0 3px 0 var(--acc2)}
+.seg{display:flex;background:var(--bg);border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:none;border-radius:11px;min-height:42px;font:800 12.5px var(--fb);color:var(--ink-3);padding:0 6px}
+.seg button.on{background:var(--acc);color:#fff}
+.tog{position:relative;width:52px;height:30px;border-radius:15px;background:#d5dae2;border:0;flex:0 0 auto}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.tog.on{background:var(--good-bg)}.tog.on::after{left:25px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-3)}
+.row b{display:block;color:var(--ink);font-size:14px}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+.path{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg2)}
+.steps{display:flex;align-items:flex-start}
+.steps .p{flex:0 0 58px;text-align:center;font:800 10px/1.2 var(--fb);color:var(--ink-3)}
+.steps .p i{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:12px;background:var(--bg);font-style:normal;font-size:17px}
+.steps .p.now i{background:var(--acc);box-shadow:0 0 0 3px var(--bg2)}
+.steps .ln{flex:1;height:3px;margin-top:18px;background:var(--acc);opacity:.3;border-radius:2px}
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 var(--bg2);font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--bg2);font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+
+h2.sec{text-transform:uppercase;letter-spacing:.4px}
+.floor{background:#B9BDB4;border-radius:22px;padding:10px;box-shadow:0 4px 0 #9a9e94;background-image:linear-gradient(rgba(0,0,0,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.05) 1px,transparent 1px);background-size:24px 24px}
+.aisle{display:grid;grid-template-columns:repeat(14,1fr);gap:2px;padding:3px;background:#F28C28;border-radius:3px;margin-bottom:12px;box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.aisle i{aspect-ratio:1;border-radius:2px;background:#d8dbd2;position:relative}
+.aisle i.f::after{content:'';position:absolute;inset:2px;border-radius:1px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 2px,transparent 2px 5px)}
+.cold{background:linear-gradient(135deg,#cfe9ff,#9fd0f5);border-radius:10px;padding:6px;margin-bottom:10px;position:relative}
+.cold .aisle{background:#3C8BFF;margin:0}
+.cold b{position:absolute;right:8px;top:-9px;font:800 11px 'Barlow Condensed',sans-serif;background:#3C8BFF;color:#fff;border-radius:6px;padding:1px 6px;letter-spacing:.5px}
+.lane{height:22px;margin:-6px 0 6px;display:flex;align-items:center;gap:10px;padding-left:14px}
+.lane .fork{width:30px;height:16px}
+.docks{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px}
+.dk{background:#5E6B7A;border-radius:8px 8px 0 0;height:70px;position:relative;overflow:hidden}
+.dk .n{position:absolute;top:3px;left:5px;font:800 10px 'Barlow Condensed',sans-serif;color:#fff}
+.dk svg{position:absolute;bottom:0;left:50%;transform:translateX(-50%)}
+.lgd{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:11px;color:#3a3f47}
+.lgd i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.ct{display:grid;grid-template-columns:8px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--bg2)}
+.ct:first-child{border-top:0}
+.ct .c{width:8px;height:34px;border-radius:3px}
+.ct b{display:block;font:800 13.5px var(--fb)}
+.ct small{font-size:11.5px;color:var(--ink-3)}
+.ct .px{text-align:right;font:800 15px 'Barlow Condensed',sans-serif}
+.ct .px small{display:block;font:600 10.5px var(--fb)}
+.offer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;background:#FFF1E6;border-radius:16px;padding:10px 12px;font-size:12.5px;color:var(--ink-3);box-shadow:inset 0 0 0 2px #F5B98A}
+.offer b{display:block;color:var(--ink);font-size:14px}
+.eqs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.eq{border:0;background:#fff;border-radius:16px;padding:6px 6px 10px;text-align:center;font:800 12.5px var(--fb);color:var(--ink);box-shadow:0 3px 0 var(--bg2)}
+.eq svg{display:block;margin:0 auto}
+.eq small{display:block;font:600 11px var(--fb);color:var(--ink-3)}
+.eq em{display:inline-block;margin-top:4px;font-style:normal;font:800 11px var(--fb);border-radius:8px;padding:2px 8px;background:var(--bg);color:var(--green)}
+.eq em.buy{background:var(--acc);color:#fff}
+.eq.off svg{filter:grayscale(.9);opacity:.55}
+
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a16c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a16gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a16bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a16bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a16gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a16vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a16lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a16sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4E92DA"></stop><stop offset="1" stop-color="#D6ECFA"></stop></linearGradient></defs><g clip-path="url(#a16c)"><rect width="640" height="360" fill="url(#a16sky)"></rect><g><g fill="#FFFFFF" opacity=".85"><ellipse cx="90" cy="54" rx="40" ry="12"></ellipse><ellipse cx="114" cy="46" rx="26" ry="12"></ellipse><ellipse cx="470" cy="34" rx="34" ry="10"></ellipse><ellipse cx="492" cy="28" rx="22" ry="10"></ellipse></g><animateTransform attributeName="transform" type="translate" values="0 0;50 0;0 0" dur="34s" repeatCount="indefinite"></animateTransform></g><g fill="#A9BDD3" opacity=".55"><rect x="0" y="172" width="40" height="78"></rect><rect x="44" y="168" width="45" height="82"></rect><rect x="92" y="205" width="55" height="45"></rect><rect x="151" y="151" width="31" height="99"></rect><rect x="186" y="194" width="40" height="56"></rect><rect x="230" y="177" width="70" height="73"></rect><rect x="304" y="177" width="63" height="73"></rect><rect x="372" y="199" width="56" height="51"></rect><rect x="431" y="149" width="55" height="101"></rect><rect x="490" y="158" width="51" height="92"></rect><rect x="545" y="206" width="57" height="44"></rect><rect x="606" y="169" width="60" height="81"></rect></g><rect x="0" y="292" width="640" height="68" fill="#6E6E74"></rect><rect x="0" y="284" width="640" height="8" fill="#C9C6BE"></rect><rect x="0" y="326" width="640" height="3" fill="#E9E3C8" opacity=".7"></rect><path d="M40 284V150L320 120L600 150V284z" fill="#C9CDD4"></path><path d="M40 150L320 120L600 150" stroke="#9AA0AB" stroke-width="4" fill="none"></path><rect x="80" y="200" width="66" height="84" fill="#3A3D46"></rect><rect x="80" y="200" width="66" height="16" fill="#9AA0AB"></rect><rect x="80" y="202" width="66" height="1.6" fill="#7E848E"></rect><rect x="80" y="206" width="66" height="1.6" fill="#7E848E"></rect><rect x="80" y="210" width="66" height="1.6" fill="#7E848E"></rect><rect x="80" y="214" width="66" height="1.6" fill="#7E848E"></rect><rect x="170" y="200" width="66" height="84" fill="#3A3D46"></rect><rect x="170" y="200" width="66" height="16" fill="#9AA0AB"></rect><rect x="170" y="202" width="66" height="1.6" fill="#7E848E"></rect><rect x="170" y="206" width="66" height="1.6" fill="#7E848E"></rect><rect x="170" y="210" width="66" height="1.6" fill="#7E848E"></rect><rect x="170" y="214" width="66" height="1.6" fill="#7E848E"></rect><rect x="260" y="200" width="66" height="84" fill="#3A3D46"></rect><rect x="260" y="200" width="66" height="16" fill="#9AA0AB"></rect><rect x="260" y="202" width="66" height="1.6" fill="#7E848E"></rect><rect x="260" y="206" width="66" height="1.6" fill="#7E848E"></rect><rect x="260" y="210" width="66" height="1.6" fill="#7E848E"></rect><rect x="260" y="214" width="66" height="1.6" fill="#7E848E"></rect><rect x="350" y="200" width="66" height="84" fill="#3A3D46"></rect><rect x="350" y="200" width="66" height="16" fill="#9AA0AB"></rect><rect x="350" y="202" width="66" height="1.6" fill="#7E848E"></rect><rect x="350" y="206" width="66" height="1.6" fill="#7E848E"></rect><rect x="350" y="210" width="66" height="1.6" fill="#7E848E"></rect><rect x="350" y="214" width="66" height="1.6" fill="#7E848E"></rect><rect x="440" y="200" width="66" height="84" fill="#3A3D46"></rect><rect x="440" y="200" width="66" height="16" fill="#9AA0AB"></rect><rect x="440" y="202" width="66" height="1.6" fill="#7E848E"></rect><rect x="440" y="206" width="66" height="1.6" fill="#7E848E"></rect><rect x="440" y="210" width="66" height="1.6" fill="#7E848E"></rect><rect x="440" y="214" width="66" height="1.6" fill="#7E848E"></rect><rect x="530" y="200" width="66" height="84" fill="#3A3D46"></rect><rect x="530" y="200" width="66" height="16" fill="#9AA0AB"></rect><rect x="530" y="202" width="66" height="1.6" fill="#7E848E"></rect><rect x="530" y="206" width="66" height="1.6" fill="#7E848E"></rect><rect x="530" y="210" width="66" height="1.6" fill="#7E848E"></rect><rect x="530" y="214" width="66" height="1.6" fill="#7E848E"></rect><g><animateTransform attributeName="transform" type="translate" values="0 0;260 0;0 0" dur="12s" repeatCount="indefinite"></animateTransform><rect x="100" y="290" width="30" height="20" rx="3" fill="#F2B134"></rect><path d="M130 284v26" stroke="#333" stroke-width="3"></path><rect x="132" y="296" width="20" height="4" fill="#333"></rect><rect x="134" y="282" width="20" height="14" fill="#C99A62"></rect><circle cx="108" cy="312" r="5" fill="#222"></circle><circle cx="126" cy="312" r="5" fill="#222"></circle></g><g><animateTransform attributeName="transform" type="translate" values="720 0;420 0;420 0;720 0" keyTimes="0;.3;.7;1" dur="14s" repeatCount="indefinite"></animateTransform><rect x="0" y="282" width="110" height="38" rx="3" fill="#E9EDF2"></rect><rect x="110" y="292" width="34" height="28" rx="3" fill="#E04B3B"></rect><circle cx="24" cy="322" r="7" fill="#222"></circle><circle cx="124" cy="322" r="7" fill="#222"></circle></g><rect x="30" y="262" width="2" height="30" fill="#2B2F3A"></rect><rect x="27.5" y="262" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><rect x="610" y="262" width="2" height="30" fill="#2B2F3A"></rect><rect x="607.5" y="262" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><rect width="640" height="360" fill="url(#a16lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a16gl)"><g opacity="0"><rect x="80" y="216" width="66" height="68" fill="#FFE6A6" opacity=".35"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="170" y="216" width="66" height="68" fill="#FFE6A6" opacity=".35"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="260" y="216" width="66" height="68" fill="#FFE6A6" opacity=".35"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="350" y="216" width="66" height="68" fill="#FFE6A6" opacity=".35"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="440" y="216" width="66" height="68" fill="#FFE6A6" opacity=".35"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="530" y="216" width="66" height="68" fill="#FFE6A6" opacity=".35"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><circle cx="31" cy="265" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="31" cy="265" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><circle cx="611" cy="265" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="611" cy="265" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g></g><rect width="640" height="360" filter="url(#a16gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a16vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>1 840 palettes sur 2 400</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Logis Nord</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Entrepôt logistique · Gennevilliers</div></div>
+    </div>
+    
+<div class="res"><div><small>Bénéfice hier</small><b class="pos">+4 120 €</b></div><div style="text-align:right"><small>Remplissage</small><b>77 %</b></div></div>
+<button class="up">Agrandir l'entrepôt · niv. 2 <span>210 000 €</span></button>
+<div class="todo"><span style="flex:1"><b>Pic de fin d'année dans 12 jours</b> : les mouvements de palettes vont doubler.</span><button class="lnk">Voir</button></div>
+
+<h2 class="sec">Les allées <small>vue du dessus</small></h2>
+<div class="floor" id="floor"></div>
+
+<h2 class="sec">Les contrats de stockage</h2>
+<div class="card" id="cts"></div>
+<div class="offer"><span><b>Pharmacie Centrale cherche 260 palettes</b>sous température · 0,62 € par palette et par jour · 9 mois</span><button class="btn a">Signer</button></div>
+
+<h2 class="sec">L'équipement</h2>
+<div class="eqs" id="eqs"></div>
+<div class="card" style="margin-top:8px">
+ <div class="row"><span><b>Rayonnages hauts</b>+30 % d'emplacements de palettes</span><button class="btn">180 000 €</button></div>
+ <div class="row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bg2)"><span><b>Camions de livraison</b>livrent les colis de vos clients</span><div class="seg" style="flex:0 0 150px"><button>0</button><button class="on">2</button><button>4</button><button>6</button></div></div>
+</div>
+
+    <h2 class="sec">Les paliers <small>palier 1 sur 5</small></h2>
+    <div class="path"><div class="steps"><div class="p now"><i>💾</i>Logiciel de gestion</div><div class="ln"></div><div class="p"><i>❄️</i>Zone frigorifique</div><div class="ln"></div><div class="p"><i>🤖</i>Entrepôt automatisé</div><div class="ln"></div><div class="p"><i>⚡</i>Livraison express</div><div class="ln"></div><div class="p"><i>🚢</i>Plateforme multimodale</div></div></div>
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt"><button class="mg">Équipe<small>24 / 24 · fatigue 21</small></button><button class="mg">Finances<small>+4 120 € hier</small></button><button class="mg">Bâtiment<small>propriétaire</small></button><button class="mg">Sécurité<small>vidéo · assuré</small></button></div>
+    <div class="dlg"><span><b>Marc Lebrun, chef d'entrepôt</b>peut signer les contrats, placer les palettes et gérer les camions à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>g.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)))));
+document.querySelectorAll('.tog').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
+
+
+const CL=[['Boutique Lumen','#FF6B2C',.82],['Industrie Arnaud','#1D4F91',.95],['Grande distrib. Primo','#2BB673',.7],['Pharmacie Centrale','#3C8BFF',.6],['Panier Malin','#B78CFF',.9]];
+const ai=(c,fill,seed)=>{ let r=seed; const R=()=>{ r=(r*9301+49297)%233280; return r/233280; }; return '<div class="aisle">'+Array.from({length:28},()=>{ const f=R()<fill; return '<i class="'+(f?'f':'')+'" style="'+(f?'background:'+c:'')+'"></i>'; }).join('')+'</div>'; };
+const fork='<svg class="fork" viewBox="0 0 30 16"><rect x="2" y="3" width="16" height="10" rx="2" fill="#F2C94C"/><rect x="12" y="0" width="7" height="8" rx="1" fill="#9fd0e6" stroke="#C9A030"/><path d="M18 11 H30 M18 7 H30" stroke="#5e6b7a" stroke-width="2"/><circle cx="6" cy="14" r="2" fill="#1d1f23"/><circle cx="15" cy="14" r="2" fill="#1d1f23"/></svg>';
+let h=ai(CL[0][1],CL[0][2],3)+'<div class="lane">'+fork+'</div>'+ai(CL[1][1],CL[1][2],7)+ai(CL[2][1],CL[2][2],11)+'<div class="lane" style="justify-content:flex-end;padding-right:30px">'+fork+'</div>'+ai(CL[4][1],CL[4][2],17)+'<div class="cold"><b>ZONE FROIDE · 2 à 8 °C</b>'+ai(CL[3][1],CL[3][2],23)+'</div>';
+const truck=(c)=>'<svg width="56" height="44" viewBox="0 0 56 44"><rect x="4" y="2" width="48" height="34" rx="2" fill="#f4f6fa" stroke="#9aa2ae"/><rect x="10" y="8" width="36" height="20" fill="'+c+'" opacity=".85"/><text x="28" y="22" text-anchor="middle" font-size="8" font-weight="900" fill="#fff" font-family="sans-serif">LOGIS</text><rect x="2" y="36" width="52" height="4" fill="#3a3f47"/></svg>';
+h+='<div class="docks">'+['Quai 1','Quai 2','Quai 3','Quai 4'].map((q,i)=>'<div class="dk"><span class="n">'+q+'</span>'+(i<3?truck(['#E86A10','#1D4F91','#2BB673'][i]):'')+'</div>').join('')+'</div>';
+h+='<div class="lgd">'+CL.map(c=>'<span><i style="background:'+c[1]+'"></i>'+c[0]+'</span>').join('')+'<span><i style="background:#d8dbd2"></i>libre</span></div>';
+document.getElementById('floor').innerHTML=h;
+const CT=[['Industrie Arnaud','#1D4F91','520 palettes · 7 mois restants · 😀','0,48 €'],['Panier Malin','#B78CFF','440 palettes · rotation forte · 😀','0,52 €'],['Boutique Lumen','#FF6B2C','360 palettes · fin dans 20 j · 😐','0,50 €'],['Grande distrib. Primo','#2BB673','310 palettes · 11 mois restants · 🙂','0,46 €'],['Pharmacie Centrale','#3C8BFF','210 palettes au froid · 🙂','0,62 €']];
+document.getElementById('cts').innerHTML=CT.map(c=>'<div class="ct"><span class="c" style="background:'+c[1]+'"></span><div><b>'+c[0]+'</b><small>'+c[2]+'</small></div><span class="px">'+c[3]+'<small>palette · jour</small></span></div>').join('');
+const E={tp:'<svg width="84" height="64" viewBox="0 0 84 64"><path d="M14 10 L22 34" stroke="#2b2f35" stroke-width="4" stroke-linecap="round"/><rect x="8" y="6" width="14" height="6" rx="3" fill="#E86A10"/><path d="M20 34 H76 V42 H20Z" fill="#E86A10"/><path d="M30 42 V48 M72 42 V48" stroke="#5e6b7a" stroke-width="3"/><circle cx="24" cy="50" r="6" fill="#1d1f23"/><circle cx="72" cy="50" r="4" fill="#1d1f23"/><rect x="36" y="18" width="34" height="16" fill="#c99b66"/><path d="M36 26 H70" stroke="#a87a48"/></svg>',
+ cf:'<svg width="84" height="64" viewBox="0 0 84 64"><rect x="10" y="24" width="40" height="20" rx="4" fill="#F2C94C"/><rect x="22" y="6" width="22" height="22" rx="2" fill="#9fd0e6" stroke="#C9A030" stroke-width="3"/><rect x="52" y="2" width="4" height="48" fill="#5e6b7a"/><path d="M56 40 H80 M56 46 H80" stroke="#5e6b7a" stroke-width="3"/><rect x="58" y="14" width="22" height="24" fill="#c99b66"/><circle cx="20" cy="50" r="7" fill="#1d1f23"/><circle cx="44" cy="50" r="6" fill="#1d1f23"/></svg>',
+ agv:'<svg width="84" height="64" viewBox="0 0 84 64"><rect x="12" y="36" width="60" height="14" rx="5" fill="#3a3f47"/><circle cx="22" cy="50" r="4" fill="#1d1f23"/><circle cx="62" cy="50" r="4" fill="#1d1f23"/><rect x="16" y="32" width="52" height="5" fill="#E86A10"/><rect x="22" y="12" width="40" height="20" fill="#c99b66"/><circle cx="42" cy="43" r="3" fill="#38E1FF"/><path d="M8 24 q-4 -6 0 -12 M76 24 q4 -6 0 -12" stroke="#38E1FF" stroke-width="2" fill="none"/></svg>'};
+document.getElementById('eqs').innerHTML=[['tp','Transpalettes','manutention de base','actif',''],['cf','Chariots élévateurs','2 fois plus rapides','actif',''],['agv','Robots automatisés','palier 3 · manutention −40 %','palier 3','buy']].map(x=>'<button class="eq'+(x[4]?' off':'')+'">'+E[x[0]]+x[1]+'<small>'+x[2]+'</small><em class="'+x[4]+'">'+x[3]+'</em></button>').join('');
+
+</script>
+</body>
+</html>

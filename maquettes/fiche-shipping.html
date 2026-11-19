@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Compagnie maritime</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Bitter:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif;
+  --page:#cfd8e2;--bg:#EEF3F7;--bg2:#D9E3EC;--acc:#0B4F8A;--acc2:#083a66;--hcol:#0B2A4A;--h1:800 26px/1 Bitter,serif;--h2:800 18px Bitter,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.phone{max-width:390px;margin:10px auto 30px;background:var(--bg);border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--acc);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 var(--bg2);font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--bg2)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(12,14,24,.88))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:var(--h1);color:#fff}
+.hero .sub{color:#E3E6EF;font-size:13px;margin-top:3px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--good-bg)}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--acc);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--bg2);flex:0 0 auto}
+h2.sec{font:var(--h2);color:var(--hcol);margin:22px 4px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0;text-transform:none}
+.card{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg2)}
+.btn{border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--bg2),inset 0 0 0 1.5px var(--bg2);white-space:nowrap}
+.btn.a{background:var(--acc);color:#fff;box-shadow:0 3px 0 var(--acc2)}
+.seg{display:flex;background:var(--bg);border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:none;border-radius:11px;min-height:42px;font:800 12.5px var(--fb);color:var(--ink-3);padding:0 6px}
+.seg button.on{background:var(--acc);color:#fff}
+.tog{position:relative;width:52px;height:30px;border-radius:15px;background:#d5dae2;border:0;flex:0 0 auto}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.tog.on{background:var(--good-bg)}.tog.on::after{left:25px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-3)}
+.row b{display:block;color:var(--ink);font-size:14px}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+.path{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg2)}
+.steps{display:flex;align-items:flex-start}
+.steps .p{flex:0 0 58px;text-align:center;font:800 10px/1.2 var(--fb);color:var(--ink-3)}
+.steps .p i{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:12px;background:var(--bg);font-style:normal;font-size:17px}
+.steps .p.now i{background:var(--acc);box-shadow:0 0 0 3px var(--bg2)}
+.steps .ln{flex:1;height:3px;margin-top:18px;background:var(--acc);opacity:.3;border-radius:2px}
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 var(--bg2);font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--bg2);font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+
+.map{background:#0b2a4a;border-radius:22px;padding:6px;box-shadow:0 4px 0 #061a30;overflow:hidden}
+.mapft{display:flex;gap:6px;flex-wrap:wrap;padding:6px 4px 4px}
+.mapft span{font:800 11px var(--fb);border-radius:8px;padding:3px 8px;background:rgba(255,255,255,.1);color:#dbe7f3}
+.mapft span.ok{background:rgba(43,182,115,.25);color:#8ff0bf}
+.mapft span.w{background:rgba(242,201,76,.22);color:#ffe08a}
+.mapft span.r{background:rgba(255,107,91,.25);color:#ffb3a8}
+.ln{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:9px 0;border-top:1px solid var(--bg2)}
+.ln:first-child{border-top:0}
+.ln b{display:block;font:800 13.5px var(--fb)}
+.ln small{font-size:11.5px;color:var(--ink-3)}
+.ln .fill{height:6px;border-radius:3px;background:var(--bg2);margin-top:5px;overflow:hidden;width:170px}
+.ln .fill i{display:block;height:100%}
+.ln .px{text-align:right;font:800 15px var(--fd);color:var(--green)}
+.ln .px small{display:block;font:600 10.5px var(--fb)}
+.fleet{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.sh{flex:0 0 168px;background:#fff;border-radius:18px;padding:8px;box-shadow:0 3px 0 var(--bg2);font-size:11.5px;color:var(--ink-3)}
+.sh .im{background:linear-gradient(#cfe6f5 0 60%,#2f7fb8 60%);border-radius:12px;height:78px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.sh b{display:block;font:800 13.5px Bitter,serif;color:var(--ink);margin-top:6px}
+.sh em{display:inline-block;font-style:normal;margin-top:4px;font:800 10.5px var(--fb);border-radius:6px;padding:1px 6px;background:var(--bg);color:var(--acc)}
+.sh .pg{height:5px;border-radius:3px;background:var(--bg2);margin-top:5px;overflow:hidden}
+.sh .pg i{display:block;height:100%;background:var(--acc)}
+.fret{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg2)}
+.fret .top2{display:flex;justify-content:space-between;align-items:baseline}
+.fret .top2 b{font:800 26px Bitter,serif}
+.of{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--bg2)}
+.of .ic{width:44px;height:44px;border-radius:12px;background:var(--bg);display:grid;place-items:center}
+.of b{display:block;font:800 13px var(--fb)}
+.of small{font-size:11.5px;color:var(--ink-3)}
+
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a27c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a27gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a27bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a27bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a27gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a27vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a27lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a27sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4F8FD6"></stop><stop offset="1" stop-color="#DCEAF8"></stop></linearGradient><linearGradient id="a27sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2D7FAE"></stop><stop offset="1" stop-color="#124F75"></stop></linearGradient></defs><g clip-path="url(#a27c)"><rect width="640" height="360" fill="url(#a27sky)"></rect><rect x="0" y="230" width="640" height="130" fill="url(#a27sea)"></rect><rect x="0" y="226" width="300" height="20" fill="#8A8F99"></rect><rect x="10" y="212" width="30" height="14" fill="#7A8090" stroke="#00000022"></rect><rect x="41" y="212" width="30" height="14" fill="#2BB673" stroke="#00000022"></rect><rect x="72" y="212" width="30" height="14" fill="#7A8090" stroke="#00000022"></rect><rect x="103" y="212" width="30" height="14" fill="#F2B134" stroke="#00000022"></rect><rect x="134" y="212" width="30" height="14" fill="#F2B134" stroke="#00000022"></rect><rect x="165" y="212" width="30" height="14" fill="#4D7BE0" stroke="#00000022"></rect><rect x="196" y="212" width="30" height="14" fill="#E04B3B" stroke="#00000022"></rect><rect x="227" y="212" width="30" height="14" fill="#E04B3B" stroke="#00000022"></rect><rect x="258" y="212" width="30" height="14" fill="#F2B134" stroke="#00000022"></rect><rect x="10" y="197" width="30" height="14" fill="#F28C3B" stroke="#00000022"></rect><rect x="41" y="197" width="30" height="14" fill="#F2B134" stroke="#00000022"></rect><rect x="72" y="197" width="30" height="14" fill="#F2B134" stroke="#00000022"></rect><rect x="103" y="197" width="30" height="14" fill="#F2B134" stroke="#00000022"></rect><rect x="134" y="197" width="30" height="14" fill="#2BB673" stroke="#00000022"></rect><rect x="165" y="197" width="30" height="14" fill="#4D7BE0" stroke="#00000022"></rect><rect x="196" y="197" width="30" height="14" fill="#4D7BE0" stroke="#00000022"></rect><rect x="227" y="197" width="30" height="14" fill="#4D7BE0" stroke="#00000022"></rect><rect x="258" y="197" width="30" height="14" fill="#2BB673" stroke="#00000022"></rect><rect x="10" y="182" width="30" height="14" fill="#E04B3B" stroke="#00000022"></rect><rect x="41" y="182" width="30" height="14" fill="#7A8090" stroke="#00000022"></rect><rect x="72" y="182" width="30" height="14" fill="#7A8090" stroke="#00000022"></rect><rect x="103" y="182" width="30" height="14" fill="#F28C3B" stroke="#00000022"></rect><rect x="134" y="182" width="30" height="14" fill="#7A8090" stroke="#00000022"></rect><rect x="165" y="182" width="30" height="14" fill="#E04B3B" stroke="#00000022"></rect><rect x="196" y="182" width="30" height="14" fill="#F28C3B" stroke="#00000022"></rect><rect x="227" y="182" width="30" height="14" fill="#2BB673" stroke="#00000022"></rect><rect x="258" y="182" width="30" height="14" fill="#2BB673" stroke="#00000022"></rect><path d="M60 226V100h8V226M100 226V100h8V226" stroke="#E04B3B" stroke-width="6"></path><rect x="50" y="96" width="140" height="10" fill="#E04B3B"></rect><g><rect x="60" y="106" width="20" height="10" fill="#F2B134"></rect><path d="M70 116V160" stroke="#333"></path><rect x="55" y="160" width="30" height="14" fill="#4D7BE0"></rect><animateTransform attributeName="transform" type="translate" values="0 0;80 0;80 0;0 0" keyTimes="0;.4;.6;1" dur="10s" repeatCount="indefinite"></animateTransform></g><path d="M200 226V100h8V226M240 226V100h8V226" stroke="#E04B3B" stroke-width="6"></path><rect x="190" y="96" width="140" height="10" fill="#E04B3B"></rect><g><rect x="200" y="106" width="20" height="10" fill="#F2B134"></rect><path d="M210 116V160" stroke="#333"></path><rect x="195" y="160" width="30" height="14" fill="#4D7BE0"></rect><animateTransform attributeName="transform" type="translate" values="0 0;80 0;80 0;0 0" keyTimes="0;.4;.6;1" dur="12s" repeatCount="indefinite"></animateTransform></g><g><animateTransform attributeName="transform" type="translate" values="700 0;300 0;300 0;-340 0" keyTimes="0;.35;.6;1" dur="40s" repeatCount="indefinite"></animateTransform><path d="M0 270h300l-20 30H20z" fill="#2E3440"></path><rect x="0" y="262" width="300" height="10" fill="#B5352B"></rect><rect x="230" y="226" width="50" height="36" fill="#F4F1EA"></rect><rect x="235.8" y="231.6" width="4.7" height="4.4" fill="#FFE6A6"><animate attributeName="opacity" values="1;1;.15;.15;1" keyTimes="0;.5;.55;.9;1" dur="12.0s" begin="-1.8s" repeatCount="indefinite"></animate></rect><rect x="244.2" y="231.6" width="4.7" height="4.4" fill="#5B6B82"></rect><rect x="252.6" y="231.6" width="4.7" height="4.4" fill="#5B6B82"></rect><rect x="261.0" y="231.6" width="4.7" height="4.4" fill="#4A5A70"></rect><rect x="269.4" y="231.6" width="4.7" height="4.4" fill="#5B6B82"></rect><rect x="235.8" y="239.6" width="4.7" height="4.4" fill="#4A5A70"></rect><rect x="244.2" y="239.6" width="4.7" height="4.4" fill="#FFE6A6"></rect><rect x="252.6" y="239.6" width="4.7" height="4.4" fill="#5B6B82"></rect><rect x="261.0" y="239.6" width="4.7" height="4.4" fill="#FFE6A6"><animate attributeName="opacity" values="1;1;.15;.15;1" keyTimes="0;.5;.55;.9;1" dur="15.1s" begin="-3.2s" repeatCount="indefinite"></animate></rect><rect x="269.4" y="239.6" width="4.7" height="4.4" fill="#5B6B82"></rect><rect x="10" y="250" width="26" height="12" fill="#E04B3B"></rect><rect x="10" y="237" width="26" height="12" fill="#2BB673"></rect><rect x="37" y="250" width="26" height="12" fill="#F2B134"></rect><rect x="37" y="237" width="26" height="12" fill="#E04B3B"></rect><rect x="64" y="250" width="26" height="12" fill="#2BB673"></rect><rect x="64" y="237" width="26" height="12" fill="#F2B134"></rect><rect x="91" y="250" width="26" height="12" fill="#4D7BE0"></rect><rect x="91" y="237" width="26" height="12" fill="#F28C3B"></rect><rect x="118" y="250" width="26" height="12" fill="#F2B134"></rect><rect x="118" y="237" width="26" height="12" fill="#F28C3B"></rect><rect x="145" y="250" width="26" height="12" fill="#4D7BE0"></rect><rect x="145" y="237" width="26" height="12" fill="#F28C3B"></rect><rect x="172" y="250" width="26" height="12" fill="#4D7BE0"></rect><rect x="172" y="237" width="26" height="12" fill="#E04B3B"></rect><rect x="199" y="250" width="26" height="12" fill="#2BB673"></rect><rect x="199" y="237" width="26" height="12" fill="#F2B134"></rect></g><g><animateTransform attributeName="transform" type="translate" values="-160 0;700 0" dur="26s" begin="-6s" repeatCount="indefinite"></animateTransform><path d="M0 316h70l-7 9H6z" fill="#F2B134"></path><rect x="12" y="307" width="40" height="9" rx="2" fill="#2E3440"></rect></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;720 -30" dur="22s" begin="-3s" repeatCount="indefinite"></animateTransform><path d="M0 70q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M0 70q3 -6 7 -1q4 -5 7 1;M0 70q3 2 7 -1q4 2 7 1;M0 70q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.0s" repeatCount="indefinite"></animate></path><path d="M18 78q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M18 78q3 -6 7 -1q4 -5 7 1;M18 78q3 2 7 -1q4 2 7 1;M18 78q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.2s" repeatCount="indefinite"></animate></path><path d="M36 70q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M36 70q3 -6 7 -1q4 -5 7 1;M36 70q3 2 7 -1q4 2 7 1;M36 70q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.4s" repeatCount="indefinite"></animate></path></g><rect x="40" y="300" width="60" height="1.4" fill="#FFFFFF" opacity=".35"></rect><rect x="160" y="330" width="80" height="1.4" fill="#FFFFFF" opacity=".35"></rect><rect x="420" y="320" width="50" height="1.4" fill="#FFFFFF" opacity=".35"></rect><rect x="520" y="344" width="70" height="1.4" fill="#FFFFFF" opacity=".35"></rect><rect width="640" height="360" fill="url(#a27lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a27gl)"><circle cx="120" cy="94" r="2.4" fill="#FF3B30"><animate attributeName="opacity" values="1;.15;1" dur="1.4s" begin="-0s" repeatCount="indefinite"></animate></circle><circle cx="260" cy="94" r="2.4" fill="#FF3B30"><animate attributeName="opacity" values="1;.15;1" dur="1.4s" begin="-0.5s" repeatCount="indefinite"></animate></circle><rect x="235.8" y="231.6" width="4.7" height="4.4" fill="#FFD27A" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.364;0.374;0.866;0.876;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="244.2" y="231.6" width="4.7" height="4.4" fill="#FFD27A" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.364;0.374;0.948;0.958;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="235.8" y="239.6" width="4.7" height="4.4" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.387;0.397;0.950;0.960;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="244.2" y="239.6" width="4.7" height="4.4" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.441;0.451;0.885;0.895;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="252.6" y="239.6" width="4.7" height="4.4" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.326;0.336;0.877;0.887;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="261.0" y="239.6" width="4.7" height="4.4" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.360;0.370;0.900;0.910;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="269.4" y="239.6" width="4.7" height="4.4" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.414;0.424;0.869;0.879;1" dur="32s" repeatCount="indefinite"></animate></rect></g><rect width="640" height="360" filter="url(#a27gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a27vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>4 lignes régulières · 9 navires</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Atlantique Lines</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Compagnie maritime · terminal du Havre</div></div>
+    </div>
+    
+<div class="res"><div><small>Bénéfice hier</small><b class="pos">+18 900 €</b></div><div style="text-align:right"><small>Indice du fret</small><b>1 240 <span style="font-size:13px" class="pos">▲</span></b></div></div>
+<button class="up">Ouvrir un terminal · Shanghai <span>2,4 M €</span></button>
+<div class="todo"><span style="flex:1"><b>Pirates signalés dans le golfe d'Aden</b> : votre ligne vers Shanghai passe par là sans assurance.</span><button class="lnk">Voir</button></div>
+
+<h2 class="sec">La carte des lignes <small>vos navires en mer</small></h2>
+<div class="map"><span id="map"></span>
+ <div class="mapft"><span class="ok">Suez · ouvert · péage 82 000 €</span><span class="ok">Panama · ouvert</span><span class="r">Aden · piraterie</span><span class="w">Tempête · Atlantique Nord</span></div></div>
+
+<h2 class="sec">Les lignes régulières</h2>
+<div class="card" id="lines"></div>
+
+<h2 class="sec">La flotte <small>9 navires</small></h2>
+<div class="fleet" id="fleet"></div>
+
+<h2 class="sec">Le fret et l'affrètement</h2>
+<div class="fret"><div class="top2"><span style="font-size:12.5px;color:var(--ink-3)">Indice du fret sur 90 jours</span><b>1 240</b></div>
+ <svg width="100%" height="56" viewBox="0 0 300 56" preserveAspectRatio="none"><path d="M0 40 C30 42 50 30 80 34 S130 20 160 26 S220 10 250 14 S290 8 300 6 L300 56 L0 56Z" fill="rgba(11,79,138,.12)"/><path d="M0 40 C30 42 50 30 80 34 S130 20 160 26 S220 10 250 14 S290 8 300 6" fill="none" stroke="#0B4F8A" stroke-width="2.4"/></svg>
+ <div id="offers"></div>
+ <div class="row" style="margin-top:8px;padding-top:10px;border-top:1px solid var(--bg2)"><span><b>Assurance de la flotte</b>couvre rançons et réparations · 3 200 € / jour</span><div class="seg" style="flex:0 0 160px"><button class="on">Aucune</button><button>Souscrite</button></div></div>
+</div>
+
+    <h2 class="sec">Les paliers <small>palier 1 sur 5</small></h2>
+    <div class="path"><div class="steps"><div class="p now"><i>🗓️</i>Planification des escales</div><div class="ln"></div><div class="p"><i>🤝</i>Alliance maritime</div><div class="ln"></div><div class="p"><i>🌱</i>Navires économes</div><div class="ln"></div><div class="p"><i>🛡️</i>Sûreté et escortes</div><div class="ln"></div><div class="p"><i>🚚</i>Porte-à-porte</div></div></div>
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt"><button class="mg">Équipe<small>186 marins · fatigue 12</small></button><button class="mg">Finances<small>+18 900 € hier</small></button><button class="mg">Terminaux<small>Le Havre, Rotterdam</small></button><button class="mg">Sécurité<small>gardes à bord · non assuré</small></button></div>
+    <div class="dlg"><span><b>Capitaine Le Goff, directeur de l'armement</b>peut ouvrir des lignes, louer des navires et accepter le fret à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>g.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)))));
+document.querySelectorAll('.tog').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
+
+/* carte du monde stylisée (projection simple 360 × 180) */
+const LANDS=['M30 30 L60 24 L95 22 L118 30 L122 38 L110 50 L104 58 L94 62 L90 72 L96 80 L92 82 L84 76 L74 68 L60 62 L48 56 L38 46 Z',
+ 'M92 82 L100 86 L104 92 L98 94 L94 88 Z',
+ 'M100 94 L112 90 L124 94 L136 104 L138 112 L130 126 L122 142 L114 158 L108 156 L106 140 L104 122 L98 108 Z',
+ 'M120 12 L146 10 L150 18 L140 28 L126 26 Z',
+ 'M166 34 L176 28 L192 26 L206 30 L204 40 L198 48 L194 54 L184 56 L174 56 L170 50 L166 44 Z',
+ 'M164 62 L180 58 L196 58 L206 60 L214 70 L222 80 L216 92 L210 104 L204 118 L198 128 L190 132 L186 122 L182 108 L176 96 L170 88 L162 78 Z',
+ 'M206 26 L240 20 L280 18 L312 22 L330 30 L326 40 L314 46 L306 56 L296 64 L286 72 L276 78 L264 80 L256 74 L246 72 L236 74 L228 66 L220 60 L212 52 L208 42 Z',
+ 'M240 72 L252 72 L256 78 L248 92 L244 84 Z','M270 82 L282 82 L288 90 L282 96 L276 90 Z','M292 92 L304 94 L310 100 L298 100 Z',
+ 'M284 118 L300 112 L318 112 L326 124 L322 136 L308 142 L292 138 L284 130 Z','M332 136 L338 140 L334 146 Z'];
+const PORT={havre:[180,41,'Le Havre'],rott:[184,38,'Rotterdam'],shang:[301,59,'Shanghai'],sing:[284,89,'Singapour'],ny:[106,49,'New York'],santos:[134,114,'Santos'],dubai:[235,65,'Dubaï'],la:[62,56,'Los Angeles'],durban:[211,120,'Durban'],paris:[182,42,'Paris'],tokyo:[320,54,'Tokyo'],madrid:[176,50,'Madrid'],rome:[192,48,'Rome'],berlin:[193,38,'Berlin'],montreal:[106,44,'Montréal'],dakar:[163,75,'Dakar'],sydney:[331,124,'Sydney']};
+function worldMap(routes,ports,o){ o=o||{}; let s='<svg width="100%" viewBox="'+(o.vb||'0 0 360 180')+'" style="display:block"><defs><pattern id="wmdots" width="3" height="3" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r=".7" fill="'+(o.dot||'rgba(255,255,255,.22)')+'"/></pattern></defs>';
+  s+='<rect x="-50" y="-50" width="460" height="280" fill="'+(o.sea||'#0b2a4a')+'"/>';
+  for(let y=0;y<180;y+=30) s+='<line x1="0" y1="'+y+'" x2="360" y2="'+y+'" stroke="rgba(255,255,255,.05)"/>'; for(let x=0;x<360;x+=30) s+='<line x1="'+x+'" y1="0" x2="'+x+'" y2="180" stroke="rgba(255,255,255,.05)"/>';
+  s+=LANDS.map(p=>'<path d="'+p+'" fill="'+(o.land||'#1f4a72')+'" stroke="'+(o.edge||'#2f6296')+'" stroke-width=".6"/><path d="'+p+'" fill="url(#wmdots)"/>').join('');
+  routes.forEach(r=>{ const a=PORT[r[0]], b=PORT[r[1]], mx=(a[0]+b[0])/2, my=Math.min(a[1],b[1])-(r[3]||18);
+    const d=r[4]||('M'+a[0]+' '+a[1]+' Q'+mx+' '+my+' '+b[0]+' '+b[1]);
+    s+='<path d="'+d+'" fill="none" stroke="'+(r[2]||'#F2C94C')+'" stroke-width="1.6" stroke-dasharray="'+(r[5]||'0')+'" stroke-linecap="round" opacity=".95"/>';
+    if(r[6]) s+='<circle r="2.6" fill="#fff" stroke="'+(r[2]||'#F2C94C')+'" stroke-width="1"><animateMotion dur="'+r[6]+'s" repeatCount="indefinite" path="'+d+'"/></circle>'; });
+  ports.forEach(p=>{ const a=PORT[p[0]]; s+='<circle cx="'+a[0]+'" cy="'+a[1]+'" r="'+(p[1]?4:2.6)+'" fill="'+(p[1]?'#F2C94C':'#fff')+'" stroke="#0b2a4a" stroke-width="1"/>'+(p[2]!==0?'<text x="'+(a[0]+(p[3]||5))+'" y="'+(a[1]+(p[4]||3))+'" font-size="7" font-weight="800" fill="#fff" font-family="sans-serif" '+(p[3]<0?'text-anchor="end"':'')+'>'+a[2]+'</text>':''); });
+  (o.marks||[]).forEach(m=>{ s+='<g transform="translate('+m[0]+' '+m[1]+')"><circle r="6" fill="'+m[2]+'" stroke="#fff" stroke-width="1"/><text y="2.6" text-anchor="middle" font-size="7" font-weight="900" fill="#fff" font-family="sans-serif">'+m[3]+'</text></g>'; });
+  return s+'</svg>'; }
+
+function ship(k,W,c){ c=c||'#C8352A'; let s='<svg width="'+W+'" height="'+Math.round(W*.42)+'" viewBox="0 0 160 66">';
+  s+='<path d="M8 40 L152 40 L140 58 L18 58 Z" fill="'+c+'"/><path d="M8 40 L152 40 L150 44 L10 44Z" fill="#fff" opacity=".85"/><path d="M18 58 L140 58" stroke="#1d1f23" stroke-width="2"/>';
+  if(k==='pc'){ const cols=['#C8352A','#1D4F91','#F2C94C','#2BB673','#E86A10','#5E6B7A','#7A4FB5']; for(let r=0;r<3;r++) for(let x=0;x<10;x++) s+='<rect x="'+(22+x*10)+'" y="'+(34-r*7)+'" width="9.4" height="6.4" fill="'+cols[(x*3+r*5)%7]+'" stroke="rgba(0,0,0,.2)" stroke-width=".4"/>';
+    s+='<rect x="126" y="12" width="16" height="28" fill="#f4f6fa" stroke="#9aa2ae"/><rect x="128" y="16" width="12" height="4" fill="#9fd0e6"/><rect x="132" y="4" width="4" height="8" fill="#1d1f23"/>'; }
+  if(k==='vr'){ [0,1,2,3,4].forEach(i=>{ s+='<rect x="'+(24+i*20)+'" y="32" width="16" height="8" fill="#5e6b7a"/><path d="M'+(25+i*20)+' 32 Q'+(32+i*20)+' 24 '+(39+i*20)+' 32Z" fill="#9a7a4a"/>'; }); s+='<path d="M60 32 L64 10 L66 32" stroke="#9aa2ae" stroke-width="2" fill="none"/><rect x="128" y="16" width="14" height="24" fill="#f4f6fa" stroke="#9aa2ae"/><rect x="130" y="20" width="10" height="4" fill="#9fd0e6"/>'; }
+  if(k==='pt'){ s+='<path d="M20 40 L120 40" stroke="#9aa2ae" stroke-width="2"/>'+[30,52,74,96].map(x=>'<ellipse cx="'+x+'" cy="36" rx="9" ry="5" fill="#c9ced6" stroke="#9aa2ae"/>').join('')+'<path d="M24 34 H118" stroke="#5e6b7a" stroke-width="1.4"/><rect x="124" y="14" width="18" height="26" fill="#f4f6fa" stroke="#9aa2ae"/><rect x="126" y="18" width="14" height="4" fill="#9fd0e6"/><rect x="131" y="6" width="4" height="8" fill="#C8352A"/>'; }
+  return s+'<path d="M0 60 q10 -4 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" stroke="#fff" stroke-width="1.4" fill="none" opacity=".7"/></svg>'; }
+
+
+const suez='M184 38 Q190 48 196 52 L208 58 L214 66 L224 78 L240 86 L262 90 L284 89 Q294 74 301 59';
+document.getElementById('map').innerHTML=worldMap([['havre','rott','#8ff0bf',6,null,'0',6],['havre','ny','#F2C94C',22,null,'0',14],['rott','shang','#ffb3a8',0,suez,'0',18],['shang','sing','#8ff0bf',0,'M301 59 Q296 76 284 89','0',8],['ny','santos','#9fd0e6',0,'M106 49 Q118 70 126 92 Q132 104 134 114','4 3',0]],
+ [['havre',1,1,-4,-4],['rott',1,1,4,-3],['shang',0,1],['sing',0,1,-4,10],['ny',1,1,-4,-4],['santos',0,1],['dubai',0,0],['durban',0,0]],{sea:'#0b2a4a',land:'#1f4a72',edge:'#2f6296',vb:'40 4 300 130',marks:[[225,79,'#ff5c5c','!']]});
+document.getElementById('lines').innerHTML=[['Le Havre ⇄ Rotterdam','2 navires · rotation 4 j',92,'#2BB673','+3 100 €'],['Le Havre ⇄ New York','2 navires · rotation 18 j',78,'#2BB673','+6 800 €'],['Rotterdam ⇄ Shanghai','4 navires · par Suez · 42 j',88,'#E5A800','+9 400 €'],['Shanghai ⇄ Singapour','1 navire affrété · 8 j',64,'#2BB673','+1 600 €']].map(l=>'<div class="ln"><div><b>'+l[0]+'</b><small>'+l[1]+' · remplissage '+l[2]+' %</small><div class="fill"><i style="width:'+l[2]+'%;background:'+l[3]+'"></i></div></div><span class="px">'+l[4]+'<small>par jour</small></span></div>').join('');
+document.getElementById('fleet').innerHTML=[['pc','Marie-Galante','porte-conteneurs · 8 000 EVP','acheté','#C8352A'],['pc','Belle-Île','porte-conteneurs · loué','loué · 9 200 € / j','#1D4F91'],['vr','Cap Fréhel','vraquier · libre au Havre','libre','#2BB673'],['pt','Ouessant','pétrolier · en route vers Dubaï','en mer','#5E6B7A'],['pc','Nouveau navire','commandé au chantier naval','livré dans 96 j','#F2C94C']].map((x,i)=>'<div class="sh"><div class="im">'+ship(x[0],150,x[4])+'</div><b>'+x[1]+'</b>'+x[2]+'<br><em>'+x[3]+'</em>'+(i===4?'<div class="pg"><i style="width:60%"></i></div>':'')+'</div>').join('');
+const ic=k=>'<svg width="34" height="20" viewBox="0 0 160 66">'+ship(k,160).replace(/^<svg[^>]*>/,'').replace('</svg>','')+'</svg>';
+document.getElementById('offers').innerHTML=[['vr','Minerai de fer · Santos → Rotterdam','vraquier · 26 jours · indice actuel','410 000 €'],['pt','Pétrole brut · Dubaï → Le Havre','pétrolier · 31 jours · passe par Suez','620 000 €']].map(o=>'<div class="of"><span class="ic">'+ic(o[0])+'</span><div><b>'+o[1]+'</b><small>'+o[2]+'</small></div><button class="btn a">'+o[3]+'</button></div>').join('');
+
+</script>
+</body>
+</html>

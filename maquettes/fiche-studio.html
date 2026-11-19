@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Studio et plateforme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Anton&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif;
+  --page:#1b1b22;--bg:#F4F2F7;--bg2:#E3DEEC;--acc:#D7263D;--acc2:#A11A2C;--hcol:#1B1B22;--h1:400 30px/1 Anton,Impact,sans-serif;--h2:400 22px Anton,Impact,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.phone{max-width:390px;margin:10px auto 30px;background:var(--bg);border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--acc);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 var(--bg2);font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--bg2)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(12,14,24,.88))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:var(--h1);color:#fff}
+.hero .sub{color:#E3E6EF;font-size:13px;margin-top:3px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--good-bg)}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--acc);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--bg2);flex:0 0 auto}
+h2.sec{font:var(--h2);color:var(--hcol);margin:22px 4px 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0;text-transform:none}
+.card{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg2)}
+.btn{border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--bg2),inset 0 0 0 1.5px var(--bg2);white-space:nowrap}
+.btn.a{background:var(--acc);color:#fff;box-shadow:0 3px 0 var(--acc2)}
+.seg{display:flex;background:var(--bg);border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:none;border-radius:11px;min-height:42px;font:800 12.5px var(--fb);color:var(--ink-3);padding:0 6px}
+.seg button.on{background:var(--acc);color:#fff}
+.tog{position:relative;width:52px;height:30px;border-radius:15px;background:#d5dae2;border:0;flex:0 0 auto}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.tog.on{background:var(--good-bg)}.tog.on::after{left:25px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-3)}
+.row b{display:block;color:var(--ink);font-size:14px}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+.path{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg2)}
+.steps{display:flex;align-items:flex-start}
+.steps .p{flex:0 0 58px;text-align:center;font:800 10px/1.2 var(--fb);color:var(--ink-3)}
+.steps .p i{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:12px;background:var(--bg);font-style:normal;font-size:17px}
+.steps .p.now i{background:var(--acc);box-shadow:0 0 0 3px var(--bg2)}
+.steps .ln{flex:1;height:3px;margin-top:18px;background:var(--acc);opacity:.3;border-radius:2px}
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 var(--bg2);font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--bg2);font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+
+h2.sec{letter-spacing:.5px;text-transform:uppercase}
+.clap{background:#1B1B22;border-radius:18px;padding:0;overflow:hidden;box-shadow:0 4px 0 #000;margin-bottom:10px;color:#e8e6ef}
+.clap .bar{height:22px;background:repeating-linear-gradient(-45deg,#fff 0 14px,#1B1B22 14px 28px);transform-origin:0 100%;transform:rotate(-4deg);margin:6px -4px -2px}
+.clap .bd{display:grid;grid-template-columns:92px 1fr;gap:10px;padding:12px}
+.clap .bd .ps{border-radius:8px;overflow:hidden;box-shadow:0 3px 8px rgba(0,0,0,.5)}
+.clap table{width:100%;border-collapse:collapse;font:400 13px Anton,sans-serif;letter-spacing:.4px}
+.clap td{border-bottom:1px solid #3a3a46;padding:3px 0;color:#9a98a8;font:700 10.5px var(--fb);text-transform:uppercase}
+.clap td b{display:block;font:400 15px Anton,sans-serif;color:#fff;text-transform:none;letter-spacing:.4px}
+.clap .pg{height:8px;border-radius:4px;background:#3a3a46;margin-top:8px;overflow:hidden}
+.clap .pg i{display:block;height:100%;background:linear-gradient(90deg,#D7263D,#F2C94C)}
+.clap .st{display:flex;justify-content:space-between;font-size:11.5px;color:#b9b7c6;margin-top:4px}
+.new{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--bg2)}
+.lb{display:block;font:800 11.5px var(--fb);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:10px 0 6px}
+.lb:first-child{margin-top:0}
+.gens{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gn{border:0;border-radius:14px;padding:6px 6px 8px;background:var(--bg);text-align:left;font:800 12px var(--fb);color:var(--ink)}
+.gn small{display:block;font:700 10.5px var(--fb)}
+.gn .tb{height:5px;border-radius:3px;background:var(--bg2);margin-top:4px;overflow:hidden}
+.gn .tb i{display:block;height:100%}
+.gn.on{background:#FDE7EA;box-shadow:inset 0 0 0 2px var(--acc)}
+.tal{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.tl{flex:0 0 100px;border:0;background:var(--bg);border-radius:16px;padding:8px 6px;text-align:center;font:800 12px var(--fb);color:var(--ink)}
+.tl svg{display:block;margin:0 auto 4px;border-radius:12px}
+.tl small{display:block;font:600 10.5px var(--fb);color:var(--ink-3)}
+.tl .fm{color:#F2B705;font-size:12px}
+.tl.on{background:#FDE7EA;box-shadow:inset 0 0 0 2px var(--acc)}
+.cat{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.po{flex:0 0 96px;font-size:11px;color:var(--ink-3)}
+.po .ps{border-radius:10px;overflow:hidden;box-shadow:0 4px 8px rgba(0,0,0,.25)}
+.po b{display:block;font:800 12px var(--fb);color:var(--ink);margin-top:5px}
+.po em{font-style:normal;font-weight:800;color:var(--green)}
+.plat{background:linear-gradient(135deg,#1B1B22,#3a1020);border-radius:20px;padding:14px;color:#e8e6ef;box-shadow:0 4px 0 #000}
+.plat .lg{font:400 24px Anton,sans-serif;color:#D7263D;letter-spacing:1px}
+.plat .kv{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.plat .kv div{background:rgba(255,255,255,.06);border-radius:12px;padding:7px 9px;font-size:11px;color:#b9b7c6}
+.plat .kv b{display:block;font:400 18px Anton,sans-serif;color:#fff;letter-spacing:.4px}
+.plat .row{color:#b9b7c6;margin-top:10px}.plat .row b{color:#fff}
+.plat .tv{display:flex;gap:6px;margin-top:10px}
+.plat .tv span{flex:1;border-radius:8px;overflow:hidden;height:60px}
+
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a15c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a15gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a15bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a15bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a15gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a15vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a15lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a15sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E5FA8"></stop><stop offset="1" stop-color="#D3DDF2"></stop></linearGradient></defs><g clip-path="url(#a15c)"><rect width="640" height="360" fill="url(#a15sky)"></rect><g><g fill="#FFFFFF" opacity=".85"><ellipse cx="90" cy="54" rx="40" ry="12"></ellipse><ellipse cx="114" cy="46" rx="26" ry="12"></ellipse><ellipse cx="470" cy="34" rx="34" ry="10"></ellipse><ellipse cx="492" cy="28" rx="22" ry="10"></ellipse></g><animateTransform attributeName="transform" type="translate" values="0 0;50 0;0 0" dur="34s" repeatCount="indefinite"></animateTransform></g><g fill="#A9BDD3" opacity=".55"><rect x="0" y="172" width="40" height="78"></rect><rect x="44" y="168" width="45" height="82"></rect><rect x="92" y="205" width="55" height="45"></rect><rect x="151" y="151" width="31" height="99"></rect><rect x="186" y="194" width="40" height="56"></rect><rect x="230" y="177" width="70" height="73"></rect><rect x="304" y="177" width="63" height="73"></rect><rect x="372" y="199" width="56" height="51"></rect><rect x="431" y="149" width="55" height="101"></rect><rect x="490" y="158" width="51" height="92"></rect><rect x="545" y="206" width="57" height="44"></rect><rect x="606" y="169" width="60" height="81"></rect></g><rect x="0" y="292" width="640" height="68" fill="#8E8C86"></rect><rect x="0" y="284" width="640" height="8" fill="#C9C6BE"></rect><rect x="0" y="326" width="640" height="3" fill="#E9E3C8" opacity=".7"></rect><rect x="110" y="114" width="420" height="170" fill="#2E3440"></rect><rect x="425" y="114" width="105" height="170" fill="#000" opacity="0.14"></rect><rect x="127.3" y="128.0" width="18.7" height="11.0" fill="#3E4656"></rect><rect x="160.7" y="128.0" width="18.7" height="11.0" fill="#343B49"></rect><rect x="194.0" y="128.0" width="18.7" height="11.0" fill="#343B49"></rect><rect x="227.3" y="128.0" width="18.7" height="11.0" fill="#343B49"></rect><rect x="260.7" y="128.0" width="18.7" height="11.0" fill="#3E4656"></rect><rect x="294.0" y="128.0" width="18.7" height="11.0" fill="#3E4656"></rect><rect x="327.3" y="128.0" width="18.7" height="11.0" fill="#343B49"></rect><rect x="360.7" y="128.0" width="18.7" height="11.0" fill="#3E4656"></rect><rect x="394.0" y="128.0" width="18.7" height="11.0" fill="#343B49"></rect><rect x="427.3" y="128.0" width="18.7" height="11.0" fill="#FFE6A6"></rect><rect x="460.7" y="128.0" width="18.7" height="11.0" fill="#FFE6A6"><animate attributeName="opacity" values="1;1;.15;.15;1" keyTimes="0;.5;.55;.9;1" dur="14.2s" begin="-5.7s" repeatCount="indefinite"></animate></rect><rect x="494.0" y="128.0" width="18.7" height="11.0" fill="#3E4656"></rect><rect x="127.3" y="148.0" width="18.7" height="11.0" fill="#343B49"></rect><rect x="160.7" y="148.0" width="18.7" height="11.0" fill="#343B49"></rect><rect x="194.0" y="148.0" width="18.7" height="11.0" fill="#3E4656"></rect><rect x="227.3" y="148.0" width="18.7" height="11.0" fill="#343B49"></rect><rect x="260.7" y="148.0" width="18.7" height="11.0" fill="#343B49"></rect><rect x="294.0" y="148.0" width="18.7" height="11.0" fill="#3E4656"></rect><rect x="327.3" y="148.0" width="18.7" height="11.0" fill="#FFE6A6"></rect><rect x="360.7" y="148.0" width="18.7" height="11.0" fill="#3E4656"></rect><rect x="394.0" y="148.0" width="18.7" height="11.0" fill="#3E4656"></rect><rect x="427.3" y="148.0" width="18.7" height="11.0" fill="#343B49"></rect><rect x="460.7" y="148.0" width="18.7" height="11.0" fill="#343B49"></rect><rect x="494.0" y="148.0" width="18.7" height="11.0" fill="#3E4656"></rect><rect x="150" y="174" width="220" height="100" fill="#141820"></rect><rect x="400" y="200" width="60" height="84" fill="#141820"></rect><circle cx="470" cy="160" r="4" fill="#FF3B30"><animate attributeName="opacity" values="1;.15;1" dur="1.2s" begin="-0s" repeatCount="indefinite"></animate></circle><rect x="480" y="230" width="30" height="20" rx="4" fill="#2B2B2B"></rect><circle cx="514" cy="240" r="7" fill="#444"></circle><path d="M490 250l-10 34M500 250v34M510 250l10 34" stroke="#2B2B2B" stroke-width="2"></path><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="19.5945s" begin="-6.3s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="278" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="282" width="7" height="11" rx="3" fill="#2BB673"></rect><rect x="-3" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="19.8779s" begin="-14.5s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="278" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="282" width="7" height="11" rx="3" fill="#E04B3B"></rect><rect x="-3" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="24.7712s" begin="-6.5s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="278" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="282" width="7" height="11" rx="3" fill="#2B2B2B"></rect><rect x="-3" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="20.329s" begin="-16.4s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="278" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="282" width="7" height="11" rx="3" fill="#2B2B2B"></rect><rect x="-3" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="293" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><rect x="70" y="264" width="2" height="28" fill="#2B2F3A"></rect><rect x="67.5" y="264" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><rect x="580" y="264" width="2" height="28" fill="#2B2F3A"></rect><rect x="577.5" y="264" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><rect width="640" height="360" fill="url(#a15lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a15gl)"><rect x="160.7" y="128.0" width="18.7" height="11.0" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.456;0.466;0.922;0.932;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="194.0" y="128.0" width="18.7" height="11.0" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.333;0.343;0.867;0.877;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="227.3" y="128.0" width="18.7" height="11.0" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.326;0.336;0.895;0.905;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="260.7" y="128.0" width="18.7" height="11.0" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.419;0.429;0.894;0.904;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="294.0" y="128.0" width="18.7" height="11.0" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.314;0.324;0.953;0.963;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="327.3" y="128.0" width="18.7" height="11.0" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.303;0.313;0.846;0.856;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="360.7" y="128.0" width="18.7" height="11.0" fill="#FFD27A" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.380;0.390;0.849;0.859;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="394.0" y="128.0" width="18.7" height="11.0" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.368;0.378;0.849;0.859;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="427.3" y="128.0" width="18.7" height="11.0" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.466;0.476;0.929;0.939;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="494.0" y="128.0" width="18.7" height="11.0" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.296;0.306;0.955;0.965;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="127.3" y="148.0" width="18.7" height="11.0" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.291;0.301;0.930;0.940;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="160.7" y="148.0" width="18.7" height="11.0" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;.3;1;.2;1;1;0;0" keyTimes="0;0.342;0.352;0.392;0.442;0.542;0.592;0.939;0.949;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="194.0" y="148.0" width="18.7" height="11.0" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.384;0.394;0.857;0.867;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="227.3" y="148.0" width="18.7" height="11.0" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.344;0.354;0.913;0.923;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="260.7" y="148.0" width="18.7" height="11.0" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.469;0.479;0.958;0.968;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="294.0" y="148.0" width="18.7" height="11.0" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.349;0.359;0.929;0.939;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="327.3" y="148.0" width="18.7" height="11.0" fill="#FFD27A" opacity="0"><animate attributeName="opacity" values="1;1" keyTimes="0;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="394.0" y="148.0" width="18.7" height="11.0" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.384;0.394;0.854;0.864;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="460.7" y="148.0" width="18.7" height="11.0" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.472;0.482;0.843;0.853;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="150" y="174" width="220" height="100" fill="#4D7BE0"><animate attributeName="fill" values="#4D7BE0;#E04B3B;#2BB673;#7A4DB0;#4D7BE0" dur="8s" repeatCount="indefinite"></animate></rect><path d="M250 204l30 20-30 20z" fill="#FFFFFF"></path><g opacity="0"><path d="M180 0L120 280L240 280z" fill="#FFF6C8" opacity=".18"><animateTransform attributeName="transform" type="rotate" values="-20 180 0;20 180 0;-20 180 0" dur="7s" repeatCount="indefinite"></animateTransform></path><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><path d="M460 0L400 280L520 280z" fill="#FFF6C8" opacity=".18"><animateTransform attributeName="transform" type="rotate" values="-20 460 0;20 460 0;-20 460 0" dur="9s" repeatCount="indefinite"></animateTransform></path><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><circle cx="71" cy="267" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="71" cy="267" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><circle cx="581" cy="267" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="581" cy="267" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g></g><rect width="640" height="360" filter="url(#a15gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a15vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>2 productions en tournage</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Lumière Nord</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Studio vidéo et plateforme · Plaine Saint-Denis</div></div>
+    </div>
+    
+<div class="res"><div><small>Droits du catalogue hier</small><b class="pos">+2 260 €</b></div><div style="text-align:right"><small>Influence</small><b>34 / 100</b></div></div>
+<button class="up">Agrandir le studio · niv. 2 <span>150 000 €</span></button>
+<div class="todo"><span style="flex:1"><b>Le tournage de « Ciel de minuit » dérape</b> : 12 jours de retard, budget +15 %.</span><button class="lnk">Voir</button></div>
+
+<h2 class="sec">En tournage</h2>
+<div id="claps"></div>
+
+<h2 class="sec">Lancer un projet</h2>
+<div class="new">
+  <span class="lb">Format</span>
+  <div class="seg"><button>Émission<br><small style="font-weight:600">30 j</small></button><button class="on">Série<br><small style="font-weight:600">90 j</small></button><button>Film<br><small style="font-weight:600">150 j · palier 2</small></button></div>
+  <span class="lb">Genre <small style="text-transform:none;letter-spacing:0">tendance du public</small></span>
+  <div class="gens" id="gens"></div>
+  <span class="lb">Budget</span>
+  <div class="seg"><button>Modeste</button><button class="on">Confortable</button><button>Grand spectacle</button></div>
+  <span class="lb">Talents</span>
+  <div class="tal" id="tal"></div>
+  <div class="row" style="margin-top:10px"><span><b>Coût du projet : 420 000 €</b>sortie prévue dans 90 jours</span><button class="btn a">Clap de début</button></div>
+</div>
+
+<h2 class="sec">Le catalogue <small>8 titres · les droits baissent avec le temps</small></h2>
+<div class="cat" id="cat"></div>
+
+<h2 class="sec">La plateforme</h2>
+<div class="plat"><div class="lg">NORD+</div><span style="font-size:12px">votre catalogue en streaming, par abonnement</span>
+  <div class="tv" id="tv"></div>
+  <div class="kv"><div>Abonnés<b>184 000</b></div><div>Prix<b>7,99 €</b></div><div>Ce mois<b>+4 %</b></div></div>
+  <div class="row"><span><b>Prix de l'abonnement</b>plus cher : plus de revenu, moins d'abonnés</span><div class="seg" style="flex:0 0 150px;background:rgba(255,255,255,.08)"><button style="color:#e8e6ef">−</button><button style="color:#e8e6ef">+</button></div></div>
+</div>
+
+    <h2 class="sec">Les paliers <small>palier 1 sur 5</small></h2>
+    <div class="path"><div class="steps"><div class="p now"><i>📺</i>Plateforme de streaming</div><div class="ln"></div><div class="p"><i>🎬</i>Films de cinéma</div><div class="ln"></div><div class="p"><i>🌍</i>Plateforme mondiale</div><div class="ln"></div><div class="p"><i>🏆</i>Festivals</div><div class="ln"></div><div class="p"><i>🧸</i>Licences</div></div></div>
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt"><button class="mg">Équipe<small>22 / 22 · fatigue 34</small></button><button class="mg">Finances<small>+2 260 € hier</small></button><button class="mg">Plateaux<small>propriétaire</small></button><button class="mg">Sécurité<small>gardiennage · assuré</small></button></div>
+    <div class="dlg"><span><b>Hélène Brun, productrice déléguée</b>peut lancer les projets, choisir les talents et gérer la plateforme à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>g.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)))));
+document.querySelectorAll('.tog').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
+
+let AV=0;
+function face(seed,W,bg){ const r=x=>{ seed=(seed*9301+49297)%233280; return seed/233280*x; };
+  const skin=['#F2D3B8','#E3B48E','#C68B62','#8D5B3E','#5E3B28'][Math.floor(r(5))], hair=['#2a1d16','#6b4a2e','#c9a06a','#1c1c1c','#a3483a','#d9d2c4'][Math.floor(r(6))], shirt=['#3D5AFE','#2BB673','#C8352A','#F2A33A','#5E6B7A','#7A4FB5'][Math.floor(r(6))];
+  const st=Math.floor(r(4)), gl=r(1)<.3, id='av'+(++AV);
+  let s='<rect width="60" height="60" rx="14" fill="'+(bg||'#EEF1F7')+'"/><path d="M8 60 Q10 42 30 42 Q50 42 52 60Z" fill="'+shirt+'"/><path d="M24 42 L30 50 L36 42Z" fill="#fff"/><rect x="26" y="34" width="8" height="9" fill="'+skin+'"/>';
+  if(st===2) s+='<path d="M14 32 C10 10 50 10 46 32 L48 46 L12 46Z" fill="'+hair+'"/>';
+  s+='<ellipse cx="30" cy="26" rx="11" ry="13" fill="'+skin+'"/>';
+  if(st===0) s+='<path d="M19 24 C18 10 42 10 41 24 C38 17 26 16 19 24Z" fill="'+hair+'"/>';
+  if(st===1) s+='<path d="M19 22 C19 12 41 12 41 22 L41 18 C36 14 24 14 19 18Z" fill="'+hair+'"/>';
+  if(st===2) s+='<path d="M19 26 C17 12 43 12 41 26 C38 18 24 17 19 26Z" fill="'+hair+'"/>';
+  if(st===3) s+='<circle cx="30" cy="14" r="6" fill="'+hair+'"/><path d="M19 24 C18 12 42 12 41 24 C38 18 25 17 19 24Z" fill="'+hair+'"/>';
+  s+='<ellipse cx="26" cy="27" rx="1.3" ry="1.5" fill="#2a1d16"/><ellipse cx="34" cy="27" rx="1.3" ry="1.5" fill="#2a1d16"/><path d="M26.5 33 Q30 35.5 33.5 33" stroke="#9c4a42" stroke-width="1.2" fill="none" stroke-linecap="round"/>';
+  if(gl) s+='<circle cx="26" cy="27" r="3.6" fill="none" stroke="#1d1f23" stroke-width="1"/><circle cx="34" cy="27" r="3.6" fill="none" stroke="#1d1f23" stroke-width="1"/><path d="M29.6 27 H30.4" stroke="#1d1f23"/>';
+  return '<svg width="'+W+'" height="'+W+'" viewBox="0 0 60 60">'+s+'</svg>'; }
+
+/* affiches de films selon le genre */
+let PO=0;
+function poster(g,title,W){ const id='po'+(++PO), H=Math.round(W*1.48); let s='', bg='';
+  if(g==='sf'){ bg='<linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05061a"/><stop offset="1" stop-color="#2b1460"/></linearGradient>';
+    s='<rect width="100" height="148" fill="url(#'+id+')"/>'+Array.from({length:30},(_,i)=>'<circle cx="'+((i*37)%100)+'" cy="'+((i*53)%90)+'" r="'+(i%3?.5:.9)+'" fill="#fff"/>').join('')+'<circle cx="68" cy="52" r="28" fill="#ff7a3c"/><ellipse cx="68" cy="52" rx="44" ry="7" fill="none" stroke="#ffc09e" stroke-width="2" transform="rotate(-18 68 52)"/><path d="M14 104 L34 92 L40 96 L22 108Z" fill="#c9ced6"/><path d="M14 104 L4 112" stroke="#38E1FF" stroke-width="3"/><path d="M0 148 L0 118 Q50 100 100 122 L100 148Z" fill="#120a2e"/>'; }
+  if(g==='dra'){ bg='<linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3442"/><stop offset="1" stop-color="#0d1118"/></linearGradient>';
+    s='<rect width="100" height="148" fill="url(#'+id+')"/>'+Array.from({length:40},(_,i)=>'<line x1="'+((i*29)%100)+'" y1="'+((i*41)%140)+'" x2="'+((i*29)%100-3)+'" y2="'+((i*41)%140+10)+'" stroke="#9fb3c8" stroke-width=".6" opacity=".6"/>').join('')+'<circle cx="50" cy="40" r="16" fill="#fff3d0" opacity=".25"/><path d="M42 120 L44 80 Q50 70 56 80 L58 120Z" fill="#05070b"/><circle cx="50" cy="72" r="7" fill="#05070b"/><path d="M30 76 Q50 56 70 76" fill="none" stroke="#05070b" stroke-width="3"/><line x1="50" y1="66" x2="50" y2="78" stroke="#05070b" stroke-width="2"/><rect x="0" y="120" width="100" height="28" fill="#05070b"/>'; }
+  if(g==='act'){ bg='<radialGradient id="'+id+'" cx=".5" cy=".55" r=".7"><stop offset="0" stop-color="#ffe08a"/><stop offset=".35" stop-color="#ff7a1a"/><stop offset=".7" stop-color="#a1180e"/><stop offset="1" stop-color="#1b0a06"/></radialGradient>';
+    s='<rect width="100" height="148" fill="url(#'+id+')"/>'+Array.from({length:12},(_,i)=>'<path d="M50 80 L'+(50+Math.cos(i/12*6.28)*70).toFixed(0)+' '+(80+Math.sin(i/12*6.28)*70).toFixed(0)+'" stroke="#ffd36b" stroke-width="1.4" opacity=".5"/>').join('')+'<path d="M40 128 L46 100 L38 86 L50 76 L60 88 L66 82 L70 86 L62 96 L56 104 L62 128 L56 128 L50 108 L46 128Z" fill="#120806"/><circle cx="52" cy="70" r="6" fill="#120806"/><path d="M0 148 L0 128 L30 122 L52 130 L100 120 L100 148Z" fill="#120806"/>'; }
+  if(g==='com'){ bg='<linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset="1" stop-color="#ff7ab6"/></linearGradient>';
+    s='<rect width="100" height="148" fill="url(#'+id+')"/>'+Array.from({length:14},(_,i)=>'<circle cx="'+((i*31)%100)+'" cy="'+((i*47)%110)+'" r="3" fill="#fff" opacity=".35"/>').join('')+
+      [[34,'#2b4c8a','#E3B48E'],[66,'#d6332a','#F2D3B8']].map(([x,sh,sk])=>'<path d="M'+(x-16)+' 148 Q'+(x-16)+' 104 '+x+' 104 Q'+(x+16)+' 104 '+(x+16)+' 148Z" fill="'+sh+'"/><circle cx="'+x+'" cy="88" r="14" fill="'+sk+'"/><path d="M'+(x-7)+' 92 Q'+x+' 100 '+(x+7)+' 92" stroke="#5a2a1a" stroke-width="2" fill="#fff"/><circle cx="'+(x-5)+'" cy="84" r="1.6" fill="#2a1d16"/><circle cx="'+(x+5)+'" cy="84" r="1.6" fill="#2a1d16"/>').join(''); }
+  if(g==='doc'){ bg='<linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6c28b"/><stop offset=".55" stop-color="#e7905a"/><stop offset="1" stop-color="#3b5a3a"/></linearGradient>';
+    s='<rect width="100" height="148" fill="url(#'+id+')"/><circle cx="50" cy="70" r="18" fill="#fff1c4" opacity=".9"/><path d="M0 98 L22 74 L36 88 L56 62 L78 86 L100 72 L100 148 L0 148Z" fill="#5a4a6a"/><path d="M0 118 Q50 100 100 116 L100 148 L0 148Z" fill="#2f4a2f"/><path d="M60 112 q6 -10 14 -2 l4 -6 l2 8 q-8 6 -20 0Z" fill="#1d1d1d"/>'; }
+  if(g==='ani'){ bg='<linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fd3ff"/><stop offset="1" stop-color="#c9f5df"/></linearGradient>';
+    s='<rect width="100" height="148" fill="url(#'+id+')"/><ellipse cx="22" cy="30" rx="14" ry="7" fill="#fff"/><ellipse cx="76" cy="22" rx="12" ry="6" fill="#fff"/><path d="M0 120 Q50 100 100 120 L100 148 L0 148Z" fill="#7fbf55"/><ellipse cx="50" cy="96" rx="22" ry="20" fill="#ff9a5c"/><circle cx="50" cy="70" r="18" fill="#ff9a5c"/><path d="M36 58 L32 42 L44 54Z M64 58 L68 42 L56 54Z" fill="#ff9a5c"/><circle cx="43" cy="68" r="5" fill="#fff"/><circle cx="57" cy="68" r="5" fill="#fff"/><circle cx="44" cy="69" r="2.6" fill="#1d1d1d"/><circle cx="58" cy="69" r="2.6" fill="#1d1d1d"/><path d="M46 78 Q50 82 54 78" stroke="#7a3a1a" stroke-width="1.6" fill="none"/><ellipse cx="50" cy="100" rx="12" ry="11" fill="#ffd8b8"/>'; }
+  const words=title.toUpperCase().split(' '); let lines=[], cur=''; words.forEach(w=>{ if((cur+' '+w).trim().length>11){ lines.push(cur.trim()); cur=w; } else cur+=' '+w; }); lines.push(cur.trim());
+  s+='<rect width="100" height="'+(lines.length*12+8)+'" fill="rgba(0,0,0,.35)"/>'+lines.map((l,i)=>'<text x="50" y="'+(14+i*12)+'" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="11" fill="#fff" letter-spacing=".6" stroke="rgba(0,0,0,.35)" stroke-width=".4">'+l+'</text>').join('');
+  s+='<text x="50" y="142" text-anchor="middle" font-family="sans-serif" font-size="4.6" font-weight="700" fill="#fff" opacity=".85" letter-spacing="1">LUMIÈRE NORD PRÉSENTE</text>';
+  return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 100 148" style="display:block"><defs>'+bg+'</defs>'+s+'</svg>'; }
+
+
+const C=[['sf','Ciel de minuit','Série · science-fiction','Grand spectacle','Elsa Perrin, Malik Brun','J 48 / 90',53,'12 j de retard'],['com','Le Grand Départ','Émission · comédie','Confortable','Jonas Garnier','J 22 / 30',73,'dans les temps']];
+document.getElementById('claps').innerHTML=C.map(c=>'<div class="clap"><div class="bar"></div><div class="bd"><span class="ps">'+poster(c[0],c[1],92)+'</span><div><table><tr><td>Production<b>'+c[1]+'</b></td></tr><tr><td>Format<b>'+c[2]+'</b></td></tr><tr><td>Budget<b>'+c[3]+'</b></td></tr><tr><td>Talents<b>'+c[4]+'</b></td></tr></table><div class="pg"><i style="width:'+c[6]+'%"></i></div><div class="st"><span>'+c[5]+'</span><span style="color:'+(c[7].includes('retard')?'#ff8a80':'#3CF29B')+'">'+c[7]+'</span></div></div></div></div>').join('');
+const G=[['Comédie','▲ en vogue',82,'#2BB673',1],['Drame','=',55,'#9aa2ae'],['Action','▲',70,'#2BB673'],['Documentaire','▼',30,'#C8352A'],['Science-fiction','▲ en vogue',88,'#2BB673'],['Animation','=',50,'#9aa2ae']];
+document.getElementById('gens').innerHTML=G.map((g,i)=>'<button class="gn'+(i===0?' on':'')+'">'+g[0]+'<small style="color:'+g[3]+'">'+g[1]+'</small><div class="tb"><i style="width:'+g[2]+'%;background:'+g[3]+'"></i></div></button>').join('');
+const TL=[['Elsa Perrin','actrice','★★★★☆','95 000 €',11],['Hakim Royer','acteur','★★★☆☆','42 000 €',29],['Nora Lemaire','réalisatrice','★★★★★','180 000 €',47],['Louis Masson','acteur','★★☆☆☆','18 000 €',61]];
+document.getElementById('tal').innerHTML=TL.map((t,i)=>'<button class="tl'+(i===1?' on':'')+'">'+face(t[4]*7919+523,70,'#E3DEEC')+t[0]+'<small>'+t[1]+'</small><span class="fm">'+t[2]+'</span><small>'+t[3]+'</small></button>').join('');
+const K=[['dra','Les Ombres de Paris','+640 € / j'],['act','Le Secret des sables','+520 € / j'],['doc','Les Rives du Nord','+180 € / j'],['ani','Les Gardiens','+410 € / j'],['com','Nuit blanche','+310 € / j']];
+document.getElementById('cat').innerHTML=K.map(k=>'<div class="po"><span class="ps">'+poster(k[0],k[1],96)+'</span><b>'+k[1]+'</b><em>'+k[2]+'</em></div>').join('');
+document.getElementById('tv').innerHTML=K.slice(0,4).map(k=>'<span>'+poster(k[0],k[1],80)+'</span>').join('');
+document.querySelectorAll('.gn,.tl').forEach(b=>b.addEventListener('click',()=>b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))));
+
+</script>
+</body>
+</html>
