@@ -2534,10 +2534,10 @@ function trainAll(){ let n=0,t=0; S.biz.forEach(b=>{ if(b.status==='active'&&hea
 function setHc(b,v){ b.hc=!!v; }
 const hcLoy = b => b.hc? 5 : (S.diff==='hard'? -5 : 0);
 function setProc(v){
-  if(v&&!S.proc){ if(S.cash<3000) return err('Trésorerie insuffisante : 3 000 € requis.'); payCap('gen','Recrutement du responsable des achats',-3000); S.proc=true; log('good','Responsable des achats recruté : marchandises 3 % moins chères.'); }
+  if(v&&!S.proc){ if(S.cash<3000) return err('Trésorerie insuffisante : 3 000 € requis.'); payCap('gen','Recrutement de l’acheteur des boutiques',-3000); S.proc=true; log('good','Acheteur des boutiques recruté : marchandises 3 % moins chères.'); }
   else if(!v) S.proc=false; return ok();
 }
-function procStep(){ if(S.proc&&S.biz.some(isStock)) pay('gen','Responsable des achats',-45*progMult()); }
+function procStep(){ if(S.proc&&S.biz.some(isStock)) pay('gen','Acheteur des boutiques',-45*progMult()); }
 D.BASKET={repair:60,ecom:45,agency:3000,staffing:900,resto:85,farm:400,cyber:2500,build:25000,fastfood:12,textile:800,saas:30,electronics:2000,super:55,studio:150,ai:500,promo:250000,gallery:15000,phones:600,couture:2500,renew:5000,dc:1500,park:60,hotel:450,warehouse:900,dealer:28000,office:4000,shipping:60000};
 const clientsOf = b => b.last&&b.last.rev? b.last.rev/(D.BASKET[b.def]||100) : 0;
 
@@ -11773,7 +11773,7 @@ MET.shipping={
   },
   ctl(b){ const m=b.m, d=bizDef(b), out=[];
     out.push({k:'tog', act:'usn', label:'Transporter les marchandises de vos usines', val:m.usn?1:0, sub:'Expéditions vers un autre pays : délais −40 %, coût −50 %, payé à votre compagnie (au moins une ligne requise).'});
-    out.push({k:'tog', act:'ins', label:'Assurance de la flotte', val:m.ins?1:0, sub:(m.ins?'':'Environ ')+eur(shInsCost(b),0)+' par jour : rançons de piraterie et réparations d’avaries couvertes.'});
+    out.push({k:'tog', act:'ins', label:'Assurance de la flotte', tl:[[0,'Aucune'],[1,'Souscrite']], val:m.ins?1:0, sub:(m.ins?'':'Environ ')+eur(shInsCost(b),0)+' par jour : rançons de piraterie et réparations d’avaries couvertes.'});
     [['plan',1,1.5,'Planification des escales','Rotations plus courtes.'],['ali',2,3,'Alliance maritime','+15 % de demande intercontinentale.'],['eco',3,5,'Navires économes','−15 % de fioul.'],['esc',4,6,'Sûreté et escortes','Piraterie bien plus rare, assurance −30 %.'],['d2d',5,10,'Logistique porte-à-porte','+10 % par conteneur.']].forEach(([k2,rk,f,l,s])=>{
       if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:(d.cost0||d.cost)*f, sub:s}); });
     return out; },
@@ -11998,7 +11998,7 @@ MET.office={
             ['Marché des bureaux', Math.round(m.mk*100)+' %', ofEv(m,'tt')? 'Vague de télétravail' : 'Demande normale']];
   },
   ctl(b){ const m=b.m, d=bizDef(b), out=[];
-    out.push({k:'tog', act:'brk', label:'Mandat d’agence', val:m.brk?1:0, sub:'L’agence loue seule les étages vides, 8 % sous le marché, contre une commission d’un mois de loyer'+(m.com?' (divisée par deux)':'')+'.'});
+    out.push({k:'tog', act:'brk', label:'Mandat d’agence', tl:[[0,'Aucun'],[1,'Signé']], val:m.brk?1:0, sub:'L’agence loue seule les étages vides, 8 % sous le marché, contre une commission d’un mois de loyer'+(m.com?' (divisée par deux)':'')+'.'});
     [['chg',1,1,'Gestion des charges','−15 % de charges.'],['com',2,2,'Commercialisation','Plus de prospects, commission ÷ 2.'],['bl',3,3,'Baux longs','Renouvellements plus fréquents.'],['fm',4,4,'Facility management','Usure ÷ 2, pannes moins chères.'],['pre',5,6,'Immeubles de prestige','Standing « Signature » possible, +10 % de loyers.']].forEach(([k2,rk,f,l,s])=>{
       if(mxHas(b,rk)) out.push(m[k2]? {k:'buy', act:k2, label:l, owned:true, sub:s} : {k:'buy', act:k2, label:l, cost:(d.cost0||d.cost)*f, sub:s}); });
     return out; },
@@ -12160,7 +12160,7 @@ MET.warehouse={
             ['Camions', String(m.tr), m.tr? fmtN(Math.round(d.del))+' colis livrés par jour' : 'Aucun camion']];
   },
   ctl(b){ const m=b.m, d=bizDef(b), out=[], R0=metR0(b);
-    out.push({k:'tog', act:'brk', label:'Commercial', val:m.brk?1:0, sub:'Il remplit seul les emplacements vides, 8 % sous le prix du marché.'});
+    out.push({k:'tog', act:'brk', label:'Commercial', tl:[[0,'Aucun'],[1,'Recruté']], val:m.brk?1:0, sub:'Il remplit seul les emplacements vides, 8 % sous le prix du marché.'});
     const nx=WH_EQ[m.eq+1]; if(nx&&(!nx.rk||mxHas(b,nx.rk))) out.push({k:'buy', act:'eq', label:nx.n, cost:R0*nx.c, sub:'Manutention moins chère et plus rapide.'});
     else out.push({k:'buy', act:'eq', label:WH_EQ[m.eq].n, owned:true, sub:'Équipement actuel.'});
     out.push({k:'btn', act:'rk', label:'Rayonnages hauts ('+(m.rk||0)+' / '+WH_RK+')', cost:R0*3*(1+(m.rk||0)), dis:(m.rk||0)>=WH_RK, sub:'+30 % d’emplacements à chaque fois.'});
@@ -12600,6 +12600,9 @@ const cls = n => n>0.005?'pos':n<-0.005?'neg':'dim';
 const pill = (t,k) => '<span class="pill '+(k||'')+'">'+t+'</span>';
 const bar = (p,k) => '<div class="bar '+(k||'')+'"><i style="width:'+clamp(p*100,0,100).toFixed(1)+'%"></i></div>';
 const btn = (label,a,o) => { o=o||{}; return '<button class="btn '+(o.c||'')+'" data-a="'+a+'"'+(o.i!==undefined?' data-i="'+esc(o.i)+'"':'')+(o.j!==undefined?' data-j="'+esc(o.j)+'"':'')+(o.v!==undefined?' data-v="'+esc(o.v)+'"':'')+(o.dis?' disabled':'')+(o.t?' title="'+esc(o.t)+'"':'')+'>'+label+'</button>'; };
+/* Poste à pourvoir : statut clair + une seule action (remplace les Oui/Non). */
+function hireRow(on,a,o){ o=o||{}; const x={i:o.i};
+  return '<div class="row sp hire-r"><span class="pill '+(on?'good':'')+'">'+(on?'En poste':'Poste vacant')+'</span>'+(on?btn('Licencier',a,Object.assign({c:'sm ghost',v:0},x)):btn('Recruter · '+eur(o.hire||0,0),a,Object.assign({c:'sm pri',v:1},x)))+'</div>'; }
 const dots = (n,max) => '<span class="dots" title="Risque">'+Array.from({length:max||5},(_,i)=>'<i class="'+(i<n?'on':'')+'"></i>').join('')+'</span>';
 const card = (title,body,o) => { o=o||{}; return '<section class="card '+(o.c||'')+'">'+(title?'<h2><span>'+title+'</span>'+(o.tools?'<span class="tools">'+o.tools+'</span>':'')+'</h2>':'')+body+'</section>'; };
 function toast(m,k){
@@ -12787,7 +12790,7 @@ function modalBiz(b){
       planBlock(b)+
       '<div class="stack"><b>Équipement : '+EQN[eqOf(b)]+'</b><div class="lvl">'+EQN.map((n,i)=>'<i class="'+(i<=eqOf(b)?'on':'')+'"></i>').join('')+'</div><div class="sub">Productivité '+multPct(EQP[eqOf(b)])+(isStock(b)?', stockage '+capDays(b)+' jours':'')+'.</div>'+(eqOf(b)<3?'<div>'+btn('Passer à « '+EQN[eqOf(b)+1]+' » : '+eur(eqCost(b),0),'upeq',{c:'sm',i:b.id})+'</div>':'')+'</div>'+
       '<div class="stack"><b>Formation</b><div class="sub">Productivité et fidélité de toute l’équipe en hausse. Une session tous les 20 jours.</div><div>'+btn(trainReady(b)?'Former l’équipe : '+eur(trainCost(b),0):'Prochaine session dans '+(20-(S.day-b.tr))+' j','train',{c:'sm',i:b.id,dis:!trainReady(b)||!headcount(b)})+'</div></div>'+
-      '<div class="stack"><b>Mutuelle santé</b><div class="seg"><button class="'+(!b.hc?'on':'')+'" data-a="sethc" data-i="'+b.id+'" data-v="0">Non</button><button class="'+(b.hc?'on':'')+'" data-a="sethc" data-i="'+b.id+'" data-v="1">Oui</button></div><div class="sub">+5 % de salaires, fidélité +5.'+(S.diff==='hard'&&!b.hc?' <b class="neg">En difficile, vos salariés la réclament (fidélité −5).</b>':'')+'</div></div>'+
+      '<div class="stack"><b>Mutuelle santé</b><div class="seg"><button class="'+(!b.hc?'on':'')+'" data-a="sethc" data-i="'+b.id+'" data-v="0">Aucune</button><button class="'+(b.hc?'on':'')+'" data-a="sethc" data-i="'+b.id+'" data-v="1">Souscrite</button></div><div class="sub">+5 % de salaires, fidélité +5.'+(S.diff==='hard'&&!b.hc?' <b class="neg">En difficile, vos salariés la réclament (fidélité −5).</b>':'')+'</div></div>'+
       '</div></div>';
     /* clients, équipe, stock, locaux */
     { const cr=csCrit(b), fat=fatOf(b), sh=ownShare(b), full=premPrice(b), left=Math.max(0,full-premValue(b)), rentD=base.rent0*rentFactor(b)*progMult();
@@ -12804,7 +12807,7 @@ function modalBiz(b){
           return '<div class="stack"><div class="row sp"><b>Stock de marchandises</b><span class="num"><b>'+(st/cr).toFixed(1)+' j</b> de ventes</span></div>'+bar(st/cap,st/cr<1.5?'r':st/cr<3?'a':'g')+
           '<div class="sub">'+eur(st,0)+' en rayon sur '+eur(cap,0)+' de capacité'+(pend>1?' · '+eur(pend,0)+' en livraison':'')+(b.soDays?' · <b class="neg">rupture en cours</b>':'')+'.</div>'+
           '<div class="row"><span class="sub">Stock visé</span><div class="seg">'+STKN.map((n,k)=>'<button class="'+(stkOf(b)===k?'on':'')+'" data-a="setstk" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div></div>'+
-          '<div class="row"><span class="sub">Commande automatique</span><div class="seg"><button class="'+(b.auto===false?'on':'')+'" data-a="setauto" data-i="'+b.id+'" data-v="0">Non</button><button class="'+(b.auto!==false?'on':'')+'" data-a="setauto" data-i="'+b.id+'" data-v="1">Oui</button></div>'+btn('Remplir le stock','orderstk',{c:'sm',i:b.id})+'</div>'+
+          '<div class="row"><span class="sub">Commande automatique</span><div class="seg"><button class="'+(b.auto===false?'on':'')+'" data-a="setauto" data-i="'+b.id+'" data-v="0">Désactivé</button><button class="'+(b.auto!==false?'on':'')+'" data-a="setauto" data-i="'+b.id+'" data-v="1">Activé</button></div>'+btn('Remplir le stock','orderstk',{c:'sm',i:b.id})+'</div>'+
           '<div class="sub">Le stock de secours permet de continuer à vendre pendant une pénurie chez les fournisseurs'+(b.penUntil>S.day?' (<b class="neg">pénurie en cours, encore '+(b.penUntil-S.day)+' j</b>)':'')+'. Sans stock, les ventes s’arrêtent. Livraison le lendemain.'+(S.proc?' Responsable des achats : −3 %.':' Un responsable des achats (Agence) fait baisser les prix de 3 %.')+'</div></div>'; })() : '')+
         (b.bld? bldLocHtml(b) : '<div class="stack"><div class="row sp"><b>Locaux</b>'+(sh>=.999? pill('Propriétaire','good') : sh>0? pill('Propriétaire en partie','info') : pill('Locataire',''))+'</div>'+
         '<div class="sub">Loyer : '+eur(rentD*(1-0.7*sh),0)+' / jour.'+(b.prem?' Valeur des locaux : '+eur(premValue(b),0)+' (suit le marché immobilier).':'')+'</div>'+
@@ -12816,7 +12819,7 @@ function modalBiz(b){
       const risk=k=>{ const p=pv(k); return p<0.0005? 'très rare' : '1 vol tous les ~'+Math.round(1/p)+' j'; };
       body+='<div class="card" id="bj-sec"><h2>Sécurité et assurance</h2><div class="stack"><div class="sub">Quartier '+esc(dd.n)+' : criminalité '+dots(dd.crime)+'</div>'+
         '<div class="stack"><b>Sécurité</b><div class="seg">'+SECN.map((n,k)=>'<button class="'+((b.sec||0)===k?'on':'')+'" data-a="setsec" data-i="'+b.id+'" data-v="'+k+'">'+n+'</button>').join('')+'</div><div class="sub">Coût : '+eur(R0*SECC[b.sec||0],0)+' / jour. Risque de vol : '+risk(b.sec||0)+'.'+((b.sec||0)<3?' Niveau suivant : '+eur(R0*SECC[(b.sec||0)+1],0)+' / jour, '+risk((b.sec||0)+1)+'.':'')+'</div></div>'+
-        '<div class="stack"><b>Assurance</b><div class="seg"><button class="'+(!b.ins?'on':'')+'" data-a="setins" data-i="'+b.id+'" data-v="0">Non</button><button class="'+(b.ins?'on':'')+'" data-a="setins" data-i="'+b.id+'" data-v="1">Oui</button></div><div class="sub">Coût : '+eur(R0*0.006*insRisk(C),0)+' / jour. Réduit les pertes de vol de moitié et les dégâts de catastrophe de 70 %.</div></div></div></div>'; }
+        '<div class="stack"><b>Assurance</b><div class="seg"><button class="'+(!b.ins?'on':'')+'" data-a="setins" data-i="'+b.id+'" data-v="0">Aucune</button><button class="'+(b.ins?'on':'')+'" data-a="setins" data-i="'+b.id+'" data-v="1">Souscrite</button></div><div class="sub">Coût : '+eur(R0*0.006*insRisk(C),0)+' / jour. Réduit les pertes de vol de moitié et les dégâts de catastrophe de 70 %.</div></div></div></div>'; }
     /* facteurs */
     if(pr){
       const f=[['Effectif et compétences',pr.sf],['Conjoncture et taux',pr.demand],['Réputation',pr.rep],['Saturation du marché ('+(satIndex(b)+1)+'e exemplaire)',pr.sat],['Effet du prix sur les volumes',pr.vol],['Marketing',MKT_BOOST[b.mkt]],['Quartier et clientèle',pr.loc.aff],['Prestige de l’adresse',pr.loc.pres],['Ville et pouvoir d’achat',pr.loc.city],['Fête en cours',pr.loc.fe],['Satisfaction des clients',pr.csm],['Concurrence ('+intLabel(intensity(rivKey(b))).toLowerCase()+')',pr.comp],['Synergies',synBonus(d)],['Lois et actualité',lawMult(d)*tagMult(d.tags)],['Phase de croissance',startupMult(b)]].filter(x=>Math.abs(x[1]-1)>0.004||x[0].startsWith('Effectif'));
@@ -13142,7 +13145,7 @@ function vAgency(){
   h+=planCard();
   h+=offmCard();
   h+=mgrCard()+bossesCard();
-  h+=card('Responsable des achats','<div class="stack"><div class="sub">Gère les commandes de marchandises de toutes vos boutiques et négocie 3 % de remise. Embauche : 3 000 €, puis '+eur(45*progMult(),0)+' par jour.</div><div class="seg"><button class="'+(!S.proc?'on':'')+'" data-a="setproc" data-v="0">Non</button><button class="'+(S.proc?'on':'')+'" data-a="setproc" data-v="1">Oui</button></div></div>')+card('Formation','<div class="stack"><div class="sub">Forme toutes les équipes disponibles (4 jours de salaire chacune, une fois tous les 20 jours).</div><div>'+btn('Former toutes les équipes','trainall',{c:'sm pri'})+'</div></div>');
+  h+=card('Acheteur des boutiques','<div class="stack"><div class="sub">Gère les commandes de marchandises de toutes vos boutiques et négocie 3 % de remise. Salaire : '+eur(45*progMult(),0)+' par jour.</div>'+hireRow(!!S.proc,'setproc',{hire:3000})+'</div>')+card('Formation','<div class="stack"><div class="sub">Forme toutes les équipes disponibles (4 jours de salaire chacune, une fois tous les 20 jours).</div><div>'+btn('Former toutes les équipes','trainall',{c:'sm pri'})+'</div></div>');
   /* Candidats */
   const roles=[...new Set(A.pool.map(c=>c.role))];
   const allRoles=[...new Set(ents.flatMap(e=>entRoles(e).map(r=>r[0])))];
@@ -13702,7 +13705,7 @@ function vFx(){
       (pv? '<div class="mini"><div><span>Vous recevez</span><b class="num">'+money(to,pv.got,2)+'</b></div><div><span>Frais</span><b class="num">'+fmtN(pv.fee*100,2)+' %</b></div></div>' : '<div class="sub">Frais selon les monnaies et le montant.</div>')+
       '<div>'+btn('Convertir','fxgo',{c:'pri',dis:!pv})+'</div></div>'; })())+'</div>';
   const q=cnyQuota();
-  h+=card('Réglages des comptes','<div class="stack"><div class="row sp"><div><b>Rapatriement automatique</b><div class="sub">Chaque lundi, vos soldes étrangers repassent en euros (frais inclus).</div></div><div class="seg"><button class="'+(!S.sweep?'on':'')+'" data-a="sweep" data-v="0">Non</button><button class="'+(S.sweep?'on':'')+'" data-a="sweep" data-v="1">Oui</button></div></div>'+
+  h+=card('Réglages des comptes','<div class="stack"><div class="row sp"><div><b>Rapatriement automatique</b><div class="sub">Chaque lundi, vos soldes étrangers repassent en euros (frais inclus).</div></div><div class="seg"><button class="'+(!S.sweep?'on':'')+'" data-a="sweep" data-v="0">Désactivé</button><button class="'+(S.sweep?'on':'')+'" data-a="sweep" data-v="1">Activé</button></div></div>'+
     '<div><div class="row sp"><b>Plafond de capitaux à Pékin</b><span class="sub num">'+eur(q.left,0)+' restants sur '+eur(q.limit,0)+'</span></div>'+bar(q.left/q.limit)+'<div class="sub">Rapatrier des yuans est limité chaque année. Investir sur place relève le plafond.</div></div></div>');
   return h;
 }
@@ -14034,7 +14037,7 @@ function ordersCard(cls){ const os=(S.orders||[]).filter(o=>o.cls===cls); return
 function saveCard(){ const p=(S.save&&S.save.pct)||0;
   /* V2.3.4 : le directeur financier place aussi l'excédent de trésorerie sur le livret chaque lundi, même sur « Non » :
      c'est maintenant indiqué ici et réglable à part */
-  const fin=mgrOn('fin')? '<div class="row sp" style="margin-top:6px"><div style="min-width:0"><b>Directeur financier</b><div class="sub">Chaque lundi, il place sur le livret la trésorerie au-delà d’un mois de dépenses.</div></div><div class="seg"><button class="'+(S.finLiv!==0?'on':'')+'" data-a="finliv" data-v="1">Oui</button><button class="'+(S.finLiv===0?'on':'')+'" data-a="finliv" data-v="0">Non</button></div></div>' : '';
+  const fin=mgrOn('fin')? '<div class="row sp" style="margin-top:6px"><div style="min-width:0"><b>Directeur financier</b><div class="sub">Chaque lundi, il place sur le livret la trésorerie au-delà d’un mois de dépenses.</div></div><div class="seg"><button class="'+(S.finLiv!==0?'on':'')+'" data-a="finliv" data-v="1">Activé</button><button class="'+(S.finLiv===0?'on':'')+'" data-a="finliv" data-v="0">Désactivé</button></div></div>' : '';
   return card('Épargne automatique','<div class="stack"><div class="sub">Chaque jour, une part du bénéfice de vos entreprises part sur le livret.</div><div class="seg">'+[0,.1,.25,.5].map(x=>'<button class="'+(p===x?'on':'')+'" data-a="saveset" data-v="'+x+'">'+(x?Math.round(x*100)+' %':'Non')+'</button>').join('')+'</div>'+fin+'</div>'); }
 ACT.finliv=el=>{ S.finLiv=+el.dataset.v; toast(S.finLiv? 'Le directeur financier place l’excédent sur le livret.' : 'Le directeur financier ne place plus l’excédent sur le livret.'); render(); };
 function electionCard(){
@@ -14103,7 +14106,7 @@ function vAuction(){
 }
 function offmCard(){
   const on=S.offm&&S.offm.on;
-  return card('Gérant hors ligne','<div class="stack"><div class="sub">Quand vous revenez dans le jeu, il a fait tourner vos entreprises : un jour par heure d’absence, '+OFFM.max+' jours au plus. Vous choisissez à votre retour d’encaisser ces jours ou non. Embauche '+eur(OFFM.hire,0)+', puis '+eur(OFFM.day*progMult(),0)+' par jour.</div><div class="seg"><button class="'+(!on?'on':'')+'" data-a="offm" data-v="0">Non</button><button class="'+(on?'on':'')+'" data-a="offm" data-v="1">Oui</button></div></div>');
+  return card('Gérant hors ligne','<div class="stack"><div class="sub">Quand vous revenez dans le jeu, il a fait tourner vos entreprises : un jour par heure d’absence, '+OFFM.max+' jours au plus. Vous choisissez à votre retour d’encaisser ces jours ou non. Salaire : '+eur(OFFM.day*progMult(),0)+' par jour.</div>'+hireRow(!!on,'offm',{hire:OFFM.hire})+'</div>');
 }
 function modalOffline(n){
   return {title:'Bon retour',sm:true,body:'<p style="margin:0">Pendant votre absence, votre gérant peut faire tourner vos entreprises pendant <b>'+n+' jour(s)</b>. Vous recevrez le rapport de la période.</p><div class="row sp">'+btn('Plus tard','closemodal',{c:'ghost'})+btn('Lancer '+n+' jour(s)','offmgo',{c:'pri',v:n})+'</div>'};
@@ -14215,7 +14218,7 @@ function factOutHtml(b){
   if(!act.length&&!off.length) h+='<div class="sub">Des clients proposent régulièrement des commandes, 15 à 45 % au-dessus du prix de gros. Certains exigent une qualité supérieure ou premium.</div>';
   h+='</div>';
   /* 2. vos sociétés */
-  h+='<div class="fo-s"><div class="fo-h"><b>2. Vos sociétés</b><div class="seg"><button class="'+(supOn(b)?'on':'')+'" data-a="fsup" data-i="'+b.id+'" data-v="1">Fournir</button><button class="'+(!supOn(b)?'on':'')+'" data-a="fsup" data-i="'+b.id+'" data-v="0">Non</button></div></div>';
+  h+='<div class="fo-s"><div class="fo-h"><b>2. Vos sociétés</b><div class="seg"><button class="'+(supOn(b)?'on':'')+'" data-a="fsup" data-i="'+b.id+'" data-v="1">Fournir</button><button class="'+(!supOn(b)?'on':'')+'" data-a="fsup" data-i="'+b.id+'" data-v="0">Ne pas fournir</button></div></div>';
   const cl2=cl.filter(c=>Object.keys(SUP_NEED[c.def]).some(p=>P.includes(p)));
   if(cl2.length){ h+=cl2.map(c=>{ const ps=Object.keys(SUP_NEED[c.def]).filter(p=>P.includes(p)), nd=ps.reduce((a,p)=>a+supNeedP(c,p),0), got=ps.reduce((a,p)=>a+((c.supP&&c.supP[p])?c.supP[p][1]:0),0);
       return '<div class="fo-r"><div><b>'+esc(c.name)+'</b><small>'+esc(bizDef(c).n)+' · '+esc(cityName(c.city))+' · '+ps.map(p=>esc(D.PRODS[p].n.toLowerCase())).join(', ')+' · besoin '+eur(nd,0)+' par jour'+(supSrc(c)==='mkt'?' · achète au marché':'')+'</small></div><span class="num sub">'+(got? eur(got,0)+' livrés' : '—')+'</span></div>'; }).join('');
@@ -14371,7 +14374,7 @@ function modalPlans(id){
 function mgrCard(){
   S.mgr=S.mgr||{};
   return card('Directeurs','<div class="stack">'+Object.keys(D.MGR).map(k=>{ const M=D.MGR[k], on=mgrOn(k);
-    return '<div class="stack" style="gap:6px;border-bottom:1px solid var(--line);padding-bottom:8px"><div class="row sp"><b>'+M.n+'</b><div class="seg"><button class="'+(!on?'on':'')+'" data-a="mgr" data-i="'+k+'" data-v="0">Non</button><button class="'+(on?'on':'')+'" data-a="mgr" data-i="'+k+'" data-v="1">Oui</button></div></div><div class="sub">'+M.txt+' Embauche '+eur(M.hire,0)+', puis '+eur(M.day*progMult(),0)+' par jour.</div></div>'; }).join('')+'</div>');
+    return '<div class="stack" style="gap:6px;border-bottom:1px solid var(--line);padding-bottom:8px"><div class="row sp"><b>'+M.n+'</b></div><div class="sub">'+M.txt+'</div><div class="sub">Salaire : '+eur(M.day*progMult(),0)+' par jour.</div>'+hireRow(on,'mgr',{i:k,hire:M.hire})+'</div>'; }).join('')+'</div>');
 }
 function bossesCard(){
   const L=S.biz.filter(b=>b.status==='active');
@@ -14424,6 +14427,11 @@ function estNet(def,bd){
     return (5*wd+2*we)/7;
   }catch(e){ return null; }
 }
+/* Licenciement : confirmation, l'embauche n'est pas remboursée. */
+(function(){ const nm={setproc:()=>['Acheteur des boutiques',3000],offm:()=>['Gérant hors ligne',OFFM.hire],mgr:el=>{ const M=D.MGR[el.dataset.i]; return [M.n,M.hire]; }};
+  Object.keys(nm).forEach(a=>{ const f=ACT[a]; if(!f) return; ACT[a]=el=>{ if(el.dataset.v!=='0') return f(el); const [n,h]=nm[a](el);
+    ask('Licencier','Licencier : '+n+' ? Les frais d’embauche ('+eur(h,0)+') ne seront pas remboursés.','Licencier',()=>f(el)); }; });
+})();
 
 /* ============================================================
    V16 : disposition « Ludique » de l'Accueil et de la fiche société
@@ -15388,7 +15396,7 @@ function metBtn(b,c,label,o){ o=o||{}; return '<button class="btn '+(o.c||'sm')+
 function metCtlHtml(b,c){
   const can=x=>availFor(cityOf(b).ccy)>=x;
   if(c.k==='seg'||c.k==='tog'){
-    const opts=c.k==='tog'? [[0,'Non'],[1,'Oui']] : c.opts, val=c.k==='tog'? (c.val?1:0) : c.val;
+    const opts=c.k==='tog'? (c.tl||[[0,'Désactivé'],[1,'Activé']]) : c.opts, val=c.k==='tog'? (c.val?1:0) : c.val;
     return '<div class="met-c"><b>'+esc(c.label)+'</b><div class="seg">'+opts.map(o=>metBtn(b,c,esc(o[1]),{c:(String(o[0])===String(val)?'on':''),j:o[0]}).replace('class="btn ','class="')).join('')+'</div>'+(c.sub?'<div class="sub">'+esc(c.sub)+'</div>':'')+'</div>';
   }
   if(c.k==='buy'||c.k==='stars'){
@@ -16605,13 +16613,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.3.7';
+const IB_VER='V2.3.8';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Plus clair','Les postes de direction n’affichent plus « Oui / Non » : chaque poste indique s’il est vacant ou pourvu, avec un bouton Recruter (et son coût) ou Licencier, confirmé avant de partir. Le responsable des achats devient l’acheteur des boutiques, pour ne plus le confondre avec le directeur des achats. Les options automatiques affichent Activé / Désactivé, les assurances et la mutuelle Aucune / Souscrite.','V2.3.8'],
   ['Directeur des achats','Dernière étape de la refonte de l’approvisionnement : recrutez un directeur des achats (Direction). Chaque lundi, il choisit le fournisseur de chacune de vos sociétés clientes, règle la répartition et la qualité de vos usines selon les besoins du groupe et fait garder du stock d’avance. En pénurie, il sert d’abord les sociétés qui en dépendent. Il gagne en compétence avec l’ancienneté. Touchez un réglage pour reprendre la main sur une société ou une usine.','V2.3.7'],
   ['Approvisionnement par produit','Deuxième étape. Restaurants, hôtels, parcs, maisons de couture, boutiques en ligne, ateliers de réparation, data centers et concessions consomment des produits précis (légumes, vin, soie, écrans, batteries, pièces automobiles…). Dans leur fiche, choisissez le fournisseur : Marché, Mixte (vos usines d’abord) ou Vos usines seulement (économie plus forte, mais ventes perdues en cas de manque). Vos usines livrent leur meilleure qualité, qui augmente les ventes du client (jusqu’à +10 %). Les anciennes remises automatiques (« Produits de votre ferme » −15 %, tissus « Vos filatures » sans livraison) disparaissent : ce sont désormais les livraisons réelles qui comptent.','V2.3.6'],
   ['Usines : plusieurs produits et qualité','Première étape de la refonte de l’approvisionnement. Chaque usine fabrique plusieurs produits : la ferme des céréales, légumes et fruits, produits laitiers, œufs et volaille, vin (selon ses parcelles) ; l’usine textile du coton, de la laine, de la soie et des vêtements ; l’usine de composants des écrans, batteries, puces et pièces automobiles. Répartissez la capacité et choisissez la qualité de chaque ligne (standard, supérieure, premium) dans l’onglet Production. Certains contrats exigent une qualité supérieure ou premium et paient davantage.','V2.3.5'],
