@@ -1484,6 +1484,7 @@ const NF = new Intl.NumberFormat(NLOC,{maximumFractionDigits:0});
 const NF2 = new Intl.NumberFormat(NLOC,{minimumFractionDigits:2,maximumFractionDigits:2});
 const NFD = {};
 function fmtN(n,d){ return d? (NFD[d]=NFD[d]||new Intl.NumberFormat(NLOC,{minimumFractionDigits:d,maximumFractionDigits:d})).format(n) : NF.format(Math.round(n)); }
+const plu=(n,w)=>fmtN(n)+' '+w+(Math.abs(n)>=2?'s':'');
 function eur(n,dec){
   if(!isFinite(n)) return '—';
   const a=Math.abs(n), sg=n<0?'−':'';
@@ -1863,7 +1864,7 @@ function rptDay(){
 function rptAlerts(){
   const A=[], t=S.nextTax-S.day;
   if(S.cash<0) A.push({k:'bad',m:'Compte en euros à découvert : '+eur(S.cash,0)+'.'});
-  if(t>=0&&t<=5) A.push({k:'warn',m:'Échéance fiscale dans '+t+' jour(s) : environ '+eur(taxEstimate().total,0)+'.'});
+  if(t>=0&&t<=5) A.push({k:'warn',m:'Échéance fiscale dans '+plu(t,'jour')+' : environ '+eur(taxEstimate().total,0)+'.'});
   S.biz.forEach(b=>{
     if(b.status!=='active') return;
     if(staffFill(b)<.6) A.push({k:'warn',m:b.name+' : seulement '+Math.round(staffFill(b)*100)+' % des postes pourvus.'});
@@ -2430,7 +2431,7 @@ function evict(b){
   if(b.prem){ const pv=premValue(b)*0.9; payCap('b:'+b.id,'Vente forcée des locaux : '+b.name,pv); }
   const n=headcount(b); S.rep=clamp(S.rep-2-Math.min(4,n*0.1),0,100); S.stats.layoffs30+=n; S.gov.ten=clamp(S.gov.ten+Math.min(8,n*0.1),0,100);
   bldRelease(b,true); S.biz=S.biz.filter(x=>x!==b); S.stats.evictions=(S.stats.evictions||0)+1;
-  log('crit','Expulsion : le bailleur de « '+b.name+' » ('+distOf(b).n+', '+cityOf(b).n+') récupère les locaux. La société ferme, '+n+' employé(s) licencié(s), liquidation à '+eur(p,0)+'.');
+  log('crit','Expulsion : le bailleur de « '+b.name+' » ('+distOf(b).n+', '+cityOf(b).n+') récupère les locaux. La société ferme, '+plu(n,'employé')+' licencié(s), liquidation à '+eur(p,0)+'.');
 }
 
 /* ============================================================
@@ -2876,7 +2877,7 @@ function rivStep(){
       const roles=Object.keys(b.staff).filter(r=>b.staff[r].n>0); if(!roles.length) return;
       const r=pick(roles), k=Math.min(b.staff[r].n,rint(1,2)), riv=wpick(cand,x=>x.ag);
       b.staff[r].n-=k; if(b.staff[r].n<=0) delete b.staff[r]; R.rv[riv.id].poached+=k;
-      log('warn',riv.n+' débauche '+k+' employé(s) de « '+b.name+' » ('+D.ROLES[r].s+'). Un meilleur salaire et un service RH limitent ces départs.');
+      log('warn',riv.n+' débauche '+plu(k,'employé')+' de « '+b.name+' » ('+D.ROLES[r].s+'). Un meilleur salaire et un service RH limitent ces départs.');
     }
   });
   /* tous les 30 jours : évolution des rivaux et offres */
@@ -3788,7 +3789,7 @@ function deliverFrom(cid,bid){
   const R=route(b.city,c.city), cost=c.qty*D.GOODS[c.g].v*R.rate;
   pay('b:'+b.id,'Transport vers '+D.CITIES[c.city].n,-cost);
   b.goods-=c.qty; c.st='ship'; I.ship.push({cid:c.id, from:b.city, to:c.city, arr:S.day+R.days, g:c.g, qty:c.qty, bid:b.id});
-  return ok('Expédition partie de '+D.CITIES[b.city].n+' : arrivée dans '+R.days+' jour(s).');
+  return ok('Expédition partie de '+D.CITIES[b.city].n+' : arrivée dans '+plu(R.days,'jour')+'.');
 }
 function indStep(){
   const I=indInit(); gpStep();
@@ -3933,7 +3934,7 @@ deliverFrom=function(cid,bid){ const I=indInit(), c=I.active.find(x=>x.id===cid)
   const have=fpUnits(b,c.p,c.qm); if(have<c.qty) return err('Stock insuffisant'+(c.qm?' en qualité '+QN[c.qm].toLowerCase()+' ou mieux':'')+' : '+fmtN(have)+' / '+fmtN(c.qty)+' '+D.PRODS[c.p].u+'.');
   const R=route(b.city,c.city), cost=c.qty*D.PRODS[c.p].v*R.rate; pay('b:'+b.id,'Transport vers '+D.CITIES[c.city].n,-cost);
   fpTake(b,c.p,c.qty,c.qm); c.st='ship'; I.ship.push({cid:c.id, from:b.city, to:c.city, arr:S.day+R.days, p:c.p, g:c.g, qty:c.qty, bid:b.id});
-  return ok('Expédition partie de '+D.CITIES[b.city].n+' : arrivée dans '+R.days+' jour(s).'); };
+  return ok('Expédition partie de '+D.CITIES[b.city].n+' : arrivée dans '+plu(R.days,'jour')+'.'); };
 function fpMigInd(){ const I=S.ind; if(!I||I.v235) return; I.v235=1;
   I.offers=I.offers.filter(o=>o.p);
   I.active.forEach(c=>{ if(c.p) return; const fac=Object.keys(D.FACT).find(k=>D.FACT[k]===c.g), p=(FACT_P[fac]||[])[0]; if(!p) return; const k=D.GOODS[c.g].v/D.PRODS[p].v; c.p=p; c.qm=0; c.qty=Math.max(1,Math.round(c.qty*k)); c.px=c.px/k; });
@@ -5095,7 +5096,7 @@ function nextDay(){
   /* découvert */
   if(S.cash<0){
     S.negDays++; S.rep=clamp(S.rep-0.2,0,100);
-    if(S.negDays===1||S.negDays%4===0) log('crit','Compte à découvert depuis '+S.negDays+' jour(s). Vendez des actifs avant la faillite (14 jours).');
+    if(S.negDays===1||S.negDays%4===0) log('crit','Compte à découvert depuis '+plu(S.negDays,'jour')+'. Vendez des actifs avant la faillite (14 jours).');
   } else S.negDays=0;
   /* fin de journée */
   rptDay();
@@ -12780,7 +12781,7 @@ function modalBiz(b){
     body+='<div class="card" style="padding:10px 12px"><div class="tag">Parcours de la start-up</div><div class="row" style="gap:6px;margin-top:6px;flex-wrap:nowrap">'+su.ph.map(p=>{ const a0=acc; acc+=p[1]; const f=clamp((el-a0)/p[1],0,1); return '<div style="flex:'+p[1]+';min-width:0"><div class="sub" style="font-size:11px">'+p[0]+' · '+p[1]+' j</div>'+bar(f)+'</div>'; }).join('')+'</div>'+
       (b.status==='active'?'<div class="sub" style="margin-top:6px">Issue : '+(b.out==='S'?'<b class="pos">succès, croissance en cours</b>':'<b class="mut">traction modeste</b>')+'</div>':'')+'</div>';
   }
-  if((b.arr||0)>0) body+='<div class="notice bad"><b>Loyer impayé depuis '+b.arr+' jour(s).</b> Si votre trésorerie reste négative, le bailleur vous expulse à '+EVICT_DAYS+' jours et la société ferme. Acheter les locaux protège de l’expulsion.</div>';
+  if((b.arr||0)>0) body+='<div class="notice bad"><b>Loyer impayé depuis '+plu(b.arr,'jour')+'.</b> Si votre trésorerie reste négative, le bailleur vous expulse à '+EVICT_DAYS+' jours et la société ferme. Acheter les locaux protège de l’expulsion.</div>';
   if(b.status==='build'){ body+='<div class="notice info">Mise en route en cours.</div><div>'+btn('Céder : '+eur(sellPrice(b),0),'sellbiz',{c:'dng',i:b.id})+'</div>'; }
   else{
     body+='<div class="mini"><div><span>Moyenne 30 jours</span><b class="num '+cls(avg)+'">'+signed(avg,0)+'</b></div><div><span>Fidélité moyenne</span><b>'+Math.round(avgLoy(b))+'</b></div></div>';
@@ -13005,7 +13006,7 @@ function vLuxe(){
       '<div style="margin-top:8px">'+btn('Céder le pays : '+eur(c.price*0.7,0),'sellcountry',{c:'sm dng'})+'</div>');
   } else {
     h+='<div class="grid">'+D.COUNTRIES.map(c=>{ const lock=!unlocked(c.tier), miss=c.cities.filter(x=>!cityOwned(x));
-      return '<section class="card bc '+(lock?'lock':'')+'"><div class="hd"><div><b>'+esc(c.n)+'</b><div class="sub">'+c.pop+' · villes : '+c.cities.filter(cityVisible).map(x=>(cityOwned(x)?'✓ ':'')+esc(D.CITIES[x].n)).join(', ')+(c.cities.some(x=>!cityVisible(x))?' + '+c.cities.filter(x=>!cityVisible(x)).length+' à découvrir':'')+'</div></div></div><div class="row sp"><div><div class="tag">Prix</div><div class="num"><b>'+eur(c.price,0)+'</b></div></div>'+(lock?'<span class="sub">Palier '+D.TIERS[c.tier].n+'</span>':(miss.length?'<span class="sub">Il manque '+miss.length+' ville(s)</span>':btn('Acheter','buycountry',{c:'sm pri',i:c.id,dis:S.cash<c.price})))+'</div><div class="sub"></div></section>'; }).join('')+'</div>';
+      return '<section class="card bc '+(lock?'lock':'')+'"><div class="hd"><div><b>'+esc(c.n)+'</b><div class="sub">'+c.pop+' · villes : '+c.cities.filter(cityVisible).map(x=>(cityOwned(x)?'✓ ':'')+esc(D.CITIES[x].n)).join(', ')+(c.cities.some(x=>!cityVisible(x))?' + '+c.cities.filter(x=>!cityVisible(x)).length+' à découvrir':'')+'</div></div></div><div class="row sp"><div><div class="tag">Prix</div><div class="num"><b>'+eur(c.price,0)+'</b></div></div>'+(lock?'<span class="sub">Palier '+D.TIERS[c.tier].n+'</span>':(miss.length?'<span class="sub">Il manque '+plu(miss.length,'ville')+'</span>':btn('Acheter','buycountry',{c:'sm pri',i:c.id,dis:S.cash<c.price})))+'</div><div class="sub"></div></section>'; }).join('')+'</div>';
   }
   return h;
 }
@@ -13402,7 +13403,7 @@ function navBar(){
   return {l,r};
 }
 const NAVLBL=k=>{ const m=MENU.find(x=>x[0]===k); return m? m[1] : k; };
-function saveUI(){ try{ localStorage.setItem('grandlivre.ui',JSON.stringify({tab:ui.tab,speed:ui.speed,theme:ui.theme,bar:navBar(),rp:ui.rp})); }catch(e){} }
+function saveUI(){ try{ localStorage.setItem('grandlivre.ui',JSON.stringify({tab:ui.tab,speed:ui.speed,theme:ui.theme,bar:navBar(),rp:ui.rp,recent:ui.recent||[]})); }catch(e){} }
 function renderNav(){
   const badge={bank:S.bank.lic&&S.bank.apps.length&&bankOpen()?S.bank.apps.length:0, pol:S.bills.length&&!S.country?S.bills.length:0, rivals:rivBadge()};
   const item=(k,t,act)=>'<button class="nv '+(act?'act':'')+'" data-a="tab" data-i="'+k+'" '+(act?'aria-current="page"':'')+'>'+icon(k)+'<span class="lb">'+t+'</span>'+(badge[k]?'<i>'+badge[k]+'</i>':'')+'</button>';
@@ -13542,7 +13543,7 @@ const ACT={
   launchgo:el=>{ const r=launchBiz(el.dataset.i,+el.dataset.v,ui.tmp.lc,ui.tmp.ld); if(r.ok) ui.modal=null; after(r,D.biz[el.dataset.i].startup?'Start-up lancée.':'Société lancée.'); },
   bizopen:el=>{ ui.modal={type:'biz',id:+el.dataset.i}; render(); },
   upgrade:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); ask('Agrandir '+b.name,'Passer au niveau '+(b.lvl+1)+' coûte <b>'+eur(upgradeCost(b),0)+'</b> et prend '+(Math.ceil(bizDef(b).launch*0.6)+4*b.lvl)+' jours. Les ventes, les postes à pourvoir et les charges augmentent.','Agrandir',()=>after(upgradeBiz(b),'Agrandissement lancé.')); },
-  sellbiz:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); ask('Céder '+b.name,'Vous encaissez <b>'+eur(sellPrice(b),0)+'</b> et licenciez '+headcount(b)+' employé(s).','Céder',()=>{ ui.modal=null; after(closeBiz(b),'Société cédée.'); }); },
+  sellbiz:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); ask('Céder '+b.name,'Vous encaissez <b>'+eur(sellPrice(b),0)+'</b> et licenciez '+plu(headcount(b),'employé')+'.','Céder',()=>{ ui.modal=null; after(closeBiz(b),'Société cédée.'); }); },
   setmkt:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); setMkt(b,+el.dataset.v); after(); },
   setwk:el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); setWeekend(b,el.dataset.v==='1'); after(); },
   candopen:el=>{ const k=el.dataset.i,r=el.dataset.j; ui.candRole[k]=ui.candRole[k]===r?null:r; render(); },
@@ -13647,7 +13648,7 @@ window.addEventListener('pagehide',()=>{ if(S){ SV.dirty=true; svFlush(); } });
 
 /* ---------- Démarrage ---------- */
 (async function init(){
-  try{ const u=JSON.parse(localStorage.getItem('grandlivre.ui')||'null'); if(u){ if(VIEWS[u.tab]) ui.tab=u.tab; if(u.speed) ui.speed=u.speed; if(u.theme) setTheme(u.theme); if(u.rp&&Array.isArray(u.rp.order)) ui.rp=u.rp; if(u.bar&&Array.isArray(u.bar.l)) ui.bar=u.bar; else if(Array.isArray(u.pins)) ui.bar={l:u.pins.filter((k,i)=>i%2===0),r:u.pins.filter((k,i)=>i%2===1)}; } }catch(e){}
+  try{ const u=JSON.parse(localStorage.getItem('grandlivre.ui')||'null'); if(u){ if(VIEWS[u.tab]) ui.tab=u.tab; if(Array.isArray(u.recent)) ui.recent=u.recent.filter(k=>VIEWS[k]).slice(0,3); if(u.speed) ui.speed=u.speed; if(u.theme) setTheme(u.theme); if(u.rp&&Array.isArray(u.rp.order)) ui.rp=u.rp; if(u.bar&&Array.isArray(u.bar.l)) ui.bar=u.bar; else if(Array.isArray(u.pins)) ui.bar={l:u.pins.filter((k,i)=>i%2===0),r:u.pins.filter((k,i)=>i%2===1)}; } }catch(e){}
   render();
   try{ await svInit(); }catch(e){ SV.ready=true; }
   if(!S) render();
@@ -13955,9 +13956,9 @@ function vBiz(){
 }
 function vBizHome(){
   let tot=0,emp=0; S.biz.forEach(b=>{ emp+=headcount(b); if(b.last) tot+=b.last.net; });
-  let h=head('Sociétés','',S.biz.length?'<span class="pill info">'+S.biz.length+' société(s)</span><span class="pill">'+emp+' employé(s)</span><span class="pill '+(tot>=0?'good':'bad')+'">'+signed(tot,0)+' / j</span>':'');
+  let h=head('Sociétés','',S.biz.length?'<span class="pill info">'+plu(S.biz.length,'société')+'</span><span class="pill">'+plu(emp,'employé')+'</span><span class="pill '+(tot>=0?'good':'bad')+'">'+signed(tot,0)+' / j</span>':'');
   h+='<div class="cat-h">Villes</div><div class="tiles">'+D.CITY_ORDER.filter(cityUnlocked).map(cid=>{ const C=D.CITIES[cid], n=S.biz.filter(b=>b.city===cid).length, lv=Math.round(C.d.reduce((a,x)=>a+rentLevel(pEur(cid,x)),0)/C.d.length);
-    return '<div class="tile"><button class="go" data-a="bzcity" data-i="'+cid+'">'+(CITY_ART[cid]? cityBanner(cid,'thumb still') : '<span class="ic">'+icon('cities')+'</span>')+'<span style="min-width:0;flex:1"><b>'+esc(C.n)+'</b><small>'+esc(C.country)+' · '+C.d.length+' quartiers'+(n?' · '+n+' société(s)':'')+'</small></span>'+lvlPill(lv)+'</button></div>'; }).join('')+'</div>';
+    return '<div class="tile"><button class="go" data-a="bzcity" data-i="'+cid+'">'+(CITY_ART[cid]? cityBanner(cid,'thumb still') : '<span class="ic">'+icon('cities')+'</span>')+'<span style="min-width:0;flex:1"><b>'+esc(C.n)+'</b><small>'+esc(C.country)+' · '+C.d.length+' quartiers'+(n?' · '+plu(n,'société')+'':'')+'</small></span>'+lvlPill(lv)+'</button></div>'; }).join('')+'</div>';
   const free=Object.keys(S.bld||{}).filter(id=>{ const x=S.bld[id]; return !(x.biz&&S.biz.some(b=>b.id===x.biz)); });
   if(free.length) h+='<div class="cat-h">Bâtiments sans activité</div><div class="grid">'+free.map(id=>{ const bd=bldById(id), x=S.bld[id];
     return '<section class="card bc"><div class="hd"><div><b>'+esc(bd.addr)+'</b><div class="sub">'+esc(distOfB(bd).n)+', '+esc(D.CITIES[bd.city].n)+' · '+D.BT[bd.t].n+' · '+fmtN(bd.surf)+' m²</div></div>'+pill(x.st==='own'?'À vous':'Loué',x.st==='own'?'good':'info')+'</div>'+
@@ -13973,7 +13974,7 @@ function vBizCity(cid){
     return '<button class="card bc dist" data-a="bzdist" data-i="'+cid+'" data-j="'+dd.id+'"><div class="hd"><div><b>'+esc(dd.n)+'</b><div class="sub">'+esc(dd.cl)+'</div></div>'+lvlPill(rentLevel(pEur(cid,dd)))+'</div>'+
       '<div class="row sp"><span class="sub">Loyers de '+eur(lo,0)+' à '+eur(hi,0)+' / j</span><span class="sub">'+eur(dd.p*fxOf(C.ccy),0)+' / m²</span></div>'+
       '<div class="row">'+dots(dd.crime)+'<span class="sub">Idéal : '+dd.fav.slice(0,3).map(secName).join(', ')+'</span></div>'+
-      '<div class="sub">'+L.length+' bâtiments'+(held?' · '+held+' à vous':'')+(mine?' · '+mine+' société(s)':'')+'</div></button>'; }).join('')+'</div>';
+      '<div class="sub">'+L.length+' bâtiments'+(held?' · '+held+' à vous':'')+(mine?' · '+plu(mine,'société')+'':'')+'</div></button>'; }).join('')+'</div>';
   return h;
 }
 function bldCard(bd){
@@ -14078,7 +14079,7 @@ function offCard(){
 }
 function modalJail(){
   const J=S.jail, left=J.until-S.day;
-  return {title:'En prison',sm:true,body:'<div class="notice bad">Fraude fiscale : amende de '+eur(J.fine,0)+(J.conf?', compte offshore saisi ('+eur(J.conf,0)+')':'')+'.</div><p style="margin:0">Vous ne pouvez rien décider pendant '+left+' jour(s). Vos sociétés continuent sans vous.</p><div>'+btn('Purger la peine','jailgo',{c:'pri'})+'</div>'};
+  return {title:'En prison',sm:true,body:'<div class="notice bad">Fraude fiscale : amende de '+eur(J.fine,0)+(J.conf?', compte offshore saisi ('+eur(J.conf,0)+')':'')+'.</div><p style="margin:0">Vous ne pouvez rien décider pendant '+plu(left,'jour')+'. Vos sociétés continuent sans vous.</p><div>'+btn('Purger la peine','jailgo',{c:'pri'})+'</div>'};
 }
 Object.assign(ACT,{
   assetopen:el=>{ ui.tmp.span=90; ui.tmp.ok='buy'; ui.qty.opx=''; ui.qty.oamt=''; ui.modal={type:'asset',cls:el.dataset.i,id:el.dataset.j}; render(); },
@@ -14122,12 +14123,12 @@ function offmCard(){
   return card('Gérant hors ligne','<div class="stack"><div class="sub">Quand vous revenez dans le jeu, il a fait tourner vos sociétés : un jour par heure d’absence, '+OFFM.max+' jours au plus. Vous choisissez à votre retour d’encaisser ces jours ou non. Salaire : '+eur(OFFM.day*progMult(),0)+' par jour.</div>'+hireRow(!!on,'offm',{hire:OFFM.hire})+'</div>');
 }
 function modalOffline(n){
-  return {title:'Bon retour',sm:true,body:'<p style="margin:0">Pendant votre absence, votre gérant peut faire tourner vos sociétés pendant <b>'+n+' jour(s)</b>. Vous recevrez le rapport de la période.</p><div class="row sp">'+btn('Plus tard','closemodal',{c:'ghost'})+btn('Lancer '+n+' jour(s)','offmgo',{c:'pri',v:n})+'</div>'};
+  return {title:'Bon retour',sm:true,body:'<p style="margin:0">Pendant votre absence, votre gérant peut faire tourner vos sociétés pendant <b>'+plu(n,'jour')+'</b>. Vous recevrez le rapport de la période.</p><div class="row sp">'+btn('Plus tard','closemodal',{c:'ghost'})+btn('Lancer '+plu(n,'jour')+'','offmgo',{c:'pri',v:n})+'</div>'};
 }
 function d100Card(){
   if(S.mode!=='d100'||!S.d100) return '';
   const B=d100Board(), left=Math.max(0,100-S.day+1);
-  return card('Défi des 100 jours'+(S.d100.done?' : terminé':' : '+left+' jour(s) restants'),'<div class="stack">'+B.map((x,i)=>'<div class="row sp" style="'+(x.me?'font-weight:700':'')+'"><span>'+(i+1)+'. '+esc(x.n)+'</span><span class="num '+cls(x.v)+'">'+signed(x.v,0)+'</span></div>').join('')+'<div class="sub">Classement au bénéfice : valeur nette gagnée depuis le départ.</div></div>');
+  return card('Défi des 100 jours'+(S.d100.done?' : terminé':' : '+plu(left,'jour')+' restants'),'<div class="stack">'+B.map((x,i)=>'<div class="row sp" style="'+(x.me?'font-weight:700':'')+'"><span>'+(i+1)+'. '+esc(x.n)+'</span><span class="num '+cls(x.v)+'">'+signed(x.v,0)+'</span></div>').join('')+'<div class="sub">Classement au bénéfice : valeur nette gagnée depuis le départ.</div></div>');
 }
 function modalD100(){
   const B=d100Board(), r=S.d100.rank;
@@ -14271,7 +14272,7 @@ vLogi=function(){
       bar(sv/cap,sv/cap>.9?'r':'g')+'<div class="sub">Stock '+eur(fpValue(b),0)+' · '+Math.round(sv/cap*100)+' % de la capacité</div></div>'; }).join('')+'</div>'
     : '<div class="notice info">Construisez une usine textile, une usine de composants ou une ferme sur un terrain ou dans un entrepôt.</div>');
   const flows=Object.keys(SUP_USE).map(g=>{ const C=supClients(g); if(!C.length) return ''; const F=S.biz.filter(x=>isFact(x)&&goodOf(x)===g&&x.status==='active'), v=C.reduce((a,c)=>a+(c.supIn||0),0), sv=C.reduce((a,c)=>a+(c.supSave||0),0), need=C.reduce((a,c)=>a+supNeedV(c),0);
-    return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:6px"><div style="min-width:0"><b>'+D.GOODS[g].n+'</b><div class="sub">'+C.length+' société'+(C.length>1?'s':'')+' cliente'+(C.length>1?'s':'')+' · besoin '+eur(need,0)+' par jour'+(F.length? '' : ' · aucune usine pour les fournir')+'</div></div><div class="sub r">'+(v? eur(v,0)+' livrés<br>'+eur(sv,0)+' économisés' : '—')+'</div></div>'; }).join('');
+    return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:6px"><div style="min-width:0"><b>'+D.GOODS[g].n+'</b><div class="sub">'+C.length+' société'+(C.length>1?'s':'')+' cliente'+(C.length>1?'s':'')+' · besoin '+eur(need,0)+' par jour'+(F.length? '' : ' · aucune usine pour les fournir')+'</div>'+(F.length&&need>0&&v<need*.6? '<div class="sub"><b class="neg">Couvert à '+Math.round(v/need*100)+' %</b> : agrandissez vos usines ou construisez-en une autre.</div>' : '')+'</div><div class="sub r">'+(v? eur(v,0)+' livrés<br>'+eur(sv,0)+' économisés' : '—')+'</div></div>'; }).join('');
   if(flows) h+=card('Approvisionnement de vos sociétés (hier)','<div class="stack">'+flows+'</div>');
   const act=I.active, off=I.offers;
   h+=card('Contrats', (act.length||off.length? '<div class="stack">'+act.map(c=>{ const G=D.GOODS[c.g], sh=I.ship.find(s=>s.cid===c.id);
@@ -15370,7 +15371,7 @@ document.addEventListener('visibilitychange',()=>{ document.querySelectorAll('.c
 ACT.baredit=()=>{ ui.modal={type:'baredit'}; render(); };
 { const _mc2=modalContent; modalContent=function(){ const m=ui.modal; if(m&&m.type==='baredit') return {title:'Barre du bas',sm:true,body:barEditor()+'<div style="margin-top:12px">'+btn('Terminé','closemodal',{c:'pri'})+'</div>'}; return _mc2(); }; }
 /* Menu Plus : écrans récents en tête, raccourci vers la barre du bas. */
-{ const _t=ACT.tab; ACT.tab=el=>{ const k=el.dataset.i; try{ if(k&&!['home','biz','plus'].includes(k)&&MENU.some(x=>x[0]===k)){ ui.recent=[k].concat((ui.recent||[]).filter(x=>x!==k)).slice(0,3); } }catch(e){} _t(el); }; }
+{ const _t=ACT.tab; ACT.tab=el=>{ const k=el.dataset.i; try{ if(k&&!['home','biz','plus'].includes(k)&&MENU.some(x=>x[0]===k)){ ui.recent=[k].concat((ui.recent||[]).filter(x=>x!==k)).slice(0,3); } }catch(e){} _t(el); try{ saveUI(); }catch(e){} }; }
 { const _vp=vPlus; vPlus=function(){ let h=_vp(); try{
     const R=(ui.recent||[]).map(k=>MENU.find(x=>x[0]===k)).filter(Boolean);
     const rec=R.length? '<div class="cat-h">Récemment ouverts</div><div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:6px">'+R.map(x=>'<button class="btn sm" data-a="tab" data-i="'+x[0]+'">'+esc(x[1])+'</button>').join('')+'</div>' : '';
@@ -16634,13 +16635,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.4.2';
+const IB_VER='V2.4.3';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Grands groupes','Avec quatre sociétés ou plus, l’écran Sociétés montre d’abord « Vos sociétés », avant les villes et les bâtiments libres. Dans Usines et logistique, un approvisionnement couvert à moins de 60 % est signalé avec la marche à suivre. Le menu Plus garde vos écrans récents d’une session à l’autre. Les pluriels « société(s) », « jour(s) »… s’accordent maintenant avec le nombre.','V2.4.3'],
   ['Navigation et traductions','Le menu Plus affiche en tête les trois derniers écrans ouverts et, en bas, un raccourci pour personnaliser la barre du bas. Les boutons indisponibles restants donnent leur raison (palier requis, levée de fonds en cours, enchère avec frais, trésorerie manquante). Les messages de chantier, les tendances de l’e-commerce et les appareils de la réparation sont traduits en anglais.','V2.4.2'],
   ['Traductions et aides','Les événements du journal (intempéries, soldes, retours sous garantie, tendances, paliers de maîtrise, ruptures de produit) et les noms des clients sont traduits en anglais. Dans Réglages, le bouton « Revoir les aides des écrans » réaffiche les aides de première visite.','V2.4.1'],
   ['Plus intuitif','Un bouton grisé se touche toujours et dit pourquoi il est indisponible (trésorerie manquante, palier requis, délai…). La fiche d’une société commence par « À faire maintenant » : jusqu’à trois urgences, chacune avec un bouton Voir vers le bon onglet. Chaque écran affiche une aide à la première visite. Le vocabulaire est unifié : « société » partout, « valeur nette » au lieu de « patrimoine total ».','V2.3.9'],
@@ -17695,6 +17697,9 @@ function tipPass(){ const v=document.getElementById('view'); if(!v||!TIP1[ui.tab
 ACT.tipsreset=()=>{ S.tips={}; Object.keys(TIP1).forEach(k=>S.tips[k]=0); toast('Les aides réapparaîtront à la prochaine visite de chaque écran.','good'); render(); };
 ACT.tipx=el=>{ S.tips=S.tips||{}; S.tips[el.dataset.v]=1; render(); };
 { const _r=render; render=function(){ const out=_r.apply(this,arguments); try{ tipPass(); }catch(e){ console.error(e); } return out; }; }
+/* Écran Sociétés : dès 4 sociétés, « Vos sociétés » passe avant les villes. */
+{ const _vbh3=vBizHome; vBizHome=function(){ const h=_vbh3(); try{ if(S.biz.length<4) return h; const V='<div class="cat-h">Villes</div>', Y='<div class="cat-h">Vos sociétés</div>', a=h.indexOf(V), b=h.indexOf(Y);
+  if(a<0||b<a) return h; return h.slice(0,a)+h.slice(b)+h.slice(a,b); }catch(e){ return h; } }; }
 
 /* ============================================================
    JEU PLUS INTUITIF (V1.1.4)
