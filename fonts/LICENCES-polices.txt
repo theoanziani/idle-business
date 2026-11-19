@@ -1,0 +1,6 @@
+Polices des fiches de sociétés (fichiers nf-*.woff), sous-ensembles des polices Google Fonts :
+- Sous licence SIL Open Font License 1.1 (https://openfontlicense.org) : Anton, Archivo, Barlow Condensed,
+  Bebas Neue, Bitter, Bodoni Moda, Caveat, Cormorant Garamond, DM Serif Display, Exo 2, Fraunces,
+  JetBrains Mono, Oswald, Patrick Hand, Playfair Display, Rubik, Space Grotesk, Space Mono.
+  Copyright de leurs auteurs respectifs (voir https://github.com/google/fonts).
+- Sous licence Apache 2.0 (https://www.apache.org/licenses/LICENSE-2.0) : Luckiest Guy (Astigmatic).
