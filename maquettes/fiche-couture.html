@@ -64,7 +64,7 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0;text-tr
 .prog i{display:block;height:100%;width:64%;background:var(--champ)}
 .lbl{display:block;font:800 12px var(--fb);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:14px 0 6px}
 .styles{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
-.sty{flex:0 0 86px;border:0;background:var(--ivory);border-radius:14px;padding:6px 4px 8px;text-align:center;font:800 11.5px var(--fb);color:var(--ink)}
+.sty{flex:0 0 104px;border:0;background:var(--ivory);border-radius:14px;padding:6px 4px 8px;text-align:center;font:800 11.5px var(--fb);color:var(--ink)}
 .sty svg{display:block;margin:0 auto}
 .sty small{display:block;font:700 10.5px var(--fb);margin-top:1px}
 .sty .up2{color:var(--green)}.sty .dn{color:var(--red)}
@@ -85,11 +85,16 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0;text-tr
 
 /* 3. LE DÉFILÉ */
 .show{background:linear-gradient(#1a1a1e,#0b0b0d);border-radius:22px;padding:12px;color:#EDE6DA;box-shadow:0 4px 0 #000;overflow:hidden}
-.stage{position:relative;height:250px;margin-top:6px;perspective:400px}
-.cat{position:absolute;left:50%;bottom:0;width:120px;height:250px;margin-left:-60px;background:linear-gradient(#3a3a40,#f5f1ea);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);opacity:.9}
+.stage{position:relative;height:320px;margin-top:6px;perspective:400px}
+.cat{position:absolute;left:50%;bottom:0;width:150px;height:300px;margin-left:-75px;background:linear-gradient(#3a3a40,#f5f1ea);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);opacity:.9}
 .spot{position:absolute;top:-30px;width:140px;height:280px;background:radial-gradient(ellipse at 50% 0,rgba(255,240,200,.28),transparent 70%)}
-.crowd{position:absolute;bottom:0;width:70px;height:120px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px}
-.crowd i{display:block;height:9px;border-radius:5px 5px 2px 2px;background:#2c2c32}
+.crowd{position:absolute;bottom:0;width:84px;height:170px;display:flex;flex-wrap:wrap;align-content:flex-end;gap:6px 4px}
+.crowd i{position:relative;display:block;width:16px;height:20px;border-radius:8px 8px 3px 3px;background:#26262c}
+.crowd i b{position:absolute;left:4px;top:-6px;width:8px;height:8px;border-radius:50%}
+.crowd.r{justify-content:flex-end}
+.bd{position:absolute;z-index:20;top:2px;left:0;right:0;text-align:center;font:600 11px var(--fs);letter-spacing:5px;color:rgba(233,215,174,.55)}
+.flash{position:absolute;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle,#fff 0 20%,rgba(255,255,255,.6) 35%,transparent 70%);animation:fl 2.4s infinite;opacity:0}
+@keyframes fl{0%,8%{opacity:1;transform:scale(1.3)}20%,100%{opacity:0;transform:scale(.6)}}
 .mdl{position:absolute;left:50%}
 .show .row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:#BDB3A2}
 .show .row b{color:#fff;font-size:14px;display:block}
@@ -106,7 +111,7 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0;text-tr
 .atl{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--ivory-2)}
 .ord{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--ivory-2)}
 .ord:first-of-type{border-top:0}
-.ord .mini{width:44px;height:58px;border-radius:10px;background:var(--blush);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ord .mini{width:48px;height:62px;border-radius:10px;background:var(--blush);display:flex;align-items:center;justify-content:center;overflow:hidden}
 .ord b{font:800 13.5px var(--fb)}
 .ord small{display:block;font-size:11.5px;color:var(--ink-3)}
 .ord .px{font:800 15px var(--fd)}
@@ -212,8 +217,8 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0;text-tr
     <!-- 5. LICENCES ET ÉGÉRIE -->
     <h2 class="sec">Licences et égérie</h2>
     <div class="lic">
-      <div class="lc"><svg width="54" height="64" viewBox="0 0 54 64"><rect x="21" y="4" width="12" height="9" rx="2" fill="#C8A96A"/><rect x="24" y="12" width="6" height="6" fill="#9b8150"/><path d="M8 22 Q8 18 12 18 L42 18 Q46 18 46 22 L46 56 Q46 60 42 60 L12 60 Q8 60 8 56Z" fill="#F3E3E1" stroke="#C8A96A" stroke-width="1.5"/><path d="M12 30 L42 30 L42 52 L12 52Z" fill="rgba(200,169,106,.35)"/><text x="27" y="44" text-anchor="middle" font-family="Bodoni Moda,serif" font-size="8" fill="#141416">D</text></svg><b>Parfum</b><span class="v">+2 400 € / j</span><span class="w">use le prestige</span><button class="btn noir">Signer</button></div>
-      <div class="lc"><svg width="64" height="64" viewBox="0 0 64 64"><path d="M20 26 Q20 10 32 10 Q44 10 44 26" fill="none" stroke="#141416" stroke-width="3"/><path d="M10 26 L54 26 L50 58 L14 58Z" fill="#141416"/><rect x="28" y="34" width="8" height="6" rx="1" fill="#C8A96A"/><path d="M10 26 L54 26 L52 32 L12 32Z" fill="#2A2A2E"/></svg><b>Accessoires</b><span class="v">+1 300 € / j</span><span class="w">use le prestige</span><button class="btn">Signer</button></div>
+      <div class="lc"><svg width="64" height="84" viewBox="0 0 64 84"><defs><linearGradient id="pfg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f7e3e6"/><stop offset=".35" stop-color="#fff"/><stop offset=".6" stop-color="#f3d3d8"/><stop offset="1" stop-color="#d9a9b0"/></linearGradient><linearGradient id="pfl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6c7a6"/><stop offset="1" stop-color="#d98a6a"/></linearGradient><linearGradient id="pfc" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9b7a3c"/><stop offset=".4" stop-color="#f3dca0"/><stop offset=".7" stop-color="#c8a96a"/><stop offset="1" stop-color="#8a6a2c"/></linearGradient></defs><ellipse cx="32" cy="80" rx="22" ry="2.6" fill="rgba(0,0,0,.15)"/><rect x="20" y="4" width="24" height="16" rx="3" fill="url(#pfc)"/><path d="M23 6 v12 M27 6 v12 M31 6 v12 M35 6 v12 M39 6 v12" stroke="#8a6a2c" stroke-width=".7" opacity=".6"/><rect x="25" y="19" width="14" height="6" fill="url(#pfc)"/><path d="M10 30 Q10 25 15 25 L49 25 Q54 25 54 30 L54 74 Q54 79 49 79 L15 79 Q10 79 10 74Z" fill="url(#pfg)" stroke="#c8a96a" stroke-width="1.2"/><path d="M14 40 L50 40 L50 74 Q50 75 49 75 L15 75 Q14 75 14 74Z" fill="url(#pfl)" opacity=".75"/><path d="M14 40 Q32 37 50 40" fill="none" stroke="#fff" stroke-width="1" opacity=".7"/><path d="M16 29 L16 72" stroke="#fff" stroke-width="2.4" opacity=".7"/><path d="M48 31 L48 70" stroke="#b88990" stroke-width="1" opacity=".5"/><rect x="19" y="48" width="26" height="15" fill="#fbf7ef" stroke="#c8a96a" stroke-width=".8"/><rect x="21" y="50" width="22" height="11" fill="none" stroke="#c8a96a" stroke-width=".4"/><text x="32" y="57" text-anchor="middle" font-family="Bodoni Moda,serif" font-size="6" fill="#141416">DELORME</text><text x="32" y="60.6" text-anchor="middle" font-family="sans-serif" font-size="2.6" fill="#8a6a2c" letter-spacing=".5">EAU DE PARFUM</text></svg><b>Parfum</b><span class="v">+2 400 € / j</span><span class="w">use le prestige</span><button class="btn noir">Signer</button></div>
+      <div class="lc"><svg width="80" height="84" viewBox="0 0 80 84"><defs><linearGradient id="bgl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a3a40"/><stop offset=".5" stop-color="#18181c"/><stop offset="1" stop-color="#0a0a0c"/></linearGradient><pattern id="bgq" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0 H8 M0 0 V8" stroke="#000" stroke-width=".9"/><path d="M.6 .6 H8 M.6 .6 V8" stroke="#4a4a52" stroke-width=".5"/></pattern><linearGradient id="bgo" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9b7a3c"/><stop offset=".5" stop-color="#f3dca0"/><stop offset="1" stop-color="#9b7a3c"/></linearGradient></defs><ellipse cx="40" cy="80" rx="30" ry="2.6" fill="rgba(0,0,0,.15)"/><path d="M22 34 C20 10 60 10 58 34" fill="none" stroke="url(#bgo)" stroke-width="2.2" stroke-dasharray="3 1.2"/><path d="M10 34 L70 34 L66 78 L14 78Z" fill="url(#bgl)"/><path d="M10 34 L70 34 L66 78 L14 78Z" fill="url(#bgq)" opacity=".9"/><path d="M10 34 L70 34 L69 46 Q40 52 11 46Z" fill="#202026"/><path d="M10 34 L70 34 L69 46 Q40 52 11 46Z" fill="url(#bgq)" opacity=".6"/><path d="M11 46 Q40 52 69 46" fill="none" stroke="#000" stroke-width="1"/><rect x="33" y="44" width="14" height="10" rx="2" fill="url(#bgo)" stroke="#7a5a1c" stroke-width=".5"/><circle cx="37" cy="49" r="2.4" fill="none" stroke="#7a5a1c" stroke-width="1"/><circle cx="43" cy="49" r="2.4" fill="none" stroke="#7a5a1c" stroke-width="1"/><path d="M14 36 L13 74" stroke="#5a5a62" stroke-width="1" opacity=".6"/></svg><b>Accessoires</b><span class="v">+1 300 € / j</span><span class="w">use le prestige</span><button class="btn">Signer</button></div>
     </div>
     <div class="egerie"><span class="ph" id="eg"></span><div><b>Engager une égérie</b><small>90 jours : prestige qui monte chaque jour, ventes +15 %, défilés +5</small></div><button class="btn noir" style="margin:0">60 000 €</button></div>
 
@@ -256,52 +261,114 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0;text-tr
 </div>
 
 <script>
-/* Croquis de mode : silhouette élancée habillée selon le style. fig(style, couleur, largeur) */
+/* Croquis de mode détaillés : silhouette, visage, coiffure, tenue avec plis, matières et accessoires.
+   fig(style, couleur, largeur, peau) — viewBox 0 0 100 260 */
 let FG_N=0;
 function fshade(hex,f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=n>>8&255,b=n&255;
   if(f<0){ r*=1+f; g*=1+f; b*=1+f; } else { r+=(255-r)*f; g+=(255-g)*f; b+=(255-b)*f; }
   return '#'+[r,g,b].map(x=>Math.round(x).toString(16).padStart(2,'0')).join(''); }
-function fig(sty,c,W,skin){ const id='fg'+(++FG_N), H=Math.round(W*2.6), sk=skin||'#E9C3A6', hi=fshade(c,.4), lo=fshade(c,-.35);
-  let d='<linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+lo+'"/><stop offset=".45" stop-color="'+c+'"/><stop offset=".7" stop-color="'+hi+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient>';
-  let s='<ellipse cx="50" cy="252" rx="22" ry="3" fill="rgba(0,0,0,.15)"/>';
-  /* jambes et chaussures (cachées par les robes longues) */
-  const legs='<path d="M44 150 L42 244 L46 244 L49 152 Z M56 150 L58 244 L54 244 L51 152 Z" fill="'+sk+'"/><path d="M40 244 l7 0 l1 4 l-9 0 z M53 244 l7 0 l1 4 l-9 0 z" fill="#1e1e22"/>';
-  /* tête, cou, bras */
-  const head='<rect x="47.5" y="38" width="5" height="9" fill="'+sk+'"/><ellipse cx="50" cy="30" rx="8" ry="10" fill="'+sk+'"/><path d="M42 28 C41 16 59 16 58 28 C56 22 46 22 42 28Z" fill="#2a1d16"/>';
-  const arms=(sl)=>'<path d="M38 50 C33 70 32 92 34 116 L37 116 C37 94 39 74 42 58Z M62 50 C67 70 68 92 66 116 L63 116 C63 94 61 74 58 58Z" fill="'+(sl||sk)+'"/>';
-  if(sty==='cla'){ /* Classique : tailleur jupe crayon, ceinture */
-    s+=legs+arms(c)+'<path d="M38 50 Q50 45 62 50 L60 98 L40 98 Z" fill="url(#'+id+')"/><path d="M50 48 L46 70 L50 98 L54 70 Z" fill="'+lo+'"/>'+
-      '<rect x="40" y="96" width="20" height="4" fill="#1e1e22"/><rect x="48" y="96" width="4" height="4" fill="#d4af37"/><path d="M40 100 L39 160 L61 160 L60 100Z" fill="url(#'+id+')"/>'+
-      '<circle cx="50" cy="62" r="1.2" fill="#d4af37"/><circle cx="50" cy="72" r="1.2" fill="#d4af37"/>'+head; }
-  if(sty==='avg'){ /* Avant-garde : volumes asymétriques */
-    s+=legs+arms()+'<path d="M36 46 L70 40 L62 70 L66 150 L36 168 L40 100 Z" fill="url(#'+id+')"/><path d="M70 40 L86 34 L74 58 Z" fill="'+hi+'"/><path d="M36 168 L66 150 L74 178 Z" fill="'+lo+'"/>'+
-      '<path d="M40 100 L66 92" stroke="#1e1e22" stroke-width="2"/><path d="M38 120 L64 128" stroke="'+hi+'" stroke-width="1"/>'+head+'<path d="M40 20 L60 14 L58 22 Z" fill="#1e1e22"/>'; }
-  if(sty==='min'){ /* Minimaliste : robe colonne */
-    s+='<path d="M42 244 l7 0 l1 4 l-9 0 z M53 244 l7 0 l1 4 l-9 0 z" fill="#1e1e22"/>'+arms()+'<path d="M40 50 Q50 46 60 50 L62 100 L64 242 L36 242 L38 100 Z" fill="url(#'+id+')"/><path d="M50 52 L50 242" stroke="'+lo+'" stroke-width=".8" opacity=".6"/>'+head; }
-  if(sty==='rom'){ /* Romantique : robe de bal à volants */
-    s+=arms()+'<path d="M40 50 Q50 46 60 50 L57 96 L43 96 Z" fill="url(#'+id+')"/><path d="M43 96 C28 140 14 200 10 244 L90 244 C86 200 72 140 57 96 Z" fill="url(#'+id+')"/>';
-    for(let i=0;i<4;i++){ const y=150+i*26, w=18+i*10; s+='<path d="M'+(50-w)+' '+y+' q'+(w/4)+' 6 '+(w/2)+' 0 t'+(w/2)+' 0 t'+(w/2)+' 0 t'+(w/2)+' 0" stroke="'+hi+'" stroke-width="2" fill="none"/>'; }
-    s+='<path d="M40 50 Q50 58 60 50" stroke="#fff" stroke-width="2" fill="none" opacity=".8"/><circle cx="50" cy="96" r="3" fill="'+hi+'"/>'+head; }
-  if(sty==='str'){ /* Streetwear de luxe : sweat ample et pantalon large */
-    s+='<path d="M38 140 L34 244 L48 244 L50 150 L52 244 L66 244 L62 140 Z" fill="#2b2f35"/><path d="M33 244 l16 0 l1 5 l-18 0z M51 244 l16 0 l1 5 l-18 0z" fill="#f2f2f2"/>'+
-      '<path d="M34 50 Q50 42 66 50 L72 118 L66 120 L64 142 L36 142 L34 120 L28 118 Z" fill="url(#'+id+')"/><path d="M42 46 Q50 60 58 46" stroke="'+lo+'" stroke-width="3" fill="none"/>'+
-      '<rect x="42" y="92" width="16" height="12" rx="2" fill="'+lo+'"/><text x="50" y="80" text-anchor="middle" font-size="7" font-weight="800" fill="#fff" font-family="sans-serif">MAISON</text>'+head; }
-  if(sty==='bar'){ /* Baroque : robe brodée d'or */
-    s+=arms(c)+'<path d="M40 50 Q50 46 60 50 L57 100 L43 100 Z" fill="url(#'+id+')"/><path d="M43 100 C30 150 24 210 20 244 L80 244 C76 210 70 150 57 100 Z" fill="url(#'+id+')"/>'+
-      '<path d="M50 52 L46 70 L50 100 L54 70 Z" fill="#d4af37"/>';
-    for(let i=0;i<7;i++){ s+='<circle cx="'+(28+i*7.3)+'" cy="'+(236-(i%2)*4)+'" r="2.4" fill="none" stroke="#d4af37" stroke-width="1.2"/>'; }
-    for(let i=0;i<5;i++){ s+='<path d="M'+(36+i*7)+' '+(140+i*4)+' q3 -6 6 0 q-3 6 -6 0" fill="#d4af37" opacity=".85"/>'; }
-    s+='<path d="M36 50 Q50 40 64 50 L66 44 Q50 32 34 44Z" fill="#d4af37"/>'+head+'<circle cx="50" cy="15" r="2.5" fill="#d4af37"/>'; }
+function fig(sty,c,W,skin){ const id='fg'+(++FG_N), H=Math.round(W*2.6), sk=skin||'#E9C3A6', sk2=fshade(sk,-.18), hi=fshade(c,.42), lo=fshade(c,-.38), lo2=fshade(c,-.55);
+  const HAIR={cla:'#2a1d16',avg:'#111',min:'#6b4a2e',rom:'#8a5a2b',str:'#1c1c1c',bar:'#3a2214'}[sty]||'#2a1d16';
+  let d='<linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+lo+'"/><stop offset=".38" stop-color="'+c+'"/><stop offset=".62" stop-color="'+hi+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient>'+
+    '<linearGradient id="'+id+'s" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+sk2+'"/><stop offset=".5" stop-color="'+sk+'"/><stop offset="1" stop-color="'+sk2+'"/></linearGradient>'+
+    '<radialGradient id="'+id+'f" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="'+fshade(sk,.15)+'"/><stop offset="1" stop-color="'+sk2+'"/></radialGradient>';
+  /* motifs de matière */
+  if(sty==='cla') d+='<pattern id="'+id+'p" width="3" height="3" patternUnits="userSpaceOnUse"><path d="M0 0 L3 3 M3 0 L0 3" stroke="'+hi+'" stroke-width=".35" opacity=".5"/></pattern>';
+  if(sty==='bar') d+='<pattern id="'+id+'p" width="10" height="12" patternUnits="userSpaceOnUse"><path d="M5 1 C8 3 8 6 5 7 C2 6 2 3 5 1 Z M5 7 C6 9 6 10 5 11 C4 10 4 9 5 7" fill="none" stroke="#d4af37" stroke-width=".6" opacity=".8"/><circle cx="0" cy="6" r=".8" fill="#d4af37" opacity=".7"/><circle cx="10" cy="6" r=".8" fill="#d4af37" opacity=".7"/></pattern>';
+  if(sty==='rom') d+='<pattern id="'+id+'p" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r=".5" fill="#fff" opacity=".55"/></pattern>';
+  if(sty==='avg') d+='<linearGradient id="'+id+'m" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7f7f7"/><stop offset=".3" stop-color="#9aa0a8"/><stop offset=".55" stop-color="#ffffff"/><stop offset=".8" stop-color="#7d838c"/><stop offset="1" stop-color="#d9dde2"/></linearGradient>';
+  if(sty==='str') d+='<pattern id="'+id+'p" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 2 H4" stroke="'+hi+'" stroke-width=".4" opacity=".35"/></pattern>';
+  let s='<ellipse cx="50" cy="253" rx="24" ry="3.2" fill="rgba(0,0,0,.16)"/>';
+  const fold=(p,o)=>'<path d="'+p+'" fill="none" stroke="'+lo2+'" stroke-width=".9" opacity="'+(o||.55)+'" stroke-linecap="round"/>';
+  const shine=(p)=>'<path d="'+p+'" fill="none" stroke="'+hi+'" stroke-width="1.4" opacity=".6" stroke-linecap="round"/>';
+  /* jambes galbées, escarpins */
+  const legs='<path d="M44.5 150 C43 180 43.5 210 42.6 240 L46.2 240 C47 210 48.5 180 49.5 152 Z" fill="url(#'+id+'s)"/><path d="M55.5 150 C57 180 56.5 210 57.4 240 L53.8 240 C53 210 51.5 180 50.5 152 Z" fill="url(#'+id+'s)"/>';
+  const heels=(col)=>'<path d="M40.5 240 Q44 238 47 240 L48.5 246 L46.5 246 L46 243 L41 246 Q39.5 245 40.5 240Z M53 240 Q56 238 59.5 240 Q60.5 245 59 246 L54 243 L53.5 246 L51.5 246Z" fill="'+(col||'#16161a')+'"/><path d="M41 245.5 L46 243" stroke="#fff" stroke-width=".4" opacity=".4"/>';
+  /* bras fins avec mains */
+  const arms=(sl,len)=>{ const L=len||0; return '<path d="M38.5 50 C33.5 66 32 86 33.5 110 L36.6 110 C36.4 88 38.6 70 42 58 Z" fill="'+(sl||'url(#'+id+'s)')+'"/><path d="M61.5 50 C66.5 66 68 86 66.5 110 L63.4 110 C63.6 88 61.4 70 58 58 Z" fill="'+(sl||'url(#'+id+'s)')+'"/>'+
+    '<path d="M33.2 109 C32 113 32.5 118 34.6 119.5 C36.4 118.5 37 114 36.8 109 Z" fill="'+sk+'"/><path d="M66.8 109 C68 113 67.5 118 65.4 119.5 C63.6 118.5 63 114 63.2 109 Z" fill="'+sk+'"/>'+
+    (sl&&L? '<path d="M33.3 106 L36.7 106" stroke="'+lo2+'" stroke-width="1.4"/><path d="M63.3 106 L66.7 106" stroke="'+lo2+'" stroke-width="1.4"/>' : ''); };
+  /* tête : visage, yeux, sourcils, lèvres, coiffure selon le style */
+  const head=()=>{ let h='<path d="M47.2 37 L47.2 47 Q50 49 52.8 47 L52.8 37 Z" fill="url(#'+id+'s)"/><path d="M47.2 44 Q50 46.5 52.8 44" stroke="'+sk2+'" stroke-width=".8" fill="none" opacity=".7"/>';
+    h+='<ellipse cx="50" cy="29" rx="7.6" ry="9.6" fill="url(#'+id+'f)"/>';
+    h+='<path d="M45.6 27.4 q1.4 -.9 2.8 0 M51.6 27.4 q1.4 -.9 2.8 0" stroke="#2b1b12" stroke-width=".6" fill="none"/>';
+    h+='<ellipse cx="47" cy="29.2" rx="1.1" ry=".65" fill="#2b1b12"/><ellipse cx="53" cy="29.2" rx="1.1" ry=".65" fill="#2b1b12"/><circle cx="47.3" cy="29" r=".25" fill="#fff"/><circle cx="53.3" cy="29" r=".25" fill="#fff"/>';
+    h+='<path d="M50 30 q-.8 2.4 .4 3" stroke="'+sk2+'" stroke-width=".6" fill="none"/>';
+    h+='<path d="M47.8 34.8 q2.2 1.2 4.4 0 q-2.2 -.7 -4.4 0" fill="#b5474a"/>';
+    h+='<ellipse cx="45.6" cy="32.2" rx="1.6" ry=".9" fill="#e59a86" opacity=".35"/><ellipse cx="54.4" cy="32.2" rx="1.6" ry=".9" fill="#e59a86" opacity=".35"/>';
+    if(sty==='cla') h+='<path d="M42.2 29 C41 17 59 15.5 58 29 C57 22 52 20 47 21.5 C44.5 22.5 43 25 42.2 29Z" fill="'+HAIR+'"/><ellipse cx="50" cy="19.5" rx="5" ry="3.5" fill="'+HAIR+'"/><circle cx="42.6" cy="32" r=".9" fill="#f5f1e6"/><circle cx="57.4" cy="32" r=".9" fill="#f5f1e6"/>';
+    if(sty==='avg') h+='<path d="M42 31 C40 16 60 14 58.5 27 L58 23 C54 21 48 20 44 24 Z" fill="'+HAIR+'"/><path d="M42 31 L41 22 L50 18 Z" fill="'+HAIR+'"/><path d="M38 19 L64 12 L62 16 L40 23 Z" fill="#16161a"/><path d="M40 21 L63 14" stroke="#9aa0a8" stroke-width=".6"/>';
+    if(sty==='min') h+='<path d="M42.4 30 C40.5 16 59.5 16 57.6 30 C57.2 24 54 21.5 50 21.5 C46 21.5 42.8 24 42.4 30 Z" fill="'+HAIR+'"/><path d="M42.4 30 C42 36 42.5 40 44 42 L44.5 30Z M57.6 30 C58 36 57.5 40 56 42 L55.5 30Z" fill="'+HAIR+'"/>';
+    if(sty==='rom') h+='<path d="M42 30 C39.5 15 60.5 15 58 30 C57 23 53 20.5 50 20.5 C47 20.5 43 23 42 30Z" fill="'+HAIR+'"/>'+[0,1,2,3].map(i=>'<path d="M'+(42.5-i*.6)+' '+(32+i*4)+' q-3 2 -1 5 q2 2 -1 5" stroke="'+HAIR+'" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M'+(57.5+i*.6)+' '+(32+i*4)+' q3 2 1 5 q-2 2 1 5" stroke="'+HAIR+'" stroke-width="2.2" fill="none" stroke-linecap="round"/>').join('').slice(0,9999)+'<path d="M44 19.5 Q50 16 56 19.5" stroke="#f3c6cf" stroke-width="2" fill="none"/><circle cx="56.5" cy="20" r="1.6" fill="#f3c6cf"/>';
+    if(sty==='str') h+='<path d="M41.8 26 C41 15 59 15 58.2 26 Z" fill="#16161a"/><path d="M41 26 L64 26 Q63 28.5 58 28 L42 28 Z" fill="#16161a"/><path d="M44 20 L56 20" stroke="#fff" stroke-width=".7" opacity=".6"/><path d="M42.4 28 L43 33 M57.6 28 L57 33" stroke="'+HAIR+'" stroke-width="1.4"/><rect x="44.5" y="27.6" width="11" height="3.2" rx="1.4" fill="#111" opacity=".85"/>';
+    if(sty==='bar') h+='<path d="M42 30 C40 15 60 15 58 30 C57 22 53 20 50 20 C47 20 43 22 42 30Z" fill="'+HAIR+'"/><ellipse cx="50" cy="16" rx="6.5" ry="5" fill="'+HAIR+'"/><path d="M43.5 18 L46 12 L48 16 L50 10 L52 16 L54 12 L56.5 18 Z" fill="#d4af37" stroke="#9a7a1e" stroke-width=".4"/><circle cx="50" cy="12.6" r="1" fill="#b5243a"/><path d="M42.4 31 l0 4" stroke="#d4af37" stroke-width=".8"/><circle cx="42.4" cy="36" r="1.1" fill="#b5243a"/><path d="M57.6 31 l0 4" stroke="#d4af37" stroke-width=".8"/><circle cx="57.6" cy="36" r="1.1" fill="#b5243a"/>';
+    return h; };
+
+  if(sty==='cla'){ /* tailleur en tweed, jupe crayon, ceinture, sac */
+    s+=legs+heels()+arms('url(#'+id+')',1);
+    s+='<path d="M37.5 50 Q50 44.5 62.5 50 L61 99 L39 99 Z" fill="url(#'+id+')"/><path d="M37.5 50 Q50 44.5 62.5 50 L61 99 L39 99 Z" fill="url(#'+id+'p)"/>';
+    s+='<path d="M50 47 L45 62 L50 99 L55 62 Z" fill="'+lo+'"/><path d="M45 47 L50 60 L55 47" fill="none" stroke="'+hi+'" stroke-width="1.2"/><path d="M42 49 L46 64 L41 70 M58 49 L54 64 L59 70" fill="none" stroke="'+lo2+'" stroke-width="1"/>';
+    s+=[60,70,80].map(y=>'<circle cx="51.5" cy="'+y+'" r="1.3" fill="#d4af37" stroke="#9a7a1e" stroke-width=".3"/>').join('')+'<path d="M41 78 L47 78 L47 84 L41 84Z M53 78 L59 78 L59 84 L53 84Z" fill="none" stroke="'+lo2+'" stroke-width=".8"/>';
+    s+='<rect x="39" y="96" width="22" height="4.2" fill="#16161a"/><rect x="47.8" y="96" width="4.4" height="4.2" rx=".6" fill="none" stroke="#d4af37" stroke-width="1"/>';
+    s+='<path d="M39.2 100 L38.6 160 L61.4 160 L60.8 100Z" fill="url(#'+id+')"/><path d="M39.2 100 L38.6 160 L61.4 160 L60.8 100Z" fill="url(#'+id+'p)"/>'+fold('M44 104 L43 158')+fold('M56 104 L57 158')+'<path d="M50 140 L50 160" stroke="'+lo2+'" stroke-width="1"/>';
+    s+='<path d="M64 104 Q71 102 72 112 L72 128 L60 128 L60 112 Q61 104 64 104Z" fill="#7a2d22"/><path d="M62.5 106 Q66 98 70 106" fill="none" stroke="#d4af37" stroke-width=".9"/><rect x="64.6" y="114" width="3" height="2" fill="#d4af37"/>';
+    s+=head(); }
+  if(sty==='avg'){ /* volumes architecturaux métallisés, asymétrie */
+    s+=legs+heels('#c9ced6')+arms();
+    s+='<path d="M35 46 L72 38 L63 70 L68 150 L34 170 L40 100 Z" fill="url(#'+id+'m)"/><path d="M72 38 L90 30 L76 60 Z" fill="url(#'+id+'m)" stroke="#7d838c" stroke-width=".5"/><path d="M34 170 L68 150 L77 182 Z" fill="'+lo+'"/>';
+    s+='<path d="M40 100 L66 90" stroke="#16161a" stroke-width="2.4"/><path d="M38 122 L66 130" stroke="#7d838c" stroke-width="1"/><path d="M36 140 L66 146" stroke="#7d838c" stroke-width=".7"/>';
+    s+='<path d="M48 46 L56 100 L50 165" fill="none" stroke="#fff" stroke-width="1.4" opacity=".7"/><path d="M63 70 L68 150" fill="none" stroke="#5c626a" stroke-width="1"/>';
+    for(let i=0;i<6;i++) s+='<circle cx="'+(44+i*4.2)+'" cy="'+(103-i*1.6)+'" r=".9" fill="#16161a"/>';
+    s+=head(); }
+  if(sty==='min'){ /* robe colonne drapée, une épaule */
+    s+='<path d="M41 241 Q44.5 239 47.6 241 L48.5 246 L41 246Z M52.4 241 Q55.5 239 59 241 L59 246 L51.5 246Z" fill="#16161a"/>'+arms();
+    s+='<path d="M40 52 L60 48 Q61 74 62.5 100 L64.6 242 L35.4 242 L37.6 100 Q38.6 74 40 52Z" fill="url(#'+id+')"/>';
+    s+='<path d="M60 48 L63 50 L62 56 Z" fill="'+lo+'"/>'+fold('M44 60 Q46 140 43 240',.45)+fold('M50 56 Q52 150 50 241',.35)+fold('M56 58 Q55 150 58 240',.45)+shine('M47 64 Q49 150 47 238');
+    s+='<path d="M40 52 Q48 62 60 48" fill="none" stroke="'+lo2+'" stroke-width="1"/><path d="M38 100 Q50 104 62 100" fill="none" stroke="'+lo2+'" stroke-width=".7" opacity=".5"/>';
+    s+='<path d="M36 242 Q50 236 64.6 242" fill="none" stroke="'+lo2+'" stroke-width="1"/>'+head(); }
+  if(sty==='rom'){ /* robe de bal en tulle, volants, corsage brodé */
+    s+=arms();
+    s+='<path d="M40.5 50 Q50 46 59.5 50 L57 97 L43 97 Z" fill="url(#'+id+')"/><path d="M40.5 50 Q50 46 59.5 50 L57 97 L43 97 Z" fill="url(#'+id+'p)"/>';
+    s+='<path d="M42 54 Q50 60 58 54" fill="none" stroke="#fff" stroke-width="2.2" opacity=".85"/><path d="M44 66 L50 94 L56 66" fill="none" stroke="'+lo2+'" stroke-width=".7" opacity=".6"/>';
+    /* trois couches de tulle transparentes */
+    s+='<path d="M43 97 C26 140 12 200 6 245 L94 245 C88 200 74 140 57 97 Z" fill="'+lo+'"/>';
+    s+='<path d="M43 97 C30 140 18 200 12 243 L88 243 C82 200 70 140 57 97 Z" fill="url(#'+id+')" opacity=".92"/>';
+    s+='<path d="M43 97 C34 140 26 190 22 236 L78 236 C74 190 66 140 57 97 Z" fill="'+hi+'" opacity=".35"/>';
+    for(let i=0;i<5;i++){ const y=136+i*22, w=12+i*8.5; s+='<path d="M'+(50-w)+' '+y+' q'+(w/4)+' 5 '+(w/2)+' 0 t'+(w/2)+' 0 t'+(w/2)+' 0 t'+(w/2)+' 0" stroke="'+hi+'" stroke-width="1.8" fill="none" opacity=".9"/><path d="M'+(50-w)+' '+(y+2)+' q'+(w/4)+' 5 '+(w/2)+' 0 t'+(w/2)+' 0 t'+(w/2)+' 0 t'+(w/2)+' 0" stroke="'+lo2+'" stroke-width=".7" fill="none" opacity=".5"/>'; }
+    s+=fold('M46 100 Q40 170 30 240')+fold('M54 100 Q60 170 70 240')+fold('M50 100 L50 243',.3);
+    s+='<path d="M42 97 Q50 101 58 97" fill="none" stroke="'+hi+'" stroke-width="2.6"/><path d="M52 96 q4 -4 7 0 q-3 4 -7 0 M52 96 q-4 -4 -7 0 q3 4 7 0" fill="'+fshade(c,.6)+'"/><circle cx="52" cy="96" r="1.4" fill="'+lo+'"/>';
+    s+=head(); }
+  if(sty==='str'){ /* sweat oversize, pantalon cargo, baskets */
+    s+='<path d="M37.5 140 L33 242 L48.5 242 L50 152 L51.5 242 L67 242 L62.5 140 Z" fill="#2b2f35"/><path d="M37.5 140 L33 242 L48.5 242 L50 152 L51.5 242 L67 242 L62.5 140 Z" fill="url(#'+id+'p)"/>';
+    s+='<path d="M35 176 L45 176 L45 192 L35 192Z M55 176 L65 176 L65 192 L55 192Z" fill="#363b43" stroke="#1d2025" stroke-width=".7"/>'+'<path d="M41 150 L40 240 M59 150 L60 240" stroke="#1d2025" stroke-width=".7"/>';
+    s+='<path d="M31 240 L49 240 L50 247 L30 247 Q29 243 31 240Z M51 240 L69 240 Q71 243 70 247 L50 247Z" fill="#f2f2f2" stroke="#c9ced6" stroke-width=".6"/><path d="M30 246 L50 246 M50 246 L70 246" stroke="#d62828" stroke-width="1.4"/><path d="M35 242 L40 242 M55 242 L60 242" stroke="#9aa2ae" stroke-width=".8"/>';
+    s+='<path d="M33 50 Q50 41 67 50 L74 118 L67 121 L65 143 L35 143 L33 121 L26 118 Z" fill="url(#'+id+')"/><path d="M33 50 Q50 41 67 50 L74 118 L67 121 L65 143 L35 143 L33 121 L26 118 Z" fill="url(#'+id+'p)"/>';
+    s+='<path d="M41 46 Q50 62 59 46 Q50 40 41 46Z" fill="'+lo+'"/><path d="M46.5 56 L46 72 M53.5 56 L54 72" stroke="#f2f2f2" stroke-width="1"/><circle cx="46" cy="73" r="1" fill="#c9ced6"/><circle cx="54" cy="73" r="1" fill="#c9ced6"/>';
+    s+='<rect x="38.5" y="78" width="23" height="11" rx="2" fill="#f2f2f2"/><text x="50" y="86.4" text-anchor="middle" font-size="6" font-weight="900" fill="'+lo+'" font-family="sans-serif" letter-spacing=".5">MAISON</text>';
+    s+='<path d="M39 102 L61 102 L58 116 L42 116Z" fill="'+lo+'" opacity=".55"/>'+fold('M36 60 Q38 100 35 140')+fold('M64 60 Q62 100 65 140')+'<path d="M35 138 L65 138" stroke="'+lo2+'" stroke-width="2.4"/><path d="M26 116 L33 119 M74 116 L67 119" stroke="'+lo2+'" stroke-width="2.4"/>';
+    s+='<path d="M34.4 118 C33 122 33.6 126 35.6 127 C37 126 37.4 122 37 118Z M65.6 118 C67 122 66.4 126 64.4 127 C63 126 62.6 122 63 118Z" fill="'+sk+'"/>';
+    s+=head(); }
+  if(sty==='bar'){ /* robe de cour brodée d'or, col, traîne */
+    s+=arms('url(#'+id+')',1);
+    s+='<path d="M40 50 Q50 46 60 50 L57 100 L43 100 Z" fill="url(#'+id+')"/><path d="M40 50 Q50 46 60 50 L57 100 L43 100 Z" fill="url(#'+id+'p)"/>';
+    s+='<path d="M50 51 L45.5 70 L50 100 L54.5 70 Z" fill="#d4af37"/><path d="M50 55 L47 70 L50 94 L53 70 Z" fill="'+lo+'"/>'+[60,70,80,90].map(y=>'<circle cx="50" cy="'+y+'" r="1.1" fill="#f5e6a8"/>').join('');
+    s+='<path d="M43 100 C28 150 20 210 14 246 L86 246 C80 210 72 150 57 100 Z" fill="url(#'+id+')"/><path d="M43 100 C28 150 20 210 14 246 L86 246 C80 210 72 150 57 100 Z" fill="url(#'+id+'p)"/>';
+    s+='<path d="M50 102 L38 246 L62 246 Z" fill="'+fshade(c,.15)+'" opacity=".55"/><path d="M50 102 L38 246 L62 246 Z" fill="url(#'+id+'p)"/>';
+    s+=fold('M44 104 Q34 180 22 244')+fold('M56 104 Q66 180 78 244')+'<path d="M14 246 Q50 238 86 246" fill="none" stroke="#d4af37" stroke-width="2"/>';
+    for(let i=0;i<9;i++) s+='<circle cx="'+(18+i*8)+'" cy="'+(242-Math.abs(4-i)*.6)+'" r="1.6" fill="#d4af37" stroke="#9a7a1e" stroke-width=".3"/>';
+    s+='<path d="M34 52 Q50 36 66 52 L68 42 Q50 26 32 42Z" fill="#f5efe0" opacity=".9"/><path d="M34 52 Q50 36 66 52" fill="none" stroke="#d4af37" stroke-width="1"/>'+[0,1,2,3,4,5,6].map(i=>'<path d="M'+(33+i*5)+' '+(43-Math.sin(i/6*Math.PI)*6)+' l1.6 -4" stroke="#d4af37" stroke-width=".5"/>').join('');
+    s+='<path d="M33.4 106 L36.8 106 M63.2 106 L66.6 106" stroke="#d4af37" stroke-width="2"/>'+head(); }
   return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 100 260"><defs>'+d+'</defs>'+s+'</svg>'; }
 
 const ST=[['cla','Classique','#22304a','+12 %','up2'],['avg','Avant-garde','#e2e2e2','=',''],['min','Minimaliste','#c9b79c','+5 %','up2'],['rom','Romantique','#e9a3b5','+20 %','up2'],['str','Streetwear','#3d5a3c','−8 %','dn'],['bar','Baroque','#6e1423','−25 %','dn']];
-document.getElementById('styles').innerHTML=ST.map((x,i)=>'<button class="sty'+(i===3?' on':'')+'">'+fig(x[0],x[2],34)+x[1]+'<small class="'+x[4]+'">'+x[3]+'</small></button>').join('');
+document.getElementById('styles').innerHTML=ST.map((x,i)=>'<button class="sty'+(i===3?' on':'')+'">'+fig(x[0],x[2],54)+x[1]+'<small class="'+x[4]+'">'+x[3]+'</small></button>').join('');
 /* podium : spots, public, mannequins en perspective */
-let g='<div class="spot" style="left:20px"></div><div class="spot" style="right:20px"></div><div class="cat"></div>';
-g+='<div class="crowd" style="left:4px">'+'<i style="width:60px"></i>'.repeat(9)+'</div><div class="crowd" style="right:4px">'+'<i style="width:60px;margin-left:10px"></i>'.repeat(9)+'</div>';
-[['rom','#e9a3b5',60,-10,0],['min','#c9b79c',46,24,50],['cla','#22304a',36,-22,92],['rom','#f2d0d8',28,14,124],['avg','#e2e2e2',22,-4,150]].forEach(m=>{ g+='<div class="mdl" style="bottom:'+m[4]+'px;margin-left:'+(m[3]-m[2]/2)+'px;z-index:'+(10-m[4]/20|0)+'">'+fig(m[0],m[1],m[2])+'</div>'; });
+let g='<div class="bd">MAISON DELORME</div><div class="spot" style="left:20px"></div><div class="spot" style="right:20px"></div><div class="cat"></div>';
+[[30,40],[318,70],[14,120],[330,150],[40,190],[300,30]].forEach(([x,y],i)=>{ g+='<span class="flash" style="left:'+x+'px;top:'+y+'px;animation-delay:'+(i*.37)+'s"></span>'; });
+const heads=n=>Array.from({length:n},(_,i)=>'<i><b style="background:'+['#3a2a20','#c9a06a','#1c1c1c','#8a5a2b','#e0d2c0'][i%5]+'"></b></i>').join(''); g+='<div class="crowd" style="left:2px">'+heads(18)+'</div><div class="crowd r" style="right:2px">'+heads(18)+'</div>';
+[['rom','#e9a3b5',86,-12,0],['min','#c9b79c',62,30,62],['cla','#22304a',48,-26,112],['bar','#6e1423',38,16,150],['avg','#e2e2e2',30,-6,180]].forEach(m=>{ g+='<div class="mdl" style="bottom:'+m[4]+'px;margin-left:'+(m[3]-m[2]/2)+'px;z-index:'+(10-m[4]/20|0)+'">'+fig(m[0],m[1],m[2])+'</div>'; });
 document.getElementById('stage').innerHTML=g;
-document.getElementById('o1').innerHTML=fig('rom','#6e1423',21); document.getElementById('o2').innerHTML=fig('rom','#f8f4ec',21); document.getElementById('eg').innerHTML=fig('min','#141416',26,'#d9a88a');
+document.getElementById('o1').innerHTML=fig('rom','#6e1423',22); document.getElementById('o2').innerHTML=fig('rom','#f8f4ec',21); document.getElementById('eg').innerHTML=fig('min','#141416',26,'#d9a88a');
 document.querySelectorAll('.seg button,.city button').forEach(b=>b.addEventListener('click',()=>b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))));
 document.querySelectorAll('.sty').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('.sty').forEach(x=>x.classList.remove('on')); b.classList.add('on'); }));
 </script>

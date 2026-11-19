@@ -100,7 +100,7 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3)}
 .bar2{height:5px;border-radius:3px;background:#9AA2AE;margin:4px 6px 0}
 .hang{display:flex;justify-content:space-around;align-items:flex-start}
 .hg{display:flex;flex-direction:column;align-items:center;font:800 10.5px var(--fb);color:var(--ink-3)}
-.hg .hk{width:2px;height:10px;background:#9AA2AE}
+.hg .hk{width:2px;height:2px;background:#9AA2AE}
 .rack .ft{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:12.5px;color:var(--ink-3)}
 .rack .ft b{color:var(--ink)}
 
@@ -244,56 +244,94 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3)}
 </div>
 
 <script>
-/* Vêtements à plat et rouleaux de tissu, en SVG */
+/* Vêtements détaillés (matière, coutures, plis, boutons) et rouleaux de tissu, en SVG */
 let TX_N=0;
 function tshade(hex,f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=n>>8&255,b=n&255;
   if(f<0){ r*=1+f; g*=1+f; b*=1+f; } else { r+=(255-r)*f; g+=(255-g)*f; b+=(255-b)*f; }
   return '#'+[r,g,b].map(x=>Math.round(x).toString(16).padStart(2,'0')).join(''); }
-function garment(kind,c,W){ const id='gm'+(++TX_N), lo=tshade(c,-.3), hi=tshade(c,.3); let s='';
-  const st='stroke="'+lo+'" stroke-width="1.2" stroke-linejoin="round"';
-  const seam='stroke="'+tshade(c,.5)+'" stroke-width=".8" stroke-dasharray="1.5 1.5" fill="none"';
-  if(kind==='shirt'){ /* Classique : chemise boutonnée */
-    s='<path d="M30 12 L42 8 Q50 14 58 8 L70 12 L86 30 L76 40 L68 32 L68 90 L32 90 L32 32 L24 40 L14 30 Z" fill="url(#'+id+')" '+st+'/>'+
-      '<path d="M42 8 L50 22 L58 8 L54 6 L50 12 L46 6Z" fill="'+hi+'" '+st+'/><line x1="50" y1="22" x2="50" y2="90" stroke="'+lo+'"/>'+[32,46,60,74].map(y=>'<circle cx="52.5" cy="'+y+'" r="1.4" fill="#f4f1ea"/>').join('')+
-      '<path d="M34 42 L44 42 L44 50 L34 50Z" '+seam+'/>'; }
-  if(kind==='hoodie'){ /* Sportswear : sweat à capuche */
-    s='<path d="M28 16 Q50 2 72 16 L88 44 L78 52 L70 40 L70 92 L30 92 L30 40 L22 52 L12 44 Z" fill="url(#'+id+')" '+st+'/>'+
-      '<path d="M38 12 Q50 30 62 12 Q50 4 38 12Z" fill="'+lo+'"/><line x1="46" y1="22" x2="45" y2="36" stroke="#f4f1ea" stroke-width="1.2"/><line x1="54" y1="22" x2="55" y2="36" stroke="#f4f1ea" stroke-width="1.2"/>'+
-      '<path d="M36 62 L64 62 L60 76 L40 76Z" fill="'+lo+'" opacity=".6"/><path d="M30 86 L70 86" '+seam+'/><path d="M12 44 L22 52" stroke="'+hi+'" stroke-width="2"/>'; }
-  if(kind==='tee'){ /* Minimaliste : t-shirt épuré */
-    s='<path d="M32 12 Q50 20 68 12 L86 26 L78 38 L68 32 L68 90 L32 90 L32 32 L22 38 L14 26 Z" fill="url(#'+id+')" '+st+'/><path d="M40 13 Q50 22 60 13" fill="none" stroke="'+lo+'" stroke-width="1.6"/><path d="M32 86 L68 86" '+seam+'/>'; }
-  if(kind==='dress'){ /* Bohème : robe fleurie */
-    s='<path d="M38 8 L44 8 L46 18 L54 18 L56 8 L62 8 L64 36 L84 92 L16 92 L36 36 Z" fill="url(#'+id+')" '+st+'/><path d="M36 36 Q50 40 64 36" fill="none" stroke="'+lo+'" stroke-width="1.6"/>';
-    for(let i=0;i<14;i++){ const x=28+(i*13)%46, y=44+(i*17)%44; s+='<g transform="translate('+x+' '+y+')">'+[0,72,144,216,288].map(a=>'<circle cx="'+(Math.cos(a*Math.PI/180)*2).toFixed(1)+'" cy="'+(Math.sin(a*Math.PI/180)*2).toFixed(1)+'" r="1.4" fill="'+(i%2?'#f6e7a8':'#f4f1ea')+'"/>').join('')+'<circle r="1" fill="#e07a5f"/></g>'; }
-    s+='<path d="M20 86 q8 4 15 0 t15 0 t15 0 t15 0" stroke="'+hi+'" stroke-width="1.4" fill="none"/>'; }
-  if(kind==='street'){ /* Streetwear : sweat oversize et logo */
-    s='<path d="M24 16 Q50 6 76 16 L94 52 L82 58 L74 44 L74 94 L26 94 L26 44 L18 58 L6 52 Z" fill="url(#'+id+')" '+st+'/><path d="M40 13 Q50 22 60 13" fill="none" stroke="'+lo+'" stroke-width="2.4"/>'+
-      '<rect x="36" y="36" width="28" height="18" rx="3" fill="#f4f1ea"/><text x="50" y="49" text-anchor="middle" font-size="9" font-weight="900" fill="'+lo+'" font-family="sans-serif">STR</text><path d="M26 88 L74 88" stroke="'+lo+'" stroke-width="3"/>'; }
-  if(kind==='denim'){ /* Vintage : veste en jean */
-    s='<path d="M30 12 L42 8 L50 16 L58 8 L70 12 L84 32 L84 70 L74 70 L72 40 L70 92 L30 92 L28 40 L26 70 L16 70 L16 32 Z" fill="url(#'+id+')" '+st+'/>'+
-      '<path d="M42 8 L50 30 L58 8" fill="none" stroke="'+lo+'" stroke-width="1.6"/><line x1="50" y1="30" x2="50" y2="92" stroke="'+lo+'"/>'+
-      '<path d="M34 40 L46 40 L46 52 L34 52Z M54 40 L66 40 L66 52 L54 52Z" fill="none" stroke="#e0a85a" stroke-width="1" stroke-dasharray="1.6 1.2"/>'+[36,50,64,78].map(y=>'<circle cx="53" cy="'+y+'" r="1.6" fill="#c98b3c"/>').join('')+'<path d="M30 84 L70 84" stroke="#e0a85a" stroke-width="1" stroke-dasharray="1.6 1.2"/>'; }
-  return '<svg width="'+W+'" height="'+W+'" viewBox="0 0 100 100"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+hi+'"/><stop offset=".5" stop-color="'+c+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient></defs>'+s+'</svg>'; }
-/* rouleau de tissu vu de trois quarts */
-function roll(c,pat,W){ const id='rl'+(++TX_N), lo=tshade(c,-.35), hi=tshade(c,.35);
+/* texture de matière par vêtement */
+function txPat(id,kind,c){ const lo=tshade(c,-.25), hi=tshade(c,.35);
+  if(kind==='shirt') return '<pattern id="'+id+'t" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><rect width="1.2" height="1.2" fill="'+lo+'" opacity=".18"/><rect x="1.2" y="1.2" width="1.2" height="1.2" fill="'+lo+'" opacity=".18"/></pattern>';
+  if(kind==='tee'||kind==='hoodie'||kind==='street') return '<pattern id="'+id+'t" width="3" height="2.6" patternUnits="userSpaceOnUse"><path d="M0 1.3 Q.75 0 1.5 1.3 T3 1.3" stroke="'+lo+'" stroke-width=".35" fill="none" opacity=".35"/></pattern>';
+  if(kind==='denim') return '<pattern id="'+id+'t" width="3" height="3" patternUnits="userSpaceOnUse"><path d="M0 3 L3 0 M-1 1 L1 -1 M2 4 L4 2" stroke="'+hi+'" stroke-width=".55" opacity=".45"/></pattern>';
+  if(kind==='dress') return '<pattern id="'+id+'t" width="14" height="14" patternUnits="userSpaceOnUse">'+
+    [[3,3,'#f6e7a8'],[10,9,'#f4f1ea']].map(([x,y,col])=>[0,72,144,216,288].map(a=>'<ellipse cx="'+(x+Math.cos(a*Math.PI/180)*1.7).toFixed(1)+'" cy="'+(y+Math.sin(a*Math.PI/180)*1.7).toFixed(1)+'" rx="1.3" ry=".9" transform="rotate('+a+' '+(x+Math.cos(a*Math.PI/180)*1.7).toFixed(1)+' '+(y+Math.sin(a*Math.PI/180)*1.7).toFixed(1)+')" fill="'+col+'"/>').join('')+'<circle cx="'+x+'" cy="'+y+'" r=".8" fill="#e07a5f"/>').join('')+
+    '<path d="M6 11 q2 -2 4 0" stroke="#5b7a3a" stroke-width=".7" fill="none"/><path d="M12 4 q-1 2 -3 2" stroke="#5b7a3a" stroke-width=".7" fill="none"/></pattern>';
+  return ''; }
+function garment(kind,c,W,hanger){ const id='gm'+(++TX_N), lo=tshade(c,-.3), lo2=tshade(c,-.5), hi=tshade(c,.32); let s='';
+  const st='stroke="'+lo2+'" stroke-width="1" stroke-linejoin="round"';
+  const stitch=(p,col)=>'<path d="'+p+'" stroke="'+(col||tshade(c,.55))+'" stroke-width=".7" stroke-dasharray="1.4 1.2" fill="none"/>';
+  const fold=(p,o)=>'<path d="'+p+'" stroke="'+lo2+'" stroke-width="1" fill="none" opacity="'+(o||.35)+'" stroke-linecap="round"/>';
+  const btn=(x,y,col)=>'<circle cx="'+x+'" cy="'+y+'" r="1.7" fill="'+(col||'#f4f1ea')+'" stroke="'+lo2+'" stroke-width=".4"/><circle cx="'+(x-.5)+'" cy="'+(y-.5)+'" r=".28" fill="'+lo2+'"/><circle cx="'+(x+.5)+'" cy="'+(y+.5)+'" r=".28" fill="'+lo2+'"/>';
+  const body=(p)=>'<path d="'+p+'" fill="url(#'+id+')" '+st+'/><path d="'+p+'" fill="url(#'+id+'t)"/>';
+  const label='<rect x="46" y="15" width="8" height="5" rx=".6" fill="#f4f1ea" stroke="'+lo2+'" stroke-width=".3"/><path d="M47.5 17.5 h5" stroke="#d43f3a" stroke-width=".6"/>';
+  if(kind==='shirt'){
+    s=body('M30 12 L42 8 Q50 13 58 8 L70 12 L87 31 L77 41 L69 33 L69 91 Q50 95 31 91 L31 33 L23 41 L13 31 Z');
+    s+='<path d="M41 8 L50 23 L59 8 L55 5.5 L50 11 L45 5.5Z" fill="'+hi+'" '+st+'/><path d="M45 5.5 L50 11 L55 5.5" fill="none" stroke="'+lo+'" stroke-width=".8"/>';
+    s+='<path d="M48 23 L48 92 M52 23 L52 92" stroke="'+lo+'" stroke-width=".7"/>'+[32,45,58,71,84].map(y=>btn(50,y)).join('');
+    s+='<path d="M34 42 L45 42 L45 52 L39.5 54 L34 52Z" fill="none" stroke="'+lo+'" stroke-width=".8"/>'+stitch('M34.8 44 L44.2 44');
+    s+='<path d="M13 31 L23 41 L19 45 L9 35Z" fill="'+hi+'" '+st+'/><path d="M87 31 L77 41 L81 45 L91 35Z" fill="'+hi+'" '+st+'/>'+btn(15,38,'#fff')+btn(85,38,'#fff');
+    s+=fold('M37 60 Q40 75 36 88')+fold('M63 58 Q60 74 64 88')+fold('M31 33 Q36 37 40 34',.25)+stitch('M31.8 89 Q50 93 68.2 89'); }
+  if(kind==='hoodie'){
+    s=body('M28 16 Q50 2 72 16 L89 45 L80 54 L71 41 L71 86 L29 86 L29 41 L20 54 L11 45 Z');
+    s+='<path d="M29 84 L71 84 L71 93 L29 93Z" fill="'+lo+'" '+st+'/>'+[34,40,46,52,58,64].map(x=>'<line x1="'+x+'" y1="85" x2="'+x+'" y2="92" stroke="'+lo2+'" stroke-width=".5" opacity=".6"/>').join('');
+    s+='<path d="M11 45 L20 54 L18 58 L8 49Z M89 45 L80 54 L82 58 L92 49Z" fill="'+lo+'" '+st+'/>';
+    s+='<path d="M36 12 Q50 34 64 12 Q50 2 36 12Z" fill="'+lo2+'" opacity=".85"/><path d="M38 13 Q50 30 62 13" fill="none" stroke="'+hi+'" stroke-width="1"/>';
+    s+='<path d="M46 22 Q45 30 44.5 38 M54 22 Q55 30 55.5 38" stroke="#f4f1ea" stroke-width="1.3" fill="none"/><rect x="43.6" y="37.5" width="1.8" height="3" rx=".6" fill="#c9ced6"/><rect x="54.6" y="37.5" width="1.8" height="3" rx=".6" fill="#c9ced6"/>';
+    s+='<path d="M36 60 L64 60 L60 76 L40 76Z" fill="'+lo+'" opacity=".55"/>'+stitch('M36.6 61 L63.4 61')+fold('M40 60 Q42 68 40 76',.3)+fold('M32 44 Q35 64 32 82')+fold('M68 44 Q65 64 68 82');
+    s+=label; }
+  if(kind==='tee'){
+    s=body('M32 12 Q50 20 68 12 L87 27 L79 39 L69 33 L69 91 Q50 94 31 91 L31 33 L21 39 L13 27 Z');
+    s+='<path d="M39 12.6 Q50 23 61 12.6" fill="none" stroke="'+lo+'" stroke-width="2.4"/><path d="M39 12.6 Q50 21 61 12.6" fill="none" stroke="'+hi+'" stroke-width=".7"/>';
+    s+=stitch('M14.6 29 L22 37.4')+stitch('M85.4 29 L78 37.4')+stitch('M32 88.6 Q50 92 68 88.6')+fold('M36 40 Q40 64 35 86')+fold('M64 40 Q60 64 65 86')+fold('M45 70 Q50 74 56 69',.25)+label; }
+  if(kind==='dress'){
+    s=body('M38 8 L44 8 L46.5 19 L53.5 19 L56 8 L62 8 L64.5 36 Q76 62 85 93 Q50 99 15 93 Q24 62 35.5 36 Z');
+    s+='<path d="M35.5 36 Q50 41 64.5 36 L64 40 Q50 45 36 40Z" fill="'+lo+'"/><path d="M48 39 q2 -3 4 0 q-2 3 -4 0" fill="'+hi+'"/>';
+    s+=fold('M42 42 Q34 70 24 92')+fold('M50 43 L50 96',.25)+fold('M58 42 Q66 70 76 92')+fold('M46 44 Q44 70 40 94',.2)+fold('M54 44 Q56 70 60 94',.2);
+    s+='<path d="M15 93 q6 4 11 0 t11 0 t11 0 t11 0 t11 0 t11 0 t3 0" stroke="'+hi+'" stroke-width="1.4" fill="none"/>'+stitch('M44.6 9 L46.6 18.6')+stitch('M55.4 9 L53.4 18.6'); }
+  if(kind==='street'){
+    s=body('M24 16 Q50 6 76 16 L95 53 L84 59 L75 45 L75 87 L25 87 L25 45 L16 59 L5 53 Z');
+    s+='<path d="M25 85 L75 85 L75 95 L25 95Z" fill="'+lo+'" '+st+'/><path d="M5 53 L16 59 L13 64 L2 58Z M95 53 L84 59 L87 64 L98 58Z" fill="'+lo+'" '+st+'/>';
+    s+='<path d="M39 13.4 Q50 25 61 13.4" fill="none" stroke="'+lo+'" stroke-width="3.4"/>';
+    s+='<rect x="34" y="34" width="32" height="20" rx="3" fill="#f4f1ea"/><text x="50" y="47.6" text-anchor="middle" font-size="9.5" font-weight="900" fill="'+lo2+'" font-family="sans-serif" letter-spacing="1">STR</text><path d="M37 50.4 L63 50.4" stroke="#d43f3a" stroke-width="1"/>';
+    s+=fold('M30 30 Q34 60 29 84')+fold('M70 30 Q66 60 71 84')+fold('M16 40 L22 50',.3)+fold('M84 40 L78 50',.3)+label; }
+  if(kind==='denim'){
+    s=body('M30 12 L42 8 L50 16 L58 8 L70 12 L85 33 L85 72 L74 72 L72 42 L71 92 L29 92 L28 42 L26 72 L15 72 L15 33 Z');
+    s+='<path d="M42 8 L50 30 L58 8 L54.5 6.5 L50 15 L45.5 6.5Z" fill="'+lo+'" '+st+'/><line x1="50" y1="30" x2="50" y2="92" stroke="'+lo2+'" stroke-width=".9"/>';
+    s+='<path d="M33 38 L46 38 L46 50 L39.5 52.5 L33 50Z M54 38 L67 38 L67 50 L60.5 52.5 L54 50Z" fill="'+tshade(c,-.1)+'" stroke="'+lo2+'" stroke-width=".6"/>'+stitch('M33.8 41 L45.2 41','#e0a85a')+stitch('M54.8 41 L66.2 41','#e0a85a')+stitch('M34 48.6 L39.5 51 L45 48.6','#e0a85a')+stitch('M55 48.6 L60.5 51 L66 48.6','#e0a85a');
+    s+=[38,51,64,77].map(y=>'<circle cx="53" cy="'+y+'" r="2" fill="#c98b3c" stroke="#8a5a1e" stroke-width=".5"/><circle cx="53" cy="'+y+'" r=".7" fill="#e8c27a"/>').join('');
+    s+='<path d="M29 84 L71 84 L71 92 L29 92Z" fill="'+lo+'" opacity=".6"/>'+stitch('M29.6 85 L70.4 85','#e0a85a')+stitch('M15.6 66 L25.6 66','#e0a85a')+stitch('M74.4 66 L84.4 66','#e0a85a');
+    s+=stitch('M30 13 L28.6 42 L29.6 91','#e0a85a')+stitch('M70 13 L71.4 42 L70.4 91','#e0a85a')+fold('M36 56 Q40 70 36 82')+fold('M64 56 Q60 70 64 82'); }
+  let hg=''; if(hanger) hg='<path d="M50 -4 q-4 0 -4 -4 q0 -4 4 -4 q4 0 4 4" stroke="#9aa2ae" stroke-width="1.6" fill="none" transform="translate(0 4)"/><path d="M50 4 L26 14 L74 14 Z" fill="none" stroke="#9aa2ae" stroke-width="1.8" stroke-linejoin="round"/>';
+  return '<svg width="'+W+'" height="'+W+'" viewBox="0 '+(hanger?-10:0)+' 100 '+(hanger?110:100)+'"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+hi+'"/><stop offset=".5" stop-color="'+c+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient>'+txPat(id,kind,c)+'</defs>'+hg+s+'</svg>'; }
+/* rouleau de tissu de trois quarts : trame visible, spirale d'enroulement, pan déroulé drapé, étiquette */
+function roll(c,pat,W,tag){ const id='rl'+(++TX_N), lo=tshade(c,-.38), lo2=tshade(c,-.55), hi=tshade(c,.38);
   let p='';
-  if(pat==='lin') p='<pattern id="'+id+'p" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 2 H4 M2 0 V4" stroke="'+lo+'" stroke-width=".5" opacity=".5"/></pattern>';
-  if(pat==='laine') p='<pattern id="'+id+'p" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8 L8 0 M-2 2 L2 -2 M6 10 L10 6" stroke="'+lo+'" stroke-width="1.4" opacity=".55"/></pattern>';
-  if(pat==='soie') p='<pattern id="'+id+'p" width="20" height="60" patternUnits="userSpaceOnUse"><path d="M0 0 Q10 30 0 60" stroke="#fff" stroke-width="3" opacity=".25" fill="none"/></pattern>';
-  return '<svg width="'+W+'" height="'+Math.round(W*1.3)+'" viewBox="0 0 60 78"><defs>'+p+'<linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+lo+'"/><stop offset=".4" stop-color="'+hi+'"/><stop offset=".7" stop-color="'+c+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient></defs>'+
-   '<ellipse cx="30" cy="74" rx="22" ry="3" fill="rgba(0,0,0,.18)"/>'+
-   '<rect x="10" y="10" width="40" height="62" fill="url(#'+id+')"/><rect x="10" y="10" width="40" height="62" fill="url(#'+id+'p)"/>'+
-   '<ellipse cx="30" cy="72" rx="20" ry="5" fill="'+lo+'"/><ellipse cx="30" cy="10" rx="20" ry="5" fill="'+hi+'"/>'+
-   [16,12,8,4].map((r,i)=>'<ellipse cx="30" cy="10" rx="'+r+'" ry="'+(r/4)+'" fill="none" stroke="'+lo+'" stroke-width=".7" opacity=".6"/>').join('')+
-   '<ellipse cx="30" cy="10" rx="3.5" ry="1.2" fill="#6b4a2b"/>'+
-   '<path d="M50 30 Q56 44 52 60 L48 60 Q51 46 46 32Z" fill="'+c+'" opacity=".9"/></svg>'; }
+  if(pat==='lin') p='<pattern id="'+id+'p" width="2.4" height="2.4" patternUnits="userSpaceOnUse"><path d="M0 1.2 H2.4" stroke="'+lo+'" stroke-width=".45" opacity=".55"/><path d="M1.2 0 V2.4" stroke="'+hi+'" stroke-width=".45" opacity=".55"/></pattern>';
+  if(pat==='laine') p='<pattern id="'+id+'p" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M0 5 L5 0 M-1.25 1.25 L1.25 -1.25 M3.75 6.25 L6.25 3.75" stroke="'+lo2+'" stroke-width="1.1" opacity=".5"/><path d="M0 2.5 L2.5 0 M2.5 5 L5 2.5" stroke="'+hi+'" stroke-width=".5" opacity=".4"/></pattern>';
+  if(pat==='soie') p='<pattern id="'+id+'p" width="24" height="70" patternUnits="userSpaceOnUse"><path d="M2 0 Q14 35 2 70" stroke="#fff" stroke-width="3.5" opacity=".28" fill="none"/><path d="M12 0 Q22 35 12 70" stroke="#fff" stroke-width="1.2" opacity=".18" fill="none"/></pattern>';
+  if(pat==='jean') p='<pattern id="'+id+'p" width="3" height="3" patternUnits="userSpaceOnUse"><path d="M0 3 L3 0 M-1 1 L1 -1 M2 4 L4 2" stroke="'+hi+'" stroke-width=".6" opacity=".5"/></pattern>';
+  let spiral=''; for(let i=0;i<7;i++){ const r=19-i*2.2; spiral+='<ellipse cx="30" cy="10" rx="'+r+'" ry="'+(r*.26)+'" fill="none" stroke="'+(i%2?lo:hi)+'" stroke-width=".55" opacity=".65"/>'; }
+  return '<svg width="'+W+'" height="'+Math.round(W*1.45)+'" viewBox="0 0 66 96"><defs>'+p+
+   '<linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+lo2+'"/><stop offset=".3" stop-color="'+hi+'"/><stop offset=".6" stop-color="'+c+'"/><stop offset="1" stop-color="'+lo2+'"/></linearGradient>'+
+   '<linearGradient id="'+id+'d" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+c+'"/><stop offset=".5" stop-color="'+hi+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient></defs>'+
+   '<ellipse cx="34" cy="90" rx="28" ry="3.4" fill="rgba(0,0,0,.2)"/>'+
+   /* pan déroulé qui tombe et s'étale au sol */
+   '<path d="M48 22 Q58 40 54 62 Q52 76 62 86 L40 89 Q46 76 44 62 Q46 42 42 24 Z" fill="url(#'+id+'d)"/><path d="M48 22 Q58 40 54 62 Q52 76 62 86 L40 89 Q46 76 44 62 Q46 42 42 24 Z" fill="url(#'+id+'p)"/>'+
+   '<path d="M47 30 Q52 48 49 66 Q48 76 54 86" stroke="'+lo2+'" stroke-width=".9" fill="none" opacity=".45"/><path d="M45 36 Q48 52 47 66" stroke="'+hi+'" stroke-width="1.2" fill="none" opacity=".5"/>'+
+   '<rect x="10" y="10" width="40" height="70" fill="url(#'+id+')"/><rect x="10" y="10" width="40" height="70" fill="url(#'+id+'p)"/>'+
+   '<path d="M10 80 Q30 86 50 80 L50 80 Q30 90 10 80Z" fill="'+lo2+'"/><ellipse cx="30" cy="80" rx="20" ry="5.2" fill="'+lo+'"/>'+
+   '<ellipse cx="30" cy="10" rx="20" ry="5.2" fill="'+hi+'"/>'+spiral+
+   '<ellipse cx="30" cy="10" rx="4.4" ry="1.6" fill="#8a6a44"/><ellipse cx="30" cy="10" rx="2.8" ry="1" fill="#4a3424"/>'+
+   (tag? '<path d="M14 34 Q8 36 9 42" stroke="#8a6a44" stroke-width=".6" fill="none"/><g transform="rotate(-8 8 46)"><rect x="2" y="42" width="13" height="9" rx="1.4" fill="#f6e9da" stroke="#c9a66b" stroke-width=".5"/><circle cx="4.4" cy="44.4" r=".8" fill="#c9a66b"/><text x="9" y="48.6" text-anchor="middle" font-size="2.9" font-weight="800" fill="#6e4729" font-family="sans-serif">'+tag+'</text></g>' : '')+
+   '<path d="M14 16 L14 76" stroke="#fff" stroke-width="1.4" opacity=".25"/></svg>'; }
 
 const S=[['shirt','#E9EEF5','Classique',1.0,.6,18],['hoodie','#3F6EA8','Sportswear',1.3,.7,22],['tee','#D8CFC0','Minimaliste',.8,.5,10],['dress','#C06B4E','Bohème',1.7,.8,20],['street','#2B2F35','Streetwear',.6,.6,6],['denim','#4A6D99','Vintage',1.1,.7,6]];
-document.getElementById('sty').innerHTML=S.map(x=>{ const c=x[3]/2.4*100, w=x[4]/2.4*100; return '<div class="st"><span class="gm">'+garment(x[0],x[1],44)+'</span><div class="n"><b>'+x[2]+'</b><small>demande prévue ×'+x[3].toFixed(1).replace('.',',')+'</small><div class="fc"><span class="band" style="left:'+Math.max(0,c-w/2)+'%;width:'+w+'%"></span><span class="pt" style="left:'+c+'%"></span></div></div><div class="qty"><button aria-label="Moins">−</button><b>'+x[5]+'</b><button aria-label="Plus">+</button></div></div>'; }).join('');
+document.getElementById('sty').innerHTML=S.map(x=>{ const c=x[3]/2.4*100, w=x[4]/2.4*100; return '<div class="st"><span class="gm">'+garment(x[0],x[1],46)+'</span><div class="n"><b>'+x[2]+'</b><small>demande prévue ×'+x[3].toFixed(1).replace('.',',')+'</small><div class="fc"><span class="band" style="left:'+Math.max(0,c-w/2)+'%;width:'+w+'%"></span><span class="pt" style="left:'+c+'%"></span></div></div><div class="qty"><button aria-label="Moins">−</button><b>'+x[5]+'</b><button aria-label="Plus">+</button></div></div>'; }).join('');
 document.getElementById('capbar').innerHTML=S.map(x=>'<i style="width:'+x[5]+'%;background:'+x[1]+';border-right:1px solid #fff"></i>').join('');
 const R=[['#EDE6D6','lin','Coton','148 rouleaux','Standard',''],['#7A5A44','laine','Laine','52 rouleaux','Supérieure',''],['#C94F6D','soie','Soie','31 rouleaux','Premium','p'],['#2F6E8F','lin','Vêtements','2 860 pièces','Standard','']];
-document.getElementById('rolls').innerHTML=R.map(x=>'<button class="rl">'+roll(x[0],x[1],54)+x[2]+'<small>'+x[3]+'</small><span class="q '+x[5]+'">'+x[4]+'</span></button>').join('');
-document.getElementById('rack').innerHTML=[['shirt','#F4F1EA','82 %'],['dress','#C06B4E','94 %'],['hoodie','#3F6EA8','71 %'],['street','#2B2F35','38 %'],['denim','#4A6D99','66 %']].map(x=>'<div class="hg"><span class="hk"></span>'+garment(x[0],x[1],60)+'<span>'+x[2]+' vendu</span></div>').join('');
+document.getElementById('rolls').innerHTML=R.map(x=>'<button class="rl">'+(x[2]==='Vêtements'? garment('tee','#2F6E8F',62,1) : roll(x[0],x[1],50,x[2].toUpperCase()))+x[2]+'<small>'+x[3]+'</small><span class="q '+x[5]+'">'+x[4]+'</span></button>').join('');
+document.getElementById('rack').innerHTML=[['shirt','#F4F1EA','82 %'],['dress','#C06B4E','94 %'],['hoodie','#3F6EA8','71 %'],['street','#2B2F35','38 %'],['denim','#4A6D99','66 %']].map(x=>'<div class="hg"><span class="hk"></span>'+garment(x[0],x[1],64,1)+'<span>'+x[2]+' vendu</span></div>').join('');
 document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))));
 document.querySelectorAll('.mix input').forEach(i=>i.addEventListener('input',()=>{ i.parentNode.querySelector('b').textContent=i.value+' %'; }));
 </script>
