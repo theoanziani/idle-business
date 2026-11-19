@@ -61,12 +61,12 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0}
 
 /* 2. LE SHOWROOM (neuf) */
 .show{background:linear-gradient(#FFFFFF,#ECEFF3);border-radius:22px;padding:12px;box-shadow:0 4px 0 var(--line);position:relative}
-.floor{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;padding:10px;border-radius:16px;background:repeating-linear-gradient(90deg,#fff 0 38px,#F1F3F6 38px 76px);box-shadow:inset 0 0 0 2px var(--line)}
+.floor{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px;padding:10px;border-radius:16px;background:repeating-linear-gradient(90deg,#fff 0 40px,#F1F3F6 40px 80px);box-shadow:inset 0 0 0 2px var(--line)}
 .car{border:0;background:none;text-align:center;font:800 11.5px var(--fb);color:var(--ink);padding:4px 0}
 .car svg{display:block;margin:0 auto 2px;filter:drop-shadow(0 4px 3px rgba(0,0,0,.18))}
 .car small{display:block;font:700 11px var(--fb);color:var(--ink-3)}
 .car.old small{color:var(--red)}
-.car.empty{border:2px dashed var(--chrome);border-radius:14px;color:var(--chrome-2);min-height:80px}
+.car.empty{border:2px dashed var(--chrome);border-radius:14px;color:var(--chrome-2);min-height:96px}
 .ship{display:flex;align-items:center;gap:10px;margin-top:10px;background:var(--asphalt);color:#fff;border-radius:14px;padding:8px 12px;font-size:12.5px}
 .ship b{font:400 20px var(--fx);letter-spacing:1px}
 .opt{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:var(--ink-3)}
@@ -82,7 +82,7 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0}
 
 /* 3. LE PARC D'OCCASIONS (dehors) */
 .lot{background:var(--asphalt);border-radius:22px;padding:12px;box-shadow:0 4px 0 var(--asphalt-2);color:#fff}
-.bays{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:8px;border-top:3px solid #fff}
+.bays{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:8px;border-top:3px solid #fff}
 .bay{border-right:3px solid rgba(255,255,255,.85);padding:10px 2px 8px;text-align:center;font:800 10.5px var(--fb);color:#E3E6EB;min-height:104px;position:relative}
 .bay:first-child{border-left:3px solid rgba(255,255,255,.85)}
 .bay svg{display:block;margin:0 auto}
@@ -225,11 +225,65 @@ h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0}
 </div>
 
 <script>
-const car=(c,w)=>'<svg width="'+(w||64)+'" height="'+Math.round((w||64)*.5)+'" viewBox="0 0 64 32"><path d="M6 22 Q6 14 14 13 L20 7 Q22 5 26 5 L40 5 Q44 5 47 8 L52 13 Q60 14 60 22 L60 25 L6 25Z" fill="'+c+'"/><path d="M21 12 L25 8 L32 8 L32 12Z M35 12 L35 8 L41 8 Q43 8 45 10 L47 12Z" fill="#CFE6F5"/><circle cx="18" cy="25" r="5" fill="#2B2F35"/><circle cx="18" cy="25" r="2" fill="#C9CED6"/><circle cx="48" cy="25" r="5" fill="#2B2F35"/><circle cx="48" cy="25" r="2" fill="#C9CED6"/></svg>';
-const N=[['#1F4AA8','Citadine','19 200 €'],['#D62828','Berline','28 400 €'],['#F7F8FA','SUV','34 900 €'],['#3A3F47','Break','29 800 €'],['#1F4AA8','SUV','34 900 €']];
-document.getElementById('floor').innerHTML=N.map(x=>'<button class="car">'+car(x[0])+x[1]+'<small>'+x[2]+'</small></button>').join('')+'<button class="car empty">+ commander</button>';
-const O=[['#8A5A44','12 400 €','8 j',1],['#5C6A84','9 900 €','21 j',1],['#2F8FA8','15 800 €','34 j',0],['#B07A12','7 200 €','67 j',1,1],['#C0507A','11 300 €','12 j',0],['#1B7547','13 900 €','5 j',1],['#9AA2AE','6 400 €','72 j',0,1],['#1F4AA8','16 900 €','2 j',0]];
-document.getElementById('bays').innerHTML=O.map(x=>'<div class="bay">'+(x[3]?'<span class="rec">🔧</span>':'')+car(x[0],56)+'<span class="tag'+(x[4]?' cut':'')+'">'+x[1]+'</span><small style="'+(x[4]?'color:#FF8A6B':'')+'">'+x[2]+'</small></div>').join('');
+/* Voitures vues de profil, avant à droite. car(type, couleur, largeur) */
+let CAR_N=0;
+function shade(hex,f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=n>>8&255,b=n&255;
+  if(f<0){ r*=1+f; g*=1+f; b*=1+f; } else { r+=(255-r)*f; g+=(255-g)*f; b+=(255-b)*f; }
+  return '#'+[r,g,b].map(x=>Math.round(x).toString(16).padStart(2,'0')).join(''); }
+const CAR_T={
+  citadine:{w:[30,88], r:10, body:'M12 41 C11 33 13 30 17 29 L20 16 C21 13.5 23 12.5 26 12.5 L70 12.5 C74 12.5 77 13.5 80 16.5 L90 28 L101 30 C106 31 108 34 108 40 L108 43 L12 43 Z',
+    win:['M23 27 L25.5 16 L46 16 L46 27 Z','M49 16 L69 16 C72 16 74.5 17 77 19.5 L84.5 27 L49 27 Z'], door:[47.5], line:'M14 31 L106 32', lamp:[103,31], tail:[13,30]},
+  berline:{w:[29,92], r:10, body:'M5 40 C5 34 8 31.5 15 31 L33 29 L43 18 C45 15.5 48 14.5 52 14.5 L77 14.5 C81 14.5 84 15.5 87 18.5 L97 28.5 L109 30.5 C114 31.5 116 34.5 116 40 L116 43 L5 43 Z',
+    win:['M45.5 28 L52 18 L63 18 L63 28 Z','M66 18 L77 18 C80 18 82.5 19 85 21.5 L91.5 28 L66 28 Z'], door:[64.5], line:'M7 33 L114 33.5', lamp:[110,32], tail:[7,32]},
+  break:{w:[29,92], r:10, body:'M5 40 C5 32 6.5 29.5 10 28.5 L13 15.5 C14 13.5 16 13 19 13 L78 13 C82 13 85 14 88 17 L98 28.5 L109 30.5 C114 31.5 116 34.5 116 40 L116 43 L5 43 Z',
+    win:['M16 27 L18 16 L40 16 L40 27 Z','M43 16 L63 16 L63 28 L43 28 Z','M66 16 L78 16 C81 16 83.5 17 86 19.5 L93 28 L66 28 Z'], door:[41.5,64.5], line:'M7 32.5 L114 33.5', lamp:[110,32], tail:[7,31]},
+  suv:{w:[29,91], r:11.5, body:'M5 41 C4.5 30 6 27.5 9 26.5 L11 11.5 C12 9.5 14 9 17 9 L80 9 C84 9 86.5 10 89.5 13 L101 26 L109 28 C113.5 29 115.5 32 115.5 41 L115.5 44 L5 44 Z',
+    win:['M14 25 L15.5 12.5 L38 12.5 L38 25 Z','M41 12.5 L62 12.5 L62 25.5 L41 25.5 Z','M65 12.5 L79 12.5 C82 12.5 84.5 13.5 87 16 L96 25.5 L65 25.5 Z'], door:[39.5,63.5], line:'M7 30 L113 31', lamp:[110,30], tail:[7,29], rack:true},
+  coupe:{w:[30,92], r:10, body:'M5 39.5 C5 35 9 33 19 32 L39 30.5 L53 21 C56 19 59 18.5 63 18.5 L78 18.5 C82 18.5 85 19.5 88 21.5 L99 29.5 L111 31.5 C115 32.5 116 35 116 39.5 L116 42 L5 42 Z',
+    win:['M55 29.5 L60 21.5 L72 21.5 L72 29.5 Z','M75 21.5 L79 21.5 C82 21.5 84 22.3 86 24 L92 29.5 L75 29.5 Z'], door:[73.5], line:'M7 34 L114 34.5', lamp:[111,33.5], tail:[6,33.5], spoiler:true}
+};
+function wheel(cx,cy,r,id){ let s='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#1d1f23"/><circle cx="'+cx+'" cy="'+cy+'" r="'+(r*.66)+'" fill="url(#rim'+id+')"/>';
+  for(let k=0;k<5;k++){ const a=k*Math.PI*2/5-Math.PI/2, x=cx+Math.cos(a)*r*.6, y=cy+Math.sin(a)*r*.6; s+='<line x1="'+cx+'" y1="'+cy+'" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="#6b737e" stroke-width="'+(r*.2).toFixed(1)+'" stroke-linecap="round"/>'; }
+  return s+'<circle cx="'+cx+'" cy="'+cy+'" r="'+(r*.18)+'" fill="#e6e9ee" stroke="#8a929c" stroke-width=".6"/><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#33363c" stroke-width="1.2"/>'; }
+function car(type,c,w){ const T=CAR_T[type]||CAR_T.berline, id=++CAR_N, W=w||110, H=Math.round(W*56/120);
+  const hi=shade(c,.45), mid=c, lo=shade(c,-.35), wy=(type==='suv'?44:43);
+  const nums=T.body.match(/[\d.]+/g).map(Number), xs=nums.filter((v,i)=>i%2===0), maxX=Math.max(...xs), minX=Math.min(...xs);
+  const wt=Math.min(...T.win.join(' ').match(/[\d.]+/g).map(Number).filter((v,i)=>i%2===1));
+  let s='<svg width="'+W+'" height="'+H+'" viewBox="0 0 120 56"><defs>'+
+   '<linearGradient id="bd'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+hi+'"/><stop offset=".45" stop-color="'+mid+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient>'+
+   '<linearGradient id="gl'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9eefb"/><stop offset=".55" stop-color="#7fa4bf"/><stop offset="1" stop-color="#3b5266"/></linearGradient>'+
+   '<radialGradient id="rim'+id+'"><stop offset="0" stop-color="#f4f6f8"/><stop offset="1" stop-color="#9aa2ad"/></radialGradient></defs>'+
+   '<ellipse cx="60" cy="'+(wy+6)+'" rx="56" ry="3.2" fill="rgba(0,0,0,.22)"/>';
+  if(T.rack) s+='<rect x="22" y="6.5" width="52" height="2" rx="1" fill="#2b2f35"/><rect x="28" y="7" width="2" height="3" fill="#2b2f35"/><rect x="66" y="7" width="2" height="3" fill="#2b2f35"/>';
+  s+='<path d="'+T.body+'" fill="url(#bd'+id+')" stroke="'+shade(c,-.5)+'" stroke-width=".8"/>';
+  /* passages de roue */
+  T.w.forEach(x=>{ s+='<path d="M'+(x-T.r-2.5)+' '+wy+' A'+(T.r+2.5)+' '+(T.r+2.5)+' 0 0 1 '+(x+T.r+2.5)+' '+wy+' Z" fill="#141518"/>'; });
+  /* vitres, montants */
+  s+=T.win.map(p=>'<path d="'+p+'" fill="url(#gl'+id+')" stroke="#22262b" stroke-width="1.2" stroke-linejoin="round"/>').join('');
+  /* reflet sur les vitres */
+  s+='<path d="M'+(T.win[0].match(/M([\d.]+)/)[1]*1+4)+' '+(type==='suv'?23:26)+' l8 -8 l3 0 l-8 8 z" fill="rgba(255,255,255,.35)"/>';
+  /* ligne de caisse, portes, poignées */
+  s+='<path d="'+T.line+'" stroke="'+shade(c,.6)+'" stroke-width=".9" opacity=".7"/>';
+  T.door.forEach(x=>{ s+='<line x1="'+x+'" y1="'+wt+'" x2="'+(x+.5)+'" y2="'+(wy-1)+'" stroke="'+shade(c,-.45)+'" stroke-width=".8"/><rect x="'+(x+4)+'" y="'+(type==='suv'?29:31.5)+'" width="6" height="1.6" rx=".8" fill="'+shade(c,-.5)+'"/>'; });
+  /* rétroviseur, phares, feux, pare-chocs */
+  const L=T.lamp, Tl=T.tail;
+  s+='<rect x="'+(L[0]-6)+'" y="'+(L[1]-1.8)+'" width="7" height="3.6" rx="1.6" fill="#fff8d6" stroke="#9a8f5a" stroke-width=".5"/><rect x="'+(L[0]-5)+'" y="'+(L[1]-1)+'" width="3" height="2" rx="1" fill="#fff"/>';
+  s+='<rect x="'+Tl[0]+'" y="'+(Tl[1]-1.6)+'" width="4" height="3.4" rx="1.2" fill="#d22d2d"/>';
+  s+='<rect x="'+(maxX-11)+'" y="'+(wy-5)+'" width="12" height="3.2" rx="1.5" fill="'+shade(c,-.55)+'"/>';
+  s+='<rect x="'+(minX-1)+'" y="'+(wy-5)+'" width="11" height="3.2" rx="1.5" fill="'+shade(c,-.55)+'"/>';
+  /* rétroviseur */
+  const ws=T.win[T.win.length-1].match(/[\d.]+/g).map(Number), mx=ws[0]+6;
+  s+='<path d="M'+(maxX-30)+' '+(wt+8)+' l5 -1 l1 3 l-5 1 z" fill="'+shade(c,-.4)+'"/>';
+  if(T.spoiler) s+='<path d="M5 31 L16 30.5 L16 29 L6 29.5 Z" fill="'+shade(c,-.5)+'"/>';
+  /* reflet de carrosserie */
+  s+='<path d="M14 '+(type==='suv'?27:30)+' Q60 '+(type==='suv'?24:27)+' 106 '+(type==='suv'?28:31)+'" stroke="rgba(255,255,255,.55)" stroke-width="1.4" fill="none"/>';
+  s+=wheel(T.w[0],wy,T.r,id)+wheel(T.w[1],wy,T.r,id);
+  return s+'</svg>'; }
+
+const N=[['#1F4AA8','Citadine','19 200 €','citadine'],['#D62828','Berline','28 400 €','berline'],['#F2F2F2','SUV','34 900 €','suv'],['#3A3F47','Break','29 800 €','break'],['#2F8FA8','SUV','34 900 €','suv']];
+document.getElementById('floor').innerHTML=N.map(x=>'<button class="car">'+car(x[3],x[0],140)+x[1]+'<small>'+x[2]+'</small></button>').join('')+'<button class="car empty">+ commander</button>';
+const O=[['#8A5A44','12 400 €','8 j',1,0,'break'],['#5C6A84','9 900 €','21 j',1,0,'citadine'],['#2F8FA8','15 800 €','34 j',0,0,'suv'],['#B07A12','7 200 €','67 j',1,1,'berline'],['#C0507A','11 300 €','12 j',0,0,'citadine'],['#1B7547','13 900 €','5 j',1,0,'suv'],['#9AA2AE','6 400 €','72 j',0,1,'berline'],['#1F1F1F','24 900 €','2 j',0,0,'coupe'],['#F2F2F2','10 800 €','15 j',1,0,'break']];
+document.getElementById('bays').innerHTML=O.map(x=>'<div class="bay">'+(x[3]?'<span class="rec">🔧</span>':'')+car(x[5],x[0],98)+'<span class="tag'+(x[4]?' cut':'')+'">'+x[1]+'</span><small style="'+(x[4]?'color:#FF8A6B':'')+'">'+x[2]+'</small></div>').join('');
 document.querySelectorAll('.tog').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
 document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))));
 </script>
