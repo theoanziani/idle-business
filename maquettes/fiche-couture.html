@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Haute couture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Bodoni+Moda:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  /* identité de la maison : ivoire, noir, champagne */
+  --ivory:#F8F4EC; --ivory-2:#ECE4D6; --noir:#141416; --noir-2:#2A2A2E; --champ:#C8A96A; --champ-2:#E9D7AE; --blush:#F3E3E1;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif; --fs:'Bodoni Moda',Didot,Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#ddd6ca;color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.note-top{max-width:390px;margin:0 auto;padding:14px 16px 0;font-size:13px;color:#3E4A7A}
+.phone{max-width:390px;margin:10px auto 30px;background:var(--ivory);border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--noir);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 var(--ivory-2);font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--ivory-2)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(10,10,12,.88))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:600 23px/1 var(--fs);color:#fff;letter-spacing:2.5px;text-transform:uppercase}
+.hero .sub{color:#E9E2D6;font-size:13px;margin-top:4px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:#E5A800}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--noir);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--ivory-2);flex:0 0 auto}
+h2.sec{font:600 15px var(--fs);color:var(--noir);margin:26px 4px 10px;display:flex;justify-content:space-between;align-items:baseline;letter-spacing:3px;text-transform:uppercase}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3);letter-spacing:0;text-transform:none}
+
+/* 1. LE PRESTIGE */
+.pres{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center;background:var(--noir);color:#EDE6DA;border-radius:20px;padding:14px;box-shadow:0 4px 0 #000}
+.ring{position:relative;width:96px;height:96px}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font:600 30px var(--fs);color:#fff}
+.ring small{position:absolute;left:0;right:0;bottom:18px;text-align:center;font:800 9.5px var(--fb);letter-spacing:.12em;color:var(--champ)}
+.pres .t b{display:block;font:600 16px var(--fs);color:#fff}
+.pres .t span{font-size:12.5px}
+.pres .kv{display:flex;gap:12px;margin-top:8px}
+.pres .kv div{font-size:11.5px;color:#BDB3A2}
+.pres .kv b{display:block;font:800 16px var(--fd);color:#fff}
+
+/* 2. LE STUDIO */
+.studio{background:#fff;border-radius:20px;padding:14px;box-shadow:0 4px 0 var(--ivory-2)}
+.cl{display:flex;justify-content:space-between;align-items:baseline}
+.cl b{font:italic 500 20px var(--fs);color:var(--noir)}
+.cl span{font-size:12px;color:var(--ink-3)}
+.prog{height:6px;border-radius:3px;background:var(--ivory-2);margin-top:8px;overflow:hidden}
+.prog i{display:block;height:100%;width:64%;background:var(--champ)}
+.lbl{display:block;font:800 12px var(--fb);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:14px 0 6px}
+.styles{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.sty{flex:0 0 86px;border:0;background:var(--ivory);border-radius:14px;padding:6px 4px 8px;text-align:center;font:800 11.5px var(--fb);color:var(--ink)}
+.sty svg{display:block;margin:0 auto}
+.sty small{display:block;font:700 10.5px var(--fb);margin-top:1px}
+.sty .up2{color:var(--green)}.sty .dn{color:var(--red)}
+.sty.on{background:var(--blush);box-shadow:inset 0 0 0 2px var(--noir)}
+.seg{display:flex;background:var(--ivory);border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:none;border-radius:11px;min-height:48px;font:800 12px/1.2 var(--fb);color:var(--ink-3);padding:2px}
+.seg button small{display:block;font:600 10.5px var(--fb)}
+.seg button.on{background:var(--noir);color:#fff}
+.seg button.on small{color:var(--champ-2)}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+/* directeur artistique */
+.da{display:grid;grid-template-columns:54px 1fr;gap:12px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--ivory-2)}
+.da .av{width:54px;height:54px;border-radius:50%;background:var(--noir);color:var(--champ);display:grid;place-items:center;font:600 18px var(--fs)}
+.da b{font:800 14.5px var(--fb)}
+.da small{display:block;font-size:12px;color:var(--ink-3)}
+.mood{display:flex;gap:10px;margin-top:6px;font-size:11.5px;color:var(--ink-3)}
+.mood span b{font-size:12.5px;color:var(--ink)}
+
+/* 3. LE DÉFILÉ */
+.show{background:linear-gradient(#1a1a1e,#0b0b0d);border-radius:22px;padding:12px;color:#EDE6DA;box-shadow:0 4px 0 #000;overflow:hidden}
+.stage{position:relative;height:250px;margin-top:6px;perspective:400px}
+.cat{position:absolute;left:50%;bottom:0;width:120px;height:250px;margin-left:-60px;background:linear-gradient(#3a3a40,#f5f1ea);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);opacity:.9}
+.spot{position:absolute;top:-30px;width:140px;height:280px;background:radial-gradient(ellipse at 50% 0,rgba(255,240,200,.28),transparent 70%)}
+.crowd{position:absolute;bottom:0;width:70px;height:120px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px}
+.crowd i{display:block;height:9px;border-radius:5px 5px 2px 2px;background:#2c2c32}
+.mdl{position:absolute;left:50%}
+.show .row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:#BDB3A2}
+.show .row b{color:#fff;font-size:14px;display:block}
+.city{display:flex;gap:6px;overflow-x:auto;margin-top:8px;padding-bottom:2px}
+.city button{flex:0 0 auto;border:0;border-radius:12px;min-height:44px;padding:0 12px;background:rgba(255,255,255,.08);color:#EDE6DA;font:800 12.5px var(--fb)}
+.city button small{display:block;font:700 10px var(--fb);color:var(--champ)}
+.city button.on{background:var(--champ);color:var(--noir)}
+.city button.on small{color:var(--noir)}
+.crit{display:flex;align-items:center;gap:10px;margin-top:10px;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 12px}
+.crit b{font:600 28px var(--fs);color:#fff}
+.crit p{margin:0;font:italic 500 13px var(--fs);color:#D9CDB8}
+
+/* 4. L'ATELIER SUR MESURE */
+.atl{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--ivory-2)}
+.ord{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--ivory-2)}
+.ord:first-of-type{border-top:0}
+.ord .mini{width:44px;height:58px;border-radius:10px;background:var(--blush);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ord b{font:800 13.5px var(--fb)}
+.ord small{display:block;font-size:11.5px;color:var(--ink-3)}
+.ord .px{font:800 15px var(--fd)}
+.ord .pg{height:5px;border-radius:3px;background:var(--ivory-2);margin-top:4px;overflow:hidden;width:120px}
+.ord .pg i{display:block;height:100%;background:var(--champ)}
+.art{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--ivory-2);font-size:12.5px;color:var(--ink-3)}
+.art b{color:var(--ink);font-size:14px;display:block}
+.stp{display:flex;align-items:center;gap:4px;background:var(--ivory);border-radius:14px;padding:3px}
+.stp button{width:44px;height:40px;border:0;border-radius:11px;background:#fff;font:800 16px var(--fb);color:var(--noir);box-shadow:0 2px 0 var(--ivory-2)}
+.stp b{min-width:26px;text-align:center;font:800 17px var(--fd)}
+
+/* 5. LICENCES ET ÉGÉRIE */
+.lic{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lc{background:#fff;border-radius:18px;padding:12px 10px;box-shadow:0 3px 0 var(--ivory-2);text-align:center;font-size:12px;color:var(--ink-3)}
+.lc b{display:block;font:600 14px var(--fs);color:var(--noir);margin-top:4px}
+.lc .v{display:block;font:800 15px var(--fd);color:var(--green);margin-top:2px}
+.lc .w{display:block;color:var(--red);font-weight:800;font-size:11px}
+.btn{border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--ivory-2),inset 0 0 0 1.5px var(--ivory-2);margin-top:8px}
+.btn.noir{background:var(--noir);color:#fff;box-shadow:0 3px 0 #000}
+.egerie{display:grid;grid-template-columns:60px 1fr auto;gap:12px;align-items:center;margin-top:8px;background:var(--blush);border-radius:18px;padding:10px 12px}
+.egerie .ph{width:60px;height:72px;border-radius:12px;background:linear-gradient(#d9c2bd,#b38f88);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.egerie b{display:block;font:600 15px var(--fs);color:var(--noir)}
+.egerie small{font-size:12px;color:var(--ink-3)}
+
+/* 6. LES PALIERS */
+.path{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--ivory-2)}
+.steps{display:flex;align-items:flex-start}
+.steps .p{flex:0 0 58px;text-align:center;font:800 10px/1.2 var(--fb);color:var(--ink-3)}
+.steps .p i{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:50%;background:var(--ivory);font-style:normal;font-size:17px;border:1.5px solid var(--ivory-2)}
+.steps .p.now i{background:var(--noir);border-color:var(--champ)}
+.steps .ln{flex:1;height:1px;margin-top:19px;background:var(--champ)}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:8px}
+
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 var(--ivory-2);font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--ivory-2);font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+.legend{max-width:390px;margin:0 auto 50px;padding:0 16px;font-size:14px;color:#3E4A7A}
+.legend h2{font:800 19px var(--fd);color:var(--ink);margin:12px 0 6px}
+.legend li{margin:4px 0}
+</style>
+</head>
+<body>
+<p class="note-top"><b>Maquette · Maison de haute couture.</b> Le cœur du métier : créer une collection, la présenter au défilé, et faire vivre le prestige sans l'user.</p>
+
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a20c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a20gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a20bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a20bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a20gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a20vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a20lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a20sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6C86C8"></stop><stop offset="1" stop-color="#F1E2D6"></stop></linearGradient></defs><g clip-path="url(#a20c)"><rect width="640" height="360" fill="url(#a20sky)"></rect><g><g fill="#FFFFFF" opacity=".85"><ellipse cx="90" cy="54" rx="40" ry="12"></ellipse><ellipse cx="114" cy="46" rx="26" ry="12"></ellipse><ellipse cx="470" cy="34" rx="34" ry="10"></ellipse><ellipse cx="492" cy="28" rx="22" ry="10"></ellipse></g><animateTransform attributeName="transform" type="translate" values="0 0;50 0;0 0" dur="34s" repeatCount="indefinite"></animateTransform></g><g fill="#A9BDD3" opacity=".55"><rect x="0" y="172" width="40" height="78"></rect><rect x="44" y="168" width="45" height="82"></rect><rect x="92" y="205" width="55" height="45"></rect><rect x="151" y="151" width="31" height="99"></rect><rect x="186" y="194" width="40" height="56"></rect><rect x="230" y="177" width="70" height="73"></rect><rect x="304" y="177" width="63" height="73"></rect><rect x="372" y="199" width="56" height="51"></rect><rect x="431" y="149" width="55" height="101"></rect><rect x="490" y="158" width="51" height="92"></rect><rect x="545" y="206" width="57" height="44"></rect><rect x="606" y="169" width="60" height="81"></rect></g><rect x="0" y="292" width="640" height="68" fill="#8E8C86"></rect><rect x="0" y="284" width="640" height="8" fill="#C9C6BE"></rect><rect x="0" y="326" width="640" height="3" fill="#E9E3C8" opacity=".7"></rect><rect x="120" y="94" width="400" height="190" fill="#F6F1E6"></rect><rect x="420" y="94" width="100" height="190" fill="#000" opacity="0.14"></rect><rect x="139.3" y="104.7" width="23.6" height="12.8" fill="#6A5F4E"></rect><rect x="181.5" y="104.7" width="23.6" height="12.8" fill="#7B6F5C"></rect><rect x="223.7" y="104.7" width="23.6" height="12.8" fill="#7B6F5C"></rect><rect x="266.0" y="104.7" width="23.6" height="12.8" fill="#7B6F5C"></rect><rect x="308.2" y="104.7" width="23.6" height="12.8" fill="#7B6F5C"></rect><rect x="350.4" y="104.7" width="23.6" height="12.8" fill="#FFE6A6"><animate attributeName="opacity" values="1;1;.15;.15;1" keyTimes="0;.5;.55;.9;1" dur="13.1s" begin="-8.6s" repeatCount="indefinite"></animate></rect><rect x="392.6" y="104.7" width="23.6" height="12.8" fill="#6A5F4E"></rect><rect x="434.8" y="104.7" width="23.6" height="12.8" fill="#7B6F5C"></rect><rect x="477.1" y="104.7" width="23.6" height="12.8" fill="#7B6F5C"></rect><rect x="139.3" y="128.0" width="23.6" height="12.8" fill="#FFE6A6"><animate attributeName="opacity" values="1;1;.15;.15;1" keyTimes="0;.5;.55;.9;1" dur="13.8s" begin="-4.3s" repeatCount="indefinite"></animate></rect><rect x="181.5" y="128.0" width="23.6" height="12.8" fill="#FFE6A6"></rect><rect x="223.7" y="128.0" width="23.6" height="12.8" fill="#6A5F4E"></rect><rect x="266.0" y="128.0" width="23.6" height="12.8" fill="#FFE6A6"><animate attributeName="opacity" values="1;1;.15;.15;1" keyTimes="0;.5;.55;.9;1" dur="12.4s" begin="-9.6s" repeatCount="indefinite"></animate></rect><rect x="308.2" y="128.0" width="23.6" height="12.8" fill="#6A5F4E"></rect><rect x="350.4" y="128.0" width="23.6" height="12.8" fill="#6A5F4E"></rect><rect x="392.6" y="128.0" width="23.6" height="12.8" fill="#FFE6A6"></rect><rect x="434.8" y="128.0" width="23.6" height="12.8" fill="#6A5F4E"></rect><rect x="477.1" y="128.0" width="23.6" height="12.8" fill="#FFE6A6"></rect><rect x="139.3" y="151.3" width="23.6" height="12.8" fill="#6A5F4E"></rect><rect x="181.5" y="151.3" width="23.6" height="12.8" fill="#7B6F5C"></rect><rect x="223.7" y="151.3" width="23.6" height="12.8" fill="#6A5F4E"></rect><rect x="266.0" y="151.3" width="23.6" height="12.8" fill="#7B6F5C"></rect><rect x="308.2" y="151.3" width="23.6" height="12.8" fill="#FFE6A6"></rect><rect x="350.4" y="151.3" width="23.6" height="12.8" fill="#7B6F5C"></rect><rect x="392.6" y="151.3" width="23.6" height="12.8" fill="#FFE6A6"></rect><rect x="434.8" y="151.3" width="23.6" height="12.8" fill="#7B6F5C"></rect><rect x="477.1" y="151.3" width="23.6" height="12.8" fill="#7B6F5C"></rect><rect x="120" y="190" width="400" height="12" fill="#1B1B1B"></rect><rect x="250" y="160" width="140" height="26" rx="6" fill="#1B1B1B"></rect><g transform="translate(310.824 163.824) scale(0.764706)" fill="none" stroke="#D9B44A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19L19 5M15 5h4v4"></path><circle cx="7" cy="17" r="2"></circle></g><rect x="140" y="212" width="100" height="72" fill="#EAD9C2"></rect><circle cx="160" cy="226" r="5" fill="#EDE3D5"></circle><path d="M160 232l-10 40h20z" fill="#C8312B"></path><circle cx="190" cy="226" r="5" fill="#EDE3D5"></circle><path d="M190 232l-10 40h20z" fill="#1B1B1B"></path><circle cx="220" cy="226" r="5" fill="#EDE3D5"></circle><path d="M220 232l-10 40h20z" fill="#D9B44A"></path><rect x="140" y="212" width="35" height="72" fill="#FFFFFF" opacity=".18"></rect><rect x="400" y="212" width="100" height="72" fill="#EAD9C2"></rect><circle cx="420" cy="226" r="5" fill="#EDE3D5"></circle><path d="M420 232l-10 40h20z" fill="#C8312B"></path><circle cx="450" cy="226" r="5" fill="#EDE3D5"></circle><path d="M450 232l-10 40h20z" fill="#1B1B1B"></path><circle cx="480" cy="226" r="5" fill="#EDE3D5"></circle><path d="M480 232l-10 40h20z" fill="#D9B44A"></path><rect x="400" y="212" width="35" height="72" fill="#FFFFFF" opacity=".18"></rect><rect x="270" y="212" width="100" height="72" fill="#1B1B1B"></rect><path d="M300 212v72M340 212v72" stroke="#D9B44A" stroke-width="2"></path><path d="M290 284h60l20 30h-100z" fill="#C8312B"></path><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="32.5317s" begin="-21.5s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="276" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="280" width="7" height="11" rx="3" fill="#2B2B2B"></rect><rect x="-3" y="291" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="291" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="23.537s" begin="-23.8s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="276" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="280" width="7" height="11" rx="3" fill="#2BB673"></rect><rect x="-3" y="291" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="291" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="27.0091s" begin="-4.7s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="276" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="280" width="7" height="11" rx="3" fill="#2BB673"></rect><rect x="-3" y="291" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="291" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><rect x="80" y="262" width="2" height="30" fill="#2B2F3A"></rect><rect x="77.5" y="262" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><rect x="560" y="262" width="2" height="30" fill="#2B2F3A"></rect><rect x="557.5" y="262" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><rect width="640" height="360" fill="url(#a20lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a20gl)"><rect x="181.5" y="104.7" width="23.6" height="12.8" fill="#FFD27A" opacity="0"><animate attributeName="opacity" values="0;0;1;.3;1;.2;1;1;0;0" keyTimes="0;0.461;0.471;0.511;0.561;0.661;0.711;0.945;0.955;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="223.7" y="104.7" width="23.6" height="12.8" fill="#FFD27A" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.375;0.385;0.910;0.920;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="266.0" y="104.7" width="23.6" height="12.8" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.406;0.416;0.937;0.947;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="308.2" y="104.7" width="23.6" height="12.8" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.331;0.341;0.932;0.942;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="350.4" y="104.7" width="23.6" height="12.8" fill="#FFD27A" opacity="0"><animate attributeName="opacity" values="1;1" keyTimes="0;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="139.3" y="128.0" width="23.6" height="12.8" fill="#FFD27A" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.290;0.300;0.863;0.873;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="181.5" y="128.0" width="23.6" height="12.8" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.343;0.353;0.928;0.938;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="223.7" y="128.0" width="23.6" height="12.8" fill="#A8D4FF" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.468;0.478;0.907;0.917;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="308.2" y="128.0" width="23.6" height="12.8" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.383;0.393;0.924;0.934;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="350.4" y="128.0" width="23.6" height="12.8" fill="#FFD27A" opacity="0"><animate attributeName="opacity" values="0;0;1;.3;1;.2;1;1;0;0" keyTimes="0;0.302;0.312;0.352;0.402;0.502;0.552;0.852;0.862;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="392.6" y="128.0" width="23.6" height="12.8" fill="#FFF1C7" opacity="0"><animate attributeName="opacity" values="1;1" keyTimes="0;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="434.8" y="128.0" width="23.6" height="12.8" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;.3;1;.2;1;1;0;0" keyTimes="0;0.353;0.363;0.403;0.453;0.553;0.603;0.876;0.886;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="181.5" y="151.3" width="23.6" height="12.8" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.473;0.483;0.841;0.851;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="308.2" y="151.3" width="23.6" height="12.8" fill="#FFE6A6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.404;0.414;0.889;0.899;1" dur="32s" repeatCount="indefinite"></animate></rect><rect x="434.8" y="151.3" width="23.6" height="12.8" fill="#FFC86B" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.436;0.446;0.895;0.905;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><rect x="247" y="157" width="146" height="32" rx="6" fill="#FFD27A" opacity=".35"></rect><g transform="translate(310.824 163.824) scale(0.764706)" fill="none" stroke="#FFD27A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19L19 5M15 5h4v4"></path><circle cx="7" cy="17" r="2"></circle></g><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="140" y="212" width="100" height="72" fill="#FFE6A6" opacity=".55"></rect><circle cx="160" cy="226" r="5" fill="#EDE3D5"></circle><path d="M160 232l-10 40h20z" fill="#C8312B"></path><circle cx="190" cy="226" r="5" fill="#EDE3D5"></circle><path d="M190 232l-10 40h20z" fill="#1B1B1B"></path><circle cx="220" cy="226" r="5" fill="#EDE3D5"></circle><path d="M220 232l-10 40h20z" fill="#D9B44A"></path><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="400" y="212" width="100" height="72" fill="#FFE6A6" opacity=".55"></rect><circle cx="420" cy="226" r="5" fill="#EDE3D5"></circle><path d="M420 232l-10 40h20z" fill="#C8312B"></path><circle cx="450" cy="226" r="5" fill="#EDE3D5"></circle><path d="M450 232l-10 40h20z" fill="#1B1B1B"></path><circle cx="480" cy="226" r="5" fill="#EDE3D5"></circle><path d="M480 232l-10 40h20z" fill="#D9B44A"></path><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="320" cy="230" r="6" fill="#FFE29A"><animate attributeName="opacity" values="1;.6;1" dur="2s" repeatCount="indefinite"></animate></circle><g opacity="0"><circle cx="81" cy="265" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="81" cy="265" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><circle cx="561" cy="265" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="561" cy="265" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g></g><rect width="640" height="360" filter="url(#a20gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a20vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>Défilé dans 18 jours</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Maison Delorme</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Haute couture · avenue Montaigne, Paris</div></div>
+    </div>
+    <div class="res"><div><small>Bénéfice hier</small><b class="pos">+4 281 €</b></div><div style="text-align:right"><small>Note du dernier défilé</small><b>15 / 20</b></div></div>
+    <button class="up">Agrandir la maison · niv. 2 <span>128 000 €</span></button>
+    <div class="todo"><span style="flex:1"><b>Le Baroque est passé de mode</b> : la collection en cours sera moins bien reçue.</span><button class="lnk">Voir</button></div>
+
+    <!-- 1. LE PRESTIGE -->
+    <h2 class="sec">Le prestige</h2>
+    <div class="pres">
+      <div class="ring"><svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="40" fill="none" stroke="#2a2a2e" stroke-width="7"/><circle cx="48" cy="48" r="40" fill="none" stroke="#C8A96A" stroke-width="7" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="88" transform="rotate(-90 48 48)"/></svg><b>65</b><small>SUR 100</small></div>
+      <div class="t"><b>Une maison qui compte</b><span>Le prestige porte les ventes de prêt-à-porter et attire les clientes du sur-mesure.</span>
+        <div class="kv"><div>Prêt-à-porter<b>3 120 € / j</b></div><div>Sur mesure<b>2 commandes</b></div></div></div>
+    </div>
+
+    <!-- 2. LE STUDIO -->
+    <h2 class="sec">Le studio <small>collection en création</small></h2>
+    <div class="studio">
+      <div class="cl"><b>Automne-hiver 2026</b><span>jour 32 sur 50</span></div>
+      <div class="prog"><i></i></div>
+      <span class="lbl">Style</span>
+      <div class="styles" id="styles"></div>
+      <span class="lbl">Ampleur</span>
+      <div class="seg"><button>Capsule<small>20 silhouettes</small></button><button class="on">Collection<small>35 silhouettes</small></button><button>Grand défilé<small>50 silhouettes</small></button></div>
+      <span class="lbl">Tissus</span>
+      <div class="seg"><button><span class="swatch" style="background:#C9C2B6"></span>Classiques<small>prix normal</small></button><button class="on"><span class="swatch" style="background:linear-gradient(135deg,#F1E2C4,#C8A96A)"></span>Soieries<small>italiennes · +30 %</small></button><button><span class="swatch" style="background:#8FA7C0"></span>Vos filatures<small>−20 %</small></button></div>
+      <div class="da">
+        <div class="av">LD</div>
+        <div><b>Lucien Delorme</b><small>Directeur artistique · talent ★★★★☆ · aime le Romantique</small>
+          <div class="mood"><span>Humeur <b>70</b></span><span>Caprices <b>assez rares</b></span></div></div>
+      </div>
+    </div>
+
+    <!-- 3. LE DÉFILÉ -->
+    <h2 class="sec">Le défilé <small>dans 18 jours</small></h2>
+    <div class="show">
+      <div class="stage" id="stage"></div>
+      <span class="lbl" style="color:#BDB3A2">Ville du défilé</span>
+      <div class="city"><button class="on">Paris<small>prestige ×10</small></button><button>New York<small>×8</small></button><button>Los Angeles<small>×6</small></button><button>Shanghai<small>×6</small></button><button>Miami<small>×5</small></button></div>
+      <div class="crit"><b>15</b><p>« Une coupe d'une grande justesse, des soieries somptueuses. On attend désormais l'audace. » — dernier défilé, printemps-été</p></div>
+    </div>
+
+    <!-- 4. L'ATELIER SUR MESURE -->
+    <h2 class="sec">L'atelier <small>commandes sur mesure</small></h2>
+    <div class="atl">
+      <div class="ord"><span class="mini" id="o1"></span><div><b>Robe du soir · une actrice</b><small>livraison dans 12 jours</small><div class="pg"><i style="width:60%"></i></div></div><span class="px">38 000 €</span></div>
+      <div class="ord"><span class="mini" id="o2"></span><div><b>Robe de mariée · une héritière</b><small>livraison dans 27 jours</small><div class="pg"><i style="width:10%"></i></div></div><span class="px">64 000 €</span></div>
+      <div class="art"><span><b>Artisans : 4</b>chacun réalise une commande en 30 jours</span><div class="stp"><button aria-label="Un artisan de moins">−</button><b>4</b><button aria-label="Un artisan de plus">+</button></div></div>
+    </div>
+
+    <!-- 5. LICENCES ET ÉGÉRIE -->
+    <h2 class="sec">Licences et égérie</h2>
+    <div class="lic">
+      <div class="lc"><svg width="54" height="64" viewBox="0 0 54 64"><rect x="21" y="4" width="12" height="9" rx="2" fill="#C8A96A"/><rect x="24" y="12" width="6" height="6" fill="#9b8150"/><path d="M8 22 Q8 18 12 18 L42 18 Q46 18 46 22 L46 56 Q46 60 42 60 L12 60 Q8 60 8 56Z" fill="#F3E3E1" stroke="#C8A96A" stroke-width="1.5"/><path d="M12 30 L42 30 L42 52 L12 52Z" fill="rgba(200,169,106,.35)"/><text x="27" y="44" text-anchor="middle" font-family="Bodoni Moda,serif" font-size="8" fill="#141416">D</text></svg><b>Parfum</b><span class="v">+2 400 € / j</span><span class="w">use le prestige</span><button class="btn noir">Signer</button></div>
+      <div class="lc"><svg width="64" height="64" viewBox="0 0 64 64"><path d="M20 26 Q20 10 32 10 Q44 10 44 26" fill="none" stroke="#141416" stroke-width="3"/><path d="M10 26 L54 26 L50 58 L14 58Z" fill="#141416"/><rect x="28" y="34" width="8" height="6" rx="1" fill="#C8A96A"/><path d="M10 26 L54 26 L52 32 L12 32Z" fill="#2A2A2E"/></svg><b>Accessoires</b><span class="v">+1 300 € / j</span><span class="w">use le prestige</span><button class="btn">Signer</button></div>
+    </div>
+    <div class="egerie"><span class="ph" id="eg"></span><div><b>Engager une égérie</b><small>90 jours : prestige qui monte chaque jour, ventes +15 %, défilés +5</small></div><button class="btn noir" style="margin:0">60 000 €</button></div>
+
+    <!-- 6. LES PALIERS -->
+    <h2 class="sec">Les paliers <small>palier 1 sur 5</small></h2>
+    <div class="path">
+      <div class="steps">
+        <div class="p now"><i>👠</i>Semaine de la mode</div><div class="ln"></div>
+        <div class="p"><i>🌸</i>Parfum</div><div class="ln"></div>
+        <div class="p"><i>🏙️</i>Boutiques capitales</div><div class="ln"></div>
+        <div class="p"><i>🧵</i>Ateliers d'art</div><div class="ln"></div>
+        <div class="p"><i>👑</i>Maison mythique</div>
+      </div>
+      <p class="hint">Avec votre usine textile, les tissus coûtent 20 % de moins et gagnent en qualité.</p>
+    </div>
+
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt">
+      <button class="mg">Équipe<small>12 / 12 · fatigue 14</small></button>
+      <button class="mg">Finances<small>+4 281 € hier</small></button>
+      <button class="mg">Local<small>locataire · 640 € / j</small></button>
+      <button class="mg">Sécurité<small>gardiennage · assuré</small></button>
+    </div>
+    <div class="dlg"><span><b>Margaux Bertin, directrice de la maison</b>peut lancer les collections et choisir les défilés à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+
+<div class="legend">
+  <h2>Ce qui la distingue</h2>
+  <ul>
+    <li><b>Le prestige</b>, au centre de tout, dans un anneau doré.</li>
+    <li><b>Le studio</b> : la collection en création jour après jour. On choisit le style sur des croquis de mode, avec sa tendance de la saison, l'ampleur (capsule, collection, grand défilé) et les tissus. Le directeur artistique, son talent, son style préféré et ses caprices sont juste en dessous.</li>
+    <li><b>Le défilé</b> : le podium sous les projecteurs avec les silhouettes de la collection, le choix de la ville et l'article de la critique.</li>
+    <li><b>L'atelier</b> : les commandes sur mesure des clientes de prestige, avec leur avancement, et le nombre d'artisans.</li>
+    <li><b>Licences et égérie</b> : le flacon de parfum et le sac, qui rapportent mais usent le prestige.</li>
+    <li>Ambiance maison de couture : ivoire, noir et champagne, titres en capitales Didot.</li>
+  </ul>
+  <p>Les montants et les noms sont des exemples.</p>
+</div>
+
+<script>
+/* Croquis de mode : silhouette élancée habillée selon le style. fig(style, couleur, largeur) */
+let FG_N=0;
+function fshade(hex,f){ const n=parseInt(hex.slice(1),16); let r=n>>16,g=n>>8&255,b=n&255;
+  if(f<0){ r*=1+f; g*=1+f; b*=1+f; } else { r+=(255-r)*f; g+=(255-g)*f; b+=(255-b)*f; }
+  return '#'+[r,g,b].map(x=>Math.round(x).toString(16).padStart(2,'0')).join(''); }
+function fig(sty,c,W,skin){ const id='fg'+(++FG_N), H=Math.round(W*2.6), sk=skin||'#E9C3A6', hi=fshade(c,.4), lo=fshade(c,-.35);
+  let d='<linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+lo+'"/><stop offset=".45" stop-color="'+c+'"/><stop offset=".7" stop-color="'+hi+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient>';
+  let s='<ellipse cx="50" cy="252" rx="22" ry="3" fill="rgba(0,0,0,.15)"/>';
+  /* jambes et chaussures (cachées par les robes longues) */
+  const legs='<path d="M44 150 L42 244 L46 244 L49 152 Z M56 150 L58 244 L54 244 L51 152 Z" fill="'+sk+'"/><path d="M40 244 l7 0 l1 4 l-9 0 z M53 244 l7 0 l1 4 l-9 0 z" fill="#1e1e22"/>';
+  /* tête, cou, bras */
+  const head='<rect x="47.5" y="38" width="5" height="9" fill="'+sk+'"/><ellipse cx="50" cy="30" rx="8" ry="10" fill="'+sk+'"/><path d="M42 28 C41 16 59 16 58 28 C56 22 46 22 42 28Z" fill="#2a1d16"/>';
+  const arms=(sl)=>'<path d="M38 50 C33 70 32 92 34 116 L37 116 C37 94 39 74 42 58Z M62 50 C67 70 68 92 66 116 L63 116 C63 94 61 74 58 58Z" fill="'+(sl||sk)+'"/>';
+  if(sty==='cla'){ /* Classique : tailleur jupe crayon, ceinture */
+    s+=legs+arms(c)+'<path d="M38 50 Q50 45 62 50 L60 98 L40 98 Z" fill="url(#'+id+')"/><path d="M50 48 L46 70 L50 98 L54 70 Z" fill="'+lo+'"/>'+
+      '<rect x="40" y="96" width="20" height="4" fill="#1e1e22"/><rect x="48" y="96" width="4" height="4" fill="#d4af37"/><path d="M40 100 L39 160 L61 160 L60 100Z" fill="url(#'+id+')"/>'+
+      '<circle cx="50" cy="62" r="1.2" fill="#d4af37"/><circle cx="50" cy="72" r="1.2" fill="#d4af37"/>'+head; }
+  if(sty==='avg'){ /* Avant-garde : volumes asymétriques */
+    s+=legs+arms()+'<path d="M36 46 L70 40 L62 70 L66 150 L36 168 L40 100 Z" fill="url(#'+id+')"/><path d="M70 40 L86 34 L74 58 Z" fill="'+hi+'"/><path d="M36 168 L66 150 L74 178 Z" fill="'+lo+'"/>'+
+      '<path d="M40 100 L66 92" stroke="#1e1e22" stroke-width="2"/><path d="M38 120 L64 128" stroke="'+hi+'" stroke-width="1"/>'+head+'<path d="M40 20 L60 14 L58 22 Z" fill="#1e1e22"/>'; }
+  if(sty==='min'){ /* Minimaliste : robe colonne */
+    s+='<path d="M42 244 l7 0 l1 4 l-9 0 z M53 244 l7 0 l1 4 l-9 0 z" fill="#1e1e22"/>'+arms()+'<path d="M40 50 Q50 46 60 50 L62 100 L64 242 L36 242 L38 100 Z" fill="url(#'+id+')"/><path d="M50 52 L50 242" stroke="'+lo+'" stroke-width=".8" opacity=".6"/>'+head; }
+  if(sty==='rom'){ /* Romantique : robe de bal à volants */
+    s+=arms()+'<path d="M40 50 Q50 46 60 50 L57 96 L43 96 Z" fill="url(#'+id+')"/><path d="M43 96 C28 140 14 200 10 244 L90 244 C86 200 72 140 57 96 Z" fill="url(#'+id+')"/>';
+    for(let i=0;i<4;i++){ const y=150+i*26, w=18+i*10; s+='<path d="M'+(50-w)+' '+y+' q'+(w/4)+' 6 '+(w/2)+' 0 t'+(w/2)+' 0 t'+(w/2)+' 0 t'+(w/2)+' 0" stroke="'+hi+'" stroke-width="2" fill="none"/>'; }
+    s+='<path d="M40 50 Q50 58 60 50" stroke="#fff" stroke-width="2" fill="none" opacity=".8"/><circle cx="50" cy="96" r="3" fill="'+hi+'"/>'+head; }
+  if(sty==='str'){ /* Streetwear de luxe : sweat ample et pantalon large */
+    s+='<path d="M38 140 L34 244 L48 244 L50 150 L52 244 L66 244 L62 140 Z" fill="#2b2f35"/><path d="M33 244 l16 0 l1 5 l-18 0z M51 244 l16 0 l1 5 l-18 0z" fill="#f2f2f2"/>'+
+      '<path d="M34 50 Q50 42 66 50 L72 118 L66 120 L64 142 L36 142 L34 120 L28 118 Z" fill="url(#'+id+')"/><path d="M42 46 Q50 60 58 46" stroke="'+lo+'" stroke-width="3" fill="none"/>'+
+      '<rect x="42" y="92" width="16" height="12" rx="2" fill="'+lo+'"/><text x="50" y="80" text-anchor="middle" font-size="7" font-weight="800" fill="#fff" font-family="sans-serif">MAISON</text>'+head; }
+  if(sty==='bar'){ /* Baroque : robe brodée d'or */
+    s+=arms(c)+'<path d="M40 50 Q50 46 60 50 L57 100 L43 100 Z" fill="url(#'+id+')"/><path d="M43 100 C30 150 24 210 20 244 L80 244 C76 210 70 150 57 100 Z" fill="url(#'+id+')"/>'+
+      '<path d="M50 52 L46 70 L50 100 L54 70 Z" fill="#d4af37"/>';
+    for(let i=0;i<7;i++){ s+='<circle cx="'+(28+i*7.3)+'" cy="'+(236-(i%2)*4)+'" r="2.4" fill="none" stroke="#d4af37" stroke-width="1.2"/>'; }
+    for(let i=0;i<5;i++){ s+='<path d="M'+(36+i*7)+' '+(140+i*4)+' q3 -6 6 0 q-3 6 -6 0" fill="#d4af37" opacity=".85"/>'; }
+    s+='<path d="M36 50 Q50 40 64 50 L66 44 Q50 32 34 44Z" fill="#d4af37"/>'+head+'<circle cx="50" cy="15" r="2.5" fill="#d4af37"/>'; }
+  return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 100 260"><defs>'+d+'</defs>'+s+'</svg>'; }
+
+const ST=[['cla','Classique','#22304a','+12 %','up2'],['avg','Avant-garde','#e2e2e2','=',''],['min','Minimaliste','#c9b79c','+5 %','up2'],['rom','Romantique','#e9a3b5','+20 %','up2'],['str','Streetwear','#3d5a3c','−8 %','dn'],['bar','Baroque','#6e1423','−25 %','dn']];
+document.getElementById('styles').innerHTML=ST.map((x,i)=>'<button class="sty'+(i===3?' on':'')+'">'+fig(x[0],x[2],34)+x[1]+'<small class="'+x[4]+'">'+x[3]+'</small></button>').join('');
+/* podium : spots, public, mannequins en perspective */
+let g='<div class="spot" style="left:20px"></div><div class="spot" style="right:20px"></div><div class="cat"></div>';
+g+='<div class="crowd" style="left:4px">'+'<i style="width:60px"></i>'.repeat(9)+'</div><div class="crowd" style="right:4px">'+'<i style="width:60px;margin-left:10px"></i>'.repeat(9)+'</div>';
+[['rom','#e9a3b5',60,-10,0],['min','#c9b79c',46,24,50],['cla','#22304a',36,-22,92],['rom','#f2d0d8',28,14,124],['avg','#e2e2e2',22,-4,150]].forEach(m=>{ g+='<div class="mdl" style="bottom:'+m[4]+'px;margin-left:'+(m[3]-m[2]/2)+'px;z-index:'+(10-m[4]/20|0)+'">'+fig(m[0],m[1],m[2])+'</div>'; });
+document.getElementById('stage').innerHTML=g;
+document.getElementById('o1').innerHTML=fig('rom','#6e1423',21); document.getElementById('o2').innerHTML=fig('rom','#f8f4ec',21); document.getElementById('eg').innerHTML=fig('min','#141416',26,'#d9a88a');
+document.querySelectorAll('.seg button,.city button').forEach(b=>b.addEventListener('click',()=>b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))));
+document.querySelectorAll('.sty').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('.sty').forEach(x=>x.classList.remove('on')); b.classList.add('on'); }));
+</script>
+</body>
+</html>
