@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Usine électronique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  /* identité de l'usine : salle blanche, lumière jaune de lithographie, circuits cuivre, silicium violet */
+  --clean:#F2F4F8; --clean-2:#E2E6EE; --litho:#F7D154; --pcb:#13392F; --pcb-2:#0C2720; --copper:#D9A552; --si:#6F63B0; --dark:#11141C; --dark-2:#1D2230;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif; --fm:'Space Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#d5dae3;color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.note-top{max-width:390px;margin:0 auto;padding:14px 16px 0;font-size:13px;color:#3E4A7A}
+.phone{max-width:390px;margin:10px auto 30px;background:var(--clean);border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--si);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 var(--clean-2);font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--clean-2)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(10,12,20,.88))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:700 24px/1.05 var(--fm);color:#fff;letter-spacing:-.5px}
+.hero .sub{color:#D9DEEA;font-size:13px;margin-top:3px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--good-bg)}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--si);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--clean-2);flex:0 0 auto}
+h2.sec{font:700 14px var(--fm);color:var(--dark-2);margin:22px 4px 8px;display:flex;justify-content:space-between;align-items:baseline;text-transform:uppercase;letter-spacing:.5px}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3);text-transform:none;letter-spacing:0}
+
+/* 1. LA PLAQUETTE : le rendement */
+.lab{background:radial-gradient(ellipse at 50% 30%,#fff5c9,#f7d154 40%,#e2b52f 75%);border-radius:22px;padding:14px;box-shadow:0 4px 0 #b88f1c;position:relative;overflow:hidden}
+.lab::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.12) 0 2px,transparent 2px 6px)}
+.wf{position:relative;display:flex;gap:12px;align-items:center}
+.wf .k{flex:1}
+.wf .k small{display:block;font:800 11px var(--fb);letter-spacing:.08em;text-transform:uppercase;color:#6b4e00}
+.wf .k b{display:block;font:700 40px/1 var(--fm);color:var(--dark)}
+.wf .k span{display:block;font-size:12.5px;color:#4a3700;margin-top:4px}
+.lg{display:flex;gap:10px;margin-top:6px;font-size:11.5px;color:#4a3700}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.curve{position:relative;margin-top:10px;background:rgba(255,255,255,.55);border-radius:14px;padding:8px 10px}
+.curve .l{display:flex;justify-content:space-between;font-size:11.5px;color:#4a3700}
+
+/* 2. LES GÉNÉRATIONS DE GRAVURE */
+.road{background:var(--pcb);border-radius:20px;padding:12px;color:#CFE7DD;box-shadow:0 4px 0 var(--pcb-2);background-image:linear-gradient(90deg,rgba(217,165,82,.12) 1px,transparent 1px),linear-gradient(rgba(217,165,82,.12) 1px,transparent 1px);background-size:20px 20px}
+.gens{display:flex;align-items:center;gap:0;margin:6px 0 8px;position:relative}
+.gn{flex:0 0 62px;text-align:center;font:700 11px var(--fm);color:#9FC9B8}
+.gn .c{width:58px;height:58px;margin:0 auto 4px;opacity:.45;filter:grayscale(.6)}
+.gn.done .c,.gn.now .c{opacity:1;filter:none}
+.gn.now{color:var(--litho)}
+.gn.now .c{filter:drop-shadow(0 0 8px rgba(247,209,84,.7))}
+.tr{flex:1;height:3px;background:var(--copper);opacity:.5}
+.tr.half{background:linear-gradient(90deg,var(--copper) 40%,rgba(217,165,82,.25) 40%);opacity:1}
+.rp{display:flex;justify-content:space-between;font-size:12.5px;margin-top:4px}
+.rp b{color:#fff}
+.seg{display:flex;background:rgba(0,0,0,.25);border-radius:14px;padding:4px;gap:4px;margin-top:8px}
+.seg button{flex:1;border:0;background:none;border-radius:11px;min-height:42px;font:800 12.5px var(--fb);color:#CFE7DD}
+.seg button.on{background:var(--copper);color:var(--pcb-2)}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+.road .hint{color:#9FC9B8}
+
+/* 3. LA LIGNE DE PRODUCTION */
+.line{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--clean-2)}
+.prods{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pd{border:0;background:var(--clean);border-radius:14px;padding:6px 4px 8px;text-align:center;font:800 11.5px var(--fb);color:var(--ink)}
+.pd svg{display:block;margin:0 auto}
+.pd small{display:block;font:700 10.5px var(--fb);color:var(--ink-3)}
+.pd em{display:inline-block;font-style:normal;margin-top:3px;font:800 9.5px var(--fb);border-radius:6px;padding:1px 6px;background:var(--clean-2);color:var(--ink-3)}
+.pd em.p{background:var(--lime);color:var(--lime-ink)}
+.mix{margin-top:10px}
+.mix .r{display:grid;grid-template-columns:110px 1fr 40px;gap:8px;align-items:center;font-size:12.5px;margin-top:4px}
+.mix input{width:100%;accent-color:var(--si);height:28px}
+.mix b{text-align:right}
+.rooms{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--clean-2);font-size:12.5px;color:var(--ink-3)}
+.rooms b{display:block;color:var(--ink);font-size:14px}
+.btn{border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--clean-2),inset 0 0 0 1.5px var(--clean-2);white-space:nowrap}
+.btn.si{background:var(--si);color:#fff;box-shadow:0 3px 0 #4b4185}
+
+/* 4. LE STUDIO SMARTPHONE */
+.studio{background:var(--dark);border-radius:22px;padding:14px 12px;color:#D9DEEA;box-shadow:0 4px 0 #05060a}
+.studio .hd{display:flex;justify-content:space-between;align-items:baseline}
+.studio .hd b{font:700 16px var(--fm);color:#fff}
+.studio .vis{display:flex;justify-content:center;margin:10px 0 6px}
+.studio .lb{display:block;font:800 11.5px var(--fb);letter-spacing:.08em;text-transform:uppercase;color:#8a92a8;margin:10px 0 4px}
+.studio .seg{background:rgba(255,255,255,.08)}
+.studio .seg button{color:#D9DEEA}
+.studio .seg button.on{background:#fff;color:var(--dark)}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:12px;background:rgba(255,255,255,.06);border-radius:14px;padding:10px}
+.vs div{text-align:center;font-size:11.5px;color:#8a92a8}
+.vs b{display:block;font:700 26px var(--fm);color:#fff}
+.vs .me b{color:var(--litho)}
+.vs span{font:800 12px var(--fb);color:#8a92a8}
+.launch{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12.5px}
+.launch b{display:block;color:#fff;font-size:14px}
+.pricebox{display:flex;align-items:center;gap:6px}
+.pricebox button{width:44px;height:44px;border:0;border-radius:12px;background:rgba(255,255,255,.1);color:#fff;font:800 13px var(--fb)}
+.pricebox b{min-width:72px;text-align:center;font:700 20px var(--fm);color:#fff}
+
+/* 5. MATIÈRES RARES */
+.mat{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--clean-2)}
+.mt{display:grid;grid-template-columns:34px 1fr 70px 52px;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--clean-2);font-size:13px}
+.mt:first-child{border-top:0}
+.mt .el{width:34px;height:34px;border-radius:8px;background:var(--clean);display:grid;place-items:center;font:700 13px var(--fm);color:var(--si);box-shadow:inset 0 0 0 1.5px var(--clean-2);position:relative}
+.mt .el small{position:absolute;top:1px;left:3px;font:700 7px var(--fm);color:var(--ink-3)}
+.mt em{font-style:normal;text-align:right;font-weight:800}
+
+/* 6. LES PALIERS */
+.path{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--clean-2)}
+.steps{display:flex;align-items:flex-start}
+.steps .p{flex:0 0 58px;text-align:center;font:800 10px/1.2 var(--fb);color:var(--ink-3)}
+.steps .p i{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:9px;background:var(--clean);font-style:normal;font-size:17px}
+.steps .p.now i{background:var(--si);box-shadow:0 0 0 3px #DCD8F1}
+.steps .ln{flex:1;height:2px;margin-top:18px;background:var(--copper);opacity:.5}
+
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 var(--clean-2);font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--clean-2);font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+.legend{max-width:390px;margin:0 auto 50px;padding:0 16px;font-size:14px;color:#3E4A7A}
+.legend h2{font:800 19px var(--fd);color:var(--ink);margin:12px 0 6px}
+.legend li{margin:4px 0}
+</style>
+</head>
+<body>
+<p class="note-top"><b>Maquette · Usine électronique.</b> Le cœur du métier : améliorer le rendement de chaque plaquette, passer à la gravure suivante, puis lancer son smartphone.</p>
+
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a13c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a13gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a13bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a13bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a13gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a13vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a13lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a13sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4E92DA"></stop><stop offset="1" stop-color="#D6ECFA"></stop></linearGradient></defs><g clip-path="url(#a13c)"><rect width="640" height="360" fill="url(#a13sky)"></rect><g><g fill="#FFFFFF" opacity=".85"><ellipse cx="90" cy="54" rx="40" ry="12"></ellipse><ellipse cx="114" cy="46" rx="26" ry="12"></ellipse><ellipse cx="470" cy="34" rx="34" ry="10"></ellipse><ellipse cx="492" cy="28" rx="22" ry="10"></ellipse></g><animateTransform attributeName="transform" type="translate" values="0 0;50 0;0 0" dur="34s" repeatCount="indefinite"></animateTransform></g><g fill="#A9BDD3" opacity=".55"><rect x="0" y="172" width="40" height="78"></rect><rect x="44" y="168" width="45" height="82"></rect><rect x="92" y="205" width="55" height="45"></rect><rect x="151" y="151" width="31" height="99"></rect><rect x="186" y="194" width="40" height="56"></rect><rect x="230" y="177" width="70" height="73"></rect><rect x="304" y="177" width="63" height="73"></rect><rect x="372" y="199" width="56" height="51"></rect><rect x="431" y="149" width="55" height="101"></rect><rect x="490" y="158" width="51" height="92"></rect><rect x="545" y="206" width="57" height="44"></rect><rect x="606" y="169" width="60" height="81"></rect></g><rect x="0" y="292" width="640" height="68" fill="#8E8C86"></rect><rect x="0" y="284" width="640" height="8" fill="#C9C6BE"></rect><rect x="0" y="326" width="640" height="3" fill="#E9E3C8" opacity=".7"></rect><rect x="80" y="134" width="480" height="150" fill="#E9EDF2"></rect><rect x="440" y="134" width="120" height="150" fill="#000" opacity="0.14"></rect><rect x="80" y="134" width="480" height="10" fill="#4D7BE0"></rect><rect x="110" y="170" width="420" height="80" fill="#BFE0F5"></rect><rect x="160" y="236" width="20" height="14" fill="#5B5F6A"></rect><g><path d="M170 236V210" stroke="#F2B134" stroke-width="5" stroke-linecap="round"></path><path d="M170 210h22" stroke="#F2B134" stroke-width="4" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="-30 170 210;20 170 210;-30 170 210" dur="2s" repeatCount="indefinite"></animateTransform></path></g><rect x="290" y="236" width="20" height="14" fill="#5B5F6A"></rect><g><path d="M300 236V210" stroke="#F2B134" stroke-width="5" stroke-linecap="round"></path><path d="M300 210h22" stroke="#F2B134" stroke-width="4" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="-30 300 210;20 300 210;-30 300 210" dur="2.4s" repeatCount="indefinite"></animateTransform></path></g><rect x="420" y="236" width="20" height="14" fill="#5B5F6A"></rect><g><path d="M430 236V210" stroke="#F2B134" stroke-width="5" stroke-linecap="round"></path><path d="M430 210h22" stroke="#F2B134" stroke-width="4" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="-30 430 210;20 430 210;-30 430 210" dur="2.8s" repeatCount="indefinite"></animateTransform></path></g><rect x="110" y="250" width="420" height="6" fill="#5B5F6A"></rect><rect x="0" y="242" width="12" height="8" rx="1" fill="#2BB673"><animate attributeName="x" values="110;520" dur="5s" begin="-0s" repeatCount="indefinite"></animate></rect><rect x="0" y="242" width="12" height="8" rx="1" fill="#2BB673"><animate attributeName="x" values="110;520" dur="5s" begin="-1s" repeatCount="indefinite"></animate></rect><rect x="0" y="242" width="12" height="8" rx="1" fill="#2BB673"><animate attributeName="x" values="110;520" dur="5s" begin="-2s" repeatCount="indefinite"></animate></rect><rect x="0" y="242" width="12" height="8" rx="1" fill="#2BB673"><animate attributeName="x" values="110;520" dur="5s" begin="-3s" repeatCount="indefinite"></animate></rect><rect x="0" y="242" width="12" height="8" rx="1" fill="#2BB673"><animate attributeName="x" values="110;520" dur="5s" begin="-4s" repeatCount="indefinite"></animate></rect><rect x="270" y="100" width="100" height="30" rx="6" fill="#1F3C88"></rect><g transform="translate(309.412 104.412) scale(0.882353)" fill="none" stroke="#9CD8FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"></rect><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"></path></g><rect x="60" y="264" width="2" height="28" fill="#2B2F3A"></rect><rect x="57.5" y="264" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><rect x="590" y="264" width="2" height="28" fill="#2B2F3A"></rect><rect x="587.5" y="264" width="7" height="2.4" rx="1" fill="#2B2F3A"></rect><g><animateTransform attributeName="transform" type="translate" values="-40 0;700 0" dur="26.282s" begin="-19.6s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="282" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="286" width="7" height="11" rx="3" fill="#E04B3B"></rect><rect x="-3" y="297" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="297" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="28.4342s" begin="-6.7s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="282" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="286" width="7" height="11" rx="3" fill="#3E7CC9"></rect><rect x="-3" y="297" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="297" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><g><animateTransform attributeName="transform" type="translate" values="700 0;-40 0" dur="29.8773s" begin="-12.1s" repeatCount="indefinite"></animateTransform><circle cx="0" cy="282" r="3.4" fill="#E8C4A0"></circle><rect x="-3.5" y="286" width="7" height="11" rx="3" fill="#2B2B2B"></rect><rect x="-3" y="297" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="7;4;7" dur=".5s" repeatCount="indefinite"></animate></rect><rect x=".6" y="297" width="2.4" height="7" fill="#33384A"><animate attributeName="height" values="4;7;4" dur=".5s" repeatCount="indefinite"></animate></rect></g><rect width="640" height="360" fill="url(#a13lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a13gl)"><g opacity="0"><rect x="110" y="170" width="420" height="80" fill="#8FD0FF" opacity=".55"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><rect x="267" y="97" width="106" height="36" rx="6" fill="#9CD8FF" opacity=".35"></rect><g transform="translate(309.412 104.412) scale(0.882353)" fill="none" stroke="#9CD8FF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"></rect><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"></path></g><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><circle cx="61" cy="267" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="61" cy="267" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g><g opacity="0"><circle cx="591" cy="267" r="9" fill="#FFD27A" opacity=".35"></circle><circle cx="591" cy="267" r="2.6" fill="#FFF1C7"></circle><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g></g><rect width="640" height="360" filter="url(#a13gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a13vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>Salles blanches en marche</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Silicium Volta</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Électronique · parc technologique, Paris</div></div>
+    </div>
+    <div class="res"><div><small>Bénéfice hier</small><b class="pos">+1 179 €</b></div><div style="text-align:right"><small>Rendement</small><b>72 %</b></div></div>
+    <button class="up">Agrandir l'usine · niv. 2 <span>214 000 €</span></button>
+    <div class="todo"><span style="flex:1"><b>Le lithium a pris 18 % cette semaine</b> : les batteries vous coûtent plus cher.</span><button class="lnk">Voir</button></div>
+
+    <!-- 1. LA PLAQUETTE -->
+    <h2 class="sec">La plaquette du jour <small>gravure 14 nm</small></h2>
+    <div class="lab">
+      <div class="wf"><span id="wafer"></span>
+        <div class="k"><small>Rendement</small><b id="yld">72 %</b><span id="cnt"></span>
+          <div class="lg"><span><i style="background:#d9b25a"></i>bonne</span><span><i style="background:#4a3f5c"></i>ratée</span></div></div></div>
+      <div class="curve"><div class="l"><span>Rendement sur 90 jours</span><span>s'améliore avec l'expérience</span></div>
+        <svg width="100%" height="46" viewBox="0 0 300 46" preserveAspectRatio="none"><path d="M0 40 C40 38 70 30 110 22 S190 12 230 9 S280 7 300 6" fill="none" stroke="#11141c" stroke-width="2.4"/><path d="M0 40 C40 38 70 30 110 22 S190 12 230 9 S280 7 300 6 L300 46 L0 46Z" fill="rgba(17,20,28,.12)"/><circle cx="230" cy="9" r="4" fill="#11141c"/><line x1="0" y1="26" x2="300" y2="26" stroke="#6b4e00" stroke-dasharray="3 4" stroke-width=".8"/><text x="4" y="24" font-size="9" fill="#6b4e00" font-family="Space Mono">54 %</text></svg></div>
+    </div>
+
+    <!-- 2. LES GÉNÉRATIONS -->
+    <h2 class="sec">La course à la finesse</h2>
+    <div class="road">
+      <div class="gens" id="gens"></div>
+      <div class="rp"><span>Recherche vers <b>7 nm</b> : 40 %</span><span>puces 30 % plus chères</span></div>
+      <div class="seg"><button>Aucun</button><button>5 %</button><button class="on">10 %</button><button>20 %</button></div>
+      <div class="hint">Budget de recherche en part du chiffre d'affaires. À chaque nouvelle gravure, le rendement redescend vers 54 % avant de remonter.</div>
+    </div>
+
+    <!-- 3. LA LIGNE DE PRODUCTION -->
+    <h2 class="sec">La ligne de production</h2>
+    <div class="line">
+      <div class="prods" id="prods"></div>
+      <div class="mix">
+        <div class="r"><span>Écrans</span><input type="range" value="30" aria-label="Part des écrans"><b>30 %</b></div>
+        <div class="r"><span>Batteries</span><input type="range" value="30" aria-label="Part des batteries"><b>30 %</b></div>
+        <div class="r"><span>Puces</span><input type="range" value="30" aria-label="Part des puces"><b>30 %</b></div>
+        <div class="r"><span>Pièces automobiles</span><input type="range" value="10" aria-label="Part des pièces automobiles"><b>10 %</b></div>
+      </div>
+      <div class="rooms"><span><b>Salles blanches : 1 sur 3</b>+30 % de production par salle<br>320 000 €</span><button class="btn si">Agrandir</button></div>
+    </div>
+
+    <!-- 4. LE STUDIO SMARTPHONE -->
+    <h2 class="sec">Le studio smartphone <small>palier 3</small></h2>
+    <div class="studio">
+      <div class="hd"><b>VOLT One · modèle 2027</b><span style="font-size:12px">lancement mi-septembre</span></div>
+      <div class="vis" id="ph"></div>
+      <span class="lb">Écran</span>
+      <div class="seg" data-k="e"><button>Standard</button><button class="on">OLED</button><button>OLED 120 Hz</button></div>
+      <span class="lb">Appareil photo</span>
+      <div class="seg" data-k="p"><button>Simple</button><button class="on">Double</button><button>Triple et zoom</button></div>
+      <div class="vs"><div class="me">Votre note<b>74</b></div><span>contre</span><div>Les rivaux<b>69</b></div></div>
+      <div class="launch"><span><b>Prix de vente</b>coût 312 € par téléphone · environ 2 300 ventes par semaine</span><div class="pricebox"><button aria-label="Baisser le prix">−20</button><b>649 €</b><button aria-label="Monter le prix">+20</button></div></div>
+    </div>
+
+    <!-- 5. MATIÈRES RARES -->
+    <h2 class="sec">Les matières rares <small>prix du jour</small></h2>
+    <div class="mat">
+      <div class="mt"><span class="el"><small>3</small>Li</span><span>Lithium<br><small style="color:var(--ink-3)">batteries</small></span><svg width="70" height="22" viewBox="0 0 70 22"><polyline points="0,16 10,15 20,17 30,12 40,13 50,8 60,6 70,3" fill="none" stroke="#c8352a" stroke-width="2"/></svg><em class="neg">+18 %</em></div>
+      <div class="mt"><span class="el"><small>31</small>Ga</span><span>Gallium<br><small style="color:var(--ink-3)">puces</small></span><svg width="70" height="22" viewBox="0 0 70 22"><polyline points="0,10 10,12 20,9 30,11 40,10 50,12 60,11 70,12" fill="none" stroke="#56638f" stroke-width="2"/></svg><em>−2 %</em></div>
+      <div class="mt"><span class="el"><small>49</small>In</span><span>Indium<br><small style="color:var(--ink-3)">écrans</small></span><svg width="70" height="22" viewBox="0 0 70 22"><polyline points="0,6 10,8 20,9 30,12 40,11 50,14 60,15 70,17" fill="none" stroke="#16804d" stroke-width="2"/></svg><em class="pos">−9 %</em></div>
+    </div>
+
+    <!-- 6. LES PALIERS -->
+    <h2 class="sec">Les paliers <small>palier 1 sur 5</small></h2>
+    <div class="path">
+      <div class="steps">
+        <div class="p now"><i>②</i>2e génération</div><div class="ln"></div>
+        <div class="p"><i>③</i>3e génération</div><div class="ln"></div>
+        <div class="p"><i>📱</i>Smart­phones</div><div class="ln"></div>
+        <div class="p"><i>💎</i>Haut de gamme</div><div class="ln"></div>
+        <div class="p"><i>⚛️</i>Pointe</div>
+      </div>
+    </div>
+
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt">
+      <button class="mg">Équipe<small>16 / 16 · fatigue 11</small></button>
+      <button class="mg">Finances<small>+1 179 € hier</small></button>
+      <button class="mg">Terrain<small>propriétaire</small></button>
+      <button class="mg">Sécurité<small>accès badgés · assuré</small></button>
+    </div>
+    <div class="dlg"><span><b>Mehdi Vincent, directeur du site</b>peut régler la production, la recherche et le smartphone à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+
+<div class="legend">
+  <h2>Ce qui la distingue</h2>
+  <ul>
+    <li><b>La plaquette du jour</b> sous la lumière jaune de la salle blanche : chaque carré est une puce, dorée si elle est bonne, barrée si elle est ratée. Le rendement se lit d'un coup d'œil, avec sa courbe d'apprentissage.</li>
+    <li><b>La course à la finesse</b> : les puces de 28 à 3 nm sur un circuit imprimé, la recherche en cours et son budget.</li>
+    <li><b>La ligne de production</b> : écrans, batteries, puces et pièces automobiles dessinés, avec leur qualité, la répartition et les salles blanches.</li>
+    <li><b>Le studio smartphone</b> : le téléphone de face et de dos change selon l'écran et l'appareil photo choisis ; la note face aux rivaux et le prix.</li>
+    <li><b>Les matières rares</b> : lithium, gallium, indium, avec la tendance de leur prix.</li>
+    <li>Ambiance semi-conducteurs : blanc de salle blanche, jaune de lithographie, circuit vert et cuivre, chiffres en police technique.</li>
+  </ul>
+  <p>Les montants et les noms sont des exemples.</p>
+</div>
+
+<script>
+/* Illustrations de l'usine électronique : plaquette de silicium, puce, produits, smartphone */
+let EL_N=0;
+/* plaquette vue de dessus : chaque carré est une puce, bonne (dorée) ou ratée (sombre) selon le rendement */
+function wafer(y,W,seed){ const id='wf'+(++EL_N); let s='', n=0, ok=0; const R=46, step=6.4; let r=seed||7;
+  const rnd=()=>{ r=(r*9301+49297)%233280; return r/233280; };
+  for(let ky=-7;ky<7;ky++) for(let kx=-7;kx<7;kx++){ const gx=kx*step, gy=ky*step, cx=gx+step/2, cy=gy+step/2; if(Math.hypot(cx,cy)>R-4) continue; n++;
+    const edge=Math.hypot(cx,cy)/R, good=rnd()<Math.min(.98,y*(1.15-edge*.3)); if(good) ok++;
+    s+='<rect x="'+(50+gx+.5).toFixed(1)+'" y="'+(50+gy+.5).toFixed(1)+'" width="'+(step-1)+'" height="'+(step-1)+'" rx=".5" fill="'+(good?'url(#'+id+'d)':'#4a3f5c')+'" opacity="'+(good?1:.85)+'"/>'+
+      (good? '<rect x="'+(50+gx+1.6).toFixed(1)+'" y="'+(50+gy+1.6).toFixed(1)+'" width="'+(step-3.2).toFixed(1)+'" height="'+(step-3.2).toFixed(1)+'" fill="none" stroke="#7a5a1c" stroke-width=".25"/>' : '<path d="M'+(50+gx+1.5).toFixed(1)+' '+(50+gy+1.5).toFixed(1)+' l'+(step-3)+' '+(step-3)+'" stroke="#c8352a" stroke-width=".5"/>'); }
+  return {ok,n,svg:'<svg width="'+W+'" height="'+W+'" viewBox="0 0 100 100"><defs>'+
+    '<radialGradient id="'+id+'" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#e6e9f5"/><stop offset=".4" stop-color="#a7b0d6"/><stop offset=".7" stop-color="#7d6fb5"/><stop offset="1" stop-color="#4b8fa8"/></radialGradient>'+
+    '<linearGradient id="'+id+'d" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e2a0"/><stop offset=".5" stop-color="#d9b25a"/><stop offset="1" stop-color="#a8802e"/></linearGradient>'+
+    '<linearGradient id="'+id+'s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.55)"/><stop offset=".4" stop-color="rgba(255,255,255,0)"/><stop offset=".7" stop-color="rgba(255,255,255,0)"/><stop offset="1" stop-color="rgba(255,255,255,.25)"/></linearGradient></defs>'+
+    '<circle cx="50" cy="51.5" r="48" fill="rgba(0,0,0,.25)"/><circle cx="50" cy="50" r="48" fill="url(#'+id+')"/><circle cx="50" cy="50" r="48" fill="none" stroke="#c9cfe6" stroke-width="1"/>'+s+
+    '<circle cx="50" cy="50" r="48" fill="url(#'+id+'s)"/><path d="M46 97.6 L54 97.6 L52 95.6 L48 95.6 Z" fill="#2a2f45"/></svg>'}; }
+/* puce encapsulée avec pattes et gravure */
+function chip(label,W,col){ const id='ch'+(++EL_N), c=col||'#1d2230';
+  let pins=''; for(let i=0;i<7;i++){ const p=22+i*9.4; pins+='<rect x="'+p+'" y="8" width="4" height="12" rx="1" fill="url(#'+id+'p)"/><rect x="'+p+'" y="80" width="4" height="12" rx="1" fill="url(#'+id+'p)"/><rect x="8" y="'+p+'" width="12" height="4" rx="1" fill="url(#'+id+'p)"/><rect x="80" y="'+p+'" width="12" height="4" rx="1" fill="url(#'+id+'p)"/>'; }
+  return '<svg width="'+W+'" height="'+W+'" viewBox="0 0 100 100"><defs><linearGradient id="'+id+'p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3e2b0"/><stop offset="1" stop-color="#a8802e"/></linearGradient>'+
+    '<linearGradient id="'+id+'b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a4257"/><stop offset="1" stop-color="'+c+'"/></linearGradient></defs>'+pins+
+    '<rect x="18" y="18" width="64" height="64" rx="6" fill="url(#'+id+'b)" stroke="#0e1118" stroke-width="1.2"/><rect x="30" y="30" width="40" height="40" rx="3" fill="#a7b0d6" opacity=".2" stroke="#c9cfe6" stroke-width=".6"/>'+
+    '<path d="M30 40 H42 V30 M58 30 V42 H70 M70 58 H58 V70 M42 70 V58 H30" stroke="#d9b25a" stroke-width=".8" fill="none" opacity=".8"/><circle cx="25" cy="25" r="2" fill="#0e1118"/>'+
+    '<text x="50" y="54" text-anchor="middle" font-family="Space Mono,monospace" font-size="10" font-weight="700" fill="#e6e9f5">'+label+'</text></svg>'; }
+/* produits de l'usine */
+function prod(k,W){ const id='pd'+(++EL_N); let s='';
+  if(k==='ecr') s='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b3e7a"/><stop offset=".5" stop-color="#7a4fb5"/><stop offset="1" stop-color="#1fb5c7"/></linearGradient></defs>'+
+    [0,1,2].map(i=>'<rect x="'+(18+i*6)+'" y="'+(16+i*8)+'" width="58" height="40" rx="3" fill="#11141c" stroke="#3a4257"/><rect x="'+(21+i*6)+'" y="'+(19+i*8)+'" width="52" height="34" rx="1.5" fill="url(#'+id+')" opacity="'+(.5+i*.25)+'"/>').join('')+'<path d="M40 38 L70 38 L64 58 Z" fill="#fff" opacity=".12"/>';
+  if(k==='bat') s='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1e8a55"/><stop offset=".4" stop-color="#5ee0a0"/><stop offset="1" stop-color="#16804d"/></linearGradient></defs>'+
+    [0,1,2].map(i=>'<rect x="'+(18+i*24)+'" y="24" width="18" height="60" rx="5" fill="url(#'+id+')" stroke="#0e5a35"/><rect x="'+(23+i*24)+'" y="18" width="8" height="8" rx="1.5" fill="#c9cfe6"/><rect x="'+(18+i*24)+'" y="48" width="18" height="12" fill="#11141c" opacity=".85"/><text x="'+(27+i*24)+'" y="57" text-anchor="middle" font-size="7" font-weight="800" fill="#5ee0a0" font-family="sans-serif">+</text>').join('');
+  if(k==='pau') s='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6e9ee"/><stop offset=".5" stop-color="#9aa2ae"/><stop offset="1" stop-color="#5e6b7a"/></linearGradient></defs>'+
+    '<g transform="translate(50 52)">'+Array.from({length:10},(_,i)=>'<rect x="-5" y="-38" width="10" height="12" rx="2" fill="url(#'+id+')" transform="rotate('+(i*36)+')"/>').join('')+'<circle r="28" fill="url(#'+id+')" stroke="#5e6b7a"/><circle r="10" fill="#2b2f35"/><circle r="16" fill="none" stroke="#5e6b7a" stroke-width="1.2"/></g>';
+  if(k==='puc') return chip('5nm',W,'#1d2230');
+  return '<svg width="'+W+'" height="'+W+'" viewBox="0 0 100 100">'+s+'</svg>'; }
+/* smartphone de face et de dos : écran (1-3) et appareil photo (1-3) */
+function phone(e,p,W,col){ const id='ph'+(++EL_N), c=col||'#2b2f45', H=Math.round(W*1.0);
+  const cam=[ '<circle cx="128" cy="30" r="7" fill="#0a0c12" stroke="#3a4257" stroke-width="1.6"/><circle cx="128" cy="30" r="2.6" fill="#2b4c8a"/>',
+    '<rect x="116" y="18" width="26" height="40" rx="8" fill="#151821"/><circle cx="129" cy="29" r="6.4" fill="#0a0c12" stroke="#4a5470" stroke-width="1.6"/><circle cx="129" cy="47" r="6.4" fill="#0a0c12" stroke="#4a5470" stroke-width="1.6"/><circle cx="129" cy="29" r="2.4" fill="#2b4c8a"/><circle cx="129" cy="47" r="2.4" fill="#2b4c8a"/>',
+    '<rect x="112" y="14" width="38" height="42" rx="10" fill="#151821"/><circle cx="123" cy="25" r="6.2" fill="#0a0c12" stroke="#5a6480" stroke-width="1.8"/><circle cx="139" cy="25" r="6.2" fill="#0a0c12" stroke="#5a6480" stroke-width="1.8"/><circle cx="123" cy="44" r="6.2" fill="#0a0c12" stroke="#5a6480" stroke-width="1.8"/><circle cx="139" cy="44" r="3" fill="#f6e2a0"/><circle cx="123" cy="25" r="2.4" fill="#3b5fa8"/><circle cx="139" cy="25" r="2.4" fill="#3b5fa8"/><circle cx="123" cy="44" r="2.4" fill="#3b5fa8"/><text x="131" y="52" font-size="4" fill="#c9cfe6" font-family="sans-serif">ZOOM</text>' ][p-1];
+  const scr=['<linearGradient id="'+id+'s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fa4c8"/><stop offset="1" stop-color="#5a6f9a"/></linearGradient>',
+    '<linearGradient id="'+id+'s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a59"/><stop offset=".5" stop-color="#b44fd0"/><stop offset="1" stop-color="#2b6cd6"/></linearGradient>',
+    '<linearGradient id="'+id+'s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd36b"/><stop offset=".35" stop-color="#ff5a8a"/><stop offset=".7" stop-color="#7a3cff"/><stop offset="1" stop-color="#18c7d9"/></linearGradient>'][e-1];
+  const bez=[6,3.2,2][e-1];
+  return '<svg width="'+Math.round(W*1.6)+'" height="'+H+'" viewBox="0 0 160 100"><defs>'+scr+
+    '<linearGradient id="'+id+'b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c+'"/><stop offset=".5" stop-color="#4a5470"/><stop offset="1" stop-color="'+c+'"/></linearGradient></defs>'+
+    '<ellipse cx="80" cy="97" rx="66" ry="2.4" fill="rgba(0,0,0,.2)"/>'+
+    /* face avant */
+    '<rect x="14" y="4" width="50" height="92" rx="9" fill="#0e1118" stroke="#8a92a8" stroke-width="1.4"/><rect x="'+(14+bez)+'" y="'+(4+bez)+'" width="'+(50-2*bez)+'" height="'+(92-2*bez)+'" rx="'+(9-bez/2)+'" fill="url(#'+id+'s)"/>'+
+    '<rect x="33" y="'+(6+bez)+'" width="12" height="3.6" rx="1.8" fill="#0e1118"/>'+
+    '<text x="39" y="34" text-anchor="middle" font-size="12" font-weight="800" fill="#fff" font-family="sans-serif">9:41</text><text x="39" y="41" text-anchor="middle" font-size="3.6" fill="#fff" opacity=".85" font-family="sans-serif">jeudi 19 novembre</text>'+
+    [0,1,2,3].map(i=>'<rect x="'+(22+i*9)+'" y="78" width="6.4" height="6.4" rx="1.8" fill="#fff" opacity=".85"/>').join('')+'<rect x="31" y="'+(92-bez-2)+'" width="16" height="1.2" rx=".6" fill="#fff" opacity=".8"/>'+
+    '<path d="M'+(14+bez)+' '+(4+bez)+' L44 '+(4+bez)+' L'+(14+bez)+' 60 Z" fill="#fff" opacity=".08"/>'+
+    /* dos */
+    '<rect x="96" y="4" width="50" height="92" rx="9" fill="url(#'+id+'b)" stroke="#8a92a8" stroke-width="1.4"/>'+cam.replace(/(x|cx)="(\d+)"/g,(m0,a,v)=>a+'="'+(+v-8)+'"')+
+    '<text x="121" y="76" text-anchor="middle" font-size="5" font-weight="800" fill="#c9cfe6" font-family="Space Mono,monospace" letter-spacing="1">VOLT</text><path d="M100 10 L106 10 L100 70Z" fill="#fff" opacity=".07"/></svg>'; }
+
+const W=wafer(.72,150,5); document.getElementById('wafer').innerHTML=W.svg; document.getElementById('cnt').textContent=W.ok+' puces bonnes sur '+W.n+' · environ 3 plaquettes par heure';
+document.getElementById('yld').textContent=Math.round(W.ok/W.n*100)+' %';
+const G=[['28nm','done'],['14nm','now'],['7nm',''],['5nm',''],['3nm','']];
+document.getElementById('gens').innerHTML=G.map((g,i)=>(i?'<span class="tr'+(i===2?' half':'')+'"></span>':'')+'<div class="gn '+g[1]+'"><div class="c">'+chip(g[0],58,['#2a2f45','#2b2f6e','#3b2f6e','#4a2f6e','#5a2f5e'][i])+'</div>'+g[0].replace('nm',' nm')+'</div>').join('');
+const P=[['ecr','Écrans','420 lots','Standard',''],['bat','Batteries','610 lots','Supérieure',''],['puc','Puces','280 lots','Premium','p'],['pau','Pièces auto','150 lots','Standard','']];
+document.getElementById('prods').innerHTML=P.map(x=>'<button class="pd">'+prod(x[0],64)+x[1]+'<small>'+x[2]+'</small><em class="'+x[4]+'">'+x[3]+'</em></button>').join('');
+let E=2,Pp=2; const draw=()=>{ document.getElementById('ph').innerHTML=phone(E,Pp,150,'#2b2f45'); }; draw();
+document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('button').forEach((b,i)=>b.addEventListener('click',()=>{ g.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); if(g.dataset.k==='e'){E=i+1;draw();} if(g.dataset.k==='p'){Pp=i+1;draw();} })));
+document.querySelectorAll('.mix input').forEach(i=>i.addEventListener('input',()=>{ i.parentNode.querySelector('b').textContent=i.value+' %'; }));
+</script>
+</body>
+</html>

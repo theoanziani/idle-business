@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maquette · Ferme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2550; --ink-3:#56638F; --green:#16804D; --red:#C8352A; --amber:#875C00;
+  --good-bg:#2BB673; --good-sh:#1E8A55; --lime:#FFC93C; --lime-ink:#3A2A00;
+  /* identité de la ferme : prairie, blé, bois de grange, ciel */
+  --meadow:#EEF2E3; --meadow-2:#DCE4CB; --wheat:#E8C25A; --barn:#A3483A; --barn-2:#7E3329; --wood:#8A6340; --wood-2:#6E4A2C; --leaf:#4D7F32; --sky:#CFE6F5;
+  --fd:'Baloo 2','Nunito',system-ui,sans-serif; --fb:'Nunito',system-ui,sans-serif; --fh:'Patrick Hand',cursive;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#d6dcc6;color:var(--ink);font-family:var(--fb);-webkit-font-smoothing:antialiased}
+.note-top{max-width:390px;margin:0 auto;padding:14px 16px 0;font-size:13px;color:#3E4A7A}
+.phone{max-width:390px;margin:10px auto 30px;background:var(--meadow);border-radius:28px;overflow:hidden;box-shadow:0 10px 40px rgba(27,37,80,.18)}
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.top .bk{font:700 15px var(--fb);color:var(--leaf);background:none;border:0;min-height:44px;padding:0 4px}
+.ib{width:44px;height:44px;border-radius:14px;border:0;background:#fff;box-shadow:0 3px 0 var(--meadow-2);font:800 18px var(--fb);color:var(--ink)}
+.wrap{padding:0 16px 22px}
+.hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--meadow-2)}
+.hero svg{display:block;width:100%;height:auto}
+.hero .ov{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 12px;background:linear-gradient(transparent,rgba(30,24,10,.85))}
+.nm{display:flex;align-items:center;gap:4px}
+.hero h1{margin:0;font:400 32px/1 var(--fh);color:#fff}
+.hero .sub{color:#EFE8D6;font-size:13px;margin-top:2px}
+.edit{width:44px;height:44px;margin:-8px 0;border:0;background:none;color:#fff;font-size:17px;opacity:.85}
+.hero .chips{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--fb);padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.93);color:var(--ink)}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--good-bg)}
+.lvl{font:800 14px var(--fd);background:var(--lime);color:var(--lime-ink);padding:3px 12px;border-radius:12px;box-shadow:0 3px 0 #D9A400}
+.res{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:0 4px}
+.res b{font:800 22px var(--fd)}.res small{display:block;font:700 12px var(--fb);color:var(--ink-3)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.up{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:10px;border:0;border-radius:18px;background:var(--good-bg);color:#fff;font:800 17px var(--fd);padding:10px 16px;min-height:54px;box-shadow:0 4px 0 var(--good-sh)}
+.up span{font:800 14px var(--fb);background:rgba(0,0,0,.16);padding:4px 10px;border-radius:10px}
+.todo{margin-top:12px;background:#FFF1C7;border-radius:16px;padding:11px 14px;display:flex;gap:10px;align-items:center;font-size:13.5px}
+.todo b{color:var(--amber)}
+.lnk{border:0;background:#fff;color:var(--leaf);font:800 13px var(--fb);border-radius:12px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--meadow-2);flex:0 0 auto}
+h2.sec{font:400 25px var(--fh);color:var(--wood-2);margin:20px 4px 6px;display:flex;justify-content:space-between;align-items:baseline}
+h2.sec small{font:700 12px var(--fb);color:var(--ink-3)}
+
+/* 1. LA FERME VUE DU CIEL */
+.land{background:#7aa85a;border-radius:22px;padding:8px;box-shadow:0 4px 0 #5f8a44;position:relative}
+.plots{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.pl{position:relative;border:0;padding:0;border-radius:12px;overflow:hidden;aspect-ratio:10/7;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)}
+.pl svg{width:100%;height:100%}
+.pl .tg{position:absolute;left:6px;bottom:6px;right:6px;display:flex;justify-content:space-between;align-items:center;gap:4px}
+.pl .tg b{font:800 12px var(--fb);color:#fff;background:rgba(20,24,10,.62);padding:2px 8px;border-radius:8px}
+.pl .tg span{font:800 10.5px var(--fb);background:#fff;color:var(--ink);padding:2px 7px;border-radius:8px}
+.pl .tg span.rd{background:var(--lime);color:var(--lime-ink)}
+.pl.sel{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--barn)}
+.road{height:10px;margin:6px 4px;border-radius:5px;background:repeating-linear-gradient(90deg,#c9b48a 0 14px,#d8c59c 14px 28px)}
+.farmyard{display:flex;align-items:flex-end;justify-content:space-around;padding:0 4px}
+.farmyard div{text-align:center;font:800 10.5px var(--fb);color:#fff}
+/* palette */
+.pal{background:#fff;border-radius:18px;padding:12px;margin-top:10px;box-shadow:0 3px 0 var(--meadow-2)}
+.pal .hd{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink-3)}
+.pal .hd b{color:var(--ink);font-size:14px}
+.crops{display:flex;gap:8px;overflow-x:auto;margin-top:8px;padding-bottom:4px}
+.cp{flex:0 0 112px;border:0;background:var(--meadow);border-radius:14px;padding:6px;text-align:left;font:800 12.5px var(--fb);color:var(--ink)}
+.cp .th{border-radius:10px;overflow:hidden;height:58px;margin-bottom:5px}
+.cp small{display:block;font:600 11px var(--fb);color:var(--ink-3)}
+.cp.no{opacity:.5}
+
+/* 2. LE CALENDRIER */
+.cal{background:#FFFDF6;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--meadow-2);background-image:repeating-linear-gradient(transparent 0 23px,#E6EDF5 23px 24px)}
+.months{display:grid;grid-template-columns:72px repeat(12,1fr);font:800 9.5px var(--fb);color:var(--ink-3);text-align:center;margin-bottom:4px}
+.crow{display:grid;grid-template-columns:72px 1fr;align-items:center;height:24px;font:400 16px var(--fh);color:var(--ink)}
+.crow .bar{position:relative;height:12px}
+.crow .bar i{position:absolute;top:0;bottom:0;border-radius:6px}
+.crow .bar i.s{background:#8a6340}
+.crow .bar i.g{background:#8fbf4f}
+.crow .bar i.r{background:var(--wheat)}
+.today{position:relative}
+.today::after{content:'';position:absolute;top:-30px;bottom:-4px;width:2px;background:var(--barn);left:var(--t)}
+.lgd{display:flex;gap:12px;font-size:11.5px;color:var(--ink-3);margin-top:6px}
+.lgd i{display:inline-block;width:12px;height:8px;border-radius:4px;margin-right:4px}
+
+/* 3. LA MÉTÉO */
+.wx{background:linear-gradient(var(--sky),#EAF4FB);border-radius:20px;padding:12px;box-shadow:0 4px 0 #A9CDE6;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wx div{background:rgba(255,255,255,.7);border-radius:14px;padding:9px 10px;font-size:12px;color:var(--ink-3)}
+.wx b{display:block;font:800 20px var(--fd);color:var(--ink)}
+.wx .ic{font-size:22px;float:right}
+.wx .full{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+/* 4. LES BÂTIMENTS */
+.blds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.bd{border:0;background:#fff;border-radius:16px;padding:6px 6px 10px;text-align:center;font:800 12.5px var(--fb);color:var(--ink);box-shadow:0 3px 0 var(--meadow-2)}
+.bd svg{display:block;margin:0 auto}
+.bd small{display:block;font:600 11px var(--fb);color:var(--ink-3)}
+.bd em{display:inline-block;margin-top:4px;font-style:normal;font:800 11px var(--fb);border-radius:8px;padding:2px 8px;background:var(--meadow);color:var(--leaf)}
+.bd em.buy{background:var(--barn);color:#fff}
+.bd.off svg{filter:grayscale(.8);opacity:.6}
+
+/* 5. LA CONVERSION BIO */
+.bio{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--meadow-2)}
+.yrs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.yr{border-radius:12px;padding:8px;background:var(--meadow);text-align:center;font:800 12px var(--fb);color:var(--ink-3)}
+.yr b{display:block;font:400 20px var(--fh);color:var(--ink)}
+.yr.done{background:#DFF5EA;color:var(--green)}
+.yr.now{background:#FFF1C7;color:var(--amber);box-shadow:inset 0 0 0 2px #E5A800}
+.hint{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+
+/* 6. LE HANGAR */
+.barn{background:linear-gradient(var(--barn),var(--barn-2));border-radius:20px;padding:12px;box-shadow:0 4px 0 #5a221a;color:#F6E2DC;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 2px,transparent 2px 22px),linear-gradient(var(--barn),var(--barn-2))}
+.crates{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px;background:rgba(0,0,0,.18);border-radius:14px;padding:8px 4px}
+.cr{text-align:center;font:800 11px var(--fb);color:#fff}
+.cr svg{display:block;margin:0 auto}
+.cr small{display:block;font:700 10.5px var(--fb);color:#F2CFC6}
+.barn .row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:12.5px}
+.barn .row b{display:block;color:#fff;font-size:14px}
+.btn{border:0;border-radius:14px;min-height:44px;padding:0 14px;font:800 13.5px var(--fb);background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--meadow-2),inset 0 0 0 1.5px var(--meadow-2);white-space:nowrap}
+.btn.wh{background:var(--wheat);color:#3A2A00;box-shadow:0 3px 0 #B08A34}
+.tog{position:relative;width:52px;height:30px;border-radius:15px;background:rgba(0,0,0,.25);border:0;flex:0 0 auto}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s}
+.tog.on{background:var(--good-bg)}.tog.on::after{left:25px}
+
+/* 7. LES PALIERS */
+.path{background:#fff;border-radius:20px;padding:12px;box-shadow:0 4px 0 var(--meadow-2)}
+.steps{display:flex;align-items:flex-start}
+.steps .p{flex:0 0 58px;text-align:center;font:800 10px/1.2 var(--fb);color:var(--ink-3)}
+.steps .p i{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 4px;border-radius:50%;background:var(--meadow);font-style:normal;font-size:17px}
+.steps .p.now i{background:var(--leaf);box-shadow:0 0 0 3px #CFE2C0}
+.steps .ln{flex:1;height:3px;margin-top:18px;background:repeating-linear-gradient(90deg,var(--wood) 0 6px,transparent 6px 9px)}
+
+.mgmt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mg{border:0;text-align:left;background:#fff;border-radius:16px;padding:10px 12px;min-height:60px;box-shadow:0 3px 0 var(--meadow-2);font:800 13.5px var(--fb);color:var(--ink)}
+.mg small{display:block;font:600 12px var(--fb);color:var(--ink-3);margin-top:1px}
+.dlg{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;background:#fff;border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--meadow-2);font-size:13px;color:var(--ink-3)}
+.dlg b{color:var(--ink);font-size:13.5px;display:block}
+.sheet-note{font-size:12px;color:var(--ink-3);text-align:center;margin-top:16px}
+.legend{max-width:390px;margin:0 auto 50px;padding:0 16px;font-size:14px;color:#3E4A7A}
+.legend h2{font:800 19px var(--fd);color:var(--ink);margin:12px 0 6px}
+.legend li{margin:4px 0}
+</style>
+</head>
+<body>
+<p class="note-top"><b>Maquette · Ferme.</b> Le cœur du métier : choisir quoi cultiver sur chaque parcelle, semer et récolter au bon moment de l'année, et transformer la récolte.</p>
+
+<div class="phone">
+  <div class="top"><button class="bk">‹ Sociétés</button><button class="ib" aria-label="Fermer">×</button></div>
+  <div class="wrap">
+    <div class="hero">
+      <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img"><defs><clipPath id="a07c"><rect width="640" height="360" rx="22"></rect></clipPath><filter id="a07gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter><filter id="a07bl"><feGaussianBlur stdDeviation="1.2"></feGaussianBlur></filter><filter id="a07bl3"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><filter id="a07gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"></feTurbulence><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .45  0 0 0 0 .4  0 0 0 .55 0"></feColorMatrix></filter><radialGradient id="a07vg" cx=".5" cy=".45" r=".75"><stop offset=".6" stop-color="#000" stop-opacity="0"></stop><stop offset="1" stop-color="#0A1020" stop-opacity=".38"></stop></radialGradient><linearGradient id="a07lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF6E0" stop-opacity=".22"></stop><stop offset=".5" stop-color="#FFF6E0" stop-opacity="0"></stop></linearGradient><linearGradient id="a07sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5FA0E0"></stop><stop offset="1" stop-color="#E0F0FA"></stop></linearGradient></defs><g clip-path="url(#a07c)"><rect width="640" height="360" fill="url(#a07sky)"></rect><circle cx="540" cy="70" r="26" fill="#FFF0C0" opacity=".35"><animate attributeName="r" values="26;35.1;26" dur="6s" repeatCount="indefinite"></animate><animate attributeName="opacity" values=".35;.15;.35" dur="6s" repeatCount="indefinite"></animate></circle><circle cx="540" cy="70" r="20" fill="#FFE29A"></circle><path d="M0 200Q160 170 320 190T640 180V360H0z" fill="#8FBF5A"></path><path d="M0 240Q200 220 400 236T640 230V360H0z" fill="#7AAE48"></path><path d="M0 260Q320 250 640 262" stroke="#C9A85A" stroke-width="3" fill="none" opacity=".6"></path><path d="M0 274Q320 264 640 276" stroke="#C9A85A" stroke-width="3" fill="none" opacity=".6"></path><path d="M0 288Q320 278 640 290" stroke="#C9A85A" stroke-width="3" fill="none" opacity=".6"></path><path d="M0 302Q320 292 640 304" stroke="#C9A85A" stroke-width="3" fill="none" opacity=".6"></path><path d="M0 316Q320 306 640 318" stroke="#C9A85A" stroke-width="3" fill="none" opacity=".6"></path><path d="M0 330Q320 320 640 332" stroke="#C9A85A" stroke-width="3" fill="none" opacity=".6"></path><path d="M0 344Q320 334 640 346" stroke="#C9A85A" stroke-width="3" fill="none" opacity=".6"></path><rect x="90" y="170" width="120" height="80" fill="#B5352B"></rect><path d="M84 172L150 130L216 172z" fill="#7A2420"></path><path d="M130 250v-40h40v40" fill="#5A1A16"></path><path d="M130 210l40 40M170 210l-40 40" stroke="#F4F1EA" stroke-width="3"></path><rect x="226" y="140" width="34" height="110" fill="#C9CDD4"></rect><path d="M226 140a17 14 0 0 1 34 0z" fill="#9AA0AB"></path><rect x="266" y="160" width="30" height="90" fill="#C9CDD4"></rect><path d="M266 160a15 12 0 0 1 30 0z" fill="#9AA0AB"></path><rect x="440" y="130" width="4" height="110" fill="#8A8F99"></rect><g><path d="M442 130l-4 -34h8z" fill="#E9EDF2" transform="rotate(0 442 130)"></path><path d="M442 130l-4 -34h8z" fill="#E9EDF2" transform="rotate(120 442 130)"></path><path d="M442 130l-4 -34h8z" fill="#E9EDF2" transform="rotate(240 442 130)"></path><animateTransform attributeName="transform" type="rotate" values="0 442 130;360 442 130" dur="5s" repeatCount="indefinite"></animateTransform></g><g><animateTransform attributeName="transform" type="translate" values="-100 0;700 0" dur="22s" repeatCount="indefinite"></animateTransform><rect x="0" y="282" width="40" height="18" rx="3" fill="#2BB673"></rect><rect x="24" y="268" width="16" height="16" fill="#2BB673"></rect><rect x="27" y="271" width="10" height="9" fill="#BFE6F2"></rect><circle cx="10" cy="304" r="9" fill="#222"></circle><circle cx="36" cy="306" r="6" fill="#222"></circle></g><g><ellipse cx="340" cy="230" rx="12" ry="7" fill="#F4F1EA"></ellipse><circle cx="352" cy="226" r="4" fill="#F4F1EA"></circle><circle cx="336" cy="229" r="2.4" fill="#2B2B2B"></circle><animateTransform attributeName="transform" type="translate" values="0 0;8 0;0 0" dur="7s" repeatCount="indefinite"></animateTransform></g><g><ellipse cx="380" cy="240" rx="12" ry="7" fill="#F4F1EA"></ellipse><circle cx="392" cy="236" r="4" fill="#F4F1EA"></circle><circle cx="376" cy="239" r="2.4" fill="#2B2B2B"></circle><animateTransform attributeName="transform" type="translate" values="0 0;8 0;0 0" dur="8s" repeatCount="indefinite"></animateTransform></g><g><ellipse cx="520" cy="236" rx="12" ry="7" fill="#F4F1EA"></ellipse><circle cx="532" cy="232" r="4" fill="#F4F1EA"></circle><circle cx="516" cy="235" r="2.4" fill="#2B2B2B"></circle><animateTransform attributeName="transform" type="translate" values="0 0;8 0;0 0" dur="9s" repeatCount="indefinite"></animateTransform></g><g><animateTransform attributeName="transform" type="translate" values="-80 0;720 -30" dur="20s" begin="-4s" repeatCount="indefinite"></animateTransform><path d="M0 80q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M0 80q3 -6 7 -1q4 -5 7 1;M0 80q3 2 7 -1q4 2 7 1;M0 80q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.0s" repeatCount="indefinite"></animate></path><path d="M18 88q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M18 88q3 -6 7 -1q4 -5 7 1;M18 88q3 2 7 -1q4 2 7 1;M18 88q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.2s" repeatCount="indefinite"></animate></path><path d="M36 80q3 -6 7 -1q4 -5 7 1" stroke="#2B2D42" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="d" values="M36 80q3 -6 7 -1q4 -5 7 1;M36 80q3 2 7 -1q4 2 7 1;M36 80q3 -6 7 -1q4 -5 7 1" dur=".6s" begin="-0.4s" repeatCount="indefinite"></animate></path></g><rect width="640" height="360" fill="url(#a07lt)"></rect><rect width="640" height="360" fill="#0B1838" opacity="0"><animate attributeName="opacity" values="0;0;.58;.58;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></rect><g opacity="0"><circle cx="455" cy="27" r="0.7" fill="#FFFFFF"></circle><circle cx="232" cy="115" r="0.9" fill="#FFFFFF"></circle><circle cx="567" cy="91" r="1.1" fill="#FFFFFF"></circle><circle cx="389" cy="85" r="1.1" fill="#FFFFFF"></circle><circle cx="520" cy="103" r="1.1" fill="#FFFFFF"></circle><circle cx="4" cy="31" r="0.7" fill="#FFFFFF"></circle><circle cx="562" cy="144" r="0.9" fill="#FFFFFF"></circle><circle cx="483" cy="10" r="1.4" fill="#FFFFFF"></circle><circle cx="40" cy="123" r="1.2" fill="#FFFFFF"></circle><circle cx="561" cy="115" r="1.0" fill="#FFFFFF"></circle><circle cx="55" cy="29" r="1.4" fill="#FFFFFF"></circle><circle cx="428" cy="0" r="1.3" fill="#FFFFFF"></circle><circle cx="51" cy="1" r="1.4" fill="#FFFFFF"></circle><circle cx="585" cy="54" r="1.3" fill="#FFFFFF"></circle><circle cx="140" cy="27" r="1.3" fill="#FFFFFF"></circle><circle cx="177" cy="12" r="1.4" fill="#FFFFFF"></circle><circle cx="330" cy="115" r="1.4" fill="#FFFFFF"></circle><circle cx="415" cy="18" r="0.8" fill="#FFFFFF"></circle><circle cx="552" cy="78" r="0.8" fill="#FFFFFF"></circle><circle cx="482" cy="131" r="0.7" fill="#FFFFFF"></circle><circle cx="369" cy="143" r="0.7" fill="#FFFFFF"></circle><circle cx="485" cy="62" r="1.3" fill="#FFFFFF"></circle><circle cx="63" cy="80" r="0.8" fill="#FFFFFF"></circle><circle cx="77" cy="124" r="0.7" fill="#FFFFFF"></circle><circle cx="71" cy="130" r="0.7" fill="#FFFFFF"></circle><circle cx="619" cy="67" r="1.2" fill="#FFFFFF"></circle><circle cx="400" cy="45" r="0.9" fill="#FFFFFF"></circle><circle cx="213" cy="28" r="0.9" fill="#FFFFFF"></circle><circle cx="447" cy="8" r="0.6" fill="#FFFFFF"></circle><circle cx="184" cy="70" r="0.7" fill="#FFFFFF"></circle><circle cx="36" cy="1" r="1.3" fill="#FFFFFF"></circle><circle cx="410" cy="5" r="0.7" fill="#FFFFFF"></circle><circle cx="120" cy="108" r="1.0" fill="#FFFFFF"></circle><circle cx="44" cy="74" r="1.5" fill="#FFFFFF"></circle><circle cx="359" cy="146" r="0.9" fill="#FFFFFF"></circle><circle cx="414" cy="87" r="1.1" fill="#FFFFFF"></circle><circle cx="554" cy="55" r="0.7" fill="#FFFFFF"></circle><circle cx="339" cy="78" r="1.0" fill="#FFFFFF"></circle><circle cx="571" cy="3" r="1.2" fill="#FFFFFF"></circle><circle cx="443" cy="58" r="1.2" fill="#FFFFFF"></circle><animate attributeName="opacity" values="0;0;.9;.9;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></g><circle cx="560" cy="60" r="14" fill="#F4F1E6" opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.25;.42;.86;.98;1" dur="32s" repeatCount="indefinite"></animate></circle><g filter="url(#a07gl)"><g opacity="0"><rect x="130" y="210" width="40" height="40" fill="#FFE6A6" opacity=".6"></rect><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;.27;.4;.88;.98;1" dur="32s" repeatCount="indefinite"></animate></g></g><rect width="640" height="360" filter="url(#a07gr)" opacity=".18"></rect><rect width="640" height="360" fill="url(#a07vg)"></rect></g></svg>
+      <div class="chips"><span class="chip"><span class="d"></span>Juillet · moisson du blé</span><span class="lvl">Niv. 1</span></div>
+      <div class="ov"><div class="nm"><h1>Domaine des Tilleuls</h1><button class="edit" aria-label="Renommer">✎</button></div><div class="sub">Ferme agroalimentaire · campagne de Toulouse</div></div>
+    </div>
+    <div class="res"><div><small>Bénéfice hier</small><b class="pos">+2 140 €</b></div><div style="text-align:right"><small>Récolte prête</small><b>8 caisses</b></div></div>
+    <button class="up">Agrandir la ferme · niv. 2 <span>86 000 €</span></button>
+    <div class="todo"><span style="flex:1"><b>12 jours sans pluie</b> : le maïs souffre. Une irrigation éviterait la perte de récolte.</span><button class="lnk">Voir</button></div>
+
+    <!-- 1. VUE DU CIEL -->
+    <h2 class="sec">Vue du ciel <small>touchez une parcelle</small></h2>
+    <div class="land">
+      <div class="plots" id="plots"></div>
+      <div class="road"></div>
+      <div class="farmyard"><div id="y1"></div><div id="y2"></div><div id="y3"></div></div>
+    </div>
+    <div class="pal">
+      <div class="hd"><b>Parcelle 4 · libre</b><span>semis possibles en juillet</span></div>
+      <div class="crops" id="crops"></div>
+    </div>
+
+    <!-- 2. LE CALENDRIER -->
+    <h2 class="sec">Le calendrier <small>semis, croissance, récolte</small></h2>
+    <div class="cal">
+      <div class="months"><span></span><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+      <div id="calrows" class="today" style="--t:calc(72px + (100% - 72px) * .52)"></div>
+      <div class="lgd"><span><i style="background:#8a6340"></i>semis</span><span><i style="background:#8fbf4f"></i>croissance</span><span><i style="background:#E8C25A"></i>récolte</span><span style="color:var(--barn);font-weight:800">| aujourd'hui</span></div>
+    </div>
+
+    <!-- 3. LA MÉTÉO -->
+    <h2 class="sec">Le ciel <small>la météo fait la récolte</small></h2>
+    <div class="wx">
+      <div><span class="ic">☀️</span>Jours sans pluie<b style="color:var(--red)">12</b>maïs et légumes en souffrance</div>
+      <div><span class="ic">🌨️</span>Risque de grêle<b>Faible</b>vergers et vignes exposés</div>
+      <div class="full"><span>Prochaine pluie annoncée : <b style="display:inline;font-size:15px">mardi</b></span><span style="font-size:22px">🌦️</span></div>
+    </div>
+
+    <!-- 4. LES BÂTIMENTS -->
+    <h2 class="sec">Bâtiments et machines</h2>
+    <div class="blds" id="blds"></div>
+
+    <!-- 5. LA CONVERSION BIO -->
+    <h2 class="sec">La conversion en bio</h2>
+    <div class="bio">
+      <div class="yrs"><div class="yr done">Année 1<b>faite</b>récolte −15 %</div><div class="yr now">Année 2<b>en cours</b>encore 140 j</div><div class="yr">Année 3<b>à venir</b>puis label bio</div></div>
+      <p class="hint">Trois ans de récoltes 15 % plus faibles, puis le label bio : +35 % sur les prix.</p>
+    </div>
+
+    <!-- 6. LE HANGAR -->
+    <h2 class="sec">Le hangar <small>la récolte en caisses</small></h2>
+    <div class="barn">
+      <div class="crates" id="crates"></div>
+      <div class="row"><span><b>Vendre au grossiste</b>ou garder le stock pour les contrats</span><button class="btn wh">Vendre · 8 400 €</button></div>
+      <div class="row"><span><b>Magasin à la ferme</b>une partie vendue au prix de détail</span><button class="tog on" aria-label="Magasin à la ferme"></button></div>
+      <div class="row"><span>Vos restaurants achètent vos produits en priorité.</span></div>
+    </div>
+
+    <!-- 7. LES PALIERS -->
+    <h2 class="sec">Les paliers <small>palier 1 sur 5</small></h2>
+    <div class="path">
+      <div class="steps">
+        <div class="p now"><i>🚜</i>Machines</div><div class="ln"></div>
+        <div class="p"><i>🌱</i>Label bio</div><div class="ln"></div>
+        <div class="p"><i>🧺</i>Vente directe</div><div class="ln"></div>
+        <div class="p"><i>🏅</i>Appellation</div><div class="ln"></div>
+        <div class="p"><i>🏡</i>Grand domaine</div>
+      </div>
+    </div>
+
+    <h2 class="sec">Gestion du site</h2>
+    <div class="mgmt">
+      <button class="mg">Équipe<small>8 / 8 · fatigue 25</small></button>
+      <button class="mg">Finances<small>+2 140 € hier</small></button>
+      <button class="mg">Terres<small>4 parcelles sur 6</small></button>
+      <button class="mg">Sécurité<small>aucune · assurée</small></button>
+    </div>
+    <div class="dlg"><span><b>Amina Moreau, cheffe d'exploitation</b>peut semer, récolter et vendre à votre place</span><button class="lnk">Confier</button></div>
+    <p class="sheet-note">Maquette · Idle Business</p>
+  </div>
+</div>
+
+<div class="legend">
+  <h2>Ce qui la distingue</h2>
+  <ul>
+    <li><b>La ferme vue du ciel</b> : chaque parcelle est dessinée selon ce qu'elle porte et où elle en est (blé semé, blé mûr avec la moissonneuse, maïs, tournesols, potager, verger, vigne, prés avec les vaches, poulailler). Une étiquette donne le nom et les jours avant récolte. On touche une parcelle libre pour choisir sa culture.</li>
+    <li><b>Le calendrier</b> : sur un cahier, les périodes de semis, de croissance et de récolte de chaque culture, avec le jour d'aujourd'hui.</li>
+    <li><b>Le ciel</b> : jours sans pluie, risque de grêle et prochaine pluie.</li>
+    <li><b>Bâtiments et machines</b> : moulin, fromagerie, chai, tracteur, irrigation, serre.</li>
+    <li><b>La conversion en bio</b> sur trois ans, puis <b>le hangar</b> avec les caisses de récolte, la vente et le magasin à la ferme.</li>
+    <li>Ambiance campagne : prairie, blé, bois de grange, écriture à la main.</li>
+  </ul>
+  <p>Les montants et les noms sont des exemples.</p>
+</div>
+
+<script>
+/* Parcelles vues du ciel et bâtiments de la ferme */
+let FM_N=0;
+function frnd(seed){ let r=seed; return ()=>{ r=(r*9301+49297)%233280; return r/233280; }; }
+function parcel(kind,stage,W,H,seed){ const id='pc'+(++FM_N), R=frnd(seed||FM_N*17); let d='', s='';
+  const soil='<rect width="100" height="70" fill="#8a6340"/><pattern id="'+id+'so" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".8" fill="#6e4a2c"/><circle cx="5" cy="4.5" r=".6" fill="#a07650"/></pattern><rect width="100" height="70" fill="url(#'+id+'so)"/>';
+  const grass=(c1,c2)=>'<rect width="100" height="70" fill="'+c1+'"/>'+Array.from({length:60},()=>'<circle cx="'+(R()*100).toFixed(1)+'" cy="'+(R()*70).toFixed(1)+'" r="'+(1+R()*2.2).toFixed(1)+'" fill="'+c2+'" opacity=".5"/>').join('');
+  if(kind==='ble'){
+    if(stage==='semis'){ s=soil; for(let y=5;y<70;y+=6) s+='<line x1="0" y1="'+y+'" x2="100" y2="'+(y-3)+'" stroke="#6e4a2c" stroke-width="1.6"/>'+Array.from({length:14},(_,i)=>'<path d="M'+(i*7.2+R()*2)+' '+(y-.2-i*.21)+' l.6 -2.4 l.6 2.4" stroke="#7fb24a" stroke-width=".7" fill="none"/>').join(''); }
+    else { const c=stage==='rec'? ['#e8c25a','#d4a73a','#f3dc8a'] : ['#8fbf4f','#6fa23a','#b5d97a'];
+      s='<rect width="100" height="70" fill="'+c[0]+'"/>'; for(let y=2;y<72;y+=3.4) s+='<path d="M0 '+y+' Q50 '+(y-2)+' 100 '+(y-4)+'" stroke="'+c[1]+'" stroke-width="1.4" fill="none"/>';
+      for(let i=0;i<120;i++) s+='<ellipse cx="'+(R()*100).toFixed(1)+'" cy="'+(R()*70).toFixed(1)+'" rx="1.2" ry=".5" fill="'+c[2]+'" transform="rotate(-20)"/>';
+      if(stage==='rec') s+='<path d="M0 46 L100 38 L100 70 L0 70Z" fill="#c9a548"/>'+Array.from({length:8},(_,i)=>'<line x1="0" y1="'+(50+i*3)+'" x2="100" y2="'+(42+i*3.4)+'" stroke="#b08a34" stroke-width=".9"/>').join('')+'<rect x="64" y="36" width="16" height="9" rx="2" fill="#2f7a3a"/><rect x="58" y="38" width="7" height="6" fill="#d8d8d8"/><circle cx="68" cy="46" r="3" fill="#1d1f23"/><circle cx="78" cy="45.5" r="2.2" fill="#1d1f23"/><rect x="69" y="31" width="7" height="6" rx="1" fill="#9fd0e6" stroke="#2f7a3a"/>'; } }
+  if(kind==='mais'){ s='<rect width="100" height="70" fill="#4f8a35"/>'; for(let x=3;x<100;x+=6){ s+='<rect x="'+x+'" y="0" width="3.6" height="70" fill="#3b7027"/>'; for(let y=3;y<70;y+=5) s+='<path d="M'+(x+1.8)+' '+y+' l-3 2 M'+(x+1.8)+' '+y+' l3 2" stroke="#7fbf55" stroke-width=".9"/>'+(stage==='rec'?'<circle cx="'+(x+1.8)+'" cy="'+(y-1)+'" r=".9" fill="#f2cf4a"/>':''); } }
+  if(kind==='tourn'){ s='<rect width="100" height="70" fill="#4d7f32"/>'; for(let y=4;y<70;y+=7) for(let x=4+(y%14?3:0);x<100;x+=7){ s+='<circle cx="'+x+'" cy="'+y+'" r="3.2" fill="#f5c518"/><circle cx="'+x+'" cy="'+y+'" r="1.4" fill="#6b3f12"/>'; } }
+  if(kind==='leg'){ s=soil; const rows=['#3e8f3a','#e07a2f','#c8352a','#6fbf4a','#7a4fb5']; for(let i=0;i<7;i++){ const y=6+i*9.4, c=rows[i%5]; s+='<rect x="0" y="'+(y-3.4)+'" width="100" height="6.8" rx="3" fill="#6e4a2c"/>'; for(let x=4;x<100;x+=6.2){ if(c==='#e07a2f') s+='<path d="M'+x+' '+(y+1)+' l-1.4 -3 M'+x+' '+(y+1)+' l1.4 -3 M'+x+' '+(y+1)+' l0 -3.4" stroke="#5aa83a" stroke-width=".8"/><circle cx="'+x+'" cy="'+(y+1.4)+'" r=".9" fill="'+c+'"/>'; else if(c==='#c8352a') s+='<circle cx="'+x+'" cy="'+y+'" r="2.4" fill="#4a8f34"/><circle cx="'+(x-.8)+'" cy="'+(y-.6)+'" r=".9" fill="'+c+'"/><circle cx="'+(x+1)+'" cy="'+(y+.6)+'" r=".9" fill="'+c+'"/>'; else s+='<circle cx="'+x+'" cy="'+y+'" r="2.5" fill="'+c+'"/><circle cx="'+(x-.6)+'" cy="'+(y-.6)+'" r="1.2" fill="'+(c==='#7a4fb5'?'#a887d6':'#9be07a')+'" opacity=".7"/>'; } } }
+  if(kind==='verger'){ s=grass('#7cb85a','#94cc6e'); for(let y=10;y<70;y+=17) for(let x=10+(y%34?8:0);x<100;x+=17){ s+='<ellipse cx="'+(x+2.6)+'" cy="'+(y+3)+'" rx="7.4" ry="5" fill="rgba(0,0,0,.2)"/><circle cx="'+x+'" cy="'+y+'" r="7" fill="#3f7a2c"/><circle cx="'+(x-2)+'" cy="'+(y-2.2)+'" r="4.2" fill="#5a9a3c"/><circle cx="'+(x-2.6)+'" cy="'+(y-3)+'" r="1.6" fill="#7fbf55"/>'+(stage!=='semis'? Array.from({length:6},()=>'<circle cx="'+(x+(R()-.5)*10).toFixed(1)+'" cy="'+(y+(R()-.5)*10).toFixed(1)+'" r="1" fill="#d6332a"/>').join('') : ''); } }
+  if(kind==='vigne'){ s=grass('#9cba62','#b2cc7c'); for(let y=6;y<70;y+=8){ s+='<rect x="0" y="'+(y-1.4)+'" width="100" height="2.8" fill="#6e4a2c" opacity=".6"/><line x1="0" y1="'+y+'" x2="100" y2="'+y+'" stroke="#8a6340" stroke-width=".5"/>'; for(let x=3;x<100;x+=5.6) s+='<circle cx="'+x+'" cy="'+y+'" r="2.4" fill="#4d7f32"/><circle cx="'+(x-.6)+'" cy="'+(y-.8)+'" r="1.2" fill="#6fa23a"/>'+(stage==='rec'?'<circle cx="'+(x+1.1)+'" cy="'+(y+1)+'" r="1" fill="#5b2a6e"/><circle cx="'+(x+.3)+'" cy="'+(y+1.6)+'" r=".8" fill="#6e3585"/>':''); for(let x=0;x<100;x+=22) s+='<rect x="'+x+'" y="'+(y-1.6)+'" width="1.4" height="3.2" fill="#5a3a20"/>'; } }
+  if(kind==='vaches'){ s=grass('#6fae4c','#86c264'); s+='<rect x="2" y="2" width="96" height="66" fill="none" stroke="#8a6340" stroke-width="1.4" stroke-dasharray="4 2"/><rect x="76" y="8" width="16" height="5" rx="1.5" fill="#6e8fa8" stroke="#4a5a6a"/>'+'<path d="M10 58 Q40 50 90 62" stroke="#a88a5a" stroke-width="3" fill="none" opacity=".5"/>';
+    [[22,22,0],[44,34,30],[66,24,-20],[30,50,15],[70,48,190]].forEach(([x,y,a])=>{ s+='<g transform="translate('+x+' '+y+') rotate('+a+')"><ellipse cx="1.4" cy="1.6" rx="7" ry="3.6" fill="rgba(0,0,0,.2)"/><ellipse rx="7" ry="3.6" fill="#f4f1ea" stroke="#2a2a2a" stroke-width=".4"/><ellipse cx="-2" cy="-1" rx="2.4" ry="1.6" fill="#2a2a2a"/><ellipse cx="2.6" cy="1.2" rx="1.8" ry="1.3" fill="#2a2a2a"/><ellipse cx="8" rx="2.6" ry="2" fill="#f4f1ea" stroke="#2a2a2a" stroke-width=".4"/><ellipse cx="9.6" rx="1.2" ry="1.3" fill="#e9a3a3"/><path d="M7 -2 l-1 -1.6 M7 2 l-1 1.6" stroke="#c9b48a" stroke-width=".8"/></g>'; }); }
+  if(kind==='poules'){ s='<rect width="100" height="70" fill="#d9c08a"/>'+Array.from({length:50},()=>'<circle cx="'+(R()*100).toFixed(1)+'" cy="'+(R()*70).toFixed(1)+'" r=".6" fill="#b89a60"/>').join('');
+    s+='<rect x="6" y="8" width="30" height="22" fill="#a3483a"/><path d="M4 8 L21 0 L38 8 Z" fill="#7e3329"/><rect x="18" y="20" width="6" height="10" fill="#3a2214"/><rect x="2" y="2" width="96" height="66" fill="none" stroke="#c9ced6" stroke-width="1" stroke-dasharray="1 1.4"/>';
+    for(let i=0;i<16;i++){ const x=40+R()*54, y=8+R()*56, c=R()<.5?'#f4f1ea':'#a8692e'; s+='<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')"><ellipse rx="2.6" ry="2" fill="'+c+'" stroke="rgba(0,0,0,.25)" stroke-width=".3"/><circle cx="2.2" cy="-1" r="1.2" fill="'+c+'"/><path d="M3.2 -1 l1 .3 l-1 .3z" fill="#f2a33a"/><circle cx="2.2" cy="-2" r=".5" fill="#d6332a"/></g>'; } }
+  if(kind==='lock'){ s='<rect width="100" height="70" fill="#b7c49a"/><pattern id="'+id+'h" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="8" fill="rgba(0,0,0,.08)"/></pattern><rect width="100" height="70" fill="url(#'+id+'h)"/><rect x="42" y="30" width="16" height="13" rx="2" fill="#5e6b7a"/><path d="M45 30 v-4 a5 5 0 0 1 10 0 v4" stroke="#5e6b7a" stroke-width="2.4" fill="none"/>'; }
+  return '<svg width="'+W+'" height="'+H+'" viewBox="0 0 100 70" preserveAspectRatio="xMidYMid slice" style="display:block"><defs>'+d+'</defs>'+s+'</svg>'; }
+/* bâtiments de transformation */
+function bld(k,W){ let s='';
+  if(k==='moulin') s='<rect x="40" y="54" width="20" height="38" fill="#e8dcc4" stroke="#8a6340"/><path d="M38 54 L50 42 L62 54Z" fill="#a3483a"/><rect x="46" y="76" width="8" height="16" fill="#5a3a20"/><g transform="translate(50 47) scale(.82)">'+[0,90,180,270].map(a=>'<g transform="rotate('+(a+20)+')"><rect x="-2" y="-34" width="4" height="34" fill="#6e4a2c"/><rect x="-7" y="-33" width="5" height="26" fill="#f4f1ea" stroke="#8a6340" stroke-width=".6"/></g>').join('')+'<circle r="3" fill="#3a2214"/></g>';
+  if(k==='from') s='<rect x="14" y="44" width="72" height="40" fill="#f2e6c9" stroke="#a88a5a"/><path d="M10 44 L50 22 L90 44Z" fill="#7e5a3a"/><rect x="24" y="56" width="14" height="12" fill="#9fd0e6" stroke="#6e4a2c"/><rect x="62" y="56" width="14" height="28" fill="#6e4a2c"/>'+'<g transform="translate(36 76)"><path d="M0 8 L14 8 L14 2 L0 -2Z" fill="#f2c94c" stroke="#c9a030"/><path d="M0 -2 L14 2 L22 -4 L8 -8Z" fill="#f7dc7a" stroke="#c9a030"/><circle cx="5" cy="4" r="1.2" fill="#d9a830"/><circle cx="10" cy="3" r=".9" fill="#d9a830"/></g>';
+  if(k==='chai') s='<rect x="10" y="40" width="80" height="44" rx="4" fill="#c9a06a" stroke="#7a5a3a"/><path d="M6 42 Q50 14 94 42Z" fill="#8a5a3a"/>'+[0,1,2].map(i=>'<g transform="translate('+(26+i*24)+' 66)"><ellipse rx="10" ry="12" fill="#8a5a3a" stroke="#5a3a20"/><ellipse rx="10" ry="12" fill="none" stroke="#3a2214" stroke-width="1.4" stroke-dasharray="0 6 30"/><line x1="-10" y1="-5" x2="10" y2="-5" stroke="#3a2214" stroke-width="1.2"/><line x1="-10" y1="5" x2="10" y2="5" stroke="#3a2214" stroke-width="1.2"/><circle r="2" fill="#5a3a20"/></g>').join('');
+  if(k==='trac') s='<rect x="22" y="40" width="38" height="22" rx="3" fill="#2f7a3a"/><rect x="40" y="22" width="22" height="22" rx="3" fill="#9fd0e6" stroke="#2f7a3a" stroke-width="3"/><rect x="16" y="46" width="10" height="12" fill="#2f7a3a"/><rect x="24" y="30" width="3" height="12" fill="#2b2f35"/><circle cx="62" cy="64" r="16" fill="#1d1f23"/><circle cx="62" cy="64" r="8" fill="#f2c94c"/><circle cx="28" cy="70" r="10" fill="#1d1f23"/><circle cx="28" cy="70" r="5" fill="#f2c94c"/>';
+  if(k==='irr') s='<line x1="10" y1="40" x2="90" y2="40" stroke="#9aa2ae" stroke-width="3"/>'+[20,40,60,80].map(x=>'<path d="M'+x+' 40 L'+(x-8)+' 80 M'+x+' 40 L'+(x+8)+' 80" stroke="#9aa2ae" stroke-width="2"/><circle cx="'+(x-8)+'" cy="80" r="3" fill="#2b2f35"/><circle cx="'+(x+8)+'" cy="80" r="3" fill="#2b2f35"/>').join('')+[15,30,45,60,75,90].map(x=>'<path d="M'+x+' 42 q-3 8 -6 14 M'+x+' 42 q3 8 6 14" stroke="#5ab4e6" stroke-width="1.2" fill="none" opacity=".8"/>').join('');
+  if(k==='serre') s='<path d="M12 84 L12 50 Q50 18 88 50 L88 84Z" fill="#cfe9f2" stroke="#9aa2ae" stroke-width="2" opacity=".9"/>'+[30,50,70].map(x=>'<path d="M'+x+' 84 L'+x+' '+(x===50?30:38)+'" stroke="#9aa2ae" stroke-width="1.4"/>').join('')+[22,36,64,78].map(x=>'<circle cx="'+x+'" cy="76" r="5" fill="#4a8f34"/><circle cx="'+(x+1)+'" cy="75" r="1.6" fill="#c8352a"/>').join('');
+  return '<svg width="'+W+'" height="'+W+'" viewBox="0 0 100 100">'+s+'</svg>'; }
+/* caisse en bois */
+function crate(label,col,W){ return '<svg width="'+W+'" height="'+W+'" viewBox="0 0 60 60"><rect x="6" y="14" width="48" height="40" rx="2" fill="#c99b66" stroke="#8a6340"/><rect x="6" y="14" width="48" height="6" fill="#b08550"/><line x1="6" y1="34" x2="54" y2="34" stroke="#8a6340"/><line x1="6" y1="44" x2="54" y2="44" stroke="#8a6340" opacity=".6"/>'+[14,24,34,44].map((x,i)=>'<circle cx="'+x+'" cy="'+(12-i%2)+'" r="5" fill="'+col+'"/><circle cx="'+(x-1.4)+'" cy="'+(10.6-i%2)+'" r="1.6" fill="#fff" opacity=".45"/>').join('')+'<rect x="18" y="24" width="24" height="8" fill="#f6e9da"/><text x="30" y="30" text-anchor="middle" font-size="5" font-weight="800" fill="#6e4729" font-family="sans-serif">'+label+'</text></svg>'; }
+
+const PL=[['ble','rec','Blé','à récolter','rd'],['mais','rec','Maïs','42 j'],['vaches','','Vaches','lait / jour'],['lock','','Libre','à semer'],['verger','rec','Verger','68 j'],['lock','','À acheter','12 000 €']];
+document.getElementById('plots').innerHTML=PL.map((x,i)=>'<button class="pl'+(i===3?' sel':'')+'">'+(x[2]==='Libre'? parcel('ble','semis',160,112,i+5).replace(/<path d="M[^"]*l\.6 -2\.4 l\.6 2\.4"[^>]*>/g,'') : parcel(x[0],x[1],160,112,i+5))+'<span class="tg"><b>'+x[2]+'</b><span class="'+(x[4]||'')+'">'+x[3]+'</span></span></button>').join('');
+document.getElementById('y1').innerHTML=bld('moulin',64); document.getElementById('y2').innerHTML=bld('from',64); document.getElementById('y3').innerHTML=bld('trac',56);
+const C=[['tourn','','Tournesol','récolte en 130 j',1],['leg','','Légumes','récolte en 60 j',1],['vigne','rec','Vigne','1re récolte en 30 j',1],['poules','','Poules','œufs chaque jour',1],['ble','crois','Blé','semis d\'octobre',0],['mais','rec','Maïs','semis d\'avril',0]];
+document.getElementById('crops').innerHTML=C.map((x,i)=>'<button class="cp'+(x[4]?'':' no')+'"><div class="th">'+parcel(x[0],x[1],100,58,i+20)+'</div>'+x[2]+'<small>'+x[3]+'</small></button>').join('');
+const M=(d)=>d/365*100; const row=(n,parts)=>'<div class="crow"><span>'+n+'</span><div class="bar">'+parts.map(([a,b,k])=>'<i class="'+k+'" style="left:'+M(a)+'%;width:'+M(b-a)+'%"></i>').join('')+'</div></div>';
+document.getElementById('calrows').innerHTML=row('Blé',[[0,180,'g'],[180,215,'r'],[270,330,'s'],[330,365,'g']])+row('Maïs',[[90,140,'s'],[140,240,'g'],[240,290,'r']])+row('Tournesol',[[100,150,'s'],[150,230,'g'],[230,280,'r']])+row('Légumes',[[60,120,'s'],[90,300,'g'],[120,330,'r']])+row('Verger',[[0,200,'g'],[220,290,'r']])+row('Vigne',[[0,230,'g'],[240,290,'r']]);
+document.getElementById('blds').innerHTML=[['moulin','Moulin','blé → farine','actif',''],['from','Fromagerie','lait → fromage','actif',''],['chai','Chai','raisin → vin','62 000 €','buy'],['trac','Tracteur','récoltes +15 %','actif',''],['irr','Irrigation','contre la sécheresse','18 000 €','buy'],['serre','Serre','légumes toute l\'année','24 000 €','buy']].map(x=>'<button class="bd'+(x[4]?' off':'')+'">'+bld(x[0],72)+x[1]+'<small>'+x[2]+'</small><em class="'+x[4]+'">'+x[3]+'</em></button>').join('');
+document.getElementById('crates').innerHTML=[['BLÉ','#E8C25A','3 caisses'],['POMMES','#d6332a','2 caisses'],['LAIT','#f4f1ea','2 caisses'],['ŒUFS','#e9d2a8','1 caisse']].map(x=>'<div class="cr">'+crate(x[0],x[1],60)+x[0].charAt(0)+x[0].slice(1).toLowerCase()+'<small>'+x[2]+'</small></div>').join('');
+document.querySelectorAll('.tog').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
+document.querySelectorAll('.pl').forEach(b=>b.addEventListener('click',()=>{ document.querySelectorAll('.pl').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); }));
+</script>
+</body>
+</html>
