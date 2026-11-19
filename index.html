@@ -8892,7 +8892,7 @@ function rsFix(b){
   b.m=n; b.price=1; b.mkt=0;
 }
 /* qualité d'exécution d'un plat par le chef */
-function rsQ(b,x){ const ch=b.m.chef; let q=clamp(1-Math.max(0,x.d-ch.lvl)*.22,.3,1); if(ch.g===x.g) q*=1.12; if(x.s&&x.s!==rsSeason()) q*=.82; return q; }
+function rsQ(b,x){ const ch=b.m.chef; let q=clamp(1-Math.max(0,x.d-ch.lvl)*.22,.3,1); if(ch.tr) q*=RS_TRAIN_Q; if(ch.g===x.g) q*=1.12; if(x.s&&x.s!==rsSeason()) q*=.82; return q; }
 function rsCost(b,x){ return x.c*(x.s&&x.s!==rsSeason()?1.7:1); }
 function rsCalc(b){
   const m=b.m, se=rsSeason(); let app=0, cost=0, n=0, dq=0, inS=0, tP=0, nP=0, miss=0;
@@ -8942,6 +8942,7 @@ MET.resto = {
       fixed:chefSal+(m.tv?metR0(b)*.05:0), rev:bisRev+(m.tv?metR0(b)*.08:0)+(m.tab?metR0(b)*.06:0) };
   },
   daily(b,ctx){ rsFix(b); const m=b.m, p=rsCalc(b);
+    if(m.chef.tr&&S.day>=m.chef.tr){ delete m.chef.tr; m.chef.lvl=Math.min(5,m.chef.lvl+1); metLog(b,m.chef.n+' revient de formation : niveau '+m.chef.lvl+' sur 5.','good'); }
     Object.keys(m.out).forEach(k=>{ if(m.out[k]<=S.day) delete m.out[k]; });
     if(m.acc&&m.cave>0&&ctx.open) m.cave=Math.max(0,m.cave-1);
     const tgt=30+9*p.dqa+16*p.inS+(p.all<=8?8:p.all<=10?3:-4)+(m.resa?3:0)+(m.deg?2:0)+(csOf(b)-60)*.3-(fatOf(b)>50?8:0)-(p.miss?15:0);
@@ -8998,7 +8999,8 @@ MET.resto = {
     tab:(b)=>{ if(!mxHas(b,2)) return err('Il faut deux étoiles.'); if(b.m.tab) return err('Déjà installée.'); const c=bizDef(b).cost*.5; if(!metBuy(b,c,'Table du chef')) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); b.m.tab=1; return ok('Table du chef installée.'); },
     add:(b,arg)=>rsAdd(b,arg),
     rm:(b,arg)=>rsRm(b,arg),
-    chef:(b,i)=>rsHire(b,+i,false)
+    chef:(b,i)=>rsHire(b,+i,false),
+    train:(b)=>rsTrain(b)
   },
   auto: rsAuto
 };
@@ -9012,6 +9014,12 @@ function rsRm(b,arg){ const [k,id]=String(arg).split(':'), m=b.m; if(!m.carte[k]
 function rsCands(b){ const m=b.m, w=Math.floor(S.day/7); if(!m.cands||m.cd!==w){ m.cd=w; const base=m.chef.lvl;
   m.cands=[Math.max(1,base-1),Math.min(5,base+1),Math.min(5,base+2)].map((l,i)=>rsGenChef(l,w*7+i+b.id*31+(m.hc||0)*101)); } return m.cands; }
 function rsChefFee(b,c){ return metR0(b)*RS_CHEF_FEE[c.lvl]; }
+/* V2.4.4 : formation du chef (niveau + 1 au bout de RS_TRAIN_D jours ; pendant la formation, la cuisine est un peu moins sûre). État : chef.tr = jour de fin (absent = aucune formation). */
+const RS_TRAIN_D=40, RS_TRAIN_Q=.92, RS_TRAIN_F=.5;
+function rsTrainCost(b){ const l=b.m.chef.lvl; return l>=5? 0 : metR0(b)*Math.max(2,RS_CHEF_FEE[l+1])*RS_TRAIN_F; }
+function rsTrain(b){ const ch=b.m.chef; if(ch.lvl>=5) return err('Le chef est déjà au niveau maximum.'); if(ch.tr) return err('Une formation est déjà en cours.');
+  const c=rsTrainCost(b); if(!metBuy(b,c,'Formation du chef')) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  ch.tr=S.day+RS_TRAIN_D; metLog(b,ch.n+' part en formation : niveau '+(ch.lvl+1)+' dans '+RS_TRAIN_D+' jours.',''); return ok('Formation lancée.'); }
 function rsHire(b,i,auto){ const c=rsCands(b)[i]; if(!c) return err('Candidat introuvable.'); const fee=rsChefFee(b,c);
   if(fee>0&&!(auto? dlSpend(b,fee,'Recrutement du chef') : metBuy(b,fee,'Recrutement du chef'))) return err('Trésorerie insuffisante : '+eur(fee,0)+'.');
   b.m.chef=Object.assign({},c); b.m.cands=null; b.m.hc=(b.m.hc||0)+1; metLog(b,c.n+' prend la tête de la cuisine (niveau '+c.lvl+', '+RS_SPEC[c.g].toLowerCase()+').','good'); return ok(c.n+' est votre nouveau chef.'); }
@@ -16635,13 +16643,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.4.4';
+const IB_VER='V2.4.5';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Former le chef','Au restaurant, le chef peut partir en formation : il gagne un niveau au bout de 40 jours et garde sa spécialité. C’est moins cher que de recruter un chef de ce niveau, mais plus lent, et la cuisine est un peu moins sûre pendant la formation.','V2.4.5'],
   ['Un écran par société','Chaque société a maintenant son propre écran, dessiné autour de son métier : la salle et l’ardoise du restaurant, la façade de l’hôtel, le plan du parc, l’établi de l’atelier, le showroom de la concession, les cimaises de la galerie, le défilé de la couture, les parcelles de la ferme, les départs de la compagnie aérienne… Équipe, finances, local et sécurité sont réunis en quatre raccourcis en bas de l’écran, avec la délégation au directeur du site.','V2.4.4'],
   ['Grands groupes','Avec quatre sociétés ou plus, l’écran Sociétés montre d’abord « Vos sociétés », avant les villes et les bâtiments libres. Dans Usines et logistique, un approvisionnement couvert à moins de 60 % est signalé avec la marche à suivre. Le menu Plus garde vos écrans récents d’une session à l’autre. Les pluriels « société(s) », « jour(s) »… s’accordent maintenant avec le nombre.','V2.4.3'],
   ['Navigation et traductions','Le menu Plus affiche en tête les trois derniers écrans ouverts et, en bas, un raccourci pour personnaliser la barre du bas. Les boutons indisponibles restants donnent leur raison (palier requis, levée de fonds en cours, enchère avec frais, trésorerie manquante). Les messages de chantier, les tendances de l’e-commerce et les appareils de la réparation sont traduits en anglais.','V2.4.2'],
@@ -18313,6 +18322,8 @@ NF_CSS.push(`
 .rs2-lv{display:flex;gap:4px;margin-top:6px}
 .rs2-lv i{flex:1;height:8px;border-radius:4px;background:#EDE3D3}.rs2-lv i.f{background:#C99A2E}
 .rs2-cands{margin-top:10px}
+.rs2-cb{display:flex;gap:8px;margin-top:10px}.md.nf-resto .rs2-cb .nf-b{flex:1;min-width:0;padding:0 8px;white-space:normal;line-height:1.15}
+.rs2-tr{margin-top:8px;font:800 12.5px var(--fb);color:#7A4A2B}.rs2-tr i{display:block;height:6px;border-radius:3px;background:#EDE3D3;margin:5px 0 3px;overflow:hidden}.rs2-tr em{display:block;height:100%;background:#C99A2E}.rs2-tr small{display:block;font:600 11.5px var(--fb);color:var(--ink-3)}
 .rs2-cave{background:linear-gradient(#4A2A2F,#351C21);border-radius:20px;padding:14px;box-shadow:0 4px 0 #24110F;color:#F7E8EA}
 .rs2-cave .nf-row{color:#D8B9BF}.rs2-cave .nf-row b{color:#F7E8EA}.rs2-cave .nf-row small{color:#D8B9BF}
 .rs2-cave .nf-row+.nf-row{margin-top:8px}
@@ -18380,7 +18391,10 @@ FX2.resto={
     h+=nfSec('En cuisine')+'<div class="nf-card"><div class="rs2-cui"><div class="toque"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M10 22c-5 0-7-7-2-9 0-6 8-8 11-4 3-4 11-2 11 4 5 2 3 9-2 9v8H10z" fill="#fff" stroke="#C9B08C" stroke-width="2"/><rect x="10" y="28" width="20" height="5" rx="2" fill="#EAD9C0"/></svg></div>'+
       '<div class="t"><b>'+esc(c.n)+'</b><div class="s"><span>Chef</span> · <span>'+RS_SPEC[c.g].toLowerCase()+'</span> · <span>maîtrise '+ok+' plat'+(ok>1?'s':'')+' sur '+all.length+'</span>'+(RS_CHEF_SAL[c.lvl]? ' · <span>'+eur(R0*RS_CHEF_SAL[c.lvl],0)+' / j en plus</span>' : '')+'</div>'+
       '<div class="rs2-lv" aria-label="Niveau '+c.lvl+' sur 5">'+[1,2,3,4,5].map(i=>'<i class="'+(i<=c.lvl?'f':'')+'"></i>').join('')+'</div></div></div>'+
-      '<button class="btn nf-b w" style="margin-top:10px" data-a="nfui" data-i="'+b.id+'" data-v="chef">'+(U.chef?'Fermer':'Voir d’autres chefs')+'</button>';
+      (c.tr? '<div class="rs2-tr"><span>En formation : niveau '+(c.lvl+1)+' dans '+plu(Math.max(1,c.tr-S.day),'jour')+'</span><i><em style="width:'+Math.round(clamp(1-(c.tr-S.day)/RS_TRAIN_D,0,1)*100)+'%"></em></i><small>La cuisine est un peu moins sûre pendant la formation.</small></div>' : '')+
+      '<div class="rs2-cb"><button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="train"'+(c.lvl>=5||c.tr||!nfCan(b,rsTrainCost(b))?' disabled':'')+(c.lvl>=5?' data-why="Le chef est déjà au niveau maximum."':c.tr?' data-why="Une formation est déjà en cours."':'')+'>'+(c.lvl>=5? 'Niveau maximum' : 'Former le chef · '+eur(rsTrainCost(b),0))+'</button>'+
+      '<button class="btn nf-b" data-a="nfui" data-i="'+b.id+'" data-v="chef">'+(U.chef?'Fermer':'Voir d’autres chefs')+'</button></div>'+
+      (c.lvl<5&&!(c.tr)? '<div class="rs2-tr"><small>Niveau '+(c.lvl+1)+' en '+RS_TRAIN_D+' jours, sans changer de spécialité. Recruter un chef de ce niveau coûterait '+eur(metR0(b)*RS_CHEF_FEE[Math.min(5,c.lvl+1)],0)+'.</small></div>' : '');
     if(U.chef){ const cs=rsCands(b); h+='<div class="nf-list rs2-cands">'+cs.map((x,i)=>{ const fee=rsChefFee(b,x);
       return nfRowH(esc(x.n),'Niveau '+x.lvl+' · '+RS_SPEC[x.g].toLowerCase()+' · '+eur(R0*RS_CHEF_SAL[x.lvl],0)+' / jour','<button class="btn nf-b a" data-a="met" data-i="'+b.id+'" data-v="chef" data-j="'+i+'"'+(nfCan(b,fee)?'':' disabled')+'>'+(fee? eur(fee,0) : 'Recruter')+'</button>'); }).join('')+'</div>'; }
     h+='</div>';
