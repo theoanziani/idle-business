@@ -1,0 +1,2 @@
+earth.jpg : « Blue Marble », NASA Visible Earth (domaine public), redimensionnée en 2048 x 1024.
+Obtenue via le paquet three-globe (licence MIT, Vasco Asturiano).

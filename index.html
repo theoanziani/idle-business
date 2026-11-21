@@ -23,7 +23,7 @@
 <style>
 @font-face{font-family:'Nunito';font-style:normal;font-display:swap;font-weight:200 1000;src:url(fonts/nunito-latin-wght-normal.woff2) format('woff2-variations'),url(fonts/nunito-latin-wght-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:'Nunito';font-style:normal;font-display:swap;font-weight:200 1000;src:url(fonts/nunito-latin-ext-wght-normal.woff2) format('woff2-variations'),url(fonts/nunito-latin-ext-wght-normal.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
-/* Idle Business : direction « Ludique ». Clair = ciel et cartes blanches à rebord ; sombre = « Océan » (bleu-vert profond, turquoise).
+/* Idle Business : direction « Ludique ». Clair = ciel et cartes blanches à rebord ; sombre (V2.4.8) = fond noir, deux styles : « Noir » (turquoise) et « Carbone » (gris chaud, ambre).
    Boutons épais avec rebord plein, tuiles d'icônes colorées, Baloo 2 + Nunito. */
 :root{
   --paper:#EAF4FF; --paper-2:#E1EBFA; --card:#FFFFFF; --line:#DCE6F5; --btn-line:#C7D9F2; --rule:transparent;
@@ -43,26 +43,28 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --c1:#8DB2FF;--c2:#69D8A3;--c3:#E4B04A;--c4:#B895F0;--c5:#F08BB0;--c6:#6CCBE6;--c7:#B2C75C;--c8:#D49A80;--c9:#9AA9C6;
-    --paper:#061C24; --paper-2:#123442; --card:#0E2C37; --line:#1A4250; --btn-line:#24566A;
-    --ink:#E8FAFF; --ink-2:#B5D3DC; --ink-3:#93BAC6;
+    --paper:#000000; --paper-2:#17171A; --card:#111113; --line:#232327; --btn-line:#2E2E33;
+    --ink:#F4F4F6; --ink-2:#C8C8CE; --ink-3:#9B9BA4;
     --lime:#FFC93C; --lime-ink:#3A2A00;
-    --blue:#2EC4D6; --blue-ink:#04191F; --blue-soft:#164252;
+    --blue:#2EC4D6; --blue-ink:#04191F; --blue-soft:#0E2629;
     --stamp-bg:#FFC93C; --stamp-fg:#3A2A00;
-    --red:#FF8A7D; --red-soft:#43252B; --green:#4BE29A; --green-soft:#0F3D33; --amber:#FFD25E; --amber-soft:#3E3518;
-    --sh:#020B0F; --pri-sh:#13808C; --stamp-sh:#B88A00; --good-bg:#3DDC8C; --good-sh:#1E8A55; --bad-bg:#FF7A6B; --bad-sh:#B8473B;
+    --red:#FF8A7D; --red-soft:#2C1614; --green:#4BE29A; --green-soft:#0D251B; --amber:#FFD25E; --amber-soft:#2A2310;
+    --sh:#1E1E22; --pri-sh:#13808C;
+    --dk-bg:#000000; --dk-card:#111113; --dk-card2:#19191C; --dk-line:#26262B; --dk-sh:#1E1E22; --dk-ink:#F4F4F6; --dk-ink2:#C8C8CE; --dk-ink3:#9B9BA4; --stamp-sh:#B88A00; --good-bg:#3DDC8C; --good-sh:#1E8A55; --bad-bg:#FF7A6B; --bad-sh:#B8473B;
     --shadow:0 4px 0 var(--sh);
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
     --c1:#8DB2FF;--c2:#69D8A3;--c3:#E4B04A;--c4:#B895F0;--c5:#F08BB0;--c6:#6CCBE6;--c7:#B2C75C;--c8:#D49A80;--c9:#9AA9C6;
-    --paper:#061C24; --paper-2:#123442; --card:#0E2C37; --line:#1A4250; --btn-line:#24566A;
-    --ink:#E8FAFF; --ink-2:#B5D3DC; --ink-3:#93BAC6;
+    --paper:#000000; --paper-2:#17171A; --card:#111113; --line:#232327; --btn-line:#2E2E33;
+    --ink:#F4F4F6; --ink-2:#C8C8CE; --ink-3:#9B9BA4;
     --lime:#FFC93C; --lime-ink:#3A2A00;
-    --blue:#2EC4D6; --blue-ink:#04191F; --blue-soft:#164252;
+    --blue:#2EC4D6; --blue-ink:#04191F; --blue-soft:#0E2629;
     --stamp-bg:#FFC93C; --stamp-fg:#3A2A00;
-    --red:#FF8A7D; --red-soft:#43252B; --green:#4BE29A; --green-soft:#0F3D33; --amber:#FFD25E; --amber-soft:#3E3518;
-    --sh:#020B0F; --pri-sh:#13808C; --stamp-sh:#B88A00; --good-bg:#3DDC8C; --good-sh:#1E8A55; --bad-bg:#FF7A6B; --bad-sh:#B8473B;
+    --red:#FF8A7D; --red-soft:#2C1614; --green:#4BE29A; --green-soft:#0D251B; --amber:#FFD25E; --amber-soft:#2A2310;
+    --sh:#1E1E22; --pri-sh:#13808C;
+    --dk-bg:#000000; --dk-card:#111113; --dk-card2:#19191C; --dk-line:#26262B; --dk-sh:#1E1E22; --dk-ink:#F4F4F6; --dk-ink2:#C8C8CE; --dk-ink3:#9B9BA4; --stamp-sh:#B88A00; --good-bg:#3DDC8C; --good-sh:#1E8A55; --bad-bg:#FF7A6B; --bad-sh:#B8473B;
     --shadow:0 4px 0 var(--sh);
     color-scheme:dark;
 }
@@ -593,10 +595,10 @@ input[type=range]{accent-color:var(--blue)}
 @keyframes coinflip{0%{transform:translateY(-60px) rotateY(0);opacity:0}30%{opacity:1}60%{transform:translateY(6px) rotateY(540deg)}80%{transform:translateY(-6px) rotateY(680deg)}100%{transform:none}}
 .sp-load{margin-top:10px;width:140px;height:8px;border-radius:9px;background:rgba(255,255,255,.55);overflow:hidden}
 .sp-load i{display:block;height:100%;border-radius:9px;background:var(--stamp-bg);transform-origin:left;animation:grow 2.4s .2s cubic-bezier(.4,0,.2,1) both}
-:root[data-theme="dark"] #splash{background:linear-gradient(#020E14 0%,#0B2E3A 75%)}
+:root[data-theme="dark"] #splash{background:linear-gradient(#000 0%,#141416 75%)}
 :root[data-theme="dark"] .sp-sun{fill:#E8FAFF;opacity:.9}
 :root[data-theme="dark"] .sp-logo b{color:var(--ink)}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) #splash{background:linear-gradient(#020E14 0%,#0B2E3A 75%)} :root:not([data-theme="light"]) .sp-sun{fill:#E8FAFF;opacity:.9} :root:not([data-theme="light"]) .sp-logo b{color:var(--ink)} }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) #splash{background:linear-gradient(#000 0%,#141416 75%)} :root:not([data-theme="light"]) .sp-sun{fill:#E8FAFF;opacity:.9} :root:not([data-theme="light"]) .sp-logo b{color:var(--ink)} }
 .sp-cl{position:absolute;height:22px;border-radius:22px;background:#FFFFFF;opacity:.9;animation:drift 9s linear infinite}
 .sp-cl::before,.sp-cl::after{content:"";position:absolute;background:#FFFFFF;border-radius:50%}
 .sp-cl::before{width:30px;height:30px;left:12px;top:-14px}.sp-cl::after{width:22px;height:22px;left:34px;top:-9px}
@@ -1206,6 +1208,83 @@ details.hmore .hm-b{display:flex;flex-direction:column;gap:18px;margin-top:18px}
 .tip1{position:relative;padding-right:44px}.tip1 .tip-x{position:absolute;top:4px;right:4px;min-width:44px;min-height:44px}
 .why{display:block;font-size:12px;color:var(--ink-3);margin-top:4px}
 .pk-o[data-dis]{opacity:.5;cursor:not-allowed}
+
+/* V2.4.8 : second style sombre « Carbone » (classe dk posée par le jeu quand le thème sombre est actif) */
+html.dk[data-dk="carbone"]{
+  --paper:#0C0C0D; --paper-2:#1F1E1C; --card:#1A1918; --line:#2E2C2A; --btn-line:#3A3835;
+  --ink:#F3EFE8; --ink-2:#D2CBBF; --ink-3:#A69F93;
+  --blue:#F2A93B; --blue-ink:#1F1300; --blue-soft:#2E2414; --pri-sh:#A86F17;
+  --red-soft:#2E1815; --green-soft:#132519; --amber-soft:#2C2412;
+  --sh:#050505;
+  --dk-bg:#0C0C0D; --dk-card:#1A1918; --dk-card2:#23221F; --dk-line:#302E2B; --dk-sh:#050505; --dk-ink:#F3EFE8; --dk-ink2:#D2CBBF; --dk-ink3:#A69F93;
+}
+html.dk[data-dk="carbone"] #splash{background:linear-gradient(#0C0C0D 0%,#1F1E1C 75%)}
+/* V2.4.8 : listes repliées (ui_nf_more.js) */
+.mr-h{display:none!important}
+.mr-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;margin-top:8px;border:0;border-radius:14px;background:var(--paper-2);color:var(--blue);font:800 13px var(--f-body)}
+html.dk .mr-more{color:var(--ink)}
+.mr-more::after{content:'';width:8px;height:8px;border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:rotate(45deg) translateY(-2px)}
+.mr-more[aria-expanded="true"]::after{transform:rotate(-135deg) translateY(-2px)}
+.md.nf .mr-more{background:rgba(0,0,0,.05);color:var(--nf-acc)}
+html.dk .md.nf .mr-more{background:rgba(255,255,255,.06);color:var(--ink)}
+/* V2.4.8 : luxe, prestige et banque (ui_lux3.js) */
+.px-hero{background:linear-gradient(150deg,#1D1A3A 0%,#2C1F4F 55%,#4A2A3F 100%);color:#fff;box-shadow:0 4px 0 #120F26}
+html.dk .px-hero{background:linear-gradient(150deg,#141218 0%,#1F1A28 60%,#2A1C24 100%);box-shadow:0 4px 0 #000}
+.px-top{display:flex;gap:14px;align-items:center}
+.px-medal{width:64px;height:64px;flex:0 0 auto}.px-medal svg{width:100%;height:100%}
+.px-t{min-width:0}.px-t small{display:block;font:700 12px var(--f-body);color:rgba(255,255,255,.7)}.px-t b{display:block;font:800 25px/1.1 var(--f-display);color:#FFC93C}.px-t span{display:block;font-size:12.5px;color:rgba(255,255,255,.82);margin-top:2px}
+.px-lad{display:flex;gap:5px;margin:14px 0 4px}.px-lad i{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.16)}.px-lad i.d{background:#FFC93C;opacity:.6}.px-lad i.n{background:#FFC93C}
+.px-eff{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.px-eff>div{background:rgba(255,255,255,.08);border-radius:14px;padding:8px 10px;min-width:0}.px-eff small{display:block;font-size:11.5px;color:rgba(255,255,255,.7)}.px-eff b{font:800 13.5px var(--f-body);color:#fff}
+.px-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin-top:14px;background:rgba(255,255,255,.1)}.px-bar i{display:block;height:100%}
+.px-src{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px;font-size:12px;color:rgba(255,255,255,.85)}.px-src span{display:inline-flex;align-items:center;gap:5px}.px-src i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.px-none{margin-top:12px;font-size:12.5px;color:rgba(255,255,255,.78)}
+.px-gala{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14)}
+.px-gala b{display:block;color:#fff}.px-gala small{display:block;font-size:12px;color:rgba(255,255,255,.75)}
+.px-gala .btn.px-gb{background:#FFC93C;color:#3A2A00;box-shadow:0 3px 0 #B88A00;min-height:44px;flex:0 0 auto}
+.px-tabs{display:flex;gap:6px;overflow-x:auto;margin:16px calc(-1 * var(--gut)) 4px;padding:2px var(--gut) 6px;scrollbar-width:none}
+.px-tabs::-webkit-scrollbar{display:none}
+.px-tabs button{flex:0 0 auto;min-height:44px;border:0;border-radius:14px;padding:0 15px;background:var(--card);color:var(--ink-2);font:800 13px var(--f-body);box-shadow:0 3px 0 var(--sh)}
+.px-tabs button.on{background:var(--blue);color:var(--blue-ink);box-shadow:0 3px 0 var(--pri-sh)}
+.px-tabs button i{font-style:normal;font-size:11px;background:rgba(0,0,0,.12);border-radius:8px;padding:1px 6px;margin-left:3px}
+.bk-tabs button{flex:1}
+.px-list{display:grid;gap:12px;margin-top:8px}
+@media (min-width:720px){ .px-list{grid-template-columns:1fr 1fr} }
+.px-it{padding:0;overflow:hidden}
+.px-it.lock .px-im{filter:grayscale(.7);opacity:.75}
+.px-im{position:relative;line-height:0;background:var(--paper-2)}
+.px-im svg{display:block;height:120px}
+.px-tag{position:absolute;left:10px;top:10px;line-height:1;font:800 11.5px var(--f-body);padding:5px 9px;border-radius:999px;background:rgba(20,20,30,.72);color:#fff}
+.px-tag.ok{background:#2BB673}
+.px-pr{position:absolute;right:10px;top:10px;line-height:1;font:800 13px var(--f-display);padding:5px 10px;border-radius:10px;background:#FFC93C;color:#3A2A00;box-shadow:0 2px 0 #B88A00}
+.px-b{padding:12px 14px 14px}
+.px-n b{display:block;font:800 16px var(--f-display);line-height:1.2}.px-n small{display:block;font-size:12px;color:var(--ink-3);margin-top:2px}
+.px-v{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:10px}
+.px-v small{display:block;font-size:11.5px;color:var(--ink-3)}.px-v b{font:800 19px var(--f-display)}
+.px-sp{flex:0 0 auto}
+.px-k{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:12px;color:var(--ink-3)}.px-k b{color:var(--ink)}
+.px-rent{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.px-a{display:flex;margin-top:10px}.px-a .btn{flex:1;min-height:44px}
+.bk-cardv{position:relative;border-radius:24px;padding:18px 20px 16px;color:#fff;background:linear-gradient(135deg,#1F3C88 0%,#3A2F8F 55%,#7A2E6E 100%);box-shadow:0 6px 0 #142A63;overflow:hidden}
+html.dk .bk-cardv{background:linear-gradient(135deg,#1A1A1E 0%,#26232E 55%,#2E1F2A 100%);box-shadow:0 6px 0 #000;outline:1px solid rgba(255,255,255,.08)}
+html.dk[data-dk="carbone"] .bk-cardv{background:linear-gradient(135deg,#2A2622 0%,#3A2E20 60%,#4A3418 100%)}
+.bk-cardv::after{content:'';position:absolute;right:-40px;top:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.07)}
+.bk-chip{width:38px;height:28px;border-radius:7px;background:linear-gradient(135deg,#F6D77A,#C99A2E);margin-bottom:12px}
+.bk-brand{position:absolute;right:18px;top:20px;font:800 10.5px var(--f-body);letter-spacing:.08em;opacity:.8}
+.bk-cardv small{display:block;font-size:12px;opacity:.75}.bk-cardv>b{display:block;font:800 30px/1.1 var(--f-display);margin:2px 0 12px}
+.bk-row{display:flex;justify-content:space-between;gap:8px;font:800 14px var(--f-body)}.bk-row span{min-width:0}
+.bk-row em{font-style:normal;display:inline-grid;place-items:center;width:26px;height:22px;border-radius:7px;background:#fff;color:#1B2550}
+.bk-grade{display:flex;gap:14px;align-items:center}
+.bk-g{flex:0 0 auto;width:58px;height:58px;border-radius:18px;display:grid;place-items:center;font:800 32px var(--f-display);color:#fff}
+.gA{background:#16804D}.gB{background:#4E9A2F}.gC{background:#C9A227}.gD{background:#E07A1F}.gE{background:#C8352A}
+.bk-scale{display:flex;gap:6px;margin-top:12px}.bk-scale span{flex:1;text-align:center;border-radius:10px;padding:5px 0;font:800 13px var(--f-body);color:#fff;opacity:.35}.bk-scale span.on{opacity:1;box-shadow:0 0 0 2px var(--ink) inset}.bk-scale small{display:block;font-size:10.5px;font-weight:700}
+.bk-rate{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:12.5px;color:var(--ink-3)}.bk-rate b{color:var(--ink)}.bk-rate .t{width:100%;font-size:14px}.bk-rate .t b{font-size:16px;color:var(--blue)}
+.bk-q{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.bk-q .btn{min-height:52px;padding:4px;white-space:normal;line-height:1.15}.bk-q small{display:block;font-size:10.5px;font-weight:700;color:var(--ink-3);margin-top:2px}
+.bk-loan{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:8px;flex-wrap:wrap}.bk-loan:first-child{border-top:0;padding-top:0}
+.bk-loan b{font:800 16px var(--f-display)}.bk-loan small{display:block;font-size:12px;color:var(--ink-3)}
+.bk-app{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:3px}.bk-app:first-child{border-top:0;padding-top:0}
+.bk-app .hd{display:flex;justify-content:space-between;align-items:center;gap:8px}.bk-app small{font-size:12px;color:var(--ink-3)}.bk-app .row{margin-top:6px}
+.px-rent{display:flex;justify-content:space-between;align-items:center;gap:10px}.px-rent>span{min-width:0}.px-rent b{display:block;font-size:14px}.px-rent small{display:block;font-size:12px;color:var(--ink-3)}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -4060,7 +4139,7 @@ function setLease(id,v){ const h=bldHeld(id), m=S.bldMod&&S.bldMod[id]; if(!h||!
 D.MGR={
   ceo:{n:'Directeur général', hire:50000, day:600, txt:'Réduit de 4 % les salaires et les frais fixes de toutes vos sociétés, et ajuste chaque semaine les prix et le marketing des commerces classiques.'},
   prop:{n:'Gestionnaire immobilier', hire:20000, day:250, txt:'Négocie vos loyers (−5 %) et résilie les baux des locaux vides depuis 10 jours.'},
-  cont:{n:'Responsable des contrats', hire:15000, day:200, txt:'Accepte seul les contrats que vos usines peuvent livrer à temps.'},
+  cont:{n:'Responsable des contrats', hire:15000, day:200, txt:'Accepte seul les contrats que vos usines peuvent livrer à temps, une fois servies vos propres sociétés et les contrats déjà signés.'},
   fin:{n:'Directeur financier', hire:30000, day:350, txt:'Chaque lundi, rembourse vos emprunts les plus chers puis place sur le livret la trésorerie qui dépasse un mois de dépenses (réglable dans Épargne automatique) ; reprend sur le livret si la trésorerie baisse trop.'},
   del:{n:'Service de livraison', hire:8000, day:120, txt:'Marchandises livrées le jour même dans vos boutiques, expéditions nationales plus rapides et 30 % moins chères.'}
 };
@@ -4082,9 +4161,11 @@ function mgrStep(){
   /* Directeur financier (V1.6.5) */
   if(S.mgr.fin&&wdOf(S.day)===0) finStep();
   /* Responsable des contrats */
-  if(S.mgr.cont&&S.ind) S.ind.offers.slice().forEach(o=>{ if(S.ind.active.length>=5) return;
-    const rate= o.p? pRate(o.p) : 0;   /* V2.3.5 : production du produit demandé */
-    if(rate*(o.due-S.day-9)*0.8>=o.qty){ const r=acceptContract(o.id); if(r.ok) log('info','Responsable des contrats : contrat accepté avec '+o.client+'.'); } });
+  /* V2.4.8 : il ne compte que la production restante : stock à la bonne qualité + production à venir, moins
+     ce que vos usines livrent à vos sociétés et moins les contrats déjà signés sur ce produit */
+  if(S.mgr.cont&&S.ind) S.ind.offers.slice().sort((a,b)=>b.px/(D.PRODS[b.p]||{v:1}).v-a.px/(D.PRODS[a.p]||{v:1}).v).forEach(o=>{ if(S.ind.active.length>=5||!o.p) return;
+    const F=contFree(o.p,o.qm||0,o.due-S.day-9);
+    if(F.free>=o.qty*1.1){ const r=acceptContract(o.id); if(r.ok) log('info','Responsable des contrats : contrat accepté avec '+o.client+' (après vos sociétés, il reste '+fmtN(Math.round(F.free))+' '+D.PRODS[o.p].u+' disponibles d’ici l’échéance).'); } });
 }
 
 function finBuf(){ let e=0; S.biz.forEach(b=>{ if(b.status==='active'&&b.last) e+=Math.max(0,b.last.rev-b.last.net); }); return Math.max(20000*progMult(),e*30); }
@@ -4173,6 +4254,15 @@ function achStep(){ if(!mgrOn('ach')) return; const q=achQ(), I=S.ind;
 { const _ms=mgrStep; mgrStep=function(){ _ms(); try{ if(mgrOn('ach')&&wdOf(S.day)===0) achStep(); }catch(e){ console.error(e); } }; }
 /* réserve : plus de stock d'avance avec le directeur (2 à 3,5 jours au lieu de 1,5) */
 supReserveV=(function(_r){ return function(g,b){ return _r(g,b)*(mgrOn('ach')? (1.35+achQ()*1.0) : 1); }; })(supReserveV);
+
+/* V2.4.8 : production encore libre d'un produit sur « days » jours : stock (qualité ≥ qm) + production nette
+   des livraisons quotidiennes à vos sociétés, moins les contrats signés non livrés. Rien de sauvegardé. */
+function contFree(p,qm,days){ const P=D.PRODS[p]; if(!P) return {free:0,rate:0,own:0,stock:0,cmt:0}; days=Math.max(0,days);
+  let rate=0, stock=0, q0=0, n=0; S.biz.forEach(b=>{ if(!isFact(b)||b.status!=='active') return; fpInit(b); if(!b.st||!b.st[p]) return;
+    stock+=fpUnits(b,p,qm); const q=(b.pq&&b.pq[p])||0; if(b.mix&&b.mix[p]>0&&q>=qm){ rate+=(b.prodAvgV||b.prodDayV||0)*fpShare(b,p)/(P.v*QC[q]); q0+=q; n++; } });
+  let own=0; try{ if(S.biz.some(f=>isFact(f)&&f.status==='active'&&supOn(f)&&f.mix&&f.mix[p]>0)){ const pr=pPrice(p,n? Math.round(q0/n) : 0); own=supClientsP(p).reduce((a,c)=>a+supNeedP(c,p),0)/Math.max(.01,pr); } }catch(e){}
+  const cmt=(S.ind? S.ind.active : []).filter(c=>c.st==='open'&&c.p===p).reduce((a,c)=>a+c.qty,0);
+  return {free: stock+Math.max(0,rate-own)*days*.9-cmt-own*1.5, rate, own, stock, cmt}; }
 
 /* ============================================================
    MACRO, ÉVÉNEMENTS, MARCHÉS FINANCIERS, CAPITAL-RISQUE, CRÉDIT
@@ -12427,6 +12517,49 @@ function statsStep(){ const st=S.stats, act=S.biz.filter(b=>b.status==='active')
 { const _bs3=balStep; balStep=function(){ _bs3.apply(this,arguments); try{ statsStep(); }catch(e){} }; }
 
 /* ============================================================
+   V2.4.8 : PRESTIGE, LUXE ET CRÉDIT REPENSÉS
+   Prestige : recalculé chaque jour à partir de ce que vous possédez (voitures, art, propriétés,
+   yachts, monuments, objets de collection, résidences construites ; un bien loué compte pour moitié),
+   plus un gala ponctuel. Sept rangs ; chaque rang au-dessus du premier apporte, de façon visible :
+   ventes +1,5 % pour vos sociétés de luxe et d'hôtellerie, taux d'emprunt −0,1 point, et la
+   réputation et l'influence suivent le prestige (comme avant, racine du score).
+   Crédit : note de A à E selon votre endettement ; le taux d'un nouvel emprunt dépend de la note et
+   du rang de prestige (il reste fixe ensuite).
+   Nouveaux champs (avec valeurs par défaut) : S.prB (détail du prestige, recalculé), S.gala
+   ({until, next}, absent = aucun gala), S.luxH (cours hebdomadaires du luxe, {} par défaut).
+   ============================================================ */
+const PR_RANKS=[[0,'Anonyme'],[25,'Notable'],[100,'Personnalité'],[300,'Figure des affaires'],[800,'Élite'],[2000,'Icône'],[5000,'Légende']];
+function prRank(p){ p=p===undefined? (S.prestige||0) : p; let r=0; PR_RANKS.forEach((x,i)=>{ if(p>=x[0]) r=i; }); return r; }
+const PR_SALES=.015, PR_RATE=.1, GALA_D=30, GALA_CD=90, GALA_K=.25;
+const galaOn = () => !!(S.gala&&S.gala.until>=S.day);
+function galaCost(){ return Math.max(50000,Math.round((S.nw||0)*.002/1000)*1000); }
+function galaHold(){ if(S.gala&&S.gala.next>S.day) return err('Prochain gala possible le '+dateL(S.gala.next)+'.'); const c=galaCost(); if(S.cash<c) return err('Trésorerie insuffisante.');
+  payCap('lux','Gala de prestige',-c); S.gala={until:S.day+GALA_D, next:S.day+GALA_CD}; S.rep=clamp((S.rep||50)+1.5,0,100); prCompute();
+  return ok('Gala organisé : prestige +'+Math.round(GALA_K*100)+' % pendant '+GALA_D+' jours.'); }
+function prCompute(){ const B={car:0,art:0,estate:0,yacht:0,monument:0,coll:0,home:0,prop:0,gala:0};
+  (S.lux||[]).forEach(o=>{ const l=D.LUX.find(x=>x.id===o.id); if(!l) return; B[l.kind]=(B[l.kind]||0)+(o.rent? l.pr*.5 : l.pr); });
+  (S.prop||[]).forEach(p=>{ const T=D.PROP[p.t]; if(T&&T.pr) B.prop+=T.pr; });
+  if(S.auc&&S.auc.coll) B.coll=S.auc.coll.reduce((a,it)=>a+[1,3,8][it.rar||0],0);
+  if(S.bldMod) Object.keys(S.bldMod).forEach(id=>{ const m=S.bldMod[id], h=S.bld&&S.bld[id]; if(!h||m.t!=='home') return; const P=D.PLANS[m.plan]; if(P&&P.pr) B.home+=h.lease? P.pr/2 : P.pr; });
+  let base=0; Object.keys(B).forEach(k=>{ if(k!=='gala') base+=B[k]; }); if(galaOn()) B.gala=base*GALA_K;
+  S.prB=B; S.prestige=Math.round((base+B.gala)*10)/10; return S.prestige; }
+/* recalcul en fin de journée, après les étapes du luxe et des chantiers */
+{ const _l2=lux2Step; lux2Step=function(){ _l2.apply(this,arguments); prCompute();
+  if(!S.luxH) S.luxH={}; if(S.day%7===0) D.LUX.forEach(l=>{ const h=S.luxH[l.id]||(S.luxH[l.id]=[]); h.push(Math.round(S.luxVal[l.id])); if(h.length>52) h.shift(); }); }; }
+{ const _cs=consStep; consStep=function(){ const p=S.prestige; _cs.apply(this,arguments); S.prestige=p; }; }
+/* rang de prestige : ventes de vos sociétés de luxe et d'hôtellerie */
+const PR_SEC=['luxe','hotel'];
+{ const _mm=metMods; metMods=function(b){ const z=_mm(b); try{ if(z&&b&&PR_SEC.includes(bizSec(b.def))){ const r=prRank(); if(r>0){ z.rev*=1+PR_SALES*r; } } }catch(e){} return z; }; }
+/* note de crédit et taux */
+const CR_G=[['A',.1,2],['B',.25,2.75],['C',.4,3.5],['D',.5,4.75],['E',9,6.5]];
+function crLev(){ const d=debtTotal(), g=(S.nw||0)+d; return g>0? d/g : 0; }
+function crGrade(){ const L=crLev(); return CR_G.find(x=>L<x[1])||CR_G[CR_G.length-1]; }
+debtRate=function(){ return Math.max(.5,S.macro.rate+crGrade()[2]-PR_RATE*prRank()); };
+/* voitures : modèles fictifs (aucune marque réelle) */
+{ const RN={p911:'Coupé sport Arvel GT',rr:'Limousine Sovereign',lamb:'Supercar Taurex V12',db5:'Grand tourisme Ashby 1964',chiron:'Hypercar Velocis',gto:'Berlinette Corsa 1962'};
+  D.LUX.forEach(l=>{ if(RN[l.id]) l.n=RN[l.id]; }); }
+
+/* ============================================================
    V1.6.1 : toutes les sociétés coûtent 20 % de plus (création, agrandissements, options), sans
    changer leurs recettes : chacune met 20 % de temps en plus à se rembourser. D.biz[k].cost0 garde
    le prix de référence qui sert au calcul des recettes. (Le doublement de la V1.5.9 est abandonné : pf = 1.)
@@ -16643,13 +16776,15 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.4.6';
+const IB_VER='V2.4.7';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Globe, mode sombre noir, luxe et banque','Le réseau de la compagnie aérienne et de la compagnie maritime s’affiche sur un globe terrestre que l’on fait tourner du doigt ; les navires suivent de vraies routes maritimes. Toutes les fiches de société gardent leurs couleurs sur les onglets Équipe, Finances et Réglages, et ont un mode sombre. Le thème sombre passe au noir, en deux styles (Noir et Carbone, dans Réglages). Le prestige a sept rangs avec des effets affichés (ventes des sociétés de luxe et des hôtels, taux d’emprunt) et un gala ; l’écran Luxe devient une vitrine par catégorie avec la cote sur un an. La banque regroupe votre compte, votre note de crédit, vos emprunts et votre livret. Le responsable des contrats ne signe plus que ce que vos usines peuvent livrer une fois vos propres sociétés servies. Les longues listes se replient partout.','V2.4.7'],
+  ['Tout dans la fiche','Ouvrir une ligne, ajouter un navire ou un avion, affréter un navire et suivre la vente aux enchères en direct se font désormais dans la fiche, sans fenêtre. Les longues listes (lignes, contrats, locataires, offres, terminaux…) n’affichent que les premiers éléments, avec « Afficher les autres » pour dérouler la suite.','V2.4.7'],
   ['Plus d’anciens écrans','Les quinze sociétés qui gardaient leur ancien écran ont maintenant un écran entièrement dessiné pour leur métier : la galerie (cimaises, courrier, salle des ventes), le textile (portant, atelier de coupe, tissus), la ferme (semis sur le plan), l’électronique (smartphone), la start-up (feuille de route), le data center, la boutique en ligne, la construction (appels d’offres en plans), l’intérim, la promotion, les bureaux, le studio, l’entrepôt, le maritime, les énergies et l’aérien.','V2.4.6'],
   ['Former le chef','Au restaurant, le chef peut partir en formation : il gagne un niveau au bout de 40 jours et garde sa spécialité. C’est moins cher que de recruter un chef de ce niveau, mais plus lent, et la cuisine est un peu moins sûre pendant la formation.','V2.4.5'],
   ['Un écran par société','Chaque société a maintenant son propre écran, dessiné autour de son métier : la salle et l’ardoise du restaurant, la façade de l’hôtel, le plan du parc, l’établi de l’atelier, le showroom de la concession, les cimaises de la galerie, le défilé de la couture, les parcelles de la ferme, les départs de la compagnie aérienne… Équipe, finances, local et sécurité sont réunis en quatre raccourcis en bas de l’écran, avec la délégation au directeur du site.','V2.4.4'],
@@ -18179,24 +18314,71 @@ function nfCssOnce(){ if(document.getElementById('nf-css')) return; const st=doc
 function nfApply(){
   const md=document.querySelector('.md'), body=md&&md.querySelector('.md-b'); if(!md||!body) return;
   md.classList.remove('nf'); [...md.classList].forEach(c=>{ if(/^nf-/.test(c)) md.classList.remove(c); }); md.removeAttribute('data-nf');
-  if(!ui.modal||ui.modal.type!=='biz') return; const b=S.biz.find(x=>x.id===ui.modal.id); if(!nfOn(b)) return;
-  if((ui.ft||'met')!=='met'||!body.querySelector('#bj-met')) return;
+  if(!ui.modal||ui.modal.type!=='biz') return; const b=S.biz.find(x=>x.id===ui.modal.id); if(!b||!FX2[b.def]) return;
+  if(body.querySelector(':scope > .nf-top')) return;
+  const ft=ui.ft||'met', live=nfOn(b)&&ft==='met'&&!!body.querySelector('#bj-met');
   nfCssOnce(); const F=FX2[b.def];
-  md.classList.add('nf','nf-'+b.def); md.setAttribute('style',(md.getAttribute('style')||'').replace(/--nf[^;]*;/g,'')+(F.vars||''));
-  ['.bhero','.bstats','.mini','.ft-tabs','#bj-met'].forEach(s=>body.querySelectorAll(':scope > '+s).forEach(e=>e.classList.add('nf-hide')));
-  body.querySelectorAll(':scope > section.card:not(.met):not(.ft-hide)').forEach(e=>{ if(!e.id) e.classList.add('nf-hide'); });
-  const top=document.createElement('div'); top.className='nf-top'; top.innerHTML=nfHero(b,F)+nfRes(b,F); body.insertBefore(top,body.firstChild);
+  md.classList.add('nf','nf-'+b.def,'nf-t-'+ft); md.setAttribute('style',(md.getAttribute('style')||'').replace(/--nf[^;]*;/g,'')+(F.vars||''));
+  ['.bhero','.bstats','.mini'].forEach(s=>body.querySelectorAll(':scope > '+s).forEach(e=>e.classList.add('nf-hide')));
+  if(live){ body.querySelectorAll(':scope > #bj-met').forEach(e=>e.classList.add('nf-hide'));
+    body.querySelectorAll(':scope > section.card:not(.met):not(.ft-hide)').forEach(e=>{ if(!e.id) e.classList.add('nf-hide'); }); }
+  const top=document.createElement('div'); top.className='nf-top'; top.innerHTML=nfHero(b,F)+(b.status==='active'? nfRes(b,F) : ''); body.insertBefore(top,body.firstChild);
   const ban=body.querySelector('.bhero .cban'), nb=top.querySelector('.nf-ban'); if(ban&&nb) nb.appendChild(ban);
+  /* barre d'onglets aux couleurs de la fiche (remplace l'ancienne) */
+  const old=body.querySelector(':scope > .ft-tabs'); let nav=null;
+  if(old){ old.classList.add('nf-hide'); nav=document.createElement('div'); nav.className='nf-tabs'; nav.setAttribute('role','tablist');
+    nav.innerHTML=[...old.querySelectorAll('button')].map(x=>'<button role="tab" aria-selected="'+(x.dataset.v===ft)+'" class="'+(x.dataset.v===ft?'on':'')+'" data-a="fichetab" data-v="'+esc(x.dataset.v)+'">'+esc(x.textContent)+'</button>').join(''); old.before(nav); }
+  if(!live) return;
   const main=document.createElement('div'); main.className='nf-main'; main.innerHTML=nfBody(b);
-  const anchor=body.querySelector(':scope > .fam-todo')||body.querySelector(':scope > .bigup')||top; anchor.after(main);
+  main.insertAdjacentHTML('afterbegin',nfFlowHtml(b));
+  const anchor=nav||body.querySelector(':scope > .fam-todo')||body.querySelector(':scope > .bigup')||top; anchor.after(main);
+  try{ nfMorePass(b,main); }catch(e){ console.error(e); }
   const up=body.querySelector(':scope > .bigup'); if(up&&F.up){ try{ const t=F.up(b); if(t){ const n=up.firstChild; if(n&&n.nodeType===3) n.textContent=t+' '; } }catch(e){} }
 }
+/* parcours qui ouvraient une fenêtre (ouvrir une ligne, ajouter un navire ou un avion, affrètement) :
+   affichés dans la fiche ; l'état du parcours est dans ui.nfm, la fiche reste ouverte */
+const NF_FLOW_T=['shnew','shadd','shch','alnew','aladd'];
+function nfFlowWrap(keys){ keys.forEach(k=>{ const f=ACT[k]; if(!f||f.__nf) return;
+  const g=el=>{ const M=ui.modal, inNf=!!document.querySelector('.md.nf');
+    if(!ui.nfm&&!(inNf&&M&&M.type==='biz')) return f(el);
+    const biz= M&&M.type==='biz'? M : (ui.nfm? {type:'biz',id:ui.nfm.id} : M);
+    if(ui.nfm) ui.modal=ui.nfm;
+    const _r=render; render=function(){}; let done=false;
+    try{ f(el); } finally{ render=_r; }
+    const N=ui.modal; ui.nfm= N&&NF_FLOW_T.includes(N.type)? N : null;
+    if(!N||N.type==='biz'||ui.nfm) ui.modal=biz;
+    render();
+    if(ui.nfm) setTimeout(()=>{ const e=document.querySelector('.nf-flow'); if(e) e.scrollIntoView({behavior:'smooth',block:'start'}); },30); };
+  g.__nf=1; ACT[k]=g; }); }
+ACT.nfflowx=()=>{ ui.nfm=null; render(); };
+function nfFlowHtml(b){ const F=ui.nfm; if(!F||F.id!==b.id) return '';
+  const save=ui.modal; let r=null; ui.modal=F; try{ r=modalContent(); }catch(e){ console.error(e); } ui.modal=save;
+  if(!r||!r.body) { ui.nfm=null; return ''; }
+  const body=r.body.replace(/<button class="back"[^>]*>[\s\S]*?<\/button>/,'');
+  return '<div class="nf-card nf-flow"><div class="hd"><b>'+esc(r.title||'')+'</b><button class="nf-lnk" data-a="nfflowx">Annuler</button></div>'+body+'</div>'; }
+/* listes longues : n premiers éléments, puis « Afficher les autres » (ui.nf.mr_<clé>) */
+function nfMorePass(b,root){ const U=nfUi(b); root.querySelectorAll('.nf-mr').forEach(box=>{ const k=box.dataset.k, n=+box.dataset.n||3, open=!!U['mr_'+k];
+  let G=[]; if(box.classList.contains('grp')){ [...box.children].forEach(c=>{ if(c.classList.contains('sh2-rg')||!G.length) G.push([c]); else G[G.length-1].push(c); }); } else G=[...box.children].map(c=>[c]);
+  if(G.length<=n+1) return; const rest=G.length-n; if(!open) G.slice(n).forEach(g=>g.forEach(c=>c.classList.add('nf-hide')));
+  const bt=document.createElement('button'); bt.className='nf-more'; bt.dataset.a='nfui'; bt.dataset.i=b.id; bt.dataset.v='mr_'+k; bt.setAttribute('aria-expanded',open?'true':'false');
+  bt.textContent= open? 'Réduire la liste' : 'Afficher '+(rest>1?'les '+rest+' autres':'l’autre'); box.appendChild(bt); }); }
 { const _r=render; render=function(){ const out=_r.apply(this,arguments); try{ nfApply(); }catch(e){ console.error(e); } return out; }; }
 
 const NF_FONTS=['caveat:Caveat:700'];
 const nfFontCss=()=>NF_FONTS.map(f=>{ const [k,n,w]=f.split(':'); return "@font-face{font-family:'"+n+"';font-style:normal;font-weight:"+w+";font-display:swap;src:url(fonts/nf-"+k+".woff) format('woff')}"; }).join('');
 const NF_BASE_CSS = `
-.md.nf{--paper:#EAF4FF;--paper-2:#E1EBFA;--card:#FFFFFF;--line:#DCE6F5;--btn-line:#C7D9F2;--lime:#FFC93C;--lime-ink:#3A2A00;--blue:#1F3C88;--blue-ink:#FFFFFF;--blue-soft:#DCE7FF;--red-soft:#FFE4E0;--green-soft:#DFF5EA;--amber-soft:#FFF1C7;--sh:#C7D9F2;--pri-sh:#142A63;--good-bg:#2BB673;--good-sh:#1E8A55;--bad-bg:#FF6B5B;--bad-sh:#D9483A;--shadow:0 4px 0 var(--sh);--fd:'Baloo 2','Nunito',system-ui,sans-serif;--fb:'Nunito',system-ui,sans-serif;--ink:#1B2550;--ink-2:#3E4A7A;--ink-3:#56638F;--red:#C8352A;--green:#16804D;--amber:#875C00;color:var(--ink);--nf-bg:#F4F6FB;--nf-bg2:#DCE3F0;--nf-acc:#1F3C88;--nf-acc2:#142A63;--nf-h:#1B2550;--nf-hf:800 18px var(--fd);--nf-card:#fff;--nf-sh:var(--nf-bg2);background:var(--nf-bg)}
+.md.nf{--shadow:0 4px 0 var(--nf-sh)}
+.nf-tabs{position:sticky;top:-1px;z-index:6;display:flex;gap:4px;margin:14px 0 0;padding:4px;border-radius:18px;background:var(--nf-card);box-shadow:0 3px 0 var(--nf-sh)}
+.nf-tabs button{flex:1;min-width:0;min-height:44px;border:0;border-radius:14px;background:none;font:800 13px var(--fb);color:var(--ink-3);padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nf-tabs button.on{background:var(--nf-acc);color:#fff;box-shadow:0 2px 0 var(--nf-acc2)}
+.md.nf .md-b>.card,.md.nf .md-b>section.card{border-radius:20px;box-shadow:0 4px 0 var(--nf-sh);padding:14px 14px 16px;margin-top:12px}
+.md.nf .md-b>.card>h2,.md.nf .md-b>section.card>h2{font:var(--nf-hf);color:var(--nf-h);letter-spacing:0}
+.md.nf .md-b>.notice{border-radius:16px;margin-top:12px}
+.md.nf .md-b>.qacts{margin-top:12px}
+.md.nf .md-b>.qacts .btn{border-radius:16px;box-shadow:0 3px 0 var(--nf-sh);min-height:60px}
+.md.nf .btn.pri,.md.nf .seg button.on{color:#fff}
+.md.nf:not(.nf-t-met) .md-b>.bigup{margin-top:10px}
+.md.nf{--paper:var(--nf-bg);--paper-2:var(--nf-bg2);--card:var(--nf-card);--line:var(--nf-bg2);--btn-line:var(--nf-bg2);--lime:#FFC93C;--lime-ink:#3A2A00;--blue:var(--nf-acc);--blue-ink:#FFFFFF;--blue-soft:color-mix(in srgb,var(--nf-acc) 13%,var(--nf-card));--red-soft:#FFE4E0;--green-soft:#DFF5EA;--amber-soft:#FFF1C7;--sh:var(--nf-sh);--pri-sh:var(--nf-acc2);--good-bg:#2BB673;--good-sh:#1E8A55;--bad-bg:#FF6B5B;--bad-sh:#D9483A;--shadow:0 4px 0 var(--sh);--fd:'Baloo 2','Nunito',system-ui,sans-serif;--fb:'Nunito',system-ui,sans-serif;--ink:#1B2550;--ink-2:#3E4A7A;--ink-3:#56638F;--red:#C8352A;--green:#16804D;--amber:#875C00;color:var(--ink);--nf-bg:#F4F6FB;--nf-bg2:#DCE3F0;--nf-acc:#1F3C88;--nf-acc2:#142A63;--nf-h:#1B2550;--nf-hf:800 18px var(--fd);--nf-card:#fff;--nf-sh:var(--nf-bg2);--nf-acc-t:var(--nf-acc);background:var(--nf-bg)}
 .md.nf .md-b{background:var(--nf-bg)}
 .md.nf .nf-hide{display:none!important}
 .nf-hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:0 4px 0 var(--nf-bg2)}
@@ -18263,6 +18445,17 @@ const NF_BASE_CSS = `
 .nf-sup{margin-top:10px}
 .nf-leg .pk-head:first-child{margin-top:0}
 .nf-leg>.pk-head{margin-top:14px}
+.nf-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px;margin-top:8px;border:0;border-radius:14px;background:rgba(0,0,0,.05);color:var(--nf-acc);font:800 13px var(--fb)}
+.nf-more::after{content:'';width:8px;height:8px;border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:rotate(45deg) translateY(-2px)}
+.nf-more[aria-expanded="true"]::after{transform:rotate(-135deg) translateY(-2px)}
+.nf-mr{display:contents}
+.nf-mr>.nf-more{grid-column:1 / -1}
+.nf-list>.nf-mr>.nf-row,.nf-list>.nf-mr>.nf-ctl{padding:8px 0;border-top:1px solid var(--nf-bg2)}
+.nf-list>.nf-mr:first-child>:first-child{border-top:0;padding-top:0}
+.nf-flow{margin-top:12px;box-shadow:0 0 0 2px var(--nf-acc),0 4px 0 var(--nf-sh)}
+.nf-flow>.hd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.nf-flow>.hd b{font:var(--nf-hf);color:var(--nf-h)}
+.nf-flow .pk-list{margin-top:6px}
 .nf-pick{display:grid;gap:6px;margin-top:8px}
 .nf-pick button{text-align:left;border:0;border-radius:12px;padding:8px 10px;min-height:48px;background:rgba(255,255,255,.08);color:inherit;font:700 13px var(--fb)}
 .nf-pick button small{display:block;font:600 11.5px var(--fb);opacity:.75}
@@ -19425,11 +19618,13 @@ FX2.gallery={
     else if(W.length) h+='<div class="ga2-note">Touchez une œuvre pour l’exposer, la mettre en vente ou la faire expertiser.</div>';
     /* 2. le courrier */
     if(m.off.length){ const who=['Un collectionneur','Une succession','Une collectionneuse','Une fondation','Un marchand'];
-      h+=nfSec('Le courrier',plu(m.off.length,'proposition')+' de dépôt')+m.off.map(w=>{ const e=gaEst(b,w);
+      h+=nfSec('Le courrier',plu(m.off.length,'proposition')+' de dépôt')+'<div class="nf-mr" data-k="gaoff" data-n="2">'+m.off.map(w=>{ const e=gaEst(b,w);
         return '<div class="ga2-let"><div class="h"><span>'+who[w.id%who.length]+'</span><span>expire dans '+plu(Math.max(0,w.until-S.day),'jour')+'</span></div><p>« Je souhaite vous confier '+esc(w.n)+' de '+esc(ga2Who(b,w))+'. Estimation : '+eur(e*.85,0)+' à '+eur(e*1.15,0)+'. »</p><div class="bt">'+
-          B('acc',w.id,'Accepter',{a:1,dis:m.st.length>=cap,why:'La réserve est pleine.'})+(!w.ex? B('exp',w.id,'Expertiser') : '')+B('dec',w.id,'Refuser')+'</div></div>'; }).join(''); }
+          B('acc',w.id,'Accepter',{a:1,dis:m.st.length>=cap,why:'La réserve est pleine.'})+(!w.ex? B('exp',w.id,'Expertiser') : '')+B('dec',w.id,'Refuser')+'</div></div>'; }).join('')+'</div>'; }
     /* 3. la salle des ventes */
     h+=nfSec('La salle des ventes','commission 10 % + 20 %')+'<div class="ga2-room">';
+    if(ui.gl&&ui.gl.inline&&ui.gl.b===b.id) h+='<div class="hd"><b>Vente en direct</b><small>la salle est pleine</small></div><div id="ga-live" class="ga2-live stack"></div>';
+    else {
     if(m.sale){ const rd=S.day>=m.sale.ready;
       h+='<div class="hd"><b>Catalogue de la vente</b><small>'+(rd?'prête':'dans '+plu(m.sale.ready-S.day,'jour'))+'</small></div>'+m.sale.lots.map((id,i)=>{ const w=m.st.find(x=>x.id===id); return w? '<div class="ga2-lot"><span class="no">'+(i+1)+'</span><span class="mini">'+P(ga2Kind(w),34,34)+'</span><div class="t"><b>'+esc(w.n)+'</b><small>'+esc(ga2Who(b,w))+' · est. '+eur(gaEst(b,w),0)+' · réserve '+Math.round(GA_RES[w.res].f*100)+' %</small></div></div>' : ''; }).join('')+
         '<div class="note">'+(m.whale?'Un collectionneur fortuné sera dans la salle.':'Chaque lot vendu réchauffe la salle, chaque lot ravalé la refroidit.')+'</div><button class="ga2-go" data-a="met" data-i="'+b.id+'" data-v="live"'+(rd?'':' disabled data-why="Le catalogue n’est pas encore prêt."')+'>Ouvrir la vente</button>';
@@ -19438,7 +19633,8 @@ FX2.gallery={
         (L.length? L.map((w,i)=>'<div class="ga2-lot"><span class="no">'+(i+1)+'</span><span class="mini">'+P(ga2Kind(w),34,34)+'</span><div class="t"><b>'+esc(w.n)+'</b><small>'+esc(ga2Who(b,w))+' · est. '+eur(gaEst(b,w),0)+'</small></div><div class="ctl"><div class="ga2-res" role="group" aria-label="Prix de réserve">'+Object.keys(GA_RES).map(k=>'<button class="'+(w.res===k?'on':'')+'" data-a="met" data-i="'+b.id+'" data-v="res" data-j="'+w.id+':'+k+'">'+GA_RES[k].n+' '+Math.round(GA_RES[k].f*100)+' %</button>').join('')+'</div>'+(i?'<button class="ga2-ib" data-a="met" data-i="'+b.id+'" data-v="up" data-j="'+w.id+'" aria-label="Monter '+esc(w.n)+'">↑</button>':'')+'<button class="ga2-ib" data-a="met" data-i="'+b.id+'" data-v="cat" data-j="'+w.id+'" aria-label="Retirer '+esc(w.n)+'">×</button></div></div>').join('') : '<div class="note">Mettez en vente au moins trois œuvres depuis les cimaises.</div>')+
         '<div class="note">La réserve est le prix minimum. Ouvrez avec une valeur sûre et gardez la pièce maîtresse pour la fin. Catalogue et annonces : '+eur(c,0)+', vente 5 jours plus tard.</div>'+
         '<button class="ga2-go" data-a="met" data-i="'+b.id+'" data-v="prep"'+(L.length<3||!can(c)?' disabled data-why="'+(L.length<3?'Il faut au moins trois lots.':'Trésorerie insuffisante.')+'"':'')+'>Préparer la vente</button>'; }
-    if(m.last){ const L=m.last; h+='<div class="last">Dernière vente : <b>'+L.sold+' / '+L.n+' adjugés</b>, '+eur(L.com,0)+' pour la galerie<button data-a="galive" data-i="'+b.id+'">Revoir</button></div>'; }
+    }
+    if(m.last&&!(ui.gl&&ui.gl.inline)){ const L=m.last; h+='<div class="last">Dernière vente : <b>'+L.sold+' / '+L.n+' adjugés</b>, '+eur(L.com,0)+' pour la galerie<button data-a="galive" data-i="'+b.id+'">Revoir</button></div>'; }
     h+='</div>';
     /* 4. vos œuvres */
     const F=gaLuxFree();
@@ -19453,6 +19649,28 @@ FX2.gallery={
     ['acc','dec','exp','show','res','cat','up','prep','live','lux','back','scout','buyw'].forEach(a=>X.get(a));
     return h; }
 };
+
+/* la vente en direct se déroule dans la fiche (salle des ventes) au lieu d'une fenêtre */
+{ const inl=(was)=>{ if(was&&ui.modal&&ui.modal.type==='galive'&&ui.gl&&ui.gl.back&&ui.gl.back.type==='biz'){ ui.gl.inline=1; ui.modal=ui.gl.back; render(); setTimeout(()=>{ const e=document.getElementById('ga-live'); if(e) e.scrollIntoView({behavior:'smooth',block:'center'}); },30); } };
+  const _met=ACT.met; ACT.met=el=>{ const w=!!document.querySelector('.md.nf'); _met(el); inl(w); };
+  const _gl=ACT.galive; ACT.galive=el=>{ const w=!!document.querySelector('.md.nf'); _gl(el); inl(w); }; }
+function nfGaLoop(){ if(!ui.gl||!ui.gl.inline||!document.getElementById('ga-live')){ ui.nfgal=0; return; } gaDraw(); requestAnimationFrame(nfGaLoop); }
+{ const _r=render; render=function(){ const out=_r.apply(this,arguments); if(ui.gl&&ui.gl.inline){ gaDraw(); if(!ui.nfgal){ ui.nfgal=1; requestAnimationFrame(nfGaLoop); } } return out; }; }
+NF_CSS.push(`
+.ga2-live{margin-top:12px;background:rgba(0,0,0,.22);border-radius:16px;padding:12px}
+.ga2-live .ga-cur{text-align:center;background:none!important;box-shadow:none!important;border:0!important;padding:4px 0}
+.ga2-live .ga-cur b{display:block;font:italic 700 20px 'Playfair Display',Georgia,serif;color:#fff;margin:2px 0}
+.ga2-live .sub{color:#EBC9D0;font-size:12px}
+.ga2-live .ga-amb{font:800 12px var(--fb);color:#F0D488;margin-top:6px}
+.ga2-live .ga-price{font:700 34px 'Playfair Display',Georgia,serif;color:#fff;margin:6px 0 2px}
+.ga2-live .ga-who{font:800 13px var(--fb);color:#F7E9EC}.ga2-live .ga-who.ok{color:#9FF0C6}.ga2-live .ga-who.ko{color:#FFB3A8}
+.ga2-live .row{display:flex;gap:8px;justify-content:center;margin-top:10px}
+.ga2-live .btn{box-shadow:none;border:0;border-radius:12px;min-height:44px;padding:0 14px;font:800 13px var(--fb);background:rgba(255,255,255,.14);color:#fff}
+.ga2-live .btn.pri{background:#F0D488;color:#4E0D18;display:block;width:100%;margin-top:10px}
+.ga2-live .ht-t{margin-top:10px}
+.ga2-live .rs-d{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid rgba(255,255,255,.12);color:#F7E9EC;font-size:12.5px}
+.ga2-live .rs-d small{color:#EBC9D0}
+`);
 
 /* ============================================================
    NOUVELLE FICHE · HAUTE COUTURE : le prestige, le studio, le défilé, l'atelier, les licences
@@ -19554,7 +19772,7 @@ FX2.couture={
       (m.last? '<div class="hc2-crit"><b>'+note5(m.last.sc)+'</b><p>« '+(m.last.sc>=85?'Un triomphe : la maison est au sommet.':m.last.sc>=70?'Une coupe d’une grande justesse, on attend désormais l’audace.':m.last.sc>=50?'Une collection honnête, sans éclat.':'Une saison manquée, la critique est sévère.')+' » · dernier défilé à '+esc(D.CITIES[m.last.city]?D.CITIES[m.last.city].n:'')+'</p></div>' : '')+'</div>';
     /* 4. l'atelier */
     const cA=X.get('art');
-    h+=nfSec('L’atelier','commandes sur mesure')+'<div class="nf-card">'+(m.ord.length? m.ord.slice(0,5).map((o,i)=>'<div class="hc2-ord"><span class="th">'+hc2Fig(i%2?'rom':'cla',i%2?'#F4EEE4':'#8E2A4A',48)+'</span><span class="t"><b>'+esc(o.n)+'</b><small>livraison dans '+plu(Math.max(0,Math.ceil(o.w-o.done)),'jour')+'</small><span class="bar" style="display:block"><i style="width:'+Math.round(o.done/o.w*100)+'%"></i></span></span><em>'+eur(o.v,0)+'</em></div>').join('') : '<div class="nf-row"><small>Aucune commande : elles arrivent avec le prestige et les beaux défilés.</small></div>')+
+    h+=nfSec('L’atelier','commandes sur mesure')+'<div class="nf-card">'+(m.ord.length? '<div class="nf-mr" data-k="hcord" data-n="3">'+m.ord.slice(0,5).map((o,i)=>'<div class="hc2-ord"><span class="th">'+hc2Fig(i%2?'rom':'cla',i%2?'#F4EEE4':'#8E2A4A',48)+'</span><span class="t"><b>'+esc(o.n)+'</b><small>livraison dans '+plu(Math.max(0,Math.ceil(o.w-o.done)),'jour')+'</small><span class="bar" style="display:block"><i style="width:'+Math.round(o.done/o.w*100)+'%"></i></span></span><em>'+eur(o.v,0)+'</em></div>').join('')+'</div>' : '<div class="nf-row"><small>Aucune commande : elles arrivent avec le prestige et les beaux défilés.</small></div>')+
       (cA? '<div class="nf-ctl" style="margin-top:10px;padding-top:10px;border-top:1px solid #EFE8DC">'+nfRowH('Artisans : '+m.art,'chacun réalise une commande sur mesure en 30 jours')+nfSegH(b,cA)+'</div>' : '')+'</div>';
     /* 5. licences et égérie */
     const cL=X.get('lacc'), cP=X.get('lpar'), cE=X.get('eg');
@@ -19883,9 +20101,9 @@ FX2.dc={
         (cl.length? '<div class="nf-list" style="margin-top:8px">'+cl.map((c,k)=>{ const tot=c.dt.reduce((a,x)=>a+x,0), other=m.rm.filter(x=>x!==r&&dcUsed(b,x)+c.racks<=DC_SLOTS), ci=m.cl.filter(z=>z.rm===r.id).indexOf(c);
           return nfRowH('<span class="dc2-dot" style="background:'+cols[ci%cols.length]+'"></span>'+esc(c.n),c.racks+' baies · garantie '+DC_SLA[c.sla].n+' · charge '+Math.round(c.util*100)+' % · arrêt '+tot.toFixed(1).replace('.',NDEC)+' h / '+String(DC_SLA[c.sla].h).replace('.',NDEC)+' h permises',other.length? '<button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="move" data-j="'+c.id+':'+other[0].id+'">Vers salle '+other[0].id+'</button>' : '<b style="font-size:13px;white-space:nowrap">'+eur(c.p,0)+' / j</b>'); }).join('')+'</div>' : '')+
         (opts.length? '<div class="dc2-up">'+opts.map(k=>'<button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="cool" data-j="'+r.id+':'+k+'"'+(cash<d.cost*DC_COOL[k].c?' disabled':'')+'>'+esc(DC_COOL[k].n)+' · '+Math.round(capOf(k))+' kW · '+eur(d.cost*DC_COOL[k].c,0)+'</button>').join('')+'</div>' : '')+'</div>'; });
-    if(m.off.length) h+=nfSec('Les demandes d’hébergement',plu(m.off.length,'client'))+m.off.map(c=>{ const f=dcFit(b,c);
+    if(m.off.length) h+=nfSec('Les demandes d’hébergement',plu(m.off.length,'client'))+'<div class="nf-mr" data-k="dcoff" data-n="2">'+m.off.map(c=>{ const f=dcFit(b,c);
       return '<div class="dc2-off"><div class="nf-row"><span><b>'+esc(c.n)+'</b><small>'+c.racks+' baies · garantie '+DC_SLA[c.sla].n+' ('+String(DC_SLA[c.sla].h).replace('.',NDEC)+' h d’arrêt permises par mois) · charge d’environ '+Math.round(c.util*100)+' % · encore '+plu(Math.max(0,c.until-S.day),'jour')+'</small></span><b style="white-space:nowrap">'+eur(c.p,0)+' / j</b></div><div class="dc2-up">'+
-        (f? '<button class="btn nf-b a" data-a="met" data-i="'+b.id+'" data-v="acc" data-j="'+c.id+':'+f.r.id+'">Installer en salle '+f.r.id+'</button>' : '<button class="btn nf-b" disabled data-why="Pas assez de baies libres.">Pas assez de baies</button>')+'<button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="dec" data-j="'+c.id+'">Refuser</button></div>'+(f&&f.head<0?'<div class="nf-row" style="margin-top:4px"><small style="color:#C8352A">La salle risque la surchauffe.</small></div>':'')+'</div>'; }).join('');
+        (f? '<button class="btn nf-b a" data-a="met" data-i="'+b.id+'" data-v="acc" data-j="'+c.id+':'+f.r.id+'">Installer en salle '+f.r.id+'</button>' : '<button class="btn nf-b" disabled data-why="Pas assez de baies libres.">Pas assez de baies</button>')+'<button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="dec" data-j="'+c.id+'">Refuser</button></div>'+(f&&f.head<0?'<div class="nf-row" style="margin-top:4px"><small style="color:#C8352A">La salle risque la surchauffe.</small></div>':'')+'</div>'; }).join('')+'</div>';
     h+=nfRest(b,X,'Décisions');
     return h; }
 };
@@ -19899,10 +20117,10 @@ FX2.ecom={
     ['mk','mode','ord','rm','add'].forEach(a=>X.get(a));
     const PK={ecou:'ecou',montre:'montre',lampe:'lampe',gourde:'gourde',sac:'sac',encei:'encei',proj:'proj',plaid:'plaid'}, img=id=>PK[id]? E.product(PK[id],70).replace('<svg ','<svg style="width:70px;height:auto" ') : E.parcel(56,0);
     const Bt=(lab,act,arg,l)=>'<button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="'+act+'" data-j="'+esc(arg)+'"'+(l?' aria-label="'+esc(l)+'"':'')+'>'+lab+'</button>';
-    h+=nfSec('Le catalogue',m.cat.length+' / '+ecSlots(b)+' produits')+m.cat.map(it=>{ const p=ecP(it.id), v=ecTr(m,it.id), pend=m.ord.filter(o=>o.id===it.id).reduce((a,o)=>a+o.n,0);
+    h+=nfSec('Le catalogue',m.cat.length+' / '+ecSlots(b)+' produits')+'<div class="nf-mr" data-k="eccat" data-n="4">'+m.cat.map(it=>{ const p=ecP(it.id), v=ecTr(m,it.id), pend=m.ord.filter(o=>o.id===it.id).reduce((a,o)=>a+o.n,0);
       return '<div class="ec2-it"><span class="im">'+img(it.id)+'</span><div class="t"><b>'+esc(p.n)+'</b><em class="'+(v>=1.1?'up':v<.7?'dn':'')+'">'+esc(ecTrLabel(m,it.id))+'</em><small>'+(it.mode==='stock'? 'stock propre : '+Math.round(it.st)+' unités'+(pend?' · '+pend+' en livraison':'') : 'expédition directe par le fournisseur')+'</small></div>'+
         '<div class="pr"><button data-a="met" data-i="'+b.id+'" data-v="mk" data-j="'+it.id+':-0.1" aria-label="Baisser le prix de '+esc(p.n)+'">−</button><span><b>'+eur(ecPrice(b,it),0)+'</b><small>achat '+eur(p.c,0)+'</small></span><button data-a="met" data-i="'+b.id+'" data-v="mk" data-j="'+it.id+':0.1" aria-label="Monter le prix de '+esc(p.n)+'">+</button></div>'+
-        '<div class="ac">'+Bt(it.mode==='stock'?'Passer en direct':'Passer en stock','mode',it.id)+(it.mode==='stock'?Bt('Commander 50','ord',it.id):'')+Bt('Retirer','rm',it.id,'Retirer '+p.n)+'</div></div>'; }).join('');
+        '<div class="ac">'+Bt(it.mode==='stock'?'Passer en direct':'Passer en stock','mode',it.id)+(it.mode==='stock'?Bt('Commander 50','ord',it.id):'')+Bt('Retirer','rm',it.id,'Retirer '+p.n)+'</div></div>'; }).join('')+'</div>';
     if(m.cat.length<ecSlots(b)){ const open=ui.ec===b.id;
       h+='<button class="ec2-add" data-a="ecadd" data-i="'+b.id+'">'+(open?'Fermer la liste':'+ ajouter un produit')+'</button>';
       if(open) h+='<div class="ec2-pick">'+EC_PROD.filter(p=>!m.cat.some(x=>x.id===p.id)).sort((a,c)=>ecTr(m,c.id)-ecTr(m,a.id)).map(p=>'<button data-a="met" data-i="'+b.id+'" data-v="add" data-j="'+p.id+'"><span class="im">'+img(p.id)+'</span><b>'+esc(p.n)+'</b><small>'+esc(ecTrLabel(m,p.id))+' · achat '+eur(p.c,0)+'</small></button>').join('')+'</div>'; }
@@ -19923,7 +20141,7 @@ FX2.build={
     h+=nfSec('Les matériaux')+'<div class="nf-card bc2-mat"><b>'+Math.round(m.mi*100)+' %</b><span class="nf-row" style="flex:1"><small>du prix normal · '+(m.mi>1.1?'cher : achetez au fil de l’eau':m.mi<.9?'bas : achetez d’avance':'proche de la normale')+'</small></span></div>';
     ['bid','pr','sub'].forEach(a=>X.get(a));
     const sel=bcSel(b), cap=bcCapDay(b), bpK={mais:'mais',comm:'comm',imm:'imm',oa:'oa',pub:'comm',gp:'imm'};
-    h+=nfSec('Les appels d’offres',plu(m.off.length,'dossier'))+(m.off.length? m.off.map(o=>{ const days=Math.ceil(o.W/Math.max(.1,cap)), on=sel&&sel.id===o.id;
+    h+=nfSec('Les appels d’offres',plu(m.off.length,'dossier'))+(m.off.length? '<div class="nf-mr" data-k="bcoff" data-n="3">'+m.off.map(o=>{ const days=Math.ceil(o.W/Math.max(.1,cap)), on=sel&&sel.id===o.id;
       let x='<div class="bc2-of'+(on?' on':'')+'"><span class="bp">'+Bd.blueprint(bpK[o.k]||'comm',96).replace('<svg ','<svg style="width:96px;height:auto" ')+'</span><div class="t"><b>'+esc(o.n)+(o.green?' · vert':'')+'</b><small>'+esc(o.cl)+' · estimation '+eur(o.ref,0)+' · délai souhaité '+o.dl+' j · environ '+days+' j de travail · '+o.comp+' concurrents'+(o.eng&&(m.eng||0)<o.eng?' · engins plus lourds requis':'')+'</small>'+
         (o.bid? '<span class="nf-ok" style="background:#E5EEFB;color:#1F3C88">réponse dans '+plu(Math.max(0,o.bid.d-S.day),'jour')+'</span>' : '<button class="btn nf-b'+(on?'':' a')+'" data-a="bcsel" data-i="'+b.id+'" data-v="'+(on?0:o.id)+'">'+(on?'Fermer':'Répondre')+'</button>')+'</div></div>';
       if(on){ const p=bcWin(b,o,sel.pr,sel.dl), price=o.ref*(1+sel.pr), mat=o.ref*BC_MAT*(o.k==='oa'?1.1:1)*m.mi;
@@ -19932,7 +20150,7 @@ FX2.build={
           '<label class="nf-row bc2-ma"><span><b>Acheter les matériaux d’avance</b><small>'+eur(mat,0)+' au prix du jour</small></span><input type="checkbox" data-a="bcset" data-i="'+b.id+'" data-j="ma" '+(sel.ma?'checked':'')+'></label>'+
           '<div class="bc2-win"><span><b>'+eur(price,0)+'</b><small>chance de l’emporter : '+Math.round(p*100)+' %</small></span><button class="btn nf-b a" data-a="met" data-i="'+b.id+'" data-v="bid" data-j="'+o.id+':'+sel.pr+':'+sel.dl+':'+(sel.ma?1:0)+'">Envoyer l’offre</button></div>'+
           '<div class="nf-row" style="margin-top:6px"><small>Fini dans environ '+Math.ceil((m.jobs.reduce((a,j)=>a+j.left,0)+o.W)/Math.max(.1,cap*.9))+' jours avec vos chantiers en cours. Chaque jour de retard coûte 1 % du prix.</small></div></div>'; }
-      return x; }).join('') : '<div class="bc2-emp">Aucun appel d’offres pour le moment.</div>');
+      return x; }).join('')+'</div>' : '<div class="bc2-emp">Aucun appel d’offres pour le moment.</div>');
     const L=m.jobs.slice().sort((a,c)=>a.pr-c.pr);
     if(L.length) h+=nfSec('L’ordre des équipes','le premier chantier passe d’abord')+'<div class="nf-card nf-list">'+L.map((j,i)=>nfRowH((i+1)+'. '+esc(j.n),eur(bcRev(b,j),0)+(j.stop>S.day?' · suspendu (fouilles)':'')+(j.sub?' · sous-traité en partie':''),'<span class="bc2-ja">'+(i>0?'<button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="pr" data-j="'+j.id+'">Priorité</button>':'')+'<button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="sub" data-j="'+j.id+'">'+(j.sub?'Sous-traité':'Sous-traiter')+'</button></span>')).join('')+'</div>';
     h+=nfRest(b,X,'Engins et décisions');
@@ -20180,7 +20398,7 @@ NF_CSS.push(`
 .sh2-of{display:flex;gap:10px;align-items:center;background:#fff;border-radius:18px;padding:10px;box-shadow:0 3px 0 var(--nf-sh)}.sh2-of+.sh2-of{margin-top:8px}
 .sh2-of .im{flex:0 0 64px;height:44px;border-radius:10px;background:linear-gradient(#cfe5f6 0 60%,#3a7fb8 60%);display:grid;place-items:center;overflow:hidden}.sh2-of .im svg{width:60px;height:auto}
 .sh2-of .t{flex:1;min-width:0}.sh2-of b{display:block;font:800 13px var(--fb)}.sh2-of small{display:block;font-size:11.5px;color:var(--ink-3)}
-.sh2-ty{display:grid;gap:8px}.sh2-ty>div{background:#fff;border-radius:18px;padding:10px;box-shadow:0 3px 0 var(--nf-sh)}
+.sh2-ty{display:grid;gap:8px}.sh2-ty>.nf-mr>div,.sh2-ty>div{background:#fff;border-radius:18px;padding:10px;box-shadow:0 3px 0 var(--nf-sh)}
 .sh2-ty .im{display:flex;justify-content:center;height:64px;border-radius:12px;background:linear-gradient(#cfe5f6 0 60%,#3a7fb8 60%);overflow:hidden;align-items:center}.sh2-ty .im svg{width:120px;height:auto}
 .sh2-ty b{display:block;font:800 14px 'Bitter',serif;margin-top:6px}.sh2-ty small{display:block;font-size:11.5px;color:var(--ink-3)}
 .sh2-rg{font:800 10.5px var(--fb);letter-spacing:.1em;text-transform:uppercase;color:#0B4F8A;padding:10px 0 2px}.sh2-rg:first-child{padding-top:0}
@@ -20248,12 +20466,12 @@ FX2.staffing={
   body(b,X,U){ const m=b.m, F=NFA.people.face; let h=nfSec('Le vivier',plu(m.pool.length,'candidat'))+'<div class="st2-pool">'+m.pool.slice(0,8).map(c=>'<div class="st2-c">'+F(c.id*7919+523,52,'#E5EEFB')+esc(c.n.split(' ')[0])+'<small>'+ST_SEC[c.sec]+' · '+ST_LVL[c.l].n.toLowerCase()+'</small><em>'+c.q+' / 100</em></div>').join('')+'</div>'+
       '<div class="st2-k"><div><small>Postes ouverts</small><b>'+m.jobs.length+'</b></div><div><small>En mission</small><b>'+m.int.length+'</b></div><div><small>Recruteurs</small><b>'+stRec(b)+'</b></div></div>';
     X.get('prop'); const sel=ui.st&&ui.st.b===b.id? ui.st.j : 0;
-    h+=nfSec('Les postes à pourvoir',plu(m.jobs.length,'poste'))+(m.jobs.length? m.jobs.slice().sort((a,c)=>a.exp-c.exp).map(j=>{ const on=sel===j.id, f=j.cdi? 'placement définitif · commission d’environ '+eur(j.bud*(j.l>=3?.25:.15)*stPf(b),0) : 'intérim '+j.dur+' jours · environ '+eur(j.bud/220*.12*stPf(b),0)+' par jour';
+    h+=nfSec('Les postes à pourvoir',plu(m.jobs.length,'poste'))+(m.jobs.length? '<div class="nf-mr" data-k="jobs" data-n="3">'+m.jobs.slice().sort((a,c)=>a.exp-c.exp).map(j=>{ const on=sel===j.id, f=j.cdi? 'placement définitif · commission d’environ '+eur(j.bud*(j.l>=3?.25:.15)*stPf(b),0) : 'intérim '+j.dur+' jours · environ '+eur(j.bud/220*.12*stPf(b),0)+' par jour';
       let x='<div class="st2-job'+(on?' on':'')+'"><div class="hd"><span class="lv">'+ST_LVL[j.l].n+'</span><span class="sec">'+ST_SEC[j.sec]+'</span><span class="exp">'+(j.prop? 'en attente' : 'expire dans '+plu(Math.max(0,j.exp-S.day),'jour'))+'</span></div><b>'+esc(j.cl)+'</b><small>qualité '+j.need+' minimum · budget '+eur(j.bud,0)+' par an · '+f+'</small>'+
         (j.prop? '<div class="st2-prop">'+NFA.people.face(j.prop.c.id*7919+523,36,'#E5EEFB')+'<span>Candidature de <b>'+esc(j.prop.c.n)+'</b> · '+Math.round(j.prop.p*100)+' % de chances</span></div>' : '<button class="btn nf-b'+(on?'':' a')+' w" style="margin-top:8px" data-a="stsel" data-i="'+b.id+'" data-v="'+(on?0:j.id)+'">'+(on?'Fermer':'Proposer un candidat')+'</button>')+'</div>';
       if(on){ const L=m.pool.map(c=>[c,stMatch(b,j,c)]).sort((a,c)=>c[1]-a[1]).slice(0,6);
         x+='<div class="st2-pick">'+(L.length? L.map(([c,pp])=>'<button data-a="met" data-i="'+b.id+'" data-v="prop" data-j="'+j.id+':'+c.id+'">'+NFA.people.face(c.id*7919+523,44,'#E5EEFB')+'<span><b>'+esc(c.n)+'</b><small>'+ST_LVL[c.l].n+' · '+ST_SEC[c.sec]+' · qualité '+c.q+' · demande '+eur(c.sal,0)+'</small></span><em class="'+(pp>=.6?'ok':'')+'">'+Math.round(pp*100)+' %</em></button>').join('') : '<div class="nf-row"><small>Vivier vide : augmentez la chasse de candidats.</small></div>')+'</div>'; }
-      return x; }).join('') : '<div class="nf-card"><div class="nf-row"><small>Aucun poste pour le moment.</small></div></div>');
+      return x; }).join('')+'</div>' : '<div class="nf-card"><div class="nf-row"><small>Aucun poste pour le moment.</small></div></div>');
     h+='<div class="nf-row" style="margin:8px 4px 0"><small>Sans proposition de votre part, les recruteurs proposent eux-mêmes un profil proche au bout de 6 jours.</small></div>';
     h+=nfRest(b,X,'Décisions'); return h; }
 };
@@ -20288,7 +20506,7 @@ FX2.promo={
       h+='</div>'; });
     h+=nfSec('Le marché','taux '+prRate())+'<div class="pr2-mk">'+[['Logements',mk.log.v],['Bureaux',mk.bur.v],['Commerces',mk.com.v]].map(x=>'<div><small>'+x[0]+'</small><b>'+Math.round(x[1]*100)+'</b></div>').join('')+'</div>';
     const full=m.ops.length>=prMax(b);
-    h+=nfSec('Les terrains à vendre','nouveaux dans '+plu(Math.max(0,m.landNext-S.day),'jour'))+m.land.map(L=>'<div class="pr2-land"><span class="bp">'+NFA.build.blueprint(L.s>=1.3?'imm':'mais',84).replace('<svg ','<svg style="width:84px;height:auto" ')+'</span><div class="t"><b>'+esc(L.n)+'</b><small>'+esc(L.cn)+' · '+prSize(L.s)+' · quartier '+(L.q>=1.2?'très recherché':L.q>=1?'recherché':L.q>=.85?'ordinaire':'populaire')+' · riverains '+(L.r>.2?'très vigilants':L.r>.12?'vigilants':'calmes')+'</small><div class="nf-row"><b style="font:400 20px \'DM Serif Display\',serif">'+eur(L.price,0)+'</b>'+Bt('land',L.id,'Acheter',{a:1,dis:full||cash<L.price})+'</div></div></div>').join('');
+    h+=nfSec('Les terrains à vendre','nouveaux dans '+plu(Math.max(0,m.landNext-S.day),'jour'))+'<div class="nf-mr" data-k="land" data-n="2">'+m.land.map(L=>'<div class="pr2-land"><span class="bp">'+NFA.build.blueprint(L.s>=1.3?'imm':'mais',84).replace('<svg ','<svg style="width:84px;height:auto" ')+'</span><div class="t"><b>'+esc(L.n)+'</b><small>'+esc(L.cn)+' · '+prSize(L.s)+' · quartier '+(L.q>=1.2?'très recherché':L.q>=1?'recherché':L.q>=.85?'ordinaire':'populaire')+' · riverains '+(L.r>.2?'très vigilants':L.r>.12?'vigilants':'calmes')+'</small><div class="nf-row"><b style="font:400 20px \'DM Serif Display\',serif">'+eur(L.price,0)+'</b>'+Bt('land',L.id,'Acheter',{a:1,dis:full||cash<L.price})+'</div></div></div>').join('')+'</div>';
     h+=nfRest(b,X,'Décisions'); return h; }
 };
 /* ---- immobilier de bureaux ---- */
@@ -20308,13 +20526,13 @@ FX2.office={
         '<div class="of2-k"><div><small>Loyer de marché</small><b>'+eur(ofMkt(b,B),0)+'</b><small>/ m² / an</small></div><div><small>Résultat</small><b class="'+cls(x.net)+'">'+signed(x.net,0)+'</b><small>par jour</small></div><div><small>État</small><b>'+Math.round(B.cond)+' %</b><small>'+(wk?esc(wk):'entretien')+'</small></div></div>'+
         '<div class="lab">SERVICES</div><div class="of2-ac">'+Object.keys(OF_SRV).map(k=>ofSrvOn(B,k)? Bt('Fermer : '+OF_SRV[k].n.toLowerCase(),'srv',B.id+':'+k) : Bt(OF_SRV[k].n+' · '+eur(ofSrvCost(B,k),0),'srv',B.id+':'+k,{dis:!can(ofSrvCost(B,k))})).join('')+'</div>'+
         (ofWorks(B)? '' : '<div class="lab">TRAVAUX '+helpQ('Travaux dans les immeubles','Rafraîchissement : l’état remonte à 100 %. Rénovation lourde : un cran de standing (loyers plus élevés). Label énergie : charges −15 % et loyers +8 %, dès le standing « Haut de gamme ». Pendant les travaux, aucun nouveau locataire et des occupants moins satisfaits.')+'</div><div class="of2-ac">'+Object.keys(OF_WORK).filter(k=>!(k==='lbl'&&(B.lbl||B.std<3))&&!(k==='reno'&&B.std>=(m.pre?5:4))).map(k=>{ const c=Math.round(OF_WORK[k].c(B)*(m.fm?.9:1)/1000)*1000; return Bt(OF_WORK[k].n+' · '+eur(c,0),'work',B.id+':'+k,{dis:!can(c)}); }).join('')+(B.main?'':Bt('Vendre · '+eur(ofValue(b,B)*.95,0),'sellb',B.id))+'</div>')+'</div>'; }
-    h+=nfSec('Les sociétés intéressées',m.pr.length+' en recherche'+(ofEv(m,'tt')?' · télétravail':''))+(m.pr.length? m.pr.slice().sort((x,y)=>(y.gc-x.gc)||(y.mult-x.mult)).map(P=>{ const ok=m.bd.filter(B=>!ofWorks(B)&&B.std>=P.std&&ofFree(B).length>=P.k).sort((x,y)=>ofMkt(b,y)-ofMkt(b,x)).slice(0,2);
+    h+=nfSec('Les sociétés intéressées',m.pr.length+' en recherche'+(ofEv(m,'tt')?' · télétravail':''))+(m.pr.length? '<div class="nf-mr" data-k="pros" data-n="2">'+m.pr.slice().sort((x,y)=>(y.gc-x.gc)||(y.mult-x.mult)).map(P=>{ const ok=m.bd.filter(B=>!ofWorks(B)&&B.std>=P.std&&ofFree(B).length>=P.k).sort((x,y)=>ofMkt(b,y)-ofMkt(b,x)).slice(0,2);
       return '<div class="of2-pr'+(P.gc?' gc':'')+'"><div class="nf-row"><span><b>'+esc(P.n)+(P.gc?' · grand compte':'')+'</b><small>'+plu(P.k,'étage')+' · standing « '+OF_STD[P.std]+' » au moins · bail de '+P.yrs+' ans · '+OF_RISK[P.risk].toLowerCase()+' · jusqu’au '+dateS(P.exp)+'</small></span></div>'+
         (ok.length? ok.map(B=>{ const r=ofMkt(b,B)*P.mult; return '<div class="of2-l"><span>'+esc(B.n)+' · <b>'+eur(r,0)+'</b> / m² / an ('+Math.round(P.mult*100)+' % du marché)</span><div class="of2-ac">'+Bt('Louer','lease',P.id+':'+B.id+':0',{a:1})+Bt('Négocier +8 %','lease',P.id+':'+B.id+':1')+'</div></div>'; }).join('')
-          : '<div class="nf-row" style="margin-top:6px"><small>'+(m.bd.some(B=>B.std>=P.std)? 'Pas assez d’étages libres pour le moment dans vos immeubles « '+OF_STD[P.std]+' » ou plus.' : 'Standing insuffisant : rénovez un immeuble ou achetez-en un « '+OF_STD[P.std]+' ».')+'</small></div>')+'</div>'; }).join('') : '<div class="nf-card"><div class="nf-row"><small>Personne pour le moment : de nouvelles sociétés se présentent régulièrement.</small></div></div>')+
+          : '<div class="nf-row" style="margin-top:6px"><small>'+(m.bd.some(B=>B.std>=P.std)? 'Pas assez d’étages libres pour le moment dans vos immeubles « '+OF_STD[P.std]+' » ou plus.' : 'Standing insuffisant : rénovez un immeuble ou achetez-en un « '+OF_STD[P.std]+' ».')+'</small></div>')+'</div>'; }).join('')+'</div>' : '<div class="nf-card"><div class="nf-row"><small>Personne pour le moment : de nouvelles sociétés se présentent régulièrement.</small></div></div>')+
       '<div class="nf-row" style="margin:6px 4px 0"><small>Négocier fait gagner 8 % de loyer, mais une société sur deux refuse. Une société fragile peut faire faillite.</small></div>';
-    if(m.tn.length) h+=nfSec('Les locataires',plu(m.tn.length,'bail').replace('bails','baux'))+'<div class="nf-card nf-list">'+m.tn.slice().sort((x,y)=>x.until-y.until).map(t=>{ const B=ofBd(b,t.bd); return nfRowH(esc(t.n),esc(B?B.n:'')+' · '+plu(t.fl.length,'étage')+' · '+eur(t.r,0)+' / m² par an · fin le '+dateL(t.until)+' · satisfaction '+Math.round(t.sat),Bt('Faire partir','evict',t.id)); }).join('')+'</div><div class="nf-row" style="margin:6px 4px 0"><small>À la fin du bail, un locataire satisfait renouvelle au loyer du marché. Faire partir un locataire coûte six mois de loyer.</small></div>';
-    if(m.bo.length) h+=nfSec('Les immeubles à vendre',esc(D.CITIES[b.city].n))+m.bo.map(o=>'<div class="of2-pr"><div class="nf-row"><span><b>'+esc(o.n)+'</b><small>'+esc(ofDist(b,o.dist).n)+' · '+o.nf+' étages · '+fmtN(o.m2,0)+' m² · « '+OF_STD[o.std]+' » · état '+o.cond+' % · '+o.occ+' étage'+(o.occ>1?'s':'')+' déjà loué'+(o.occ>1?'s':'')+' · jusqu’au '+dateS(o.exp)+'</small></span></div><div class="of2-ac" style="margin-top:6px">'+Bt('Acheter · '+eur(o.price,0),'buyb',o.id,{a:1,dis:!can(o.price)||m.bd.length>=8})+'</div></div>').join('');
+    if(m.tn.length) h+=nfSec('Les locataires',plu(m.tn.length,'bail').replace('bails','baux'))+'<div class="nf-card nf-list">'+'<div class="nf-mr" data-k="ten" data-n="4">'+m.tn.slice().sort((x,y)=>x.until-y.until).map(t=>{ const B=ofBd(b,t.bd); return nfRowH(esc(t.n),esc(B?B.n:'')+' · '+plu(t.fl.length,'étage')+' · '+eur(t.r,0)+' / m² par an · fin le '+dateL(t.until)+' · satisfaction '+Math.round(t.sat),Bt('Faire partir','evict',t.id)); }).join('')+'</div>'+'</div><div class="nf-row" style="margin:6px 4px 0"><small>À la fin du bail, un locataire satisfait renouvelle au loyer du marché. Faire partir un locataire coûte six mois de loyer.</small></div>';
+    if(m.bo.length) h+=nfSec('Les immeubles à vendre',esc(D.CITIES[b.city].n))+'<div class="nf-mr" data-k="bo" data-n="1">'+m.bo.map(o=>'<div class="of2-pr"><div class="nf-row"><span><b>'+esc(o.n)+'</b><small>'+esc(ofDist(b,o.dist).n)+' · '+o.nf+' étages · '+fmtN(o.m2,0)+' m² · « '+OF_STD[o.std]+' » · état '+o.cond+' % · '+o.occ+' étage'+(o.occ>1?'s':'')+' déjà loué'+(o.occ>1?'s':'')+' · jusqu’au '+dateS(o.exp)+'</small></span></div><div class="of2-ac" style="margin-top:6px">'+Bt('Acheter · '+eur(o.price,0),'buyb',o.id,{a:1,dis:!can(o.price)||m.bd.length>=8})+'</div></div>').join('')+'</div>';
     h+=nfRest(b,X,'Décisions'); return h; }
 };
 /* ---- studio ---- */
@@ -20332,8 +20550,8 @@ FX2.studio={
     h+=nfSec('Nouveau projet','qualité attendue '+Math.round(q*100)+' / 100')+'<div class="sd2-new"><div class="lab">FORMAT</div><div class="sd2-ch">'+Object.keys(SD_TYPE).map(k=>{ const lk=SD_TYPE[k].rk&&!mxHas(b,SD_TYPE[k].rk); return '<button class="'+(P.t===k?'on':'')+'" data-a="sdset" data-i="'+b.id+'" data-j="t" data-v="'+k+'"'+(lk?' disabled data-why="Palier '+SD_TYPE[k].rk+' requis."':'')+'>'+esc(SD_TYPE[k].n)+'<small>'+SD_TYPE[k].d+' jours</small></button>'; }).join('')+'</div>'+
       '<div class="lab">GENRE</div><div class="sd2-gen">'+Object.keys(SD_GEN).map(k=>'<button class="'+(P.g===k?'on':'')+'" data-a="sdset" data-i="'+b.id+'" data-j="g" data-v="'+k+'">'+Po2(k,SD_GEN[k],62)+'<small class="'+(m.gtr[k].v>=1?'up':'dn')+'">'+trend(k)+'</small></button>').join('')+'</div>'+
       '<div class="lab">BUDGET</div><div class="sd2-ch">'+SD_BUD.map((x,i)=>'<button class="'+(P.bud===i?'on':'')+'" data-a="sdset" data-i="'+b.id+'" data-j="bud" data-v="'+i+'">'+esc(x.n)+'</button>').join('')+'</div>'+
-      '<div class="lab">TALENTS · 2 AU PLUS</div><div class="sd2-tal">'+m.tal.map(t=>{ const on=P.tal.includes(t.id), busy=m.prj.some(p=>p.tal.includes(t.id));
-        return '<button class="'+(on?'on':'')+'" data-a="sdtal" data-i="'+b.id+'" data-v="'+t.id+'"'+(busy?' disabled data-why="En tournage."':'')+'>'+NFA.people.face(t.id*7919+523,46,'#2A2A32')+'<b>'+esc(t.n)+'</b><small>'+t.role+' · '+'★'.repeat(t.fame)+'<br>à l’aise en '+SD_GEN[t.g].toLowerCase()+'</small><em>'+eur(metR0(b)*SD_FEE[t.fame],0)+'</em></button>'; }).join('')+'</div>'+
+      '<div class="lab">TALENTS · 2 AU PLUS</div><div class="sd2-tal">'+'<div class="nf-mr" data-k="tal" data-n="6">'+m.tal.map(t=>{ const on=P.tal.includes(t.id), busy=m.prj.some(p=>p.tal.includes(t.id));
+        return '<button class="'+(on?'on':'')+'" data-a="sdtal" data-i="'+b.id+'" data-v="'+t.id+'"'+(busy?' disabled data-why="En tournage."':'')+'>'+NFA.people.face(t.id*7919+523,46,'#2A2A32')+'<b>'+esc(t.n)+'</b><small>'+t.role+' · '+'★'.repeat(t.fame)+'<br>à l’aise en '+SD_GEN[t.g].toLowerCase()+'</small><em>'+eur(metR0(b)*SD_FEE[t.fame],0)+'</em></button>'; }).join('')+'</div>'+'</div>'+
       '<div class="sd2-go"><span><b>'+eur(cost,0)+'</b><small>payé au fil du tournage</small></span><button class="btn nf-b a" data-a="met" data-i="'+b.id+'" data-v="start" data-j="'+P.t+':'+P.g+':'+P.bud+':'+(P.tal[0]??'')+':'+(P.tal[1]??'')+'"'+(can?'':' disabled')+'>Lancer le tournage</button></div></div>';
     const top=m.cat.slice().sort((a,c)=>sdRights(b,c)-sdRights(b,a)).slice(0,5);
     if(top.length) h+=nfSec('Les droits','les titres qui rapportent le plus')+'<div class="nf-card nf-list">'+top.map(x=>nfRowH(esc(x.n),SD_TYPE[x.t].n+' · '+SD_GEN[x.g]+' · audience '+x.sc+' / 100','<b style="white-space:nowrap;font-size:13px">'+eur(sdRights(b,x),0)+' / j</b>')).join('')+'</div>';
@@ -20353,11 +20571,11 @@ FX2.warehouse={
       '<div class="wh2-lg">'+m.ct.slice(0,8).map((c,k)=>'<span><i style="background:'+NF2_PAL[k%NF2_PAL.length]+'"></i>'+esc(c.n)+'</span>').join('')+'<span><i style="background:#E9EBE4"></i>libre</span></div></div>';
     X.get('sign'); X.get('end'); const capW=whCap(b), usedW=whUsed(b);
     h+='<div class="nf-card wh2-st"><div class="nf-row"><span><b>'+fmtN(usedW,0)+' / '+fmtN(capW,0)+' palettes'+(m.fr?' · froid '+fmtN(whFrUsed(b),0)+' / '+fmtN(whFrCap(b),0):'')+'</b><small>'+WH_EQ[m.eq].n+' · '+fmtN(Math.round(d.mv))+' mouvements par jour'+(d.late>1?' · '+fmtN(Math.round(d.late))+' en retard':'')+'</small></span>'+helpQ('Fonctionnement de l’entrepôt','Chaque client paie ses palettes chaque jour, week-end compris, et chaque entrée ou sortie. Trop de mouvements pour l’équipement : des retards, plus chers et mal vus. Vos usines de la même ville gardent leur stock plus longtemps.')+'</div><i class="wh2-g"><em style="width:'+Math.round(clamp(usedW/Math.max(1,capW),0,1)*100)+'%"></em></i></div>';
-    h+=nfSec('Les clients intéressés',plu(m.off.length,'offre'))+(m.off.length? m.off.slice().sort((x,y)=>(y.big-x.big)||(y.p*y.pal-x.p*x.pal)).map(o=>{ const fit=usedW+o.pal<=capW&&(!o.fr||(m.fr&&whFrUsed(b)+o.pal<=whFrCap(b)));
+    h+=nfSec('Les clients intéressés',plu(m.off.length,'offre'))+(m.off.length? '<div class="nf-mr" data-k="whoff" data-n="2">'+m.off.slice().sort((x,y)=>(y.big-x.big)||(y.p*y.pal-x.p*x.pal)).map(o=>{ const fit=usedW+o.pal<=capW&&(!o.fr||(m.fr&&whFrUsed(b)+o.pal<=whFrCap(b)));
       return '<div class="wh2-of'+(o.big?' big':'')+'"><div class="nf-row"><span><b>'+esc(o.n)+(o.big?' · grand compte':'')+'</b><small>'+esc(o.sec)+(o.fr?' · sous température':'')+' · '+fmtN(o.pal,0)+' palettes · '+o.mo+' mois · jusqu’au '+dateS(o.exp)+'</small></span><span class="px"><b>'+fmtN(o.p,2)+' €</b><small>palette · jour</small></span></div>'+
-        (fit? '<div class="wh2-ac"><button class="btn nf-b a" data-a="met" data-i="'+b.id+'" data-v="sign" data-j="'+o.id+':0">Signer</button><button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="sign" data-j="'+o.id+':1">Négocier +8 %</button></div>' : '<div class="nf-row" style="margin-top:6px"><small style="color:#C8352A">'+(o.fr&&!m.fr? 'Il faut une zone frigorifique.' : 'Pas assez de place.')+'</small></div>')+'</div>'; }).join('') : '<div class="nf-card"><div class="nf-row"><small>Aucune offre pour le moment.</small></div></div>');
-    h+=nfSec('Les contrats de stockage',plu(m.ct.length,'contrat'))+'<div class="nf-card nf-list">'+m.ct.slice().sort((x,y)=>x.until-y.until).map(c=>{ const k=m.ct.indexOf(c);
-      return nfRowH('<span class="dc2-dot" style="background:'+NF2_PAL[k%NF2_PAL.length]+'"></span>'+esc(c.n),fmtN(c.pal,0)+' palettes'+(c.fr?' sous température':'')+' · '+fmtN(c.p,2)+' € par palette et par jour · fin le '+dateL(c.until)+' · satisfaction '+Math.round(c.sat),'<button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="end" data-j="'+c.id+'">Rompre</button>'); }).join('')+'</div>';
+        (fit? '<div class="wh2-ac"><button class="btn nf-b a" data-a="met" data-i="'+b.id+'" data-v="sign" data-j="'+o.id+':0">Signer</button><button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="sign" data-j="'+o.id+':1">Négocier +8 %</button></div>' : '<div class="nf-row" style="margin-top:6px"><small style="color:#C8352A">'+(o.fr&&!m.fr? 'Il faut une zone frigorifique.' : 'Pas assez de place.')+'</small></div>')+'</div>'; }).join('')+'</div>' : '<div class="nf-card"><div class="nf-row"><small>Aucune offre pour le moment.</small></div></div>');
+    h+=nfSec('Les contrats de stockage',plu(m.ct.length,'contrat'))+'<div class="nf-card nf-list">'+'<div class="nf-mr" data-k="whct" data-n="4">'+m.ct.slice().sort((x,y)=>x.until-y.until).map(c=>{ const k=m.ct.indexOf(c);
+      return nfRowH('<span class="dc2-dot" style="background:'+NF2_PAL[k%NF2_PAL.length]+'"></span>'+esc(c.n),fmtN(c.pal,0)+' palettes'+(c.fr?' sous température':'')+' · '+fmtN(c.p,2)+' € par palette et par jour · fin le '+dateL(c.until)+' · satisfaction '+Math.round(c.sat),'<button class="btn nf-b" data-a="met" data-i="'+b.id+'" data-v="end" data-j="'+c.id+'">Rompre</button>'); }).join('')+'</div>'+'</div>';
     h+=nfRest(b,X,'L’équipement'); return h; }
 };
 /* ---- compagnie maritime ---- */
@@ -20370,7 +20588,11 @@ FX2.shipping={
   body(b,X,U){ const m=b.m, pts={}, R=[], col=['#8ff0bf','#F2C94C','#ffb3a8','#9fd0e6','#c6b3ff'];
     m.tm.forEach(t=>{ const p=shPt(t.id||t); if(p) pts['sh_'+p.id]=nfLL(p.lat,p.lon,p.n,1); });
     m.ln.forEach((l,k)=>{ const a=shPt(l.a), c=shPt(l.b); if(!a||!c) return; pts['sh_'+a.id]=pts['sh_'+a.id]||nfLL(a.lat,a.lon,a.n); pts['sh_'+c.id]=pts['sh_'+c.id]||nfLL(c.lat,c.lon,c.n); R.push(['sh_'+a.id,'sh_'+c.id,col[k%col.length],14,null,'0',k<3?10+k*4:0]); });
-    let h=nfSec('La carte des lignes','vos navires en mer')+'<div class="sh2-map">'+nfWorld(pts,R,{})+'</div>';
+    const G={pts:[], routes:[]}; m.tm.forEach(t=>{ const p=shPt(t.id||t); if(p) G.pts.push([p.lat,p.lon,1]); });
+    m.ln.forEach((l,k)=>{ const a=shPt(l.a), c=shPt(l.b); if(!a||!c) return; [a,c].forEach(p=>{ if(!G.pts.some(q=>q[0]===p.lat&&q[1]===p.lon)) G.pts.push([p.lat,p.lon,0]); });
+      let P; try{ P=glbSeaRoute(shPath(l.a,l.b,m,false).pts); }catch(e){ P=glbArc([a.lat,a.lon],[c.lat,c.lon],40).p; } const n=m.fl.filter(f=>f.ln===l.id&&!(f.down>S.day)).length; G.routes.push({p:P,c:col[k%col.length],n:Math.min(4,n),sp:22+P.length*.08,back:1}); });
+    m.fl.filter(f=>f.ch).forEach(f=>{ const a=shPt(f.ch.a), c=shPt(f.ch.b); if(!a||!c) return; let P; try{ P=glbSeaRoute(shPath(f.ch.a,f.ch.b,m,!(SH_TY[f.t]||{}).pan).pts); }catch(e){ P=glbArc([a.lat,a.lon],[c.lat,c.lon],40).p; } G.routes.push({p:P,c:'#ffffff',dash:1,n:1,sp:30}); [a,c].forEach(p=>{ if(!G.pts.some(q=>q[0]===p.lat&&q[1]===p.lon)) G.pts.push([p.lat,p.lon,0]); }); });
+    let h=nfSec('La carte des lignes','vos navires en mer')+glbHtml('sh'+b.id,G,{l:'Globe : terminaux et lignes de la compagnie',leg:'<span><i class="h"></i>Terminal</span><span><i></i>Escale</span>'+(m.fl.some(f=>f.ch)?'<span><i class="l" style="background:#fff"></i>Affrètement</span>':'')});
     const kk=t=>{ const T=SH_TY[t]; return !T? 'pc' : T.k==='bulk'? 'vr' : T.k==='tank'? 'pt' : 'pc'; };
     h+=nfSec('La flotte',plu(m.fl.length,'navire'))+'<div class="sh2-fl">'+m.fl.map((f,i)=>{ const T=SH_TY[f.t]||{n:f.t,d:''}, L=m.ln.find(l=>l.id===f.ln);
       return '<div class="sh2-s"><div class="im">'+NFA.ship.ship(kk(f.t),132,i%2?'#C8352A':'#1F4E8A')+'</div><b>'+esc(T.n)+'</b><small>'+esc(T.d)+'</small><small>'+esc(shShipState(m,f))+'</small>'+(f.ch||f.yard>S.day? '' : '<button class="btn nf-b w" style="margin-top:6px;font-size:12px" data-a="met" data-i="'+b.id+'" data-v="drop" data-j="'+f.id+'">'+(f.own?'Revendre · '+eur(shResale(f),0):'Rendre')+'</button>')+'</div>'; }).join('')+'</div>';
@@ -20381,24 +20603,24 @@ FX2.shipping={
     h=h.replace('<div class="sh2-map">'+'','<div class="sh2-map">');
     if(evs.length) h+='<div class="sh2-ev">'+evs.map(e=>'<span>'+EV[e.k]+' · '+plu(e.until-S.day+1,'jour')+'</span>').join('')+'</div>';
     /* lignes */
-    h+=nfSec('Les lignes régulières',m.ln.length? m.ln.length+' en service' : 'aucune ligne')+m.ln.map(l=>{ const x=l.st||shLineDay(b,l), P=m.fl.filter(p=>p.ln===l.id), path=shPath(l.a,l.b,m,false), on=ui.lnG===l.id, lf=x.lf||0;
+    h+=nfSec('Les lignes régulières',m.ln.length? m.ln.length+' en service' : 'aucune ligne')+'<div class="nf-mr" data-k="shln" data-n="3">'+m.ln.map(l=>{ const x=l.st||shLineDay(b,l), P=m.fl.filter(p=>p.ln===l.id), path=shPath(l.a,l.b,m,false), on=ui.lnG===l.id, lf=x.lf||0;
       return '<div class="sh2-ln"><div class="nf-row"><span><b>'+esc(shPt(l.a).n)+' ⇄ '+esc(shPt(l.b).n)+'</b><small>'+fmtN(x.d||path.d,0)+' km'+(path.canal? ' · canal de '+(path.canal==='suez'?'Suez':'Panama') : '')+(path.aden?' · golfe d’Aden':'')+' · '+(P.length? P.map(p=>SH_TY[p.t].n).join(', ') : 'aucun navire')+'</small></span><span class="px"><b class="'+cls(x.net||0)+'">'+signed(x.net||0,0)+'</b><small>par jour</small></span></div>'+
         '<i class="sh2-lf"><em style="width:'+Math.round(lf*100)+'%;background:'+(lf>.95?'#E0A21B':'#2BB673')+'"></em></i><div class="nf-row"><small>'+fmtN(Math.round(x.teu||0))+' EVP par jour sur '+fmtN(Math.round(x.cap||0))+' · remplissage '+Math.round(lf*100)+' % · demande '+fmtN(Math.round(x.want||0))+' · prix '+Math.round((SH_PRICE[l.p]||1)*100)+' %</small></div>'+
-        (on? '<div class="sh2-ac">'+Bt('Prix −','price',l.id+':'+Math.max(0,l.p-1),{dis:l.p<=0})+Bt('Prix +','price',l.id+':'+Math.min(3,l.p+1),{dis:l.p>=3})+'<button class="btn nf-b" data-a="shadd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un navire</button>'+(P.length>1? Bt('Retirer un navire','off',P[P.length-1].id) : '')+Bt('Fermer la ligne','close',l.id)+'<button class="btn nf-b a" data-a="lng" data-i="0">Terminé</button></div>' : '<div class="sh2-ac"><button class="btn nf-b" data-a="lng" data-i="'+l.id+'">Gérer la ligne</button></div>')+'</div>'; }).join('')+
+        (on? '<div class="sh2-ac">'+Bt('Prix −','price',l.id+':'+Math.max(0,l.p-1),{dis:l.p<=0})+Bt('Prix +','price',l.id+':'+Math.min(3,l.p+1),{dis:l.p>=3})+'<button class="btn nf-b" data-a="shadd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un navire</button>'+(P.length>1? Bt('Retirer un navire','off',P[P.length-1].id) : '')+Bt('Fermer la ligne','close',l.id)+'<button class="btn nf-b a" data-a="lng" data-i="0">Terminé</button></div>' : '<div class="sh2-ac"><button class="btn nf-b" data-a="lng" data-i="'+l.id+'">Gérer la ligne</button></div>')+'</div>'; }).join('')+'</div>'+
       '<button class="btn nf-b a w" style="margin-top:8px" data-a="shnew" data-i="'+b.id+'">Ouvrir une ligne</button>';
     /* affrètement */
     const bulk=m.fl.filter(p=>SH_TY[p.t].k!=='box');
-    h+=nfSec('L’affrètement','indice du vrac '+Math.round(m.bi*100)+' · '+bulk.filter(p=>p.ch).length+' voyage(s)')+m.off.slice().sort((x,y)=>y.pay/y.days-x.pay/x.days).map(o=>{ const ok=m.fl.some(p=>SH_TY[p.t].k===o.k&&SH_TY[p.t].cap>=o.q&&shFree(m,p));
-      return '<div class="sh2-of"><span class="im">'+NFA.ship.ship(o.k==='bulk'?'vr':'pt',64,'#1F4E8A')+'</span><div class="t"><b>'+esc(o.c.charAt(0).toUpperCase()+o.c.slice(1))+' · '+esc(shPt(o.a).n)+' → '+esc(shPt(o.b).n)+'</b><small>'+fmtN(o.q,0)+' t · '+(o.k==='bulk'?'vraquier':'pétrolier')+' · environ '+o.days+' jours · ≈ '+eur(o.pay/o.days,0)+' / j · jusqu’au '+dateS(o.exp)+'</small></div><button class="btn nf-b'+(ok?' a':'')+'" data-a="shch" data-i="'+b.id+'" data-j="'+o.id+'"'+(ok?'':' disabled data-why="Aucun navire libre de ce type."')+'>'+eur(o.pay,0)+'</button></div>'; }).join('')+
+    h+=nfSec('L’affrètement','indice du vrac '+Math.round(m.bi*100)+' · '+bulk.filter(p=>p.ch).length+' voyage(s)')+'<div class="nf-mr" data-k="shof" data-n="2">'+m.off.slice().sort((x,y)=>y.pay/y.days-x.pay/x.days).map(o=>{ const ok=m.fl.some(p=>SH_TY[p.t].k===o.k&&SH_TY[p.t].cap>=o.q&&shFree(m,p));
+      return '<div class="sh2-of"><span class="im">'+NFA.ship.ship(o.k==='bulk'?'vr':'pt',64,'#1F4E8A')+'</span><div class="t"><b>'+esc(o.c.charAt(0).toUpperCase()+o.c.slice(1))+' · '+esc(shPt(o.a).n)+' → '+esc(shPt(o.b).n)+'</b><small>'+fmtN(o.q,0)+' t · '+(o.k==='bulk'?'vraquier':'pétrolier')+' · environ '+o.days+' jours · ≈ '+eur(o.pay/o.days,0)+' / j · jusqu’au '+dateS(o.exp)+'</small></div><button class="btn nf-b'+(ok?' a':'')+'" data-a="shch" data-i="'+b.id+'" data-j="'+o.id+'"'+(ok?'':' disabled data-why="Aucun navire libre de ce type."')+'>'+eur(o.pay,0)+'</button></div>'; }).join('')+'</div>'+
       '<div class="nf-row" style="margin:6px 4px 0"><small>Le prix suit l’indice du fret ; les offres changent chaque semaine. Il faut un vraquier ou un pétrolier libre.</small></div>';
     /* acheter ou louer */
-    h+=nfSec('Les chantiers navals','louer, occasion ou neuf')+'<div class="sh2-ty">'+Object.entries(SH_TY).map(([k,T])=>'<div><span class="im">'+NFA.ship.ship(T.k==='bulk'?'vr':T.k==='tank'?'pt':'pc',120,'#1F4E8A')+'</span><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+(T.k==='box'? fmtN(T.cap,0)+' EVP' : fmtN(T.cap,0)+' t')+' · '+T.kn+' nœuds</small><div class="sh2-ac">'+Bt('Louer · '+eur(T.ls,0)+' / j','lease',k,{a:1,dis:!can(T.ls*30)})+Bt('Occasion · '+eur(T.pr*SH_OCC,0),'occ',k,{dis:!can(T.pr*SH_OCC)})+Bt('Neuf · '+eur(T.pr,0),'yard',k,{dis:!can(T.pr)})+'</div></div>').join('')+'</div>'+
+    h+=nfSec('Les chantiers navals','louer, occasion ou neuf')+'<div class="sh2-ty">'+'<div class="nf-mr" data-k="shty" data-n="1">'+Object.entries(SH_TY).map(([k,T])=>'<div><span class="im">'+NFA.ship.ship(T.k==='bulk'?'vr':T.k==='tank'?'pt':'pc',120,'#1F4E8A')+'</span><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+(T.k==='box'? fmtN(T.cap,0)+' EVP' : fmtN(T.cap,0)+' t')+' · '+T.kn+' nœuds</small><div class="sh2-ac">'+Bt('Louer · '+eur(T.ls,0)+' / j','lease',k,{a:1,dis:!can(T.ls*30)})+Bt('Occasion · '+eur(T.pr*SH_OCC,0),'occ',k,{dis:!can(T.pr*SH_OCC)})+Bt('Neuf · '+eur(T.pr,0),'yard',k,{dis:!can(T.pr)})+'</div></div>').join('')+'</div>'+'</div>'+
       '<div class="nf-row" style="margin:6px 4px 0"><small>Location : dépôt de 30 jours de loyer, rendu à la fin. Occasion : tout de suite, entretien plus cher, revente 35 %. Neuf : livré en '+SH_YARD+' jours, revente 65 %.</small></div>';
     /* terminaux */
-    h+=nfSec('Ports et terminaux','réputation '+Math.round(m.img)+' / 100')+'<div class="nf-card nf-list">'+Object.keys(SH_RG).map(rg=>{ const L=Object.values(SH_PT).filter(a2=>a2.tm&&a2.rg===rg); if(!L.length) return '';
+    h+=nfSec('Ports et terminaux','réputation '+Math.round(m.img)+' / 100')+'<div class="nf-card nf-list">'+'<div class="nf-mr grp" data-k="shrg" data-n="1">'+Object.keys(SH_RG).sort((r1,r2)=>(Object.values(SH_PT).some(a2=>a2.rg===r2&&m.tm.includes(a2.id))?1:0)-(Object.values(SH_PT).some(a2=>a2.rg===r1&&m.tm.includes(a2.id))?1:0)).map(rg=>{ const L=Object.values(SH_PT).filter(a2=>a2.tm&&a2.rg===rg); if(!L.length) return '';
       return '<div class="sh2-rg">'+esc(SH_RG[rg])+'</div>'+L.map(a2=>{ const own=m.tm.includes(a2.id), req=shTmReq(b,a2.id), c=shTmCost(a2.id);
         if(own){ const n=(m.ext&&m.ext[a2.id])||0; return nfRowH(esc(a2.n),'votre terminal · '+shTmUsed(b,a2.id)+' / '+shTmCap(b,a2.id)+' lignes',n<3? Bt('Quais · '+eur(shExtCost(b,a2.id),0),'ext',a2.id,{dis:!can(shExtCost(b,a2.id))}) : '<span class="nf-ok">Au maximum</span>'); }
-        return nfRowH(esc(a2.n),fmtN(a2.sz,1)+' M d’EVP par an · réputation '+req+' requise',Bt(eur(c,0),'tm',a2.id,{dis:m.img<req||!can(c)})); }).join(''); }).join('')+'</div>'+
+        return nfRowH(esc(a2.n),fmtN(a2.sz,1)+' M d’EVP par an · réputation '+req+' requise',Bt(eur(c,0),'tm',a2.id,{dis:m.img<req||!can(c)})); }).join(''); }).join('')+'</div>'+'</div>'+
       '<div class="nf-row" style="margin:6px 4px 0"><small>Un terminal permet d’ouvrir des lignes vers sa région et les régions voisines, et des lignes intercontinentales vers vos autres terminaux. Vos escales y coûtent moitié moins.'+(m.uft?' Fret de vos usines transporté : '+eur(m.uft,0)+'.':'')+'</small></div>';
     h+=nfRest(b,X,'Décisions'); return h; }
 };
@@ -20459,27 +20681,381 @@ FX2.airline={
     const pts={}, R=[];
     m.hubs.forEach(id=>{ const p=alAp(id); if(p) pts['al_'+id]=nfLL(p.lat,p.lon,p.n,1); });
     m.ln.forEach((l,k)=>{ const a=alAp(l.a), c=alAp(l.b); if(!a||!c) return; pts['al_'+a.id]=pts['al_'+a.id]||nfLL(a.lat,a.lon,a.n); pts['al_'+c.id]=pts['al_'+c.id]||nfLL(c.lat,c.lon,c.n); const far=Math.abs(a.lon-c.lon)>40; R.push(['al_'+a.id,'al_'+c.id,far?'#ffb3a8':'#8ff0bf',far?20:6,null,'0',k<4?4+k*2:0]); });
-    if(R.length) h+=nfSec('Le réseau',plu(m.ln.length,'ligne'))+'<div class="al2-map">'+nfWorld(pts,R,{sea:'#0b1d3a',land:'#1f3d66',edge:'#2e5a90'})+'</div>';
+    { const G={pts:[], routes:[]}; m.hubs.forEach(id=>{ const p=alAp(id); if(p) G.pts.push([p.lat,p.lon,1]); });
+      m.ln.forEach((l,k)=>{ const a=alAp(l.a), c=alAp(l.b); if(!a||!c) return; [a,c].forEach(p=>{ if(!G.pts.some(q=>q[0]===p.lat&&q[1]===p.lon)) G.pts.push([p.lat,p.lon,0]); });
+        const A=glbArc([a.lat,a.lon],[c.lat,c.lon],56), n=m.fl.filter(f=>f.ln===l.id&&!(f.down>S.day)).length; G.routes.push({p:A.p,h:Math.min(.2,.025+A.ang*.16),c:A.ang>.6?'#ffb3a8':A.ang>.2?'#F2C94C':'#8ff0bf',n:Math.min(4,n),sp:6+A.ang*14,back:1}); });
+      h+=nfSec('Le réseau',m.ln.length? plu(m.ln.length,'ligne') : 'aucune ligne')+glbHtml('al'+b.id,G,{l:'Globe : plateformes et lignes de la compagnie',leg:'<span><i class="h"></i>Plateforme</span><span><i></i>Destination</span>'}); }
     const kk=t=>t==='r70'?'region':t==='m180'?'moyen':'long';
     h+=nfSec('La flotte',plu(m.fl.length,'avion'))+'<div class="al2-fleet">'+m.fl.map(f=>{ const T=AL_TY[f.t]||{n:f.t,d:'',seats:0}, l=m.ln.find(x=>x.id===f.ln);
       return '<div class="al2-pl"><div class="im">'+NFA.plane.plane(kk(f.t),150,'#C8102E')+'</div><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+T.seats+' sièges</small><small>'+(f.down>S.day?'en maintenance':l&&alAp(l.b)? 'vers '+esc(alAp(l.b).n) : 'au sol')+(f.own?' · acheté':' · loué')+'</small><button class="btn nf-b w" style="margin-top:6px;font-size:12px" data-a="met" data-i="'+b.id+'" data-v="drop" data-j="'+f.id+'">'+(f.own?'Revendre · '+eur(T.pr*.7,0):'Rendre')+'</button></div>'; }).join('')+'</div>';
     ['price','cab','close','drop','lease','buy','hub','ext'].forEach(a=>X.get(a)); const can=x=>mAvail(b)>=x;
     const Bt=(lab,act,arg,o)=>{ o=o||{}; return '<button class="btn nf-b'+(o.a?' a':'')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o.dis?' disabled':'')+'>'+lab+'</button>'; };
-    h+=nfSec('Les lignes',m.ln.length? m.ln.length+' en service' : 'aucune ligne')+m.ln.map(l=>{ const x=l.st||alLineDay(b,l,true), P=m.fl.filter(p=>p.ln===l.id), d=alDist(l.a,l.b), on=ui.lnG===l.id, lf=x.lf||0;
+    h+=nfSec('Les lignes',m.ln.length? m.ln.length+' en service' : 'aucune ligne')+'<div class="nf-mr" data-k="alln" data-n="3">'+m.ln.map(l=>{ const x=l.st||alLineDay(b,l,true), P=m.fl.filter(p=>p.ln===l.id), d=alDist(l.a,l.b), on=ui.lnG===l.id, lf=x.lf||0;
       return '<div class="al2-ln"><div class="nf-row"><span><b>'+esc(alAp(l.a).n)+' → '+esc(alAp(l.b).n)+'</b><small>'+fmtN(d,0)+' km · '+P.map(p=>AL_TY[p.t].n).join(', ')+' · '+(x.legs||0)+' vols par jour'+(x.strike?' · grève':'')+'</small></span><span class="px"><b class="'+cls(x.net||0)+'">'+signed(x.net||0,0)+'</b><small>par jour</small></span></div>'+
         '<div class="al2-seats" aria-label="Remplissage '+Math.round(lf*100)+' %">'+Array.from({length:30},(_,i)=>'<i class="'+(i<Math.round(lf*30)?'on':'')+(i<[0,3,5][l.cab]?' biz':'')+'"></i>').join('')+'</div>'+
         '<div class="nf-row"><small>Remplissage '+Math.round(lf*100)+' % · billet éco '+eur(alEco(d)*(AL_PRICE[l.p]||1),0)+' ('+Math.round((AL_PRICE[l.p]||1)*100)+' % du prix habituel) · affaires : '+['aucune','8 % de la cabine','15 % de la cabine'][l.cab]+'</small></div>'+
-        (on? '<div class="sh2-ac">'+Bt('Prix −','price',l.id+':'+Math.max(0,l.p-1),{dis:l.p<=0})+Bt('Prix +','price',l.id+':'+Math.min(3,l.p+1),{dis:l.p>=3})+Bt('Cabine affaires : '+['aucune','8 %','15 %'][(l.cab+1)%3],'cab',l.id+':'+((l.cab+1)%3))+'<button class="btn nf-b" data-a="aladd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un avion</button>'+Bt('Fermer la ligne','close',l.id)+'<button class="btn nf-b a" data-a="lng" data-i="0">Terminé</button></div>' : '<div class="sh2-ac"><button class="btn nf-b" data-a="lng" data-i="'+l.id+'">Gérer la ligne</button></div>')+'</div>'; }).join('')+
+        (on? '<div class="sh2-ac">'+Bt('Prix −','price',l.id+':'+Math.max(0,l.p-1),{dis:l.p<=0})+Bt('Prix +','price',l.id+':'+Math.min(3,l.p+1),{dis:l.p>=3})+Bt('Cabine affaires : '+['aucune','8 %','15 %'][(l.cab+1)%3],'cab',l.id+':'+((l.cab+1)%3))+'<button class="btn nf-b" data-a="aladd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un avion</button>'+Bt('Fermer la ligne','close',l.id)+'<button class="btn nf-b a" data-a="lng" data-i="0">Terminé</button></div>' : '<div class="sh2-ac"><button class="btn nf-b" data-a="lng" data-i="'+l.id+'">Gérer la ligne</button></div>')+'</div>'; }).join('')+'</div>'+
       '<button class="btn nf-b a w" style="margin-top:8px" data-a="alnew" data-i="'+b.id+'">Ouvrir une ligne</button>';
-    h+=nfSec('Louer ou acheter','dépôt de 30 jours pour une location')+'<div class="sh2-ty">'+Object.entries(AL_TY).map(([k,T])=>'<div><span class="im al">'+NFA.plane.plane(k==='r70'?'region':k==='m180'?'moyen':'long',150,'#C8102E')+'</span><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+T.seats+' places · '+fmtN(T.rg,0)+' km</small><div class="sh2-ac">'+Bt('Louer · '+eur(T.ls,0)+' / j','lease',k,{a:1,dis:!can(T.ls*30)})+Bt('Acheter · '+eur(T.pr,0),'buy',k,{dis:!can(T.pr)})+'</div></div>').join('')+'</div>'+
+    h+=nfSec('Louer ou acheter','dépôt de 30 jours pour une location')+'<div class="sh2-ty">'+'<div class="nf-mr" data-k="alty" data-n="1">'+Object.entries(AL_TY).map(([k,T])=>'<div><span class="im al">'+NFA.plane.plane(k==='r70'?'region':k==='m180'?'moyen':'long',150,'#C8102E')+'</span><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+T.seats+' places · '+fmtN(T.rg,0)+' km</small><div class="sh2-ac">'+Bt('Louer · '+eur(T.ls,0)+' / j','lease',k,{a:1,dis:!can(T.ls*30)})+Bt('Acheter · '+eur(T.pr,0),'buy',k,{dis:!can(T.pr)})+'</div></div>').join('')+'</div>'+'</div>'+
       '<div class="nf-row" style="margin:6px 4px 0"><small>Un avion acheté ne paie que son entretien et se revend 70 % de son prix.</small></div>';
-    h+=nfSec('Les tours de contrôle','image de marque '+Math.round(m.img)+' / 100')+'<div class="nf-card nf-list">'+Object.keys(AL_CT).map(ct=>{ const L=Object.values(AL_AP).filter(a2=>a2.hub&&AL_CO[a2.co].ct===ct); if(!L.length) return '';
+    h+=nfSec('Les tours de contrôle','image de marque '+Math.round(m.img)+' / 100')+'<div class="nf-card nf-list">'+'<div class="nf-mr grp" data-k="alct" data-n="1">'+Object.keys(AL_CT).sort((c1,c2)=>(m.hubs.some(h=>AL_CO[alAp(h).co].ct===c2)?1:0)-(m.hubs.some(h=>AL_CO[alAp(h).co].ct===c1)?1:0)).map(ct=>{ const L=Object.values(AL_AP).filter(a2=>a2.hub&&AL_CO[a2.co].ct===ct); if(!L.length) return '';
       return '<div class="sh2-rg" style="color:#C8102E">'+esc(AL_CT[ct])+'</div>'+L.map(a2=>{ const own=m.hubs.includes(a2.id), req=alHubReq(b,a2.id), c=alHubCost(a2.id);
         if(own){ const n=(m.ext&&m.ext[a2.id])||0; return nfRowH(esc(a2.n),esc(AL_CO[a2.co].n)+' · '+alHubUsed(b,a2.id)+' / '+alHubCap(b,a2.id)+' lignes',n<3? Bt('Créneaux · '+eur(alExtCost(b,a2.id),0),'ext',a2.id,{dis:!can(alExtCost(b,a2.id))}) : '<span class="nf-ok">Au maximum</span>'); }
-        return nfRowH(esc(a2.n),esc(AL_CO[a2.co].n)+' · '+a2.sz+' M de passagers par an · image '+req+' requise',Bt(eur(c,0),'hub',a2.id,{dis:m.img<req||!can(c)})); }).join(''); }).join('')+'</div>'+
+        return nfRowH(esc(a2.n),esc(AL_CO[a2.co].n)+' · '+a2.sz+' M de passagers par an · image '+req+' requise',Bt(eur(c,0),'hub',a2.id,{dis:m.img<req||!can(c)})); }).join(''); }).join('')+'</div>'+'</div>'+
       '<div class="nf-row" style="margin:6px 4px 0"><small>Une place dans une tour permet d’ouvrir des lignes vers le même pays ou un pays voisin, et du long-courrier vers vos autres plateformes.</small></div>';
     h+=nfRest(b,X,'Carburant et décisions'); return h; }
 };
+
+/* les parcours maritimes et aériens restent dans la fiche */
+nfFlowWrap(['shnew','shnewa','shnewb','shnewgo','shadd','shaddgo','shch','shchgo','alnew','alnewa','alnewb','alnewgo','aladd','aladdgo']);
+
+/* ============================================================
+   V2.4.8 : GLOBE TERRESTRE INTERACTIF (compagnie aérienne, compagnie maritime)
+   Texture « Blue Marble » (NASA, domaine public) dans img/earth.jpg ; à défaut, globe dessiné
+   depuis le masque terre / mer ci-dessous (grille de 0,5°, 720 × 360, bits 1 = mer).
+   Le masque sert aussi à tracer les routes maritimes par la mer (A* entre les points de passage
+   de shPath). Glisser : tourner ; deux doigts ou double appui : zoomer. Aucun nom de ville.
+   Affichage seulement : l'orientation est gardée dans GLB.st (non sauvegardée).
+   ============================================================ */
+const GLB_MASK='//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+B//////////kDAADw////////////////////////////////////////////////////////////////////////////////////////////////////DwAAAAD+////DwAAAAAA+P////////////////////////////////////////////////////////////////////////////////////////////////8HAAAAAADw//AHEwAAAACA/////////////////////////////////////////////////////////////////////////////////////////////////wcAAAAAAIA/AAAAAAAAAACAwX/A////////////////////////////////////////////////////////////////////////////////////////////Hx8AAAAAAPg/AAAAAAAAAAAAAACA///////////////////////7//////////9/////////////////////////////////////////////////////////AfwOAgIAgB8AAAAAAAAAAAAAAAD+////////////////////5//3+P////////8D/P//////////////////////////////////////////////////////AEAGBgAA+AMAAAAAAAAAAAAAAOD//////////3+c+P///////v/3//////////8B+P//////////////////////////////////////////////////////AAAEAAAg/z8AAAAAAAAAAAAAAP7///////9/3nAA8P////////////////////8PAP//////////////////////////////////////////////////f/z/HwBgAAD//w8AAAAAAAAAAAAAAP7///////8/AMD///////////////////////8fgMf//////////////////////////////////////////////////wDPHwAAAAD8BwAAAAAAAAAAAAAAwP//////////AAD6/////////////////////////wH8///////////////////////////////////////////////3/w8e/PkBAAB/AAAAAAAAAAAAAAAA4P//////////d8Dj/////////////////////////8D//////////////////////////////////////////////z/4/////v8wAPD/BwAAAAAAAAAAAAAAAP//////////H+AH////////////////////////////////////////////////////////////////////////Af////////8BAPz/HwAAAAAAAAAAAAAAAPj/////////P/j//////////////////////////w/4//////////////////////////////////////////8/gP+f//9/4B8AAPD/HwAAAAAAAAAAAAAAwPv///////////3//////////////w/8/////////wPA3/////////////////////////////////////////8H/PCf/wzgP/j/////f4AOAAAAAAAAAAAAAP//////////////////////////IwD/////////PwAAAPz/////////////////////////////////////////fwAe4Afg/+D/4P//////AwAAAAAAAAAAAP7///////////////////////8fAP////////8BAAAAAPj//////wci/v//////////////////////////////fwgAcH/wYAAAAP//////DwAAAAAAAAAAgP////////////////////////8D/P///////wEAAAAAAPj//////wcAPv7//////////////////////////////x/8////40EAgv//////PwAAAAAAAAAAAP////////////////////////8A////////HwAAAAIAAP///////7///////////////////////////////38A5///////////////////fwAAAAAAAAAAgP///////////////////////3/g////////HwAAAAQA8P3///////////////////////////////////////8AAP//3z/gAfjh/////////wAAAAAAAAAAgP///////////////////////x/4////////AQAAAAAAD/3///7////D/////////////////////////////38AAPD/wH/gAT4wAID//////wEAAAAAAAAA/P///////////////////////wf+///P//8BAAAAAADAAADgfwD+/////////////////////////////////z8ADBDO4GeA4R8YgI///////wEAAAAAAABA+P///////////////////////wH///8D/v8DAAAAAAAAAAAAAAD8///7/////////////////////////////x8ABwCAwT+A8w8YAAD8/////wEAAAAAAAAA/P///////////////////////4H///8BvgcPAAAAAAAAAAAAACD4//8AGPz///////////////////////////+ABwAAgf/B8Q8QAADw/////yEAAAAAAAAA+P//////////////////////f4D///8BhwFIAAAAAAAAAAAAAAD8/f8AAPD/////////8P////+////////////5DwAAgP9/wD8AAAAA/v////8AAAAAAABg8P///////////////////////wf//z8ABwFgAAAAAAAAAAAAAAD4AAAAAID///////8///////8BsP//////////HwAAAP9/gD8AAAAA+P///+8DAAAAAADg4P//////////////Kfj//////x/8/z8ADgAAAAAAAAAAAAAAAAAAAAAAAAAAgP///////////w8AAAD+//////z//0AAAPB/AP8HAAwAgP///wcAAAAAAACA//////////////8PAOD///////+//z8ADgAAAAAAAAAAAAAAAAAAAAAAAAAAAP///////////wMAAAAA4P//ALjjPwAAANjvgP8f+D8AAP7//wcDAAAAAAAA/v///////////x8AAED+////////4T8ABgAAAAAAAAAAAAAAAAAAAAAAAAAAAP9/HgD+/////wEAAAAAAPgAAAAA/A8AHPAHD/gf8P8AAP////8DAAAAAADA/////////////wMAAADg////8f//AfwAjgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPgCA/P//DwAAAAAAAAAAAAAAABjg4/8PHwgf4P8HAP////8DAAAAAAD4////////////PwIAAAAA+P////vHAcADHAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4P//DwAAAAAAAAAAAAAAAPh/gP+HBwAP8H8+APj//z8AAAAAAPD/////////////fwAAAAAAwP/wHwAAAAAAHAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP//fwAAAAAAAAAAAAAAAPDAABAAAQAH8D98AID//x8AAAAAwP//////////////PwAAAAAAAP74AQAAAAAAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPz//wEAAAAAAAAAAAAAAAAAAQAAAAAA4P9/AAD+/w8AAAAA4P//////////////HwAAAAAAAPz4AAAAAAAADwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAz+/x8AAAAAAAAAAADgAAAAAAAAAAAA+P8/BgDg/x8AAAAA8P//////////////BwAAAAAMAPwBAAAAAACAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4Hx8AAAAAAAAAAAD/DwAAAAAAAAC4//8PDAbw/x8AAAAA/v//83/+////////AwAAAADwh4cAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgD4AQAAAAAAAAAAAAD4BQAAAAAAACDI//8PAB74/z8AAADY////YAD4////////AQDgAQDg/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/oD/BwAAAAAAAAAAAACcAAAAAAAAAAAM/x8AAnz+/38AAAD/////BwDg////////AAD4BwDg/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/4f/BzAAAAAAAAAAAAAAAAAAAAAAAAAG+A8AAuD///8AAID/////BwDw//////8/AAD4AQDA4wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADA/////z8AAAAAAAAAAAAAAAAAAAAAAAAH4P8/AMD///8AAID/////DwD+//////8fAAD8AAAADwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADw/////z8AAAAAAAAAAAAAAAAAAAAAAPAPj///AID///8BAID/////f+D///////8HAAAfAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADg///v/wcAAAAAAAAAAAAAAAAAADAAAPzf////AcP///8DAOD///////////////8AAMAHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADA////PwAAAAAAAAAAAAAAAAAMAAAAAP//8f//H/z///8HAPD//////////////z8AAPADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACA////HwAAAAAAAAAAAAAAAAwBAAAAwP///w7E//D///8PAPj//////////////wcAAPgHAACgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAID/////DwAAAAAAAAAAAAAAAH4AAAAA4P///w4A//////8fAPj//////////////wMAAPgHAADgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/MAAAPj/////HwAAAAAAAAAAAAAAgB8AAAAA8P///w8A/v////9/APj//////////////wMAAPwHAPCBAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/vgAAP7/////PwAAAAMHAAAAAAAAAAAAAAAA+P///w8A4P//////D/z//////////////wMAAPgHAOADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACA/z8AgP//////cwAAgAF/AAAAAAAAAAAAAAgA/P///x8A4L//////P/z//////////////wMAAOAP/MMBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADg/w/I7////////w8AwPH//wEAAAAAAAAAAAAA/P///x8A4B///////////////////////wcAAMD//wEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAjg/4P//////////w8A8P///wMAAAAAAADwAAAA/P///w8A4B/+/////////////////////wcgDOB/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADg///g/8D///////////8F4P///w8AAAAAAAAAAAAA6P///wcAgAf8/////////////////////wc8Bvx/wAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD4////f+D///////////8fuP///38AAAAAAAAAAAIAwP///x8AAAD4/////////////////zv+/x9+APz/AQAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD+////H/D///////////8fjv////8QAAAAAAAAAAgAgP///z8AAADw/////////////////x//////AP7/AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/////A8D///////////+Hx/////8RAAAAAAAAAAgAgPv//38AAADg/////////////////w/w///nAP7HAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMD/////A8D////////////j//////8LAAAAAAAAAAAAAID//38AAADg/////////////////w/4///hAf4DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOD/////AMD//////////3/4//////8fAAAAAAAAAAAAAAD//38AAADg/////////////////x/8///gAf8DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPj/////AOD//////////w////////+fAAAAAAAAIAAAAAD4/z8AAACA/////////////////z/w//9w8v8DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPz///9/APD///////////f///////8/AQAAAAAAAAAAAABA/w8AAAAA/////////////////z3g//9h//8DAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAAAAAAAP////9/APD/////////f/7/////////BwAAAAAAAAAAAAAA+AEAAAAA8P//////////////f/DB///x/+cAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAgP////9/APD/////////////////////BwAAAAAAAAAAAAAA+AEAAIAA4P//////////////H/CB///D+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAAAAAPz/////AP//////////+/////////8/BwAAAAAAAIAMAAAA8EMAAAAAwf//////////////D/AD//8BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwAAAAAAABje////AP////////////////////9/HwAAAAAAAIAcAAAA8AMAAAAAAP//////////////H/AA/wcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAQAAAAAAAADM////gP//////////////////////PwAAAAAAAIAdAAAA8AMAAAAAAP//////////////H/AA+AUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAAAAAAAADM////4P//////////////////////fwAAAAAAAAA5AAAA4AcAAAAAAP//////////////D3wA+AEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAAADA////4f///////////////////////wAAAAAAAAAAAAAAgAMAAAAAgP//////////////j38A/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAAAAAAAAAADM////8f///////////////////////wEAAAAAAABAAAAAAAAAAAAAOP////////////////8APAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACO/////f///////////////////////wAAAAAAAABAAAAAAAAAAAAAPP///////////////3/wBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACO/////////////////////////////wEAAAAAAAAAAAAAAAAAAPjvn///////////////////BwAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAO/////////////////////////////0MAAAAAAAAAAMAAAAAAAPz9D///////////////////AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO/////////////////////////////w8DAAAAAAAABAAAAAAAAP/7D/D///////////////8fAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADO/////////////////////////////z8GAAAAAAAAAIAHAAAAwID/B+D///////////////8dAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADP/////////////////////////////38GAAAAAAAAAOAPAAAAIMD/A+D//////////////38AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADv/////////////////////////////38AAAAAAAAAAPg/AAAAAMD/A8D///////////////8BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDv//////////////////////////////8AAAAAAAAAAP5/AAAAAMD//8////////////////8HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMDP//////////////////////////////8AAAAAAAAAAAx+AAAAAMC///////////////////8PAAAAAAAAAAAAHgAA8AMAAAAAIAAAAAAAAAAAAAAAAAAAAODP//////////////////////////////8AAAAAAAAAAAAAAAAAAIAb//////////////////8fAAAAAAAAAODBDwAA/AMAAAAAMAAIAAAAAAAAAAAAAAAAAPD///////////////////////////////8AAAAAAAAAAAC8fwAAAADY//////////////////8/AAAABAAAAPDDDwAA/wPAAQAAGAAAAAAAAAAAAAAAAAAAAPj///////////////////////////////8AAAAAAAAAAAAe/gAAADDg//////////////////8/AAAABgAAAPiDBwCAfwCgAQAAAAAAAAAAAAAAAAAAAAAAAfzn//////////////////////////////8AAAAAAAAAAAAO/gAAAB78//////////////////8/AAAAPgAAAPznBwDAPwDgAQAAAAAAAAAAAAAAAAAAAAAAAf7P//////////////////////////////8AAAAAAAAAAAAGHgAAwI////////////////////8fAAAGPgAAAP7/PwDAPwDAAAAAAAAAAAAAAAAAAAAAAAAAgP+H//////////////////////////////8AAAAAAAAAAAAHGPwA8M////////////////////8fAIAf/AAAAP7/fwCAPwAAAAAAAAAAAAAAAAAAAAAAAAAAgP8H/P///////////////////////////38AAAAAAAAAAAAHCAIA+P//////////////////PwAAgOcf+AMAAP///wGAfwAAAAAAAAAAAAAAAAAAAAAAAAAA4P8D/P///////////////////////////38AAAAAAAAAAAAPgAMA/P//////////////////PwAAwP8/8A8AgP///weA/wEAAAAAAAAAAAAAAAAAAAAAAADA//+A/////////////////////////////38AAAAAAAAAAAAH+AAA/P//////////////////PwAAwP954D8AAP///wcA/wEAAAAAAAQAAAAAAAAAAAAAAADg///e//////////////////////////////8AAAAAAAAAAAACHAAA+P//////////////////PwAAwP/7AX8AAP+B/wcA/g8AAAAAAAAAAAAAAAAAAAAAAADw///+//////////////////////////////8AAMAAAAAAAAAAAADA////////////////////fwAA+P//B34AAH4A/AMA/B8AAAAAAAAAAAAAAAAAAAAAAAD4//////////////////////////////////8AAAAAAAAAAAAAAADg////////////////////fwAA/v/5H3gAjwcAAAAA+BsAAAAAAAAAAAAAAAAAAAAADAD4///4//////////////////////////////8AAAAAAAAAAAAAAADw////////////////////PwAA///5P27gHwAAAAAA+AMAAAAAAAAAAAAAAAAAAAAADgD+///w//////////////////////////////8AAAAAAAAAAAAAAADw////////////////////PwAA///5//7ADwAAAAAA+AcAAAAAAAAAAAAAAAAAAACAx4H////w//////////////////////////////8AAAAAAAAAAAAAAAD4////////////////////HwCA///5//zBPwAAAAAA/AcAAAAAAAAAAAAAAAAAAADA94f////w//////////////////////////////8BAAAAAAAAAAAAAAD8////////////////////HwAA//////6DPwAAACAA/A8AAAAAAAAAAAAAAAAAAAD4/wP//3/4//////////////////////////////8DAAAAAAAAAAAAAID8////////////////////PwCA//////8HPwAAAAAA/A8AAAAAAAAAAAAAAAAAAADw/wP+/3/8//////////////////////////////8HAAAAAAAAAAAAAID/////////////////////PwDA////wf/HPwAAAAAE/A8AAAAAAAAAAAAAAAAAAADA/R/8/z/8//////////////////////////////8HAAAAAAAAAAAAAID/////////////////////fwDw///3x//HfwAAAAAA8A8AAAAAAAAAAAAAAAAAAADA4B/4/x/8//////////////////////////////8PAAAAAAAAAAAAAAD//////////////////////4f/PwTA/////2OgAAAAwAMAAAAAAAAAAAAAAAEAAAAA/B/4/wH+//////////////////////////////8fAAAAAAAAAAAAAAD//////////////////////+//AQDg///////5AAAAAAAAAAAAAAAAAAAAAAAAAAAA/h/4/wD+//////////////////////////////8/AAAAAAAAAAAAAAD///////////////////////8/AADA////////AAAAAAAAAAAAAAAAAAAAAAAAAAAA/x/4/wD+//////////////////////////////8/AAAAAAAAAAAAAID//////////////////////48fAADA////+f/zAAAAAAAAAAAAAAAAAAAAAAAAAACA/x/8AYD///////////////////////////////9/AAAAAAAAAAAAAMD//////////////////////wcAAADg///////9AAAAAAAAAAAAAAAAAAAAAAAAAACA/5//IPb/////////////////////////////////AwAAAAAAAAAAAPD//////////////////////wcAAADw//////9/AAAAAAAAAAAAAAAAAAAAAAAAAAAA//8/JP7/////////////////////////////////DwAAAAAAAAAAAPz//////////////////////wEAAADg//////9/AAAAAAAAAAAAAAAAAAAAAAAAAAAA/v/fYf//////////////////////////////////HwAAAAAAAAAAAP7/////////////////////fwAAAACA//////8/AAAAAAAAAAAAAAAAAAAAAAAAAAAA/v8H/f//////////////////////////////////PwAAAAAAAAAAAP//////////////////////PwAAAAAA8P/j//8/AAAAAAAAAAAAAAAAAAAAAAAAAAAA/P8f////////////////////////////////////PwAAAAAAAAAAgP//////////////////////HwAAAAAAwP+A//8/AAAAAAAAAAAAAAAAAAAAAAAAAAAA+P+f////////////////////////////////////fwAAAAAAAAAAwP//////////////////////HwAAAAAAgP8A/P8fAAAAAAAAAAAAAAAAAAAAAAAAAAAA+P+f////////////////////////////////////fxwAAAAAAAAA4P//////////////////////DwAAAAAAAP4AgA8PAAAAAAAAAAAAAAAAAAAAAAAAAAAA+f///////////////////////////////////////zgAAAAAAAAA4P//////////////////////DwAAAAAAAPAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAA+P///////////////////////////////////////zgAAAAAAOgP4P//////////////////////HwAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAA+P///////////////////////////////////////3EAAAAAMOD/4f//////////////////////DwAAAAAAAAAAAAACAAAAHwAAAAAAAAAAAAAAAAAAAAAA8P///////////////////////////////////////2MAAAAA/Pv/w///////////////////////BwAAAAAAAAAAAAACAAAAHwAAAAAAAAAAAAAAAAAAAAAA8P///////////////////////////////////////8cAAAAA////x///////////////////////AwAAAAAAAAAAAAAEAAAAPgAAAAAAAAAAAAAAAAAAAAAA+P///////////////////////////////////////88BAADA////h///////////////////////AQAAAAAAAAAAAAAsAAAAfgAAAAAAAAAAAAAAAAAAAAAA/P///////////////////////////////////////4cHAADg////h/////////////////////8/AAAAAAAAAAAAAAB4AAAA/AEAAAAAAAAAAAAAAAAAAAAA/v///////////////////////////////////////wcHAADg////B/////////////////////8fAAAAAAAAAAAAAADwAAAA+AMAAAAAAAAAAAAAAAAAAAAA/v///////////////////////////////////////z8fAADg////D/////////////////////8fAAAAAAAAAAAAAADwAAAA8I8DAAAAAAAAAAAAAAAAAAAA/////////////////////////////////////////38eAADg////D/////////////////////8HAAAAAAAAAAAAAADwAQAA8P8DAAAAAAAAAAAAAAAAAACA//////////////////////////////////////////88AADg////H/////////////////////8HAAAAAAAAAAAAAADgAwAAsP8OAAAAAAAAAAAAAAAAAACA//////////////////////////////////////////98AADg////v/////////////////////8DAAAAAAAAAAAAAADAAwAAgH/+4x8AAAAAAAAAAAAAAADA///////////////////////////////////////////4AADw//////////////////////////8DAAAAAAAAAAAAAADABwAAgB/+/z8AAAAAAAAAAAAAAADg8//////////////////////////////////////////7AQDw//////////////////////////8BAAAAAAAAAAAAAACADwAAgA/8/38AAAAAAAAAAAAAAADw+f/////////////////////////////////////////nAwDw//////////////////////////8AAAAAAAAAAAAAAACAHwAAAADw//8AAAAAAAAAAAAAAAD4+P/////////////////////////////////////////vBwDw//////////////////////////8AAAAAAAAAAAAAAACAPwAAAADA//8BAAAAAAAAAAAAAAD++P//////////////////////////////////////////DwDw////AP7//////////////////38AAAAAAAAAAAAAAAAAPwAAAACA//8PAAAAAAAAAAAAAMD//f//////////////////////////////////////////HwDw//9/Hvj//////////////////38AAAAAAAAAAAAAAAAAPgAAAACA//8HAAAAAOAAAAAAAPj/////////////////////////////////////////////HwDg/////+D//////////////////z8AAAAAAAAAAAAAAAAAPAAAAACA//8HAAAAgP0AAAAAAP//////////////////////////////////////////////PwDg/w/8/4f//////////////////z8AAAAAAAAAAAAAAAAAPAAAAADA//8PAQAAwP8AAACA7///////////////////////////////////////////////HwDA/wf8/x/+/////////////////38AAAAAAAAAAAAAAAAAfAAAAADg////AwAAwP8BAADg7///////////////////////////////////////////////HwDA/wf+/x/4/////////////////38AAAAAAAAAAAAAAAAA/AAAAADw////AwAA4P8DAADg/////////////////////////////////P//////////////HwCA/wf+//8/+P///////////////38AAAAAAAAAAAAAAAAA/AEAAAD4////AQAA+P8HAADww////////////////////////////////v//////////////fwAA/wP+//8/4P///////////////38AAAAAAAAAAAAAAAAA+AMAAAD4////AwAA/P8HAAD44f///////////////////////////////////////////////wAA/gH///9/gP////////////////8AAAAAAAAAAAAAAAAA+AcAAAD8////AwAA/v8PAADw4f///////////////////////////////////////////////wMACAD//8///PP///////////////8AAAAAAAAAAAAAAAAA4AcAAAD+////AwAA//8fAADw////8f///////////////////////////////////////////x8AAID///////////////////////8AAAAAAAAAAAAAAAAA4A8AAID/////AwCA//8fAADg////8f///////////////////////////////////////////z8AAID///////////////////////8AAAAAAAAAAAAAAAAAwB8AAMD/////BwDg//8fAADA////4f////////////////////////////////////////////8BAID//////////////////////38AAAAAAAAAAAAAAAAAwB8AAPz/////BwDw//8fBgCA////4f////////////////////////////////////////////8PBID//////////////////////38AAAAAAAAAAAAAAAAAwD8AAP7/////BwD4//8fBwAA////8f//////////////////////////////////////////////HwCA/////////////////////38AAAAAAAAAAAAAAAAAgD8AAP//////BwD+////BwAA/v//+P//////////////////////////////////////////////PwAA/v///////////////////z8AAAAAAAAAAAAAAAAAAD8AwP//////DwD/////DwAA/P//+P//////////////////////////////////////////////fwAA/v///////////////////z8AAAAAAAAAAAAAAAAAADwA+P//////DwD/////DwAA/P//+f///////////////////////////////////////////////wAA/v///////////////////z8AAAAAAAAAAAAAAAAAADgA/P//////HwD/////DwAA/P//+////////////////////////////////////////////////w8A/v///////////////////38AAAAAAAAAAAAAAAAAADCA////////HwD/////DwAA/P//u////////////////////////////////////////////////38B/v///////////////////38AAAAAAAAAAAAAAAAAAGD4////////PwD/////HwMA+P//ef////////////////////////////////////////////////8B/v///////////////////38AAAAAAAAAAAAAAAAAAMD+////////PwD/////HwMA+P//+/////////////////////////////////////////////////8D/v///v///////////////38AAAAAAAAAAAAAAAAAAID/////////PwD/////Hx8A/P////n///////////////////////////////////////////////83//9//v////////////////8BAAAAAAAAAAAAAAAAAMD/3///////fwD/////nz8A/P////v///////////////////////////////////////////////8///8Ph/////////////////8BAAAAAAAAAAAAAAAAAID/wf///////wD/////nz8A/v//z/n///////////////////////////////////////////////8f/v8DgP////////////////8HAAAAAAAAAAAAAAAAAAAHwP///////wD/////n38A////r/////////////////////////////////////////////////8P/v8BAWDY//////////////8HAAAAAAAAAAAAAAAAAAAAwP///////4D/////3//h////v/////////////////////////////////////////////////9//P8BAwDg//////////////8fAAAAAAAAAAAAAAAAAAAAwP///////8H/////3//j////3/7/////////////////////////////////////////////////+PEAAgDA//////////////8fAAAAAAAAAAAAAAAAAAAA4P///////+H8////n//z//////f/////////////////////////////////////////////////AWcAAACA//////////////8/AAAAAAAAAAAAAAAAAAAA4P////////H8////H/////////P/////////////////////////////////////////////////jwcAAAAA/v////////////8/AAAAAAAAAAAAAAAAAAAA8P/////////4////H///////P+D/////////////////////////////////////////////////Hw8AAAAA/P////////////9/AAAAAAAAAAAAAAAAAAAA8P/////////4////P/7/////n+D//////////////////////////////////////////////////w8AAAAA+P//////////////AAAAAAAAAAAAAAAAAAAA+P/////////w////f/7//////+D//////////////////////////////////////////////////x8AAAAA8P//////////////AwAAAAAAAAAAAAAAAAAA/P/////////4//////j////7//j//////////////////////////////////////////////////x8AAAAA4P//////////////BwAA+AEAAAAAAAAAAAAA/P/////////4//////D////4//n//////////////////////////////////////////////////x8AAAAAAPD/////////////DwAA/wMAAAAAAAAAAAAA/v///////////////+H////g/////////////////////////////////////////////////////x8AAAAAAMD/////////////H4DB/wcAAAAAAAAAAAAA/v////////////9//sH//3/A/////////////////////////////////////////////////////x8AAAAAAAD/////////////f/j//wcAAAAAAAAAAAAA//////////////9/8IH//x/g/////////////////////////////////////////////////////x8AAAAAAAD+//////////////////8DAAAAAAAAAACA////////////////4IH//w/w/////////////////////////////////////////////////////x8AAAAAAAD8//////////////////8HAAAAAAAAAADA////////////////wYP//wf4/////////////////////////////////////////////////////x8AAAAAAAD8//////////////////8PAAAAAAAAAADA////////////////h4f//wP4/////////////////////////////////////////////////////w8AAAAAAAD8//////////////////8PAAAAAAAAAADg////////////////B4f/fwDw/////////////////////////////////////////////////////wcAAAAAAAD4//////////////////8PAAAAAAAAAAD4////////////////Dx7/fwDw/////////////////////////////////////////////////////wMAAAAAAADw//////////////////8HAAAAAAAAAAD+////////////////Hzj/NwDw/3///////////////////////////////////////////////////wMAAAAAAADw//////////////////8HAAAAAAAAAAD/////////////////P+D/AwDg/33+/////////////////////////////////////////////////wAAAAAAAADw//////////////////8HAAAAAAAAAID/////////////////P8D/AwDwAX7+/////////////////////////////////////////////////wAAAAAAAADw//////////////////8HAAAAAAAEAMD/////////////////f4D/AwD4////////////////////////////////////////////////////fwAAAAAAAACA//////////////////8HAAAAAAAfAOD//////////////////4D/AwD4////////////////////////////////////////////////////fwAAAAAAAACA/P////////////////8DAAAAAAAPAPD//////////////////4H/BwB4//9/+P//////////////////////////////////////////////PwAAAAAAAAAA4P////////////////8DAAAAAAAPAPD//////////////////wH+DwB84v8/8P//////////////////////////////////////////////PwAAAAAAAAAAgP////////////////8HAAAAAIAHAPj//////////////////wP2DwB+8P//8Of/////////////////////////////////////////////fwAAAAAAAAAAgP////////////////8HAAAAAIAHAPz//////////////////wP0DwA++P//84H//////////////////////////////////////////////wAAAAAAAAAAAPD///////////////8PAAAAAAAAAP///////////////////wdgHwA+8v//4QD4/////////////////////////////////////////////wAAAAAAAAAAAAD+//////////////8fAAAAAAAAAP///////////////////wfw/wY/4s/hQQDg////////////////////////////////////////////fwAAAAAAAAAAAAD4//////////////8/AAAAAAAAAP///////////////////x/w/59/4v//CwAA////////////////////////////////////////////PwAAAAAAAAAAAADw//////////////9/AAAAAAQAgP///////////////////x/w//9/xv//PwAA/P//////////////////////////////////////////PwAAAAAAAAAAAADg////////////////AAAAAAQAwP///////////////////3/w//9/3v///wEA+H//////////////////////////////////////////PwAAAAAAAAAAAAAA/v//////////////AAAAAAwAwP/////////////////////w//9/3v///w8A8D//////////////////////////////////////////PwAAAAAAAAAAAAAA/P//////////////AQAAAAgAwP///////////////////////////////w8A4IH/////////////////////////////////////////fwAAAAAAAAAAAAAA/P//////////////AQAAAAgAwP////////////////////8P////////7x8AgP+//////////////////////////////////////////wAAAAAAAAAAAAAA/P//////////////AQAAABgAgP////////////////////8PHP///////x8AwP///////////////////////////////////////////wEAAAAAAAAAAAAA/P//////////////AwAAABAAgP////////////////////8fAPz//////x8AwP///////////////////////////////////////////wEAAAAAAAAAAAAA/P//////////////AwAAAAAAgP//////////////////////B/D//////w8Ag////////////////////////////////////////////wMAAAAAAAAAAAAA/P//////////////BwAAACAAgP//////////////////////f6D//////8+AD////////////////////////////////////////////wcAAAAAAAAAAAAA/P//////////////BwAAAAIAgP/////////////////////////4+OP///+BH/7//////////////////////////////////////////wcAAAAAAAAAAAAA/v//////////////AwAAAAAAgP////////////////////////////n/////P/z//////////////////////////////////////////wcAAAAAAAAAAAAA////////////////BwAAAAAQgP////////////////////////9/fvz/////f/D//////////////////////////////////////////w8AAAAAAAAAAACA////////////////BwAAAAAQAP///////////////////////////////////+f//////////////////////////////////////////w8AAAAAAAAAAADA////////////////DwAAAAAQAP7//////////////////////////////////////////////////////////////////////////////x8AAAAAAAAAAADg////////////////DwAAAAAwAP7////////////////////////////////P/////////////////////////////////////////////z8AAAAAAAAAAADg////////////////DwAAAAAwAP7////////////////////////////f+f/P/////////////////////////////////////////////z8AAAAAAAAAAADw////////////////BwAAAAAwAP7///////////////////////////+/AP7P/////////////////////////////////////////////38AAAAAAAAAAAD4////////////////AwAAAAAwAP7/+/////////////////////////8fAP6H/////////////////////////////////////////////38AAAAAAAAAAAD8////////////////AQAAAAAgAP7/8/////////////////////////8PAP+H//////////////////////////////////////////////8AAAAAAAAAAAD8////////////////AQAAAAAgAP7/8P////////////////////////8PAP+H//////////////////////////////////////////////8AAAAAAAAAAAD8////////////////AQAAAAAAAP7/8P///////////////////////48HgP+H//////////////////////////////////////////////8BAAAAAAAAAAD8////////////////AQAAAAAAAP5/8P///////////////////////wcHgP8H/P////////////////////////////////////////////8DAAAAAAAAAAD8////////////////AAAAAAAAAP4/4P///////////////////////wMAAP8H/P////////////////////////////////////////////8HMAAAAAAAAAD8////////////////AAAAAAAAAP4P+P///////////////////////wEAAP4H+P////////////////////////////////////////////8fAAAAAAAAAAD8////////////////AAAAAAAAAP8B8P///////////////////////wEAAPgH+P////////////////////////////////////////////9/AAAAAAAAAAD8////////////////AAAAAAAAgP8B+P//////////////////////XwAAAOAD+P//////////////////////////////////////////////AQAAAAAAAAD8////////////////AAAAAAAA8P8A+P//////////////////////DwAAAIAD8P//////////////////////////////////////////////AwAAAAAAAAD+////////////////AAAAAAAA/P8A+P//////////////////////DwAAAAAA8P/////////n////////////////////////////////////BwAAAAAAAAD+////////////////AAAAAAAA/v8A+P//////////////////////DwAAAAAA8P//////////////////////////////////////////////BwAAAAAAAAD/////////////////AQAAAAAA//8A/P//////////////////////BwAAAAAA4P//////////////////////////////////////////////BwAAAAAAAAD/////////////////AQAAAACA//8B/P//////////////////////BwAAAAAAwP//////////////////////////////////////////////DwAAAAAAAAD/////////////////AwAAAADA//8B/P//////////////////////AQAAAAAAgP//////////////////////////////////////////////DwAAAAAAAID/////////////////AwAAAADg//8B/v////////////////////8fAAAAAAAAAP7/////////////////////////////////////////////DwAAAAAAAID/////////////////BwAAAADA//8A/v////////////////////8BAAAAAAAAAPz////9////////////////////////////////////////DwAAAAAAAMD/////////////////BwAAAADA/38A/v////////////////////8AAAAAAAAAAPz////7////////////////////////////////////////DwAAAAAAAMD/////////////////DwAAAACA/38A/////////////////////z8AAAAAAAAAAPj////v////////////////////////////////////////DwAAAAAAAOD/////////////////HwAAAACA/38A/////////////////////w8AAAAAAAAAAPj/////////////////////////////////////////////BwAAAAAAAPD/////////////////HwAAAACA/38A/////////////////////w8AAAAAAAAAAOD/////////////////////////////////////////////BwAAAAAAwP//////////////////HwAAAACA/3+A/////////////////////w8AAAAAAAAAAMD/////////////////////////////////////////////BwAAAAAA8P//////////////////HwAAAACA/3+A/////////////////////wcAAAAAAAAAAID/////////////////////////////////////////////BwAAAAAA/P//////////////////HwAAAACA//+A/////////////////////wcAAAAAAAAAAAD/////////////////////////////////////////////BwAAAAAA/v//////////////////PwAAAADg///A/////////////////////wcAAAAAAAAAAAD+////////////////////////////////////////////BwAAAAAA////////////////////PwAAAAD4///x/////////////////////w8AAAAAAAAAAAD8////////////////////////////////////////////BwAAAACA////////////////////PwAAAAD+/////////////////////////w8AAAAAAAAAAAD8////////////////////////////////////////////BwAAAACA////////////////////PwAAAAD8/////////////////////////w8AAAAAAAAAAAD8////////////////////////////////////////////AwAAAACA////////////////////PwAAAAD8/////////////////////////w8AAAAAAAAAAAD8////////////////////////////////////////////AwAAAACA////////////////////fwAAAAD+/////////////////////////w8AAAAAAAAAAAD8////////////////////////////////////////////AwAAAACA////////////////////fwAAAAD+/////////////////////////w8AAAAAAAAAAAD4////////////////////////////////////////////AwAAAACA/////////////////////wAAAAD+/////////////////////////x8AAAAAAAAAAAD4////////////////////////////////////////////AQAAAADA/////////////////////wEAAAD//////////////////////////x8AAAAAAAAAAAD4////////////////////////////////////////////AQAAAADg/////////////////////wMAAID//////////////////////////z8AAAAAAAAAAAD4////////////////////////////////////////////AQAAAADw/////////////////////wMAAMD//////////////////////////z8AAAAAAAAAAAD4////////////////////////////////////////////AQAAAAD4/////////////////////wcAAOD//////////////////////////z8AAAAAAAAAAAD8////////////////////////////////////////////AQAAAAD+/////////////////////wcAAOD//////////////////////////z8AAAAAAAAAAAD8////////////////////////////////////////////AQAAAAD//////////////////////w8AAPD//////////////////////////38AAAAAAAAAAAD8////////////////////////////////////////////AQAAAAD//////////////////////w8AAPj//////////////////////////38AAAD+AAAAAAD+////////////////////////////////////////////AQAAAID//////////////////////x8AAPz///////////////////////////8AAPD/DwAAAAD+////////////////////////////////////////////AQAAAMD//////////////////////w8AAP///////////////////////////38AAPz/DwAAAAD/////////////////////////////////////////////AQAAAMD//////////////////////w8AgP///////////////////////////38AAP//HwgAAID/////////////////////////////////////////////AAAAAOD//////////////////////x8A8P///////////////////////////z8AgP//PwQAAID/////////////////////////////////////////////AAAACPD//////////////////////z/w/////////////////////////////3+A////fwcAAMD/////////////////////////////////////////////AAAAcPj////////////////////////////////////////////////////////g/////x8AAMD///////////////////////////////////////////9/AAAA4P///////////////////////////////////////////////////////////////x8AAOD///////f///////////////////////////////////9/AAAA4P///////////////////////////////////////////////////////////////3sAAPD//////+f///////////////////////////////////8/AAAAwP///////////////////////////////////////////////////////////////38AAPD//////+////////////////////////////////////8/AAAAgP////////////////////////////////////////////////////////////////8AAPD//////9////////////////////////////////////8fAAAAwP////////////////////////////////////////////////////////////////8AAPD//////x////////////////////////////////////8fAAAA4P////////////////////////////////////////////////////////////////8BAP7//////z/m//////////////////////////////////8fAAAA8P////////////////////////////////////////////////////////////////8Hwv///////x/g//////////////////////////////////8fAAAA/v//////////////////////////////////////////////////////////////////7////////x/w//////////////////////////////////8/AADw/////////////////////////////////////////////////////////////////////////////w/8//////////////////////////////////8fAADw/////////////////////////////////////////////////////////////////////////////x/8//////////////////////////////////8fAAD4/////////////////////////////////////////////////////////////////////////////z/+//////////////////////////////////8PAAD4/////////////////////////////////////////////////////////////////////////////z3+//////////////////////////////////8PAMD/////////////////////////////////////////////////////////////////////Af7//////zD///////////////////////////////////9vAMD/////////////////////////////////////////////////////////////////////A/7/////f/D///////////////////////////////////9vAMD/////////////////////////////////////////////////////////////////////B///////f/j///////////////////////////////////8vAMD/////////////////////////////////////////////////////////////////////B///////P/j///////////////////////////////////8/AMD/////////////////////////////////////////////////////////////////////z///////D/z///////////////////////////////////8/AOD/////////////////////////////////////////////////////////////////////////////A/7///////////////////////////////////8/AOD/////////////////////////////////////////////////////////////////////////////gP////////////////////////////////////8XAOD///////////////////////////////////////////////////////////////////////////9/wP////////////////////////////////////8HAPz///////////////////////////////////////////////////////////////////////////8/wP////////////////////////////////////8HAP7///////////////////////////////////////////////////////////////////////////8f4P////////////////////////////////////8DAP7/////////////////////////////////////////////////////////////////////////////8P////////////////////////////////////8HAPz///////////////////////////////////////////////////////////////////////////////////////////////////////////////////8HAPD///////////////////////////////////////////////////////////////////////////////////////////////////////////////////8HAPD///////////////////////////////////////////////////////////////////////////////////////////////////////////////////8BAPj///////////////////////////////////////////////////////////////////////////////////////////////////////////////////8BAPz///////////////////////////////////////////////////////////////////////////////////////////////////////////////////8BAP7////////////////////////////////////////////z//////////////////////////////////////////////////////////////////////8BAP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8BwP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8DwP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8LwP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8PwP9/+P////////////////////////////////////////////////////////////////////////////////////////////////////////////////8PwP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8fiP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8fhP////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8fDP//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////APz/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////A/D/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////j///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////4f////////////////////////////////////////////////////////////////////////////////////////////////////////////////////8/7P////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+A///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////A//////////////////////////////////////////////////9//P///////////////////////////////////////////////////////////////3/A//////////////////////////////////////////////////9/YAD//////////////////////////////////////////////////////////////x+A////////////////////////////////////HwD////////HD/w/AADwH+D/f/gPIP///////////////////////////////////////////////////wcA////////////////////////////////////HwD8//////8fAAgAAAAADoD/A8AHAAD8////////////////////////////////////////////////PwGA////////////////////////////////////AQDA//////8fAAAAAAAAAMAAAAAAAAAA/v///////////////////////////////////////////////wHA//////////////////////////////////8DAAAAAMD///8HAAAAAAAAAAAAAAAAAAAA4f///////////////////////////////////////////////wPA/////////////////////////////////x8AAAAAAADw+R8AAAAAAAAAAAAAAAAAAAAAwP///////////////////////////////////////////////wPA///////////////////////////////z/wEAAAAAAAAA4A8AAAAAAAAAAAAAAAAAAAAAAADA////////////////////////////////////////////cADA//////////////////8f/////////w/AfwAAAAAAAAAAgAMAAAAAAAAAAAAAAAAAAAAAAAAA4P////////////////////////////////////////8BYADA//////////////////8f/P//A/D//wEAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP////////////////////////////////////////8HAADA//////////////////8DAAAAAACAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPz///////////////////////////////////////8PAACA////////////////DwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADA//////////////////////////////////////8fAACA////////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/P////////////////////////////////////8DAACA//////////////9/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4P///////////////////////////wcA/v////8/AAAA//////////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8P///////////////////////////wEAAAD//wN/AAAA/////////////wMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+P///////////////////////////wMAAADAfwAAAAAA/////////////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADA/////////////////////wPg/f///wcAAAAAOAAAAADA////////////fwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADw////////////////////fwAAAAD4/x8AAAAAAAAAAADA////////////BwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD8/////////////////38AAAAAAAD4/x8AAAAAAAAAAADg////////////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//////////////////wAAAAAAAAAADwAAAAAAAAAAAACA//////////8/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAID///////////////8HAAAAAAAAAAAAAAAAAAAAAAAAAAAA8P////////8HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOD//////////////z8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOD//////////////wcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOD//////wcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOD///////////8PwAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADw////HwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIDf//////////8PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/B/4AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeAAD+/////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+const GLB={st:{}, data:{}, tex:null, texTry:0, mask:null, sea:{}, tbl:null};
+const GLB_W=720, GLB_H=360;
+function glbMask(){ if(GLB.mask) return GLB.mask; const s=atob(GLB_MASK), N=GLB_W*GLB_H, M=new Uint8Array(N), C=new Uint8Array(N);
+  for(let k=0;k<N;k++) M[k]=(s.charCodeAt(k>>3)>>(k&7))&1;
+  for(let r=0;r<GLB_H;r++) for(let c=0;c<GLB_W;c++){ const k=r*GLB_W+c; if(!M[k]) continue; let n=0;
+    for(let dr=-3;dr<=3;dr++){ const rr=r+dr; if(rr<0||rr>=GLB_H) continue; for(let dc=-3;dc<=3;dc++){ if(!M[rr*GLB_W+((c+dc+GLB_W)%GLB_W)]) n++; } } C[k]=Math.min(255,n); }
+  return GLB.mask={M,C}; }
+const glbCell=(lat,lon)=>[Math.max(0,Math.min(GLB_H-1,Math.floor((90-lat)*2))), ((Math.floor((lon+180)*2))%GLB_W+GLB_W)%GLB_W];
+function glbSnap(r,c){ const {M}=glbMask(); if(M[r*GLB_W+c]) return [r,c];
+  for(let d=1;d<16;d++) for(let dr=-d;dr<=d;dr++) for(let dc=-d;dc<=d;dc++){ if(Math.max(Math.abs(dr),Math.abs(dc))!==d) continue; const rr=r+dr; if(rr<0||rr>=GLB_H) continue; const cc=(c+dc+GLB_W)%GLB_W; if(M[rr*GLB_W+cc]) return [rr,cc]; }
+  return [r,c]; }
+/* plus court chemin par la mer sur la grille (8 voisins, côtes et pôles pénalisés) */
+function glbAstar(a,b){ const {M,C}=glbMask(), N=GLB_W*GLB_H, s=a[0]*GLB_W+a[1], t=b[0]*GLB_W+b[1]; if(s===t) return [a,b];
+  const g=new Float32Array(N).fill(1e9), from=new Int32Array(N).fill(-1), shut=new Uint8Array(N), H=[], cosr=r=>Math.max(.15,Math.cos((90-(r+.5)/2)*Math.PI/180));
+  const hz=k=>{ const r=(k/GLB_W)|0, c=k%GLB_W; let dc=Math.abs(c-b[1]); dc=Math.min(dc,GLB_W-dc); const cm=cosr((r+b[0])/2); return Math.sqrt((r-b[0])**2+(dc*cm)**2); };
+  const push=(k,f)=>{ H.push([f,k]); let i=H.length-1; while(i>0){ const p=(i-1)>>1; if(H[p][0]<=H[i][0]) break; [H[p],H[i]]=[H[i],H[p]]; i=p; } };
+  const pop=()=>{ const top=H[0], last=H.pop(); if(H.length){ H[0]=last; let i=0; for(;;){ const l=2*i+1, r=l+1; let m=i; if(l<H.length&&H[l][0]<H[m][0]) m=l; if(r<H.length&&H[r][0]<H[m][0]) m=r; if(m===i) break; [H[m],H[i]]=[H[i],H[m]]; i=m; } } return top; };
+  g[s]=0; push(s,hz(s)); let it=0;
+  while(H.length&&it++<400000){ const [,k]=pop(); if(shut[k]) continue; shut[k]=1; if(k===t) break; const r=(k/GLB_W)|0, c=k%GLB_W, cr=cosr(r);
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){ if(!dr&&!dc) continue; const rr=r+dr; if(rr<0||rr>=GLB_H) continue; const n=rr*GLB_W+((c+dc+GLB_W)%GLB_W); if(shut[n]||(!M[n]&&n!==t)) continue;
+      const lat=90-(rr+.5)/2, st=Math.sqrt(dr*dr+(dc*cr)**2)*(1+C[n]*.06)*(Math.abs(lat)>62?3:1), ng=g[k]+st; if(ng<g[n]){ g[n]=ng; from[n]=k; push(n,ng+hz(n)); } } }
+  if(from[t]<0) return [a,b]; const P=[]; for(let k=t;k>=0;k=from[k]){ P.push([(k/GLB_W)|0,k%GLB_W]); if(k===s) break; } return P.reverse(); }
+/* lissage : on garde un point quand la ligne droite (en coordonnées déroulées) touche la terre */
+function glbPull(P){ if(P.length<3) return P; const {M}=glbMask(); const U=[[P[0][0],P[0][1]]];
+  for(let i=1;i<P.length;i++){ let c=P[i][1], pc=U[U.length-1][1]; while(c-pc>GLB_W/2) c-=GLB_W; while(pc-c>GLB_W/2) c+=GLB_W; U.push([P[i][0],c]); }
+  const clear=(p,q)=>{ const n=Math.ceil(Math.max(Math.abs(q[0]-p[0]),Math.abs(q[1]-p[1]))*2)+1; for(let i=1;i<n;i++){ const r=Math.round(p[0]+(q[0]-p[0])*i/n), c=Math.round(p[1]+(q[1]-p[1])*i/n); if(!M[r*GLB_W+((c%GLB_W)+GLB_W)%GLB_W]) return false; } return true; };
+  const out=[U[0]]; let i=0; while(i<U.length-1){ let j=U.length-1; while(j>i+1&&!clear(U[i],U[j])) j--; out.push(U[j]); i=j; } return out; }
+/* route maritime affichée : [[lat, lon], ...] (lon déroulée) */
+function glbSeaRoute(pts){ const key=pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(';'); if(GLB.sea[key]) return GLB.sea[key];
+  let out=[]; for(let i=1;i<pts.length;i++){ const A=glbSnap(...glbCell(pts[i-1][0],pts[i-1][1])), B=glbSnap(...glbCell(pts[i][0],pts[i][1]));
+    const Q=glbPull(glbAstar(A,B)).map(([r,c])=>[90-(r+.5)/2,(c+.5)/2-180]); if(out.length){ let off=0, L=out[out.length-1][1]; while(Q[0][1]+off-L>180) off-=360; while(L-(Q[0][1]+off)>180) off+=360; Q.forEach(q=>q[1]+=off); Q.shift(); } out=out.concat(Q); }
+  if(out.length){ out[0]=[pts[0][0],pts[0][1]+Math.round((out[0][1]-pts[0][1])/360)*360]; const z=pts[pts.length-1], L=out[out.length-1]; out[out.length-1]=[z[0],z[1]+Math.round((L[1]-z[1])/360)*360]; }
+  const D=[]; for(let i=0;i<out.length;i++){ if(!i){ D.push(out[0]); continue; } const p=out[i-1], q=out[i], n=Math.max(1,Math.ceil(Math.max(Math.abs(q[0]-p[0]),Math.abs(q[1]-p[1]))/1.2)); for(let k=1;k<=n;k++) D.push([p[0]+(q[0]-p[0])*k/n,p[1]+(q[1]-p[1])*k/n]); }
+  return GLB.sea[key]=D; }
+/* arc de grand cercle (avion), n points */
+function glbArc(a,b,n){ const r=Math.PI/180, v=p=>[Math.cos(p[0]*r)*Math.sin(p[1]*r),Math.sin(p[0]*r),Math.cos(p[0]*r)*Math.cos(p[1]*r)], A=v(a), B=v(b), d=Math.acos(Math.max(-1,Math.min(1,A[0]*B[0]+A[1]*B[1]+A[2]*B[2]))), out=[];
+  for(let i=0;i<=n;i++){ const t=i/n, s=Math.sin(d)||1, ka=d? Math.sin((1-t)*d)/s : 1-t, kb=d? Math.sin(t*d)/s : t, x=A[0]*ka+B[0]*kb, y=A[1]*ka+B[1]*kb, z=A[2]*ka+B[2]*kb; out.push([Math.asin(Math.max(-1,Math.min(1,y)))/r,Math.atan2(x,z)/r]); }
+  return {p:out, ang:d}; }
+/* texture : image chargée une fois ; sinon couleurs tirées du masque */
+function glbTexture(cb){ if(GLB.tex) return GLB.tex; if(GLB.texTry) { GLB.cbs.push(cb); return glbFallTex(); } GLB.texTry=1; GLB.cbs=[cb];
+  try{ const im=new Image(); im.onload=()=>{ try{ const cv=document.createElement('canvas'); cv.width=im.width; cv.height=im.height; const x=cv.getContext('2d'); x.drawImage(im,0,0); const d=x.getImageData(0,0,cv.width,cv.height); GLB.tex={w:cv.width,h:cv.height,p:new Uint32Array(d.data.buffer)}; GLB.cbs.forEach(f=>{ try{ f&&f(); }catch(e){} }); GLB.cbs=[]; }catch(e){} }; im.src='img/earth.jpg'; }catch(e){}
+  return glbFallTex(); }
+function glbFallTex(){ if(GLB.ftex) return GLB.ftex; const {M,C}=glbMask(), p=new Uint32Array(GLB_W*GLB_H);
+  for(let r=0;r<GLB_H;r++){ const lat=90-(r+.5)/2, al=Math.abs(lat); for(let c=0;c<GLB_W;c++){ const k=r*GLB_W+c; let R,G,B;
+    if(M[k]){ const d=Math.min(1,C[k]/18); R=10+d*20; G=38+d*45; B=86+d*55; }
+    else if(al>66){ R=G=B=228; } else { const dry=Math.max(0,1-Math.abs(al-24)/14)*.8+(((r*7+c*13)%17)/17)*.15; R=50+dry*130; G=92+dry*60; B=44+dry*30; }
+    p[k]=(255<<24)|(B<<16)|(G<<8)|R; } }
+  return GLB.ftex={w:GLB_W,h:GLB_H,p}; }
+/* tables de projection (une par taille, inclinaison et zoom) */
+function glbTables(N,pitch,zoom,T){ const K=N+':'+pitch.toFixed(3)+':'+zoom.toFixed(2)+':'+T.w; if(GLB.tbl&&GLB.tbl.K===K) return GLB.tbl;
+  const c=N/2, R=c*.9*zoom, cp=Math.cos(pitch), sp=Math.sin(pitch), L=[-.42,.5,.76], ln=Math.hypot(...L); L[0]/=ln; L[1]/=ln; L[2]/=ln;
+  const idx=[], tx=[], row=[], sh=[], rim=[], spc=[];
+  for(let j=0;j<N;j++){ const y=(c-j-.5)/R; if(Math.abs(y)>1) continue; for(let i=0;i<N;i++){ const x=(i+.5-c)/R, d2=x*x+y*y; if(d2>1) continue; const z=Math.sqrt(1-d2);
+    const wy=y*cp+z*sp, wz=-y*sp+z*cp, lat=Math.asin(Math.max(-1,Math.min(1,wy))), lon=Math.atan2(x,wz);
+    idx.push(j*N+i); tx.push(((lon/(2*Math.PI)+.5)*T.w)); row.push(Math.min(T.h-1,Math.floor((.5-lat/Math.PI)*T.h))*T.w);
+    const lam=Math.max(0,x*L[0]+y*L[1]+z*L[2]); sh.push(.28+.86*lam); rim.push(Math.pow(1-z,2.2)); const hz=Math.max(0,2*lam*z-L[2]); spc.push(Math.pow(hz,24)); } }
+  return GLB.tbl={K,N,R,idx:Int32Array.from(idx),tx:Float32Array.from(tx),row:Int32Array.from(row),sh:Float32Array.from(sh),rim:Float32Array.from(rim),spc:Float32Array.from(spc)}; }
+function glbHtml(key,data,o){ o=o||{}; GLB.data[key]=data; return '<div class="nf-globe'+(o.c?' '+o.c:'')+'" data-g="'+esc(key)+'"><canvas class="g0"></canvas><canvas class="g1" aria-label="'+esc(o.l||'Globe terrestre interactif')+'" role="img"></canvas>'+
+  '<div class="g-hint">Glissez pour tourner · double appui pour zoomer</div>'+(o.leg? '<div class="g-leg">'+o.leg+'</div>' : '')+'</div>'; }
+function glbCenter(data){ let x=0,y=0,z=0; const r=Math.PI/180; (data.pts||[]).forEach(p=>{ x+=Math.cos(p[0]*r)*Math.sin(p[1]*r); y+=Math.sin(p[0]*r); z+=Math.cos(p[0]*r)*Math.cos(p[1]*r); });
+  if(!x&&!y&&!z) return [46,6]; const n=Math.hypot(x,y,z); return [Math.asin(y/n)/r, Math.atan2(x,z)/r]; }
+function glbMountAll(){ document.querySelectorAll('.nf-globe:not([data-on])').forEach(el=>{ try{ glbMount(el); }catch(e){ console.error(e); } }); }
+function glbMount(el){ el.dataset.on='1'; const key=el.dataset.g, data=GLB.data[key]; if(!data) return;
+  const c0=el.querySelector('.g0'), c1=el.querySelector('.g1'), dpr=Math.min(2,window.devicePixelRatio||1), css=el.clientWidth||340, N=Math.max(120,Math.min(620,Math.round(css*dpr)));
+  [c0,c1].forEach(cv=>{ cv.width=N; cv.height=N; }); const x0=c0.getContext('2d'), x1=c1.getContext('2d'), img=x0.createImageData(N,N), buf=new Uint32Array(img.data.buffer);
+  let st=GLB.st[key]; if(!st){ const C=glbCenter(data); st=GLB.st[key]={lon:C[1]*Math.PI/180, lat:Math.max(-.9,Math.min(.9,C[0]*Math.PI/180*.8)), zoom:1, vl:0, t0:0, idle:0}; }
+  let last='', drag=null, P=new Map(), lastTap=0, vis=true, t0=performance.now();
+  const T=()=>glbTexture(()=>{ last=''; });
+  function base(){ const tex=T(), K=st.lon.toFixed(4)+':'+st.lat.toFixed(4)+':'+st.zoom.toFixed(2)+':'+tex.w; if(K===last) return; last=K;
+    const tb=glbTables(N,st.lat,st.zoom,tex), off=(st.lon/(2*Math.PI))*tex.w, W=tex.w, p=tex.p, n=tb.idx.length; buf.fill(0);
+    for(let k=0;k<n;k++){ let u=(tb.tx[k]+off)%W; if(u<0) u+=W; const v=p[tb.row[k]+(u|0)], s=tb.sh[k], rm=tb.rim[k], R0=v&255, G0=(v>>8)&255, B0=(v>>16)&255, sea=B0>R0+8&&B0>G0? 1 : 0, sp=tb.spc[k]*(sea?150:25);
+      let R=R0*s+rm*70+sp, G=G0*s+rm*120+sp, B=B0*s+rm*210+sp; buf[tb.idx[k]]=(255<<24)|((B>255?255:B)<<16)|((G>255?255:G)<<8)|(R>255?255:R); }
+    x0.putImageData(img,0,0); }
+  const rr=Math.PI/180;
+  function proj(lat,lon,h){ const tb=GLB.tbl, cl=Math.cos(lat*rr), L=lon*rr-st.lon, wx=cl*Math.sin(L)*(1+h), wy=Math.sin(lat*rr)*(1+h), wz=cl*Math.cos(L)*(1+h), cp=Math.cos(st.lat), sp=Math.sin(st.lat);
+    const y=wy*cp-wz*sp, z=wy*sp+wz*cp, R=N/2*.9*st.zoom; return [N/2+wx*R, N/2-y*R, z>0||(wx*wx+y*y)>1? z : -1]; }
+  function overlay(now){ x1.clearRect(0,0,N,N); const c=N/2, R=N/2*.9*st.zoom;
+    const ga=x1.createRadialGradient(c,c,R*.96,c,c,R*1.1); ga.addColorStop(0,'rgba(120,180,255,.42)'); ga.addColorStop(.4,'rgba(90,150,255,.16)'); ga.addColorStop(1,'rgba(90,150,255,0)'); x1.fillStyle=ga; x1.beginPath(); x1.arc(c,c,R*1.1,0,7); x1.fill();
+    const tt=(now-t0)/1000;
+    (data.routes||[]).forEach((r,ri)=>{ const Q=r.p.map((q,i)=>{ const t=i/(r.p.length-1); return proj(q[0],q[1],(r.h||0)*Math.sin(Math.PI*t)+.003); });
+      const path=()=>{ x1.beginPath(); let on=false; Q.forEach(q=>{ if(q[2]<0){ on=false; return; } if(!on){ x1.moveTo(q[0],q[1]); on=true; } else x1.lineTo(q[0],q[1]); }); };
+      x1.lineCap='round'; x1.lineJoin='round'; x1.setLineDash(r.dash? [4*dpr,4*dpr] : []);
+      path(); x1.strokeStyle=r.c; x1.globalAlpha=.28; x1.lineWidth=6*dpr; x1.stroke(); x1.globalAlpha=1; path(); x1.lineWidth=1.8*dpr; x1.stroke(); x1.setLineDash([]);
+      const nd=r.n||0; for(let d=0;d<nd;d++){ let u=((tt/(r.sp||8))+d/nd+ri*.13)%1; if(r.back&&Math.floor((tt/(r.sp||8))+d/nd+ri*.13)%2) u=1-u; const f=u*(Q.length-1), i=Math.floor(f), q=Q[i], q2=Q[Math.min(Q.length-1,i+1)]; if(!q||q[2]<0||q2[2]<0) continue;
+        const X=q[0]+(q2[0]-q[0])*(f-i), Y=q[1]+(q2[1]-q[1])*(f-i); x1.beginPath(); x1.arc(X,Y,3.2*dpr,0,7); x1.fillStyle='#fff'; x1.fill(); x1.lineWidth=1.5*dpr; x1.strokeStyle=r.c; x1.stroke(); } });
+    (data.pts||[]).forEach(p=>{ const q=proj(p[0],p[1],0); if(q[2]<.02) return; const a=Math.min(1,q[2]*3); x1.globalAlpha=a;
+      if(p[2]){ const pu=(tt*.8+p[0]*.01)%1; x1.beginPath(); x1.arc(q[0],q[1],(5+pu*9)*dpr,0,7); x1.strokeStyle='rgba(255,201,60,'+(.7*(1-pu))+')'; x1.lineWidth=2*dpr; x1.stroke();
+        x1.beginPath(); x1.arc(q[0],q[1],5*dpr,0,7); x1.fillStyle='#FFC93C'; x1.fill(); x1.lineWidth=2*dpr; x1.strokeStyle='#3A2A00'; x1.stroke(); }
+      else { x1.beginPath(); x1.arc(q[0],q[1],3.4*dpr,0,7); x1.fillStyle='#fff'; x1.fill(); x1.lineWidth=1.5*dpr; x1.strokeStyle='rgba(10,20,40,.8)'; x1.stroke(); }
+      x1.globalAlpha=1; }); }
+  let prev=performance.now();
+  function frame(now){ if(!el.isConnected) return; requestAnimationFrame(frame); if(!vis||document.hidden) { prev=now; return; } const dt=Math.min(.05,(now-prev)/1000); prev=now;
+    if(!drag){ if(Math.abs(st.vl)>1e-4){ st.lon+=st.vl*dt; st.vl*=Math.pow(.05,dt); st.idle=now; } else if(now-(st.idle||0)>3500) st.lon-=.05*dt; }
+    base(); overlay(now); }
+  try{ const io=new IntersectionObserver(E=>{ vis=E[0].isIntersecting; },{threshold:0}); io.observe(el); }catch(e){}
+  const pos=e=>{ const b=c1.getBoundingClientRect(); return [(e.clientX-b.left)/b.width*N,(e.clientY-b.top)/b.height*N]; };
+  c1.addEventListener('pointerdown',e=>{ c1.setPointerCapture(e.pointerId); P.set(e.pointerId,pos(e)); st.idle=performance.now(); st.vl=0;
+    if(P.size===1){ drag={p:pos(e),t:performance.now()}; const n=performance.now(); if(n-lastTap<300){ st.zoom= st.zoom>1.3? 1 : 2.2; lastTap=0; } else lastTap=n; }
+    else if(P.size===2){ const [a,b]=[...P.values()]; drag={pinch:Math.hypot(a[0]-b[0],a[1]-b[1]), z:st.zoom}; } });
+  c1.addEventListener('pointermove',e=>{ if(!P.has(e.pointerId)||!drag) return; P.set(e.pointerId,pos(e)); st.idle=performance.now();
+    if(drag.pinch&&P.size>=2){ const [a,b]=[...P.values()]; st.zoom=Math.max(1,Math.min(3.2,drag.z*Math.hypot(a[0]-b[0],a[1]-b[1])/drag.pinch)); return; }
+    if(drag.pinch) return; const p=pos(e), R=N/2*.9*st.zoom, dx=(p[0]-drag.p[0])/R, dy=(p[1]-drag.p[1])/R, n=performance.now();
+    st.lon-=dx; st.lat=Math.max(-1.2,Math.min(1.2,st.lat+dy)); st.vl= -dx/Math.max(.008,(n-drag.t)/1000)*.6; drag.p=p; drag.t=n; });
+  const up=e=>{ P.delete(e.pointerId); if(!P.size){ if(drag&&performance.now()-drag.t>80) st.vl=0; drag=null; } else if(P.size===1){ const q=[...P.values()][0]; drag={p:q,t:performance.now()}; } };
+  c1.addEventListener('pointerup',up); c1.addEventListener('pointercancel',up);
+  requestAnimationFrame(frame); }
+NF_CSS.push(`
+.nf-globe{position:relative;aspect-ratio:1/1;width:100%;max-width:440px;margin:0 auto;border-radius:24px;overflow:hidden;background:radial-gradient(circle at 50% 45%,#0d1a33 0%,#050a16 60%,#02040a 100%);box-shadow:0 4px 0 #01030a}
+.nf-globe::before{content:'';position:absolute;inset:0;background-image:radial-gradient(1px 1px at 12% 18%,#fff8,transparent),radial-gradient(1px 1px at 82% 12%,#fff9,transparent),radial-gradient(1.4px 1.4px at 68% 86%,#fff7,transparent),radial-gradient(1px 1px at 22% 78%,#fff6,transparent),radial-gradient(1px 1px at 92% 52%,#fff8,transparent),radial-gradient(1px 1px at 6% 50%,#fff6,transparent),radial-gradient(1.2px 1.2px at 40% 6%,#fff7,transparent),radial-gradient(1px 1px at 56% 95%,#fff5,transparent)}
+.nf-globe canvas{position:absolute;inset:0;width:100%;height:100%}
+.nf-globe .g1{touch-action:none;cursor:grab}
+.nf-globe .g-hint{position:absolute;left:0;right:0;bottom:10px;text-align:center;font:700 11px var(--fb);color:rgba(255,255,255,.62);pointer-events:none}
+.nf-globe .g-leg{position:absolute;left:12px;top:10px;display:flex;flex-wrap:wrap;gap:6px;font:700 11px var(--fb);color:#fff;pointer-events:none}
+.nf-globe .g-leg span{display:inline-flex;align-items:center;gap:5px;background:rgba(0,0,0,.45);padding:3px 8px;border-radius:999px}
+.nf-globe .g-leg i{width:9px;height:9px;border-radius:50%;background:#fff;display:inline-block}
+.nf-globe .g-leg i.h{background:#FFC93C;box-shadow:0 0 0 2px #3A2A00 inset}
+.nf-globe .g-leg i.l{width:14px;height:3px;border-radius:2px}
+`);
+{ const _r=render; render=function(){ const out=_r.apply(this,arguments); try{ glbMountAll(); }catch(e){ console.error(e); } return out; }; }
+
+/* ============================================================
+   V2.4.8 : MODE SOMBRE
+   Le thème sombre du jeu passe au noir, en deux styles au choix : « Noir » (turquoise, par défaut)
+   et « Carbone » (gris chaud, ambre). Préférence de l'appareil : localStorage idlebiz.dk.
+   La classe html.dk est posée dès que le thème sombre est actif (choix « Sombre », ou « Système »
+   avec un appareil en sombre).
+   Fiches de société : leurs feuilles de style (claires) sont converties au chargement en une
+   version sombre (fonds clairs vers le noir, textes foncés vers le clair, couleurs vives gardées) ;
+   les illustrations ne sont pas touchées.
+   ============================================================ */
+const DK_STY=[['noir','Noir'],['carbone','Carbone']];
+function dkStyle(){ try{ const v=localStorage.getItem('idlebiz.dk'); return DK_STY.some(x=>x[0]===v)? v : 'noir'; }catch(e){ return 'noir'; } }
+function dkOn(){ const t=(typeof ui!=='undefined'&&ui.theme)||'auto'; if(t==='dark') return true; if(t==='light') return false; try{ return matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return false; } }
+function dkSync(){ const r=document.documentElement; if(!r) return; r.classList.toggle('dk',dkOn()); r.setAttribute('data-dk',dkStyle()); }
+ACT.dkset=el=>{ try{ localStorage.setItem('idlebiz.dk',el.dataset.v); }catch(e){} dkSync(); render(); try{ setTimeout(syncBars,0); }catch(e){} };
+{ const _st=setTheme; setTheme=function(v){ _st(v); dkSync(); }; }
+try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',dkSync); }catch(e){}
+/* réglage « Style sombre » sous chaque choix de thème */
+function dkRowPass(){ document.querySelectorAll('.seg [data-a="theme"][data-v="dark"]').forEach(bt=>{ const seg=bt.closest('.seg'), row=seg&&seg.parentElement; if(!row||row.nextElementSibling&&row.nextElementSibling.classList.contains('dk-row')) return;
+  const v=dkStyle(), d=document.createElement('div'); d.className='row sp dk-row'; d.style.marginTop='10px';
+  d.innerHTML='<b>Style sombre</b><div class="seg">'+DK_STY.map(x=>'<button class="'+(x[0]===v?'on':'')+'" data-a="dkset" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>'; row.after(d); }); }
+{ const _r=render; render=function(){ dkSync(); const out=_r.apply(this,arguments); try{ dkRowPass(); }catch(e){ console.error(e); } return out; }; }
+try{ dkSync(); }catch(e){}
+
+/* ---------- conversion des feuilles de style des fiches ---------- */
+function dkParse(c){ c=c.trim(); let m;
+  if((m=c.match(/^#([0-9a-f]{3,8})$/i))){ let h=m[1]; if(h.length===3||h.length===4) h=h.split('').map(x=>x+x).join(''); if(h.length!==6&&h.length!==8) return null; return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16),h.length===8? parseInt(h.slice(6,8),16)/255 : 1]; }
+  if((m=c.match(/^rgba?\(([^)]*)\)$/i))){ const p=m[1].split(/[\s,\/]+/).filter(Boolean).map(parseFloat); if(p.length<3) return null; return [p[0],p[1],p[2],p.length>3? p[3] : 1]; }
+  if(c==='white') return [255,255,255,1]; if(c==='black') return [0,0,0,1]; return null; }
+function dkHsl(r,g,b){ r/=255; g/=255; b/=255; const mx=Math.max(r,g,b), mn=Math.min(r,g,b), l=(mx+mn)/2, d=mx-mn; let h=0, s=0;
+  if(d){ s=d/(1-Math.abs(2*l-1)); h= mx===r? ((g-b)/d)%6 : mx===g? (b-r)/d+2 : (r-g)/d+4; h*=60; if(h<0) h+=360; } return [h,s,l,d]; }
+const dkOut=(h,s,l,a)=>'hsla('+Math.round(h)+','+Math.round(Math.min(1,s)*100)+'%,'+Math.round(Math.max(0,Math.min(1,l))*100)+'%,'+(+a.toFixed(3))+')';
+function dkSurf(c){ const p=dkParse(c); if(!p) return null; const [h,s,l,ch]=dkHsl(p[0],p[1],p[2]), a=p[3];
+  if(a<1){ if(l<.25) return 'rgba(255,255,255,'+(+(a*.9).toFixed(3))+')'; return null; }
+  if(l>=.95&&ch<.06) return 'var(--dk-card)';
+  if(l>=.84&&ch<.12) return 'var(--dk-card2)';
+  if(l>=.8) return dkOut(h,s*.5,.13,1);
+  if(l>=.45){ if(ch>.25) return null; return dkOut(h,s*.4,1.02-l,1); }
+  return null; }
+function dkText(c){ const p=dkParse(c); if(!p) return null; const [h,s,l,ch]=dkHsl(p[0],p[1],p[2]), a=p[3]; if(l>=.55) return null;
+  if(ch>.28) return dkOut(h,s,Math.max(l+.3,.66),a); return dkOut(h,s*.55,.95-l*.4,a); }
+function dkAcc(c){ const p=dkParse(c); if(!p) return null; const [h,s,l]=dkHsl(p[0],p[1],p[2]); if(l>=.5) return null; return dkOut(h,Math.max(s,.35),.6,p[3]); }
+const DK_COL=/#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|\bwhite\b|\bblack\b/g;
+const dkMap=(v,f)=>{ let ch=false; const o=v.replace(DK_COL,m=>{ const r=f(m); if(r==null) return m; ch=true; return r; }); return ch? o : null; };
+const DK_SKIP=/nf-hero|nf-ov|nf-chip|nf-lvl|nf-globe|nf-ban|al2-board|al2-fl|cban|\bsvg\b|\.im\b|nf-tog::after/;
+function dkIsDark(v){ const m=(v||'').match(DK_COL); if(!m) return false; const p=dkParse(m[0]); if(!p||p[3]<.8) return false; return dkHsl(p[0],p[1],p[2])[2]<.3; }
+function dkKept(v){ if(/var\(--nf-acc|var\(--blue\)|var\(--good|var\(--bad|var\(--lime|var\(--stamp/.test(v||'')) return true; const m=(v||'').match(DK_COL); if(!m) return false; const p=dkParse(m[0]); if(!p) return false; const q=dkHsl(p[0],p[1],p[2]); return p[3]>=.8&&(q[2]<.45||(q[3]>.25&&q[2]<.8)); }
+function dkCss(src){
+  src=src.replace(/\/\*[\s\S]*?\*\//g,'');
+  /* blocs @… (polices, animations, requêtes média) laissés de côté */
+  let out='', i=0; const plain=[]; while(i<src.length){ const at=src.indexOf('@',i); if(at<0){ plain.push(src.slice(i)); break; } plain.push(src.slice(i,at)); let j=src.indexOf('{',at), d=0; if(j<0) break; for(;j<src.length;j++){ if(src[j]==='{') d++; else if(src[j]==='}'){ d--; if(!d) break; } } i=j+1; }
+  const css=plain.join(''), RX=/([^{}]+)\{([^{}]*)\}/g; let m;
+  while((m=RX.exec(css))){ const sel=m[1].trim(); if(!sel||DK_SKIP.test(sel)) continue;
+    const D=m[2].split(';').map(x=>x.trim()).filter(Boolean).map(x=>{ const k=x.indexOf(':'); return k<0? null : [x.slice(0,k).trim().toLowerCase(),x.slice(k+1).trim()]; }).filter(Boolean);
+    const bg=D.find(d=>/^background(-color)?$/.test(d[0])); if(bg&&dkIsDark(bg[1])&&!/^--/.test(bg[0])) continue;
+    if(D.some(d=>d[0]==='--nf-bg')&&dkIsDark(D.find(d=>d[0]==='--nf-bg')[1])) continue;
+    const keepText=bg&&dkKept(bg[1]), O=[];
+    D.forEach(([k,v])=>{ let r=null;
+      if(k==='--nf-bg') r='var(--dk-bg)'; else if(k==='--nf-card') r='var(--dk-card)'; else if(k==='--nf-bg2') r='var(--dk-line)'; else if(k==='--nf-sh') r='var(--dk-sh)';
+      else if(k==='--nf-acc') r=dkMap(v,dkAcc);
+      else if(k==='--nf-acc2') r=null;
+      else if(/^(color|fill|stroke|caret-color|-webkit-text-fill-color|text-decoration-color|--nf-h|--ink.*)$/.test(k)){ if(!keepText||/^--/.test(k)) r=dkMap(v,dkText); }
+      else if(/^(background|background-color|background-image|box-shadow|border.*|outline.*|--.*)$/.test(k)) r=dkMap(v,dkSurf);
+      if(r!=null) O.push(k+':'+r); });
+    if(O.length) out+=sel.split(',').map(x=>'html.dk '+x.trim()).join(',')+'{'+O.join(';')+'}\n'; }
+  return out; }
+{ const _c=nfCssOnce; nfCssOnce=function(){ const had=!!document.getElementById('nf-css'); _c(); if(had||document.getElementById('nf-dk')) return;
+  let x=''; try{ x=dkCss(NF_BASE_CSS+'\n'+NF_CSS.join('\n')); }catch(e){ console.error(e); }
+  x+=`html.dk .md.nf{--ink:var(--dk-ink);--ink-2:var(--dk-ink2);--ink-3:var(--dk-ink3);--red:#FF8A7D;--red-soft:#2C1614;--green:#4BE29A;--green-soft:#0D251B;--amber:#FFD25E;--amber-soft:#2A2310;--lime:#FFC93C;color-scheme:dark}
+html.dk .md.nf .nf-tog{background:#3a3a40}
+html.dk .md.nf .nf-chip{color:#1B2550}
+html.dk .md.nf .nf-more{background:rgba(255,255,255,.06)}
+html.dk .md.nf .nf-hero{box-shadow:0 4px 0 var(--dk-sh)}
+html.dk .md.nf .nf-res small{color:var(--dk-ink3)}
+`;
+  const st=document.createElement('style'); st.id='nf-dk'; st.textContent=x; document.head.appendChild(st); }; }
+
+/* ============================================================
+   V2.4.8 : LISTES À RALLONGE REPLIÉES PARTOUT
+   Après chaque affichage, toute liste verticale d'au moins MR_MIN éléments semblables (lignes,
+   sociétés, contrats, usines, terminaux…) n'en montre que MR_SHOW, puis « Afficher les N autres ».
+   Fonctionne dans les écrans du jeu et dans toutes les fiches. État d'interface seulement : ui.mr.
+   ============================================================ */
+const MR_SHOW=5, MR_MIN=7;
+const MR_SEL='.stack,.ht-t,.nf-list,.nf-card,.tw tbody,.pk-list,.mf-b,.met-plan,.card,section,.nf-main>div,.md-b>div';
+const MR_NO=/(^|\s)(seg|nf-tabs|nf-steps|nf-seg|nf-mgmt|mini|bstats|qacts|grid|tiles|nf-globe|nav|al2-board|al2-fleet|sh2-fl|row)(\s|$)/;
+function mrKey(box){ const c=box.closest('.card,section,.nf-card,.md'), h=c&&c.querySelector('h2,h3,.nf-sec'); let n=0, p=box; while((p=p.previousElementSibling)) n++;
+  const root=ui.modal? (ui.modal.type+(ui.modal.id||'')+':'+(ui.ft||'')) : ui.tab; return root+'|'+((h&&h.textContent)||'').slice(0,30)+'|'+(box.className||box.tagName)+'|'+n; }
+function mrPass(){ ui.mr=ui.mr||{}; const roots=[document.getElementById('view'),document.querySelector('.md .md-b')].filter(Boolean);
+  roots.forEach(R=>R.querySelectorAll(MR_SEL).forEach(box=>{ if(box.dataset.mrd||box.closest('.nf-mr')||MR_NO.test(box.className)) return;
+    const K=[...box.children].filter(c=>!c.classList.contains('nf-more')&&!c.classList.contains('mr-more')&&!c.classList.contains('nf-hide')&&!c.classList.contains('ft-hide')&&c.tagName!=='H2'&&c.tagName!=='H3'&&!c.classList.contains('sub'));
+    if(K.length<5) return; const tg=K[0].tagName, cl=K[0].className; if(/^(BUTTON|INPUT|SELECT|H2|H3|SPAN|I|B|SMALL|svg)$/i.test(tg)) return;
+    let same=0; K.forEach(k=>{ if(k.tagName===tg&&k.className===cl) same++; }); if(same<K.length*.85) return;
+    if(K[1].offsetTop<=K[0].offsetTop+4) return; if(K[0].offsetHeight<30) return;
+    if(K.slice(0,6).reduce((a,k)=>a+(k.textContent||'').trim().length,0)/6<12) return;
+    const L=K.filter(k=>k.tagName===tg&&k.className===cl), tall=K[0].offsetHeight>110, show=tall? 3 : MR_SHOW; if(L.length<(tall? 5 : MR_MIN)) return;
+    box.dataset.mrd='1'; const key=mrKey(box), open=!!ui.mr[key], rest=L.length-show;
+    if(!open) L.slice(show).forEach(k=>k.classList.add('mr-h'));
+    const bt=document.createElement(box.tagName==='TBODY'? 'tr' : 'button'); let b2=bt;
+    if(box.tagName==='TBODY'){ const td=document.createElement('td'); td.colSpan=20; b2=document.createElement('button'); td.appendChild(b2); bt.appendChild(td); }
+    b2.className='mr-more'; b2.dataset.a='mrtog'; b2.dataset.k=key; b2.setAttribute('aria-expanded',open?'true':'false'); b2.textContent= open? 'Réduire la liste' : 'Afficher '+(rest>1? 'les '+rest+' autres' : 'l’autre');
+    const lastL=L[L.length-1]; lastL.after(bt); })); }
+ACT.mrtog=el=>{ ui.mr=ui.mr||{}; const k=el.dataset.k; ui.mr[k]=!ui.mr[k]; const y=el.getBoundingClientRect().top; render();
+  if(!ui.mr[k]){ const n=[...document.querySelectorAll('.mr-more')].find(x=>x.dataset.k===k); if(n){ const d=n.getBoundingClientRect().top-y; if(Math.abs(d)>40){ const sc=n.closest('.md-b')||document.scrollingElement; sc.scrollTop+=d; } } } };
+{ const _r=render; render=function(){ const out=_r.apply(this,arguments); try{ mrPass(); }catch(e){ console.error(e); } return out; }; }
+
+/* ============================================================
+   V2.4.8 : ÉCRANS LUXE ET BANQUE REPENSÉS
+   Luxe : carte de prestige (rang, progression, effets, gala), puis une vitrine par catégorie
+   (vos biens, voitures, art, propriétés, yachts, monuments, pays) avec illustration, cours sur un an,
+   achat, location et revente. Banque : « Mon compte » (solde, note de crédit, emprunts, livret,
+   épargne) et « Ma banque » (la banque que vous pouvez fonder). Onglets : ui.lx, ui.bk (interface).
+   ============================================================ */
+const PX_TABS=[['mine','Vos biens'],['car','Voitures'],['art','Art'],['estate','Propriétés'],['yacht','Yachts'],['monument','Monuments'],['country','Pays']];
+const PX_SRC={car:'Voitures',art:'Art',estate:'Propriétés',yacht:'Yachts',monument:'Monuments',coll:'Collection',home:'Résidences',prop:'Immobilier',gala:'Gala'};
+const pxHash=s=>{ let h=7; for(const c of String(s)) h=(h*31+c.charCodeAt(0))>>>0; return h; };
+const PX_PAL=['#C8352A','#1F4E8A','#2B7A4B','#C9A227','#6B3FA0','#222428','#E07A1F','#7F8C9A'];
+/* illustrations génériques (aucun modèle ou œuvre réels) */
+function pxArt(l){ const h=pxHash(l.id), col=PX_PAL[h%PX_PAL.length], W=320, H=120; let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true">';
+  const sky=(a,b)=>'<defs><linearGradient id="pxs'+h+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+a+'"/><stop offset="1" stop-color="'+b+'"/></linearGradient></defs><rect width="'+W+'" height="'+H+'" fill="url(#pxs'+h+')"/>';
+  if(l.kind==='car'){ s+=sky('#BFD9F2','#EAF3FB')+'<rect y="92" width="'+W+'" height="28" fill="#5B6270"/><rect y="104" width="'+W+'" height="2" fill="#E8E3D0" opacity=".7"/>';
+    const low=h%2, x=70; s+='<path d="M'+x+' 88 Q'+(x+8)+' 70 '+(x+40)+' 66 L'+(x+70)+' '+(low?54:50)+' Q'+(x+110)+' '+(low?46:42)+' '+(x+138)+' '+(low?56:52)+' L'+(x+168)+' 66 Q'+(x+186)+' 68 '+(x+184)+' 88 Z" fill="'+col+'"/>'+
+      '<path d="M'+(x+76)+' 57 Q'+(x+108)+' 49 '+(x+132)+' 58 L'+(x+140)+' 66 L'+(x+68)+' 66 Z" fill="#26313f" opacity=".85"/>'+
+      [x+40,x+146].map(c=>'<circle cx="'+c+'" cy="88" r="13" fill="#1b1d22"/><circle cx="'+c+'" cy="88" r="6" fill="#c9ced6"/>').join('')+'<rect x="'+(x+176)+'" y="74" width="8" height="4" rx="2" fill="#FFE9A8"/>'; }
+  else if(l.kind==='art'){ s+='<rect width="'+W+'" height="'+H+'" fill="#EDE6DA"/><rect y="104" width="'+W+'" height="16" fill="#B89B74"/><rect x="104" y="10" width="112" height="86" fill="#B8892C"/><rect x="110" y="16" width="100" height="74" fill="#F4EEDF"/><clipPath id="pxc'+h+'"><rect x="110" y="16" width="100" height="74"/></clipPath><g clip-path="url(#pxc'+h+')">';
+    const P=['#2F5D8A','#D9A441','#8E3B46','#3E7C59','#E7C9A0','#1E2A44','#C76B3B'];
+    for(let i=0;i<9;i++){ const k=pxHash(l.id+'#'+i), cx=112+k%96, cy=18+(k>>5)%70, r=6+(k>>9)%16; s+= i%2? '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+P[k%P.length]+'" opacity=".8"/>' : '<path d="M'+(cx-r)+' '+cy+' q'+r+' -'+r+' '+(2*r)+' 0" stroke="'+P[k%P.length]+'" stroke-width="5" fill="none" stroke-linecap="round" opacity=".85"/>'; }
+    s+='</g><rect x="146" y="98" width="28" height="4" fill="#8E7A55"/>'; }
+  else if(l.kind==='estate'){ const v=l.id; s+=sky('#9FCBEA','#EAF5FB');
+    if(v==='ile'){ s+='<rect y="78" width="'+W+'" height="42" fill="#2E8FB5"/><ellipse cx="160" cy="84" rx="90" ry="14" fill="#E9D7A6"/><path d="M170 80 Q172 52 180 40" stroke="#6B4A2B" stroke-width="4" fill="none"/>'+[-30,10,40,80,120].map(a=>'<path d="M180 40 q'+(Math.cos(a*Math.PI/180)*26)+' '+(-Math.sin(a*Math.PI/180)*10+8)+' '+(Math.cos(a*Math.PI/180)*34)+' '+(12-Math.sin(a*Math.PI/180)*4)+'" stroke="#2F7D3A" stroke-width="5" fill="none" stroke-linecap="round"/>').join('')+'<rect x="128" y="66" width="30" height="16" fill="#fff"/><path d="M124 67 L143 56 L162 67 Z" fill="#C8352A"/>'; }
+    else if(v==='penth'){ s+='<rect y="100" width="'+W+'" height="20" fill="#7E8794"/>'+[[40,40],[90,20],[200,30],[250,50]].map(b=>'<rect x="'+b[0]+'" y="'+b[1]+'" width="38" height="'+(100-b[1])+'" fill="#9AA6B5"/>').join('')+'<rect x="140" y="8" width="44" height="92" fill="#36404D"/>'+[0,1,2,3,4,5,6,7].map(i=>'<rect x="146" y="'+(14+i*10)+'" width="32" height="5" fill="'+(i===0?'#FFD87A':'#7FA9CF')+'" opacity=".9"/>').join(''); }
+    else if(v==='chateau'){ s+='<rect y="96" width="'+W+'" height="24" fill="#6E9E50"/><rect x="100" y="52" width="120" height="44" fill="#EDE6D6"/>'+[96,206].map(x=>'<rect x="'+x+'" y="38" width="18" height="58" fill="#E4DCC8"/><path d="M'+(x-3)+' 40 L'+(x+9)+' 18 L'+(x+21)+' 40 Z" fill="#3E4B5E"/>').join('')+'<path d="M98 54 L160 34 L222 54 Z" fill="#3E4B5E"/>'+[118,140,162,184].map(x=>'<rect x="'+x+'" y="64" width="10" height="16" fill="#7FA9CF"/>').join('')+'<rect x="154" y="80" width="12" height="16" fill="#6B4A2B"/>'; }
+    else { s+='<rect y="96" width="'+W+'" height="24" fill="#2E8FB5"/><rect y="88" width="'+W+'" height="10" fill="#E9D7A6"/><rect x="100" y="54" width="120" height="36" fill="#FBF6EC"/><rect x="100" y="50" width="120" height="6" fill="#D96B3B"/>'+[112,140,168,196].map(x=>'<rect x="'+x+'" y="62" width="14" height="20" fill="#7FA9CF"/>').join('')+'<path d="M248 92 Q250 64 258 52" stroke="#6B4A2B" stroke-width="3" fill="none"/>'+[0,60,120,170].map(a=>'<path d="M258 52 q'+(Math.cos(a*Math.PI/180)*20)+' '+(-Math.sin(a*Math.PI/180)*8+6)+' '+(Math.cos(a*Math.PI/180)*26)+' 10" stroke="#2F7D3A" stroke-width="4" fill="none" stroke-linecap="round"/>').join(''); } }
+  else if(l.kind==='yacht'){ s+=sky('#A9D3EE','#EFF7FC')+'<rect y="82" width="'+W+'" height="38" fill="#2A7FB0"/><path d="M0 88 Q40 84 80 88 T160 88 T240 88 T320 88" stroke="#fff" stroke-width="1.5" fill="none" opacity=".5"/>';
+    const big=l.id==='mega', sail=l.id==='voilier', x=big?60:90, w=big?200:140;
+    s+='<path d="M'+x+' 74 L'+(x+w)+' 74 L'+(x+w-18)+' 90 L'+(x+14)+' 90 Z" fill="#FAFAFA" stroke="#C9D3DD"/><rect x="'+x+'" y="80" width="'+w+'" height="3" fill="'+col+'"/>';
+    if(sail) s+='<rect x="'+(x+70)+'" y="10" width="3" height="64" fill="#8A6A44"/><path d="M'+(x+74)+' 12 L'+(x+74)+' 70 L'+(x+120)+' 70 Z" fill="#fff"/><path d="M'+(x+68)+' 18 L'+(x+68)+' 70 L'+(x+34)+' 70 Z" fill="#F1F1F1"/>';
+    else s+='<path d="M'+(x+30)+' 74 L'+(x+40)+' 60 L'+(x+w-50)+' 60 L'+(x+w-36)+' 74 Z" fill="#F4F4F4" stroke="#C9D3DD"/><rect x="'+(x+46)+'" y="64" width="'+(w-104)+'" height="5" fill="#26313f"/>'+(big?'<path d="M'+(x+60)+' 60 L'+(x+70)+' 48 L'+(x+w-80)+' 48 L'+(x+w-70)+' 60 Z" fill="#EDEDED" stroke="#C9D3DD"/><rect x="'+(x+76)+'" y="52" width="'+(w-160)+'" height="4" fill="#26313f"/>':''); }
+  else { s+=sky('#F2D7A8','#FBF1DE')+'<rect y="98" width="'+W+'" height="22" fill="#C9A66B"/>'; const g='#7A5A3A';
+    const M={bigben:'<rect x="146" y="22" width="28" height="78" fill="'+g+'"/><path d="M144 24 L160 4 L176 24 Z" fill="'+g+'"/><circle cx="160" cy="38" r="8" fill="#F6E7C1"/>',
+      liberte:'<rect x="140" y="74" width="40" height="26" fill="'+g+'"/><path d="M152 74 L156 36 L166 36 L170 74 Z" fill="#5E9C8A"/><circle cx="161" cy="30" r="6" fill="#5E9C8A"/><path d="M166 32 L176 12" stroke="#5E9C8A" stroke-width="4"/><circle cx="177" cy="10" r="3" fill="#F2C94C"/>',
+      eiffel:'<path d="M160 6 L176 100 L166 100 L160 60 L154 100 L144 100 Z" fill="'+g+'"/><rect x="148" y="66" width="24" height="4" fill="'+g+'"/><rect x="153" y="38" width="14" height="3" fill="'+g+'"/>',
+      colisee:'<path d="M90 100 L90 46 Q160 30 230 46 L230 100 Z" fill="#D9B98A"/>'+[0,1,2].map(r=>[0,1,2,3,4,5,6].map(i=>'<rect x="'+(98+i*18)+'" y="'+(52+r*16)+'" width="9" height="11" rx="4" fill="#9C7A50"/>').join('')).join(''),
+      taj:'<rect x="110" y="64" width="100" height="36" fill="#F6F2EA"/><path d="M130 64 Q160 14 190 64 Z" fill="#F6F2EA"/><rect x="157" y="16" width="6" height="10" fill="#E6DDCB"/>'+[100,214].map(x=>'<rect x="'+x+'" y="34" width="6" height="66" fill="#EFE8DA"/>').join('')+'<rect x="150" y="76" width="20" height="24" rx="10" fill="#D8CDB8"/>',
+      pyramide:'<path d="M70 100 L130 34 L190 100 Z" fill="#D9B46A"/><path d="M130 34 L190 100 L150 100 Z" fill="#B8924E"/><path d="M170 100 L214 52 L258 100 Z" fill="#D9B46A"/><path d="M214 52 L258 100 L232 100 Z" fill="#B8924E"/>'};
+    s+=M[l.id]||'<rect x="120" y="50" width="80" height="50" fill="'+g+'"/><path d="M114 52 L160 26 L206 52 Z" fill="'+g+'"/>'; }
+  return s+'</svg>'; }
+/* ---------- carte de prestige ---------- */
+function pxHero(){ const p=S.prestige||0, r=prRank(p), nx=PR_RANKS[r+1], cur=PR_RANKS[r][0], f=nx? clamp((p-cur)/(nx[0]-cur),0,1) : 1, B=S.prB||{};
+  const src=Object.keys(PX_SRC).filter(k=>(B[k]||0)>0).sort((a,b)=>B[b]-B[a]), tot=Math.max(1,src.reduce((a,k)=>a+B[k],0));
+  const g=S.gala, gOn=galaOn(), gWait=g&&g.next>S.day, gc=galaCost();
+  let h='<section class="card px-hero"><div class="px-top"><div class="px-medal" aria-hidden="true"><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="5"/><circle cx="30" cy="30" r="27" fill="none" stroke="#FFC93C" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+(f*169.6).toFixed(1)+' 170" transform="rotate(-90 30 30)"/><text x="30" y="36" text-anchor="middle" font-size="18" font-weight="800" fill="#fff" font-family="Baloo 2,Nunito,sans-serif">'+(r+1)+'</text></svg></div>'+
+    '<div class="px-t"><small>Rang de prestige</small><b>'+esc(PR_RANKS[r][1])+'</b><span>'+fmtN(Math.round(p))+' points'+(nx? ' · encore '+fmtN(Math.ceil(nx[0]-p))+' pour « '+esc(nx[1])+' »' : ' · rang le plus haut')+'</span></div></div>'+
+    '<div class="px-lad" aria-hidden="true">'+PR_RANKS.map((x,i)=>'<i class="'+(i<r?'d':i===r?'n':'')+'"></i>').join('')+'</div>';
+  h+='<div class="px-eff"><div><small>Sociétés de luxe et hôtels</small><b>'+(r? '+'+fmtN(PR_SALES*r*100,1)+' % de ventes' : 'aucun bonus')+'</b></div><div><small>Taux des emprunts</small><b>'+(r? '−'+fmtN(PR_RATE*r,1)+' point' : 'aucun bonus')+'</b></div><div><small>Réputation</small><b>+'+fmtN(.3*Math.sqrt(Math.max(0,p)),1)+'</b></div><div><small>Influence politique</small><b>'+(p>0? 'en hausse' : 'aucune')+'</b></div></div>';
+  if(src.length) h+='<div class="px-bar">'+src.map((k,i)=>'<i style="width:'+(B[k]/tot*100).toFixed(1)+'%;background:'+['#FFC93C','#8ff0bf','#9fd0e6','#ffb3a8','#c6b3ff','#F2A93B','#7FD88C','#E8E3D0','#fff'][i%9]+'"></i>').join('')+'</div><div class="px-src">'+src.map((k,i)=>'<span><i style="background:'+['#FFC93C','#8ff0bf','#9fd0e6','#ffb3a8','#c6b3ff','#F2A93B','#7FD88C','#E8E3D0','#fff'][i%9]+'"></i>'+PX_SRC[k]+' '+fmtN(Math.round(B[k]))+'</span>').join('')+'</div>';
+  else h+='<div class="px-none">Achetez une voiture, une œuvre, une propriété ou un objet aux enchères pour gagner vos premiers points.</div>';
+  h+='<div class="px-gala"><div><b>Gala de prestige</b><small>'+(gOn? 'En cours jusqu’au '+dateL(g.until)+' : prestige +'+Math.round(GALA_K*100)+' %.' : gWait? 'Prochain gala possible le '+dateL(g.next)+'.' : 'Prestige +'+Math.round(GALA_K*100)+' % pendant '+GALA_D+' jours, réputation +1,5. Un tous les '+GALA_CD+' jours.')+'</small></div>'+
+    (gOn||gWait? '' : btn('Organiser · '+eur(gc,0),'galago',{c:'sm px-gb',dis:S.cash<gc||!(S.prestige>0),why:!(S.prestige>0)?'Il faut au moins un bien de prestige.':'Trésorerie insuffisante.'}))+'</div>';
+  return h+'</section>'; }
+ACT.galago=()=>after(galaHold());
+ACT.lxtab=el=>{ ui.lx=el.dataset.v; render(); };
+/* ---------- vitrine ---------- */
+function pxItem(l){ const own=S.lux.find(o=>o.id===l.id), lock=!unlocked(l.tier)&&!own, bp=luxBuyPrice(l), sp=luxSellPrice(l), v=S.luxVal[l.id], H=(S.luxH&&S.luxH[l.id])||[], ch=H.length>1? v/H[0]-1 : 0, up=v*l.up*(1+.03*tierNow());
+  let h='<section class="card px-it'+(own?' own':'')+(lock?' lock':'')+'"><div class="px-im">'+pxArt(l)+(own? '<span class="px-tag ok">'+(own.rent?'Loué':'À vous')+'</span>' : lock? '<span class="px-tag">Palier '+esc(D.TIERS[l.tier].n)+'</span>' : '')+'<span class="px-pr">+'+l.pr+'</span></div>'+
+    '<div class="px-b"><div class="px-n"><b>'+esc(l.n)+'</b><small>'+esc(D.LUX_KIND[l.kind])+' · prestige +'+l.pr+(own&&own.rent?' (moitié en location)':'')+'</small></div>'+
+    '<div class="px-v"><div><small>Cote</small><b class="num">'+eur(v,0)+'</b>'+(H.length>1? '<small class="num '+cls(ch)+'">'+(ch>=0?'+':'')+fmtN(ch*100,1)+' % sur '+(H.length>=52?'un an':plu(H.length*7,'jour'))+'</small>' : '')+'</div>'+(H.length>2? '<div class="px-sp">'+spark(H.concat([v]),96,30)+'</div>' : '')+'</div>';
+  if(own){ const gain=sp-(own.paid||bp);
+    h+='<div class="px-k"><span>Entretien <b class="num">'+eur(up,0)+' / j</b></span><span>Si vendu <b class="num '+cls(gain)+'">'+eur(sp,0)+'</b></span></div>';
+    if(luxRentable(l)) h+='<div class="px-rent"><span><b>Location</b><small>'+(own.rent? '+'+eur(luxRentDay(l),0)+' par jour, prestige divisé par deux' : 'rapporterait '+eur(luxRentDay(l),0)+' par jour')+'</small></span>'+btn(own.rent?'Arrêter':'Louer','luxrent',{c:'sm',i:l.id,v:own.rent?0:1})+'</div>';
+    h+='<div class="px-a">'+btn('Revendre · '+eur(sp,0),'sellux',{c:'sm',i:l.id})+'</div>'; }
+  else if(!lock) h+='<div class="px-k"><span>Entretien <b class="num">'+eur(v*l.up*(1+.03*tierNow()),0)+' / j</b></span><span>Revente <b>−'+Math.round(l.spread*100)+' %</b></span></div><div class="px-a">'+btn('Acheter · '+eur(bp,0),'buylux',{c:'sm pri',i:l.id,dis:S.cash<bp,why:'Trésorerie insuffisante : il manque '+eur(bp-S.cash,0)+'.'})+'</div>';
+  return h+'</div></section>'; }
+const _vLuxeOld=vLuxe;
+vLuxe=function(){ const mine=S.lux.length>0; let t=ui.lx||(mine?'mine':'car'); if(t==='mine'&&!mine) t='car'; let val=0; S.lux.forEach(o=>val+=S.luxVal[o.id]||0);
+  let h=head('Luxe et prestige','', '<span class="pill">Patrimoine '+eur(val,0)+'</span>');
+  h+=pxHero();
+  if(S.laws.luxTax>0) h+='<div class="notice">Taxe somptuaire en vigueur : +'+pct(S.laws.luxTax,0)+' sur tous les achats de luxe.</div>';
+  if(tierNow()<3) h+='<div class="notice">Le marché du luxe s’ouvre au palier <b>Magnat</b> ('+eur(D.TIERS[3].nw,0)+'). Les biens ci-dessous sont des aperçus.</div>';
+  h+='<div class="px-tabs" role="tablist">'+PX_TABS.filter(x=>x[0]!=='mine'||mine).map(x=>{ const n= x[0]==='mine'? S.lux.length : x[0]==='country'? 0 : S.lux.filter(o=>{ const l=D.LUX.find(y=>y.id===o.id); return l&&l.kind===x[0]; }).length;
+    return '<button role="tab" aria-selected="'+(t===x[0])+'" class="'+(t===x[0]?'on':'')+'" data-a="lxtab" data-v="'+x[0]+'">'+x[1]+(n&&x[0]!=='mine'?' <i>'+n+'</i>':'')+'</button>'; }).join('')+'</div>';
+  if(t==='country'){ const o=_vLuxeOld(), k=o.indexOf('<div class="cat-h">Pays entiers</div>'); h+= k>=0? o.slice(k+'<div class="cat-h">Pays entiers</div>'.length) : ''; return h; }
+  const L= t==='mine'? D.LUX.filter(l=>S.lux.some(o=>o.id===l.id)) : D.LUX.filter(l=>l.kind===t);
+  h+='<div class="px-list">'+L.map(pxItem).join('')+'</div>';
+  if(t==='mine'&&S.auc&&S.auc.coll&&S.auc.coll.length) h+='<div class="notice info">Vos '+plu(S.auc.coll.length,'objet')+' de collection (prestige +'+fmtN(Math.round((S.prB||{}).coll||0))+') se gèrent dans la '+'<button class="lnk" data-a="tab" data-i="auction">salle des ventes</button>.</div>';
+  return h; };
+VIEWS.luxe=vLuxe;
+/* ---------- banque ---------- */
+ACT.bktab=el=>{ ui.bk=el.dataset.v; render(); };
+ACT.borrowq=el=>{ const a=Math.floor(debtLimit()*(+el.dataset.v)/1000)*1000; if(a<=0) return toast('Capacité d’emprunt épuisée.'); ask('Emprunter '+eur(a,0),'Taux fixe de <b>'+fmtN(debtRate(),2)+' %</b> par an, soit '+eur(a*debtRate()/100/360,0)+' d’intérêts par jour. Remboursable à tout moment, sans frais.','Emprunter',()=>after(borrow(a))); };
+function bkAccount(){ const G=crGrade(), lev=crLev(), d=debtTotal(), lim=debtLimit(), rt=debtRate(), intD=S.debts.reduce((a,x)=>a+x.p*x.r/100/360,0), livD=S.livret.bal*livretRate()/100/360, r=prRank();
+  let h='<section class="bk-cardv"><div class="bk-chip"></div><div class="bk-brand">IDLE BUSINESS · COMPTE COURANT</div><small>Solde disponible</small><b class="num'+(S.cash<0?' neg':'')+'">'+eur(S.cash,0)+'</b>'+
+    '<div class="bk-row"><span><small>Livret</small>'+eur(S.livret.bal,0)+'</span><span><small>Emprunts</small>'+eur(d,0)+'</span><span><small>Note</small><em class="g'+G[0]+'">'+G[0]+'</em></span></div></section>';
+  if(S.cash<0) h+='<div class="notice bad">Compte à découvert : au-delà de 14 jours, c’est la faillite. Empruntez ou vendez des actifs.</div>';
+  h+=card('Note de crédit','<div class="bk-grade"><div class="bk-g g'+G[0]+'">'+G[0]+'</div><div class="stack" style="gap:4px;min-width:0"><b>'+({A:'Excellente',B:'Très bonne',C:'Correcte',D:'Fragile',E:'Risquée'}[G[0]])+'</b><div class="sub">Endettement : '+fmtN(lev*100,1)+' % de vos actifs bruts. La note suit l’endettement ; votre rang de prestige baisse encore le taux.</div></div></div>'+
+    '<div class="bk-scale">'+CR_G.map(x=>'<span class="'+(x[0]===G[0]?'on ':'')+'g'+x[0]+'">'+x[0]+'<small>+'+fmtN(x[2],2)+'</small></span>').join('')+'</div>'+
+    '<div class="bk-rate"><span>Taux directeur <b>'+fmtN(S.macro.rate,2)+' %</b></span><span>Prime de la note <b>+'+fmtN(G[2],2)+'</b></span>'+(r? '<span>Prestige <b>−'+fmtN(PR_RATE*r,1)+'</b></span>' : '')+'<span class="t">Nouvel emprunt <b>'+fmtN(rt,2)+' %</b></span></div>');
+  h+=card('Emprunter','<div class="stack"><div class="row sp"><span class="sub">Capacité disponible</span><b class="num">'+eur(lim,0)+'</b></div>'+bar(clamp(d/Math.max(1,d+lim),0,1),lev>.4?'r':lev>.25?'a':'g')+
+    '<div class="bk-q">'+[[.1,'10 %'],[.25,'25 %'],[.5,'50 %'],[1,'Tout']].map(x=>'<button class="btn sm" data-a="borrowq" data-v="'+x[0]+'"'+(lim<1000?' aria-disabled="true" data-dis="1" data-why="Capacité d’emprunt épuisée."':'')+'>'+x[1]+'<small>'+eur(Math.floor(lim*x[0]/1000)*1000,0)+'</small></button>').join('')+'</div>'+
+    '<div class="row"><label class="sr" for="in-bor">Montant</label><input class="inp w" id="in-bor" inputmode="numeric" placeholder="Autre montant en €" data-q="bor" value="'+(ui.qty.bor||'')+'">'+btn('Emprunter','borrow',{c:'sm pri'})+'</div>'+
+    '<div class="sub">Taux fixe à la signature, intérêts payés chaque jour, remboursement libre et sans frais.</div></div>');
+  h+=card('Vos emprunts'+(S.debts.length?' ('+S.debts.length+')':''), S.debts.length? '<div class="stack">'+S.debts.slice().sort((a,b)=>b.r-a.r).map(x=>'<div class="bk-loan"><div><b class="num">'+eur(x.p,0)+'</b><small>'+fmtN(x.r,2)+' % · '+eur(x.p*x.r/100/360,0)+' / j · depuis le '+dateS(x.d||1)+'</small></div><div class="row">'+btn('Rembourser '+eur(Math.min(x.p,Math.max(0,S.cash)),0),'repay',{c:'sm',i:x.id,v:'part',dis:S.cash<=0})+btn('Tout','repay',{c:'sm ghost',i:x.id,v:'all',dis:S.cash<x.p})+'</div></div>').join('')+'</div><div class="sub" style="margin-top:8px">Intérêts : '+eur(intD,0)+' par jour. Remboursez d’abord les taux les plus élevés.</div>' : '<div class="sub">Aucun emprunt en cours.</div>');
+  h+=card('Livret d’épargne','<div class="stack"><div class="mini"><div><span>Solde</span><b class="num">'+eur(S.livret.bal,0)+'</b></div><div><span>Taux annuel</span><b>'+fmtN(livretRate(),2)+' %</b></div><div><span>Intérêts</span><b class="num">'+eur(livD,0)+' / j</b></div></div>'+
+    '<div class="row"><label class="sr" for="in-liv">Montant</label><input class="inp w" id="in-liv" inputmode="numeric" placeholder="Montant en €" value="'+(ui.qty.liv||'')+'" data-q="liv">'+btn('Déposer','livdep',{c:'sm pri'})+btn('Retirer','livwd',{c:'sm'})+'</div></div>');
+  try{ h+=saveCard(); }catch(e){}
+  return h; }
+const _vBankOld=vBank;
+function bkApps(){ const B=S.bank; if(!B.apps.length) return '<div class="sub">Aucun dossier en attente.</div>';
+  return '<div class="stack">'+B.apps.map(a=>{ const r=appRate(a), refus=r>a.max; return '<div class="bk-app"><div class="hd"><b>'+esc(a.n)+'</b><span class="pill '+(a.g<='B'?'good':a.g==='C'?'warn':'bad')+'">Note '+a.g+'</span></div><small>'+esc(a.lab)+' · '+eur(a.amt,0)+' sur '+a.term+' jours · garantie '+a.c+' %</small><small>Taux proposé <b class="'+(refus?'neg':'')+'">'+r.toFixed(1)+' %</b> · accepte jusqu’à '+a.max.toFixed(1)+' %</small><div class="row">'+btn('Accorder','bankacc',{c:'sm pri',i:a.id,dis:!bankOpen()||refus,why:refus?'Taux trop élevé pour ce client.':'Agences fermées le week-end.'})+btn('Refuser','bankref',{c:'sm ghost',i:a.id})+'</div></div>'; }).join('')+'</div>'; }
+function bkOwn(){ let h=_vBankOld(); if(h.indexOf('<div class="ph">')===0){ const e=h.indexOf('</div></div>'); if(e>0) h=h.slice(e+12); }
+  h=h.replace(/<div class="tw"><table class="tbl"><thead><tr><th>Client<\/th>[\s\S]*?<\/table><\/div>/,bkApps());
+  if(!S.bank.lic) h='<div class="notice info">Fonder votre propre banque est un métier à part : vous collectez des dépôts et prêtez à des clients. Pour emprunter vous-même, utilisez « Mon compte ».</div>'+h;
+  return h; }
+vBank=function(){ const t=ui.bk||'acc'; let h=head('Banque','');
+  h+='<div class="px-tabs bk-tabs" role="tablist">'+[['acc','Mon compte'],['own',S.bank.lic?'Ma banque':'Fonder une banque']].map(x=>'<button role="tab" aria-selected="'+(t===x[0])+'" class="'+(t===x[0]?'on':'')+'" data-a="bktab" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div>';
+  return h+(t==='own'? bkOwn() : bkAccount()); };
+VIEWS.bank=vBank;
+try{ TIP1.bank='Banque : votre compte, votre note de crédit, vos emprunts et votre épargne. L’onglet voisin permet de fonder votre propre banque.'; TIP1.luxe='Luxe : chaque bien donne du prestige ; votre rang de prestige augmente les ventes de vos sociétés de luxe et baisse vos taux d’emprunt.'; }catch(e){}
 
 
 </script>
