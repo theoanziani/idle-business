@@ -11611,6 +11611,7 @@ MET.airline = {
     lease:(b,t)=>alGet(b,t,false),
     buy:(b,t)=>alGet(b,t,true),
     drop:(b,id)=>alDrop(b,+id),
+    own:(b,id)=>alBuyOut(b,+id),
     hedge:(b)=>alHedge(b),
     fid:(b)=>alBuyR(b,'fid',1.5,'Programme de fidélité',1),
     sal:(b)=>alBuyR(b,'sal',3,'Salons à l’aéroport',2),
@@ -11679,9 +11680,15 @@ function alNewLine(b,q){ const m=b.m, cands=[]; m.hubs.forEach(h=>alDests(b,h).f
   const r=alGet(b,c[4],c[5],true); if(!r.ok) return false; const p=m.fl[m.fl.length-1]; return alOpen(b,c[2],c[3],p.id).ok; }
 function alInvest(b){ const m=b.m, H=alNextHub(b);
   if(H&&alBuyHub(b,H.id,true).ok) return true;
-  const x=alLeasedOnGood(b); if(!x||!dlCan(b,AL_TY[x.p.t].pr,'Rachat d’un avion')) return false;
-  const r=alGet(b,x.p.t,true,true); if(!r.ok) return false; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; alDrop(b,x.p.id); metLog(b,'le directeur achète l’'+AL_TY[n.t].n+' de la ligne '+alAp(x.l.a).n+' – '+alAp(x.l.b).n+' au lieu de le louer.',''); return true; }
-MET.airline.goal=function(b){ const H=alNextHub(b); if(H) return {n:'Place dans la tour : '+H.n, c:alHubCost(H.id), act:'hub', arg:H.id}; const x=alLeasedOnGood(b); return x? {n:AL_TY[x.p.t].n+' acheté', c:AL_TY[x.p.t].pr} : null; };
+  const x=alLeasedOnGood(b); if(!x||!dlCan(b,alBuyOutCost(x.p),'Rachat d’un avion')) return false;
+  if(!alBuyOut(b,x.p.id,true).ok) return false; metLog(b,'le directeur rachète l’'+AL_TY[x.p.t].n+' loué de la ligne '+alAp(x.l.a).n+' – '+alAp(x.l.b).n+'.',''); return true; }
+/* V2.4.9 : rachat d'un avion loué : 90 % du prix neuf, moins le dépôt de garantie ; il garde sa ligne */
+const AL_BUYOUT=.9;
+const alBuyOutCost = p => Math.max(0,AL_TY[p.t].pr*AL_BUYOUT-(p.dep||0));
+function alBuyOut(b,id,auto){ const m=b.m, p=m.fl.find(x=>x.id===id); if(!p) return err('Avion introuvable.'); if(p.own) return err('Cet avion vous appartient déjà.'); const T=AL_TY[p.t], c=alBuyOutCost(p);
+  if(!(auto? dlSpend(b,c,'Rachat : '+T.n) : metBuy(b,c,'Rachat d’un avion loué : '+T.n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  p.own=1; p.dep=0; return ok(T.n+' racheté '+eur(c,0)+' : il n’y a plus de loyer.'); }
+MET.airline.goal=function(b){ const H=alNextHub(b); if(H) return {n:'Place dans la tour : '+H.n, c:alHubCost(H.id), act:'hub', arg:H.id}; const x=alLeasedOnGood(b); return x? {n:AL_TY[x.p.t].n+' racheté', c:alBuyOutCost(x.p)} : null; };
 function alData(){ return {AL_AP, AL_CO, AL_TY}; }
 
 /* ============================================================
@@ -11882,6 +11889,7 @@ MET.shipping={
     occ:(b,t)=>shGet(b,t,'occ'),
     yard:(b,t)=>shGet(b,t,'new'),
     drop:(b,id)=>shDrop(b,+id),
+    own:(b,id)=>shBuyOut(b,+id),
     charter:(b,arg)=>{ const [oid,pid]=String(arg).split(':'); return shCharter(b,+oid,+pid); },
     usn:(b,v)=>{ b.m.usn= v===undefined? (b.m.usn?0:1) : (+v?1:0); return ok(b.m.usn? 'Vos usines expédient par vos navires.' : 'Vos usines utilisent d’autres transporteurs.'); },
     ins:(b,v)=>{ b.m.ins= v===undefined? (b.m.ins?0:1) : (+v?1:0); return ok(b.m.ins? 'Flotte assurée.' : 'Assurance résiliée.'); },
@@ -11976,9 +11984,14 @@ function shNewLine(b,q){ const m=b.m; const cands=[]; m.tm.forEach(h=>shDests(b,
   const r=shGet(b,'p5',own?'occ':'lease',true); if(!r.ok) return false; const p=m.fl[m.fl.length-1]; return shOpen(b,sc[k][1][0],sc[k][1][1],p.id).ok; }
 function shInvest(b){ const m=b.m, T=shNextTm(b);
   if(T&&shBuyTm(b,T.id,true).ok) return true;
-  const x=shLeasedOnGood(b); if(!x) return false; const c=SH_TY[x.p.t].pr*SH_OCC; if(!dlCan(b,c,'Rachat d’un navire')) return false;
-  const r=shGet(b,x.p.t,'occ',true); if(!r.ok) return false; const n=m.fl[m.fl.length-1]; x.p.ln=0; n.ln=x.l.id; shDrop(b,x.p.id); metLog(b,'le directeur rachète d’occasion le '+SH_TY[n.t].n+' de la ligne '+shPt(x.l.a).n+' – '+shPt(x.l.b).n+'.',''); return true; }
-MET.shipping.goal=function(b){ const m=b.m; if(m.tm.length&&m.tm.every(h=>shTmUsed(b,h)>=shTmCap(b,h))){ const h=m.tm[0]; if((m.ext&&m.ext[h]||0)<3) return {n:'Quais à '+shPt(h).n, c:shExtCost(b,h), act:'ext', arg:h}; } const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id), act:'tm', arg:T.id}; const x=shLeasedOnGood(b); return x? {n:SH_TY[x.p.t].n+' d’occasion', c:SH_TY[x.p.t].pr*SH_OCC} : null; };
+  const x=shLeasedOnGood(b); if(!x) return false; const c=shBuyOutCost(x.p); if(!dlCan(b,c,'Rachat d’un navire')) return false;
+  if(!shBuyOut(b,x.p.id,true).ok) return false; metLog(b,'le directeur rachète le '+SH_TY[x.p.t].n+' loué de la ligne '+shPt(x.l.a).n+' – '+shPt(x.l.b).n+'.',''); return true; }
+/* V2.4.9 : rachat d'un navire loué au prix de l'occasion, moins le dépôt ; il garde sa ligne et devient un navire d'occasion */
+const shBuyOutCost = p => Math.max(0,SH_TY[p.t].pr*SH_OCC-(p.dep||0));
+function shBuyOut(b,id,auto){ const m=b.m, p=m.fl.find(x=>x.id===id); if(!p) return err('Navire introuvable.'); if(p.own) return err('Ce navire vous appartient déjà.'); const T=SH_TY[p.t], c=shBuyOutCost(p);
+  if(!(auto? dlSpend(b,c,'Rachat : '+T.n) : metBuy(b,c,'Rachat d’un navire loué : '+T.n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
+  p.own=1; p.occ=1; p.dep=0; return ok(T.n+' racheté '+eur(c,0)+' : il n’y a plus de loyer.'); }
+MET.shipping.goal=function(b){ const m=b.m; if(m.tm.length&&m.tm.every(h=>shTmUsed(b,h)>=shTmCap(b,h))){ const h=m.tm[0]; if((m.ext&&m.ext[h]||0)<3) return {n:'Quais à '+shPt(h).n, c:shExtCost(b,h), act:'ext', arg:h}; } const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id), act:'tm', arg:T.id}; const x=shLeasedOnGood(b); return x? {n:SH_TY[x.p.t].n+' racheté', c:shBuyOutCost(x.p)} : null; };
 function shData(){ return {SH_PT, SH_TY, SH_RG, SH_NB}; }
 
 /* ============================================================
@@ -16765,13 +16778,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.4.8';
+const IB_VER='V2.4.9';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Racheter avions et navires loués','Dans la flotte de la compagnie aérienne et de la compagnie maritime, chaque appareil loué peut être racheté sans quitter sa ligne : 90 % du prix neuf pour un avion, le prix de l’occasion pour un navire, dépôt de garantie déduit. Le loyer s’arrête aussitôt.','V2.4.9'],
   ['Un seul mode sombre, tout en noir','Le mode sombre n’a plus qu’un style : fond noir et surfaces gris neutre, sans aucune teinte bleue, y compris dans les fiches de société.','V2.4.8'],
   ['Globe, mode sombre noir, luxe et banque','Le réseau de la compagnie aérienne et de la compagnie maritime s’affiche sur un globe terrestre que l’on fait tourner du doigt ; les navires suivent de vraies routes maritimes. Toutes les fiches de société gardent leurs couleurs sur les onglets Équipe, Finances et Réglages, et ont un mode sombre. Le thème sombre passe au noir, sans teinte bleue. Le prestige a sept rangs avec des effets affichés (ventes des sociétés de luxe et des hôtels, taux d’emprunt) et un gala ; l’écran Luxe devient une vitrine par catégorie avec la cote sur un an. La banque regroupe votre compte, votre note de crédit, vos emprunts et votre livret. Le responsable des contrats ne signe plus que ce que vos usines peuvent livrer une fois vos propres sociétés servies. Les longues listes se replient partout.','V2.4.7'],
   ['Tout dans la fiche','Ouvrir une ligne, ajouter un navire ou un avion, affréter un navire et suivre la vente aux enchères en direct se font désormais dans la fiche, sans fenêtre. Les longues listes (lignes, contrats, locataires, offres, terminaux…) n’affichent que les premiers éléments, avec « Afficher les autres » pour dérouler la suite.','V2.4.7'],
@@ -20585,8 +20599,8 @@ FX2.shipping={
     let h=nfSec('La carte des lignes','vos navires en mer')+glbHtml('sh'+b.id,G,{l:'Globe : terminaux et lignes de la compagnie',leg:'<span><i class="h"></i>Terminal</span><span><i></i>Escale</span>'+(m.fl.some(f=>f.ch)?'<span><i class="l" style="background:#fff"></i>Affrètement</span>':'')});
     const kk=t=>{ const T=SH_TY[t]; return !T? 'pc' : T.k==='bulk'? 'vr' : T.k==='tank'? 'pt' : 'pc'; };
     h+=nfSec('La flotte',plu(m.fl.length,'navire'))+'<div class="sh2-fl">'+m.fl.map((f,i)=>{ const T=SH_TY[f.t]||{n:f.t,d:''}, L=m.ln.find(l=>l.id===f.ln);
-      return '<div class="sh2-s"><div class="im">'+NFA.ship.ship(kk(f.t),132,i%2?'#C8352A':'#1F4E8A')+'</div><b>'+esc(T.n)+'</b><small>'+esc(T.d)+'</small><small>'+esc(shShipState(m,f))+'</small>'+(f.ch||f.yard>S.day? '' : '<button class="btn nf-b w" style="margin-top:6px;font-size:12px" data-a="met" data-i="'+b.id+'" data-v="drop" data-j="'+f.id+'">'+(f.own?'Revendre · '+eur(shResale(f),0):'Rendre')+'</button>')+'</div>'; }).join('')+'</div>';
-    ['price','off','close','drop','lease','occ','yard','tm','ext'].forEach(a=>X.get(a)); const can=x=>mAvail(b)>=x;
+      return '<div class="sh2-s"><div class="im">'+NFA.ship.ship(kk(f.t),132,i%2?'#C8352A':'#1F4E8A')+'</div><b>'+esc(T.n)+'</b><small>'+esc(T.d)+'</small><small>'+esc(shShipState(m,f))+'</small>'+(f.ch||f.yard>S.day? '' : '<button class="btn nf-b w" style="margin-top:6px;font-size:12px" data-a="met" data-i="'+b.id+'" data-v="drop" data-j="'+f.id+'">'+(f.own?'Revendre · '+eur(shResale(f),0):'Rendre')+'</button>')+(f.own||f.yard>S.day? '' : '<button class="btn nf-b a w" style="margin-top:6px;font-size:12px" data-a="met" data-i="'+b.id+'" data-v="own" data-j="'+f.id+'"'+(mAvail(b)<shBuyOutCost(f)?' disabled':'')+'>Racheter · '+eur(shBuyOutCost(f),0)+'</button>')+'</div>'; }).join('')+'</div>';
+    ['price','off','close','drop','own','lease','occ','yard','tm','ext'].forEach(a=>X.get(a)); const can=x=>mAvail(b)>=x;
     const Bt=(lab,act,arg,o)=>{ o=o||{}; return '<button class="btn nf-b'+(o.a?' a':'')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o.dis?' disabled':'')+'>'+lab+'</button>'; };
     const EV={suez:'Suez fermé · détour par le Cap', pan:'Panama restreint · détour par le cap Horn', fuel:'Fioul 30 % plus cher'};
     const evs=(m.ev||[]).filter(e=>EV[e.k]&&e.until>=S.day);
@@ -20677,8 +20691,8 @@ FX2.airline={
       h+=nfSec('Le réseau',m.ln.length? plu(m.ln.length,'ligne') : 'aucune ligne')+glbHtml('al'+b.id,G,{l:'Globe : plateformes et lignes de la compagnie',leg:'<span><i class="h"></i>Plateforme</span><span><i></i>Destination</span>'}); }
     const kk=t=>t==='r70'?'region':t==='m180'?'moyen':'long';
     h+=nfSec('La flotte',plu(m.fl.length,'avion'))+'<div class="al2-fleet">'+m.fl.map(f=>{ const T=AL_TY[f.t]||{n:f.t,d:'',seats:0}, l=m.ln.find(x=>x.id===f.ln);
-      return '<div class="al2-pl"><div class="im">'+NFA.plane.plane(kk(f.t),150,'#C8102E')+'</div><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+T.seats+' sièges</small><small>'+(f.down>S.day?'en maintenance':l&&alAp(l.b)? 'vers '+esc(alAp(l.b).n) : 'au sol')+(f.own?' · acheté':' · loué')+'</small><button class="btn nf-b w" style="margin-top:6px;font-size:12px" data-a="met" data-i="'+b.id+'" data-v="drop" data-j="'+f.id+'">'+(f.own?'Revendre · '+eur(T.pr*.7,0):'Rendre')+'</button></div>'; }).join('')+'</div>';
-    ['price','cab','close','drop','lease','buy','hub','ext'].forEach(a=>X.get(a)); const can=x=>mAvail(b)>=x;
+      return '<div class="al2-pl"><div class="im">'+NFA.plane.plane(kk(f.t),150,'#C8102E')+'</div><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+T.seats+' sièges</small><small>'+(f.down>S.day?'en maintenance':l&&alAp(l.b)? 'vers '+esc(alAp(l.b).n) : 'au sol')+(f.own?' · acheté':' · loué')+'</small><button class="btn nf-b w" style="margin-top:6px;font-size:12px" data-a="met" data-i="'+b.id+'" data-v="drop" data-j="'+f.id+'">'+(f.own?'Revendre · '+eur(T.pr*.7,0):'Rendre')+'</button>'+(f.own? '' : '<button class="btn nf-b a w" style="margin-top:6px;font-size:12px" data-a="met" data-i="'+b.id+'" data-v="own" data-j="'+f.id+'"'+(mAvail(b)<alBuyOutCost(f)?' disabled':'')+'>Racheter · '+eur(alBuyOutCost(f),0)+'</button>')+'</div>'; }).join('')+'</div>';
+    ['price','cab','close','drop','own','lease','buy','hub','ext'].forEach(a=>X.get(a)); const can=x=>mAvail(b)>=x;
     const Bt=(lab,act,arg,o)=>{ o=o||{}; return '<button class="btn nf-b'+(o.a?' a':'')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o.dis?' disabled':'')+'>'+lab+'</button>'; };
     h+=nfSec('Les lignes',m.ln.length? m.ln.length+' en service' : 'aucune ligne')+'<div class="nf-mr" data-k="alln" data-n="3">'+m.ln.map(l=>{ const x=l.st||alLineDay(b,l,true), P=m.fl.filter(p=>p.ln===l.id), d=alDist(l.a,l.b), on=ui.lnG===l.id, lf=x.lf||0;
       return '<div class="al2-ln"><div class="nf-row"><span><b>'+esc(alAp(l.a).n)+' → '+esc(alAp(l.b).n)+'</b><small>'+fmtN(d,0)+' km · '+P.map(p=>AL_TY[p.t].n).join(', ')+' · '+(x.legs||0)+' vols par jour'+(x.strike?' · grève':'')+'</small></span><span class="px"><b class="'+cls(x.net||0)+'">'+signed(x.net||0,0)+'</b><small>par jour</small></span></div>'+
