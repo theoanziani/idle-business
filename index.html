@@ -2887,6 +2887,8 @@ function renameBiz(b,name){
   const n=cleanBizName(name); if(n.length<2) return err('Le nom doit faire au moins 2 caractères.');
   const old=b.name; b.name=n; log('info','« '+old+' » s’appelle désormais « '+n+' ».'); return ok('Société renommée.');
 }
+/* V2.4.9 : cible de l'image de marque (compagnies aérienne et maritime) : 30 + facteurs, plafonnée à 95 */
+const imgTarget = P => Math.min(95, 30+P.reduce((a,x)=>a+x[1],0));
 
 /* ============================================================
    CONCURRENCE : rivaux IA, guerres des prix, offres de rachat, débauchage
@@ -11578,8 +11580,7 @@ MET.airline = {
     const d=alDay(b,false); m.st=d; m.acc+=d.rev; m.accC+=(d.cost0||d.cost);
     /* image de marque : réseau, ponctualité, service */
     if(!m.d0) m.d0=S.day;
-    const tgt=30+Math.min(25,(S.day-m.d0)/360*6)+Math.min(6,m.ln.length*.3)+(m.sal?6:0)+(m.fid?4:0)+(m.ali?4:0)+(d.lf>.75?4:d.lf<.45?-4:0)-(m.ev&&(m.ev.k==='gr'||m.ev.k==='pn')?6:0);
-    m.img=clamp(m.img+(Math.min(95,tgt)-m.img)/400,0,100);
+    m.img=clamp(m.img+(imgTarget(alImgParts(b))-m.img)/400,0,100);
     /* événements */
     if(!m.ev){ const r=rnd(), mo=Math.floor(((S.day-1)%360)/30);
       if(mo===6&&!alEv(m,'ete')&&r<.2){ m.ev={k:'ete', until:S.day+55}; metLog(b,'vacances d’été : 25 % de passagers en plus vers les destinations de loisirs.','good'); }
@@ -11691,11 +11692,18 @@ function alBuyOut(b,id,auto){ const m=b.m, p=m.fl.find(x=>x.id===id); if(!p) ret
 MET.airline.goal=function(b){ const H=alNextHub(b); if(H) return {n:'Place dans la tour : '+H.n, c:alHubCost(H.id), act:'hub', arg:H.id}; const x=alLeasedOnGood(b); return x? {n:AL_TY[x.p.t].n+' racheté', c:alBuyOutCost(x.p)} : null; };
 function alData(){ return {AL_AP, AL_CO, AL_TY}; }
 
+/* V2.4.9 : image de marque, détail des facteurs (même calcul que la journée) ; [libellé, points, acquis?] */
+function alImgParts(b){ const m=b.m, d=m.st||{}, ev=m.ev&&(m.ev.k==='gr'||m.ev.k==='pn'), lf=d.lf||0;
+  return [['Ancienneté',Math.min(25,(S.day-(m.d0||S.day))/360*6),1,'jusqu’à +25 en quatre ans'],['Réseau ('+plu(m.ln.length,'ligne')+')',Math.min(6,m.ln.length*.3),1,'jusqu’à +6'],
+    ['Salons à l’aéroport',m.sal?6:0,!!m.sal,'+6'],['Programme de fidélité',m.fid?4:0,!!m.fid,'+4'],['Alliance de compagnies',m.ali?4:0,!!m.ali,'+4'],
+    ['Remplissage',lf>.75?4:lf<.45?-4:0,1,'+4 au-dessus de 75 %, −4 sous 45 %'],['Grève ou panne',ev?-6:0,1,'−6 pendant l’incident']]; }
+const alImgShare = img => clamp(.22+img/250,.1,.7);
+
 /* ============================================================
    COMPAGNIE MARITIME (V1.4.9)
    - Terminaux : une place à quai dans un grand port permet d'en faire partir des lignes régulières
      vers les ports de sa région ou des régions voisines, et des lignes intercontinentales vers vos
-     autres terminaux. Chaque terminal demande de l'argent et une réputation minimale.
+     autres terminaux. Chaque terminal demande de l'argent et une image de marque minimale.
    - Lignes de porte-conteneurs : des navires tournent entre deux ports ; la capacité dépend du
      nombre de navires et de la durée d'une rotation, la demande de la taille des ports.
    - Affrètement : des chargeurs proposent des voyages de vrac ou de pétrole, payés selon un indice
@@ -11858,17 +11866,15 @@ MET.shipping={
       if(p.ch&&p.ch.end<=S.day){ m.chn=(m.chn||0)+1; metLog(b,'voyage d’affrètement terminé ('+p.ch.c+', '+shPt(p.ch.a).n+' – '+shPt(p.ch.b).n+').','good'); p.ch=null; } });
     if(S.day%7===0) shOffers(b);
     const d=shDay(b); d.rev+=(m.uf||0); m.uf=0; m.st=d; m.acc+=d.rev; m.accC+=(d.cost0||d.cost);
-    /* réputation : années, réseau, terminaux, fiabilité */
+    /* image de marque : années, réseau, terminaux, fiabilité */
     if(!m.d0) m.d0=S.day;
-    const inc=(m.ev||[]).filter(e=>e.k==='pir'||e.k==='av').length;
-    const tgt=30+Math.min(24,(S.day-m.d0)/360*6)+Math.min(8,m.ln.length*.5)+Math.min(8,m.tm.length*1.2)+(m.ali?4:0)+(m.d2d?4:0)+(d.lf>.7?3:d.lf<.4?-3:0)-inc*4;
-    m.img=clamp(m.img+(Math.min(95,tgt)-m.img)/400,0,100);
+    m.img=clamp(m.img+(imgTarget(shImgParts(b))-m.img)/400,0,100);
     shRisks(b);
   },
   kpis(b){ const m=b.m, d=m.st||shDay(b), busy=m.fl.filter(p=>p.ch).length;
     return [['Conteneurs / jour', fmtN(Math.round(d.teu))+' EVP', m.ln.length+' ligne'+(m.ln.length>1?'s':'')+' · remplissage '+Math.round((d.lf||0)*100)+' %'],
             ['Affrètement', busy+' voyage'+(busy>1?'s':'')+' en cours', 'Indice du vrac '+Math.round(m.bi*100)],
-            ['Réputation', Math.round(m.img)+' / 100', m.tm.length+' terminal'+(m.tm.length>1?'s':'')],
+            ['Image de marque', Math.round(m.img)+' / 100', m.tm.length+' terminal'+(m.tm.length>1?'s':'')],
             ['Fioul', eur(shBunk(m),0)+' / t', 'Indice conteneurs '+Math.round(m.ci*100)]];
   },
   ctl(b){ const m=b.m, d=bizDef(b), out=[];
@@ -11904,7 +11910,7 @@ MET.shipping={
 function shBuyR(b,k,f,label,rk,auto){ const m=b.m; if(!mxHas(b,rk)) return err('Palier '+rk+' requis.'); if(m[k]) return err('Déjà fait.'); const c=bizCost0(b)*f;
   if(!(auto? dlSpend(b,c,label) : metBuy(b,c,label))) return err('Trésorerie insuffisante : '+eur(c,0)+'.'); m[k]=1; metLog(b,label.toLowerCase()+' : c’est fait.','good'); return ok(label+' : c’est fait.'); }
 function shBuyTm(b,id,auto){ const m=b.m, P=shPt(id); if(!P||!P.tm) return err('Port inconnu.'); if(m.tm.includes(id)) return err('Vous y avez déjà un terminal.');
-  const req=shTmReq(b,id); if(m.img<req) return err('Réputation insuffisante : '+req+' requis ('+Math.round(m.img)+' aujourd’hui).');
+  const req=shTmReq(b,id); if(m.img<req) return err('Image de marque insuffisante : '+req+' requis ('+Math.round(m.img)+' aujourd’hui).');
   const c=shTmCost(id); if(!(auto? dlSpend(b,c,'Terminal : '+P.n) : metBuy(b,c,'Terminal à '+P.n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
   m.tm.push(id); metLog(b,'nouveau terminal à '+P.n+'.','good'); return ok('Vous pouvez maintenant ouvrir des lignes depuis '+P.n+'.'); }
 function shExt(b,id,auto){ const m=b.m; if(!m.tm.includes(id)) return err('Achetez d’abord un terminal.'); m.ext=m.ext||{}; const n=m.ext[id]||0; if(n>=3) return err('Quais au maximum à '+shPt(id).n+'.');
@@ -11993,6 +11999,13 @@ function shBuyOut(b,id,auto){ const m=b.m, p=m.fl.find(x=>x.id===id); if(!p) ret
   p.own=1; p.occ=1; p.dep=0; return ok(T.n+' racheté '+eur(c,0)+' : il n’y a plus de loyer.'); }
 MET.shipping.goal=function(b){ const m=b.m; if(m.tm.length&&m.tm.every(h=>shTmUsed(b,h)>=shTmCap(b,h))){ const h=m.tm[0]; if((m.ext&&m.ext[h]||0)<3) return {n:'Quais à '+shPt(h).n, c:shExtCost(b,h), act:'ext', arg:h}; } const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id), act:'tm', arg:T.id}; const x=shLeasedOnGood(b); return x? {n:SH_TY[x.p.t].n+' racheté', c:shBuyOutCost(x.p)} : null; };
 function shData(){ return {SH_PT, SH_TY, SH_RG, SH_NB}; }
+
+/* V2.4.9 : image de marque, détail des facteurs (même calcul que la journée) */
+function shImgParts(b){ const m=b.m, d=m.st||{}, lf=d.lf||0, inc=(m.ev||[]).filter(e=>(e.k==='pir'||e.k==='av')&&e.until>=S.day).length;
+  return [['Ancienneté',Math.min(24,(S.day-(m.d0||S.day))/360*6),1,'jusqu’à +24 en quatre ans'],['Réseau ('+plu(m.ln.length,'ligne')+')',Math.min(8,m.ln.length*.5),1,'jusqu’à +8'],['Terminaux ('+m.tm.length+')',Math.min(8,m.tm.length*1.2),1,'jusqu’à +8'],
+    ['Alliance maritime',m.ali?4:0,!!m.ali,'+4'],['Logistique porte-à-porte',m.d2d?4:0,!!m.d2d,'+4'],
+    ['Remplissage',lf>.7?3:lf<.4?-3:0,1,'+3 au-dessus de 70 %, −3 sous 40 %'],['Avaries et piraterie',-inc*4,1,'−4 par incident en cours']]; }
+const shImgShare = img => clamp(.2+img/260,.1,.65);
 
 /* ============================================================
    IMMEUBLE DE BUREAUX (V1.5.2)
@@ -16778,13 +16791,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.4.9';
+const IB_VER='V2.5.1';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Image de marque expliquée','Les compagnies aérienne et maritime affichent une carte « Image de marque » : la note, la cible vers laquelle elle va et à quel rythme, chaque facteur qui la fait monter ou baisser, la part de clientèle qu’elle vous apporte et les points qui manquent pour la prochaine plateforme ou le prochain terminal. La compagnie maritime parle désormais elle aussi d’image de marque, pour ne plus la confondre avec la réputation du groupe.','V2.5.1'],
   ['Racheter avions et navires loués','Dans la flotte de la compagnie aérienne et de la compagnie maritime, chaque appareil loué peut être racheté sans quitter sa ligne : 90 % du prix neuf pour un avion, le prix de l’occasion pour un navire, dépôt de garantie déduit. Le loyer s’arrête aussitôt.','V2.4.9'],
   ['Un seul mode sombre, tout en noir','Le mode sombre n’a plus qu’un style : fond noir et surfaces gris neutre, sans aucune teinte bleue, y compris dans les fiches de société.','V2.4.8'],
   ['Globe, mode sombre noir, luxe et banque','Le réseau de la compagnie aérienne et de la compagnie maritime s’affiche sur un globe terrestre que l’on fait tourner du doigt ; les navires suivent de vraies routes maritimes. Toutes les fiches de société gardent leurs couleurs sur les onglets Équipe, Finances et Réglages, et ont un mode sombre. Le thème sombre passe au noir, sans teinte bleue. Le prestige a sept rangs avec des effets affichés (ventes des sociétés de luxe et des hôtels, taux d’emprunt) et un gala ; l’écran Luxe devient une vitrine par catégorie avec la cote sur un an. La banque regroupe votre compte, votre note de crédit, vos emprunts et votre livret. Le responsable des contrats ne signe plus que ce que vos usines peuvent livrer une fois vos propres sociétés servies. Les longues listes se replient partout.','V2.4.7'],
@@ -17352,12 +17366,12 @@ MET.shipping.html=function(b){
     shBt(b,'Louer '+eur(T.ls,0)+' / j','lease',k,{c:'sm',dis:!can(T.ls*30)})+shBt(b,'Occasion '+eur(T.pr*SH_OCC,0),'occ',k,{c:'sm ghost',dis:!can(T.pr*SH_OCC)})+shBt(b,'Neuf '+eur(T.pr,0),'yard',k,{c:'sm ghost',dis:!can(T.pr)})+'</span></div>').join('')+'</div>'+
     '<div class="sub">Comment ça marche'+helpQ('Louer, occasion ou neuf','Location : dépôt de 30 jours de loyer, rendu à la fin. Occasion : disponible tout de suite, entretien plus cher, revente 35 %. Neuf : livré par le chantier naval en '+SH_YARD+' jours, revente 65 %.')+'</div>';
   /* terminaux */
-  h+='<div class="pk-head"><b>Ports et terminaux</b><span class="sub">Réputation '+Math.round(m.img)+' / 100</span></div>';
-  h+='<div class="sub">Comment ça marche'+helpQ('Ports et terminaux : fonctionnement','Un terminal dans un grand port permet d’en faire partir des lignes vers sa région et les régions voisines, et des lignes intercontinentales vers vos autres terminaux. Vos escales y coûtent moitié moins, et d’autres compagnies vous paient pour vos quais. La réputation monte avec les années, le réseau et la fiabilité.')+'</div>';
+  h+='<div class="pk-head"><b>Ports et terminaux</b><span class="sub">Image de marque '+Math.round(m.img)+' / 100</span></div>';
+  h+='<div class="sub">Comment ça marche'+helpQ('Ports et terminaux : fonctionnement','Un terminal dans un grand port permet d’en faire partir des lignes vers sa région et les régions voisines, et des lignes intercontinentales vers vos autres terminaux. Vos escales y coûtent moitié moins, et d’autres compagnies vous paient pour vos quais. L’image de marque monte avec les années, le réseau et la fiabilité.')+'</div>';
   Object.keys(SH_RG).forEach(rg=>{ const L=Object.values(SH_PT).filter(a=>a.tm&&a.rg===rg); if(!L.length) return;
     h+='<div class="tag">'+SH_RG[rg]+'</div><div class="ht-t">'+L.map(a=>{ const own=m.tm.includes(a.id), req=shTmReq(b,a.id), c=shTmCost(a.id);
       if(own){ const n=(m.ext&&m.ext[a.id])||0; return '<div class="rs-d"><div><b>'+esc(a.n)+'</b><small>Votre terminal · '+shTmUsed(b,a.id)+' / '+shTmCap(b,a.id)+' lignes</small><div class="fm-a">'+(n<3? shBt(b,'Quais : '+eur(shExtCost(b,a.id),0),'ext',a.id,{c:'sm',dis:!can(shExtCost(b,a.id))}) : pill('Quais au maximum','good'))+'</div></div></div>'; }
-      return '<div class="rs-d"><div><b>'+esc(a.n)+'</b><small>'+fmtN(a.sz,1)+' M d’EVP par an · réputation '+req+' requise</small><div class="fm-a">'+shBt(b,'Acheter : '+eur(c,0),'tm',a.id,{c:'sm',dis:m.img<req||!can(c)})+'</div></div></div>'; }).join('')+'</div>'; });
+      return '<div class="rs-d"><div><b>'+esc(a.n)+'</b><small>'+fmtN(a.sz,1)+' M d’EVP par an · image '+req+' requise</small><div class="fm-a">'+shBt(b,'Acheter : '+eur(c,0),'tm',a.id,{c:'sm',dis:m.img<req||!can(c)})+'</div></div></div>'; }).join('')+'</div>'; });
   if(m.uft) h+='<div class="sub">Fret de vos usines transporté depuis l’ouverture : '+eur(m.uft,0)+'.</div>';
   return h;
 };
@@ -20621,10 +20635,12 @@ FX2.shipping={
     h+=nfSec('Les chantiers navals','louer, occasion ou neuf')+'<div class="sh2-ty">'+'<div class="nf-mr" data-k="shty" data-n="1">'+Object.entries(SH_TY).map(([k,T])=>'<div><span class="im">'+NFA.ship.ship(T.k==='bulk'?'vr':T.k==='tank'?'pt':'pc',120,'#1F4E8A')+'</span><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+(T.k==='box'? fmtN(T.cap,0)+' EVP' : fmtN(T.cap,0)+' t')+' · '+T.kn+' nœuds</small><div class="sh2-ac">'+Bt('Louer · '+eur(T.ls,0)+' / j','lease',k,{a:1,dis:!can(T.ls*30)})+Bt('Occasion · '+eur(T.pr*SH_OCC,0),'occ',k,{dis:!can(T.pr*SH_OCC)})+Bt('Neuf · '+eur(T.pr,0),'yard',k,{dis:!can(T.pr)})+'</div></div>').join('')+'</div>'+'</div>'+
       '<div class="nf-row" style="margin:6px 4px 0"><small>Location : dépôt de 30 jours de loyer, rendu à la fin. Occasion : tout de suite, entretien plus cher, revente 35 %. Neuf : livré en '+SH_YARD+' jours, revente 65 %.</small></div>';
     /* terminaux */
-    h+=nfSec('Ports et terminaux','réputation '+Math.round(m.img)+' / 100')+'<div class="nf-card nf-list">'+'<div class="nf-mr grp" data-k="shrg" data-n="1">'+Object.keys(SH_RG).sort((r1,r2)=>(Object.values(SH_PT).some(a2=>a2.rg===r2&&m.tm.includes(a2.id))?1:0)-(Object.values(SH_PT).some(a2=>a2.rg===r1&&m.tm.includes(a2.id))?1:0)).map(rg=>{ const L=Object.values(SH_PT).filter(a2=>a2.tm&&a2.rg===rg); if(!L.length) return '';
+    { const nx=Object.values(SH_PT).filter(a=>a.tm&&!m.tm.includes(a.id)).map(a=>[a,shTmReq(b,a.id)]).filter(x=>x[1]>m.img).sort((x,y)=>x[1]-y[1])[0];
+      h+=nfSec('Image de marque','ce que pensent les chargeurs')+nfImgCard(m.img,shImgParts(b),shImgShare,nx? 'Prochain terminal à <b>'+nx[1]+'</b> : encore '+plu(Math.ceil(nx[1]-m.img),'point')+'.' : '','conteneurs'); }
+    h+=nfSec('Ports et terminaux','image de marque '+Math.round(m.img)+' / 100')+'<div class="nf-card nf-list">'+'<div class="nf-mr grp" data-k="shrg" data-n="1">'+Object.keys(SH_RG).sort((r1,r2)=>(Object.values(SH_PT).some(a2=>a2.rg===r2&&m.tm.includes(a2.id))?1:0)-(Object.values(SH_PT).some(a2=>a2.rg===r1&&m.tm.includes(a2.id))?1:0)).map(rg=>{ const L=Object.values(SH_PT).filter(a2=>a2.tm&&a2.rg===rg); if(!L.length) return '';
       return '<div class="sh2-rg">'+esc(SH_RG[rg])+'</div>'+L.map(a2=>{ const own=m.tm.includes(a2.id), req=shTmReq(b,a2.id), c=shTmCost(a2.id);
         if(own){ const n=(m.ext&&m.ext[a2.id])||0; return nfRowH(esc(a2.n),'votre terminal · '+shTmUsed(b,a2.id)+' / '+shTmCap(b,a2.id)+' lignes',n<3? Bt('Quais · '+eur(shExtCost(b,a2.id),0),'ext',a2.id,{dis:!can(shExtCost(b,a2.id))}) : '<span class="nf-ok">Au maximum</span>'); }
-        return nfRowH(esc(a2.n),fmtN(a2.sz,1)+' M d’EVP par an · réputation '+req+' requise',Bt(eur(c,0),'tm',a2.id,{dis:m.img<req||!can(c)})); }).join(''); }).join('')+'</div>'+'</div>'+
+        return nfRowH(esc(a2.n),fmtN(a2.sz,1)+' M d’EVP par an · image '+req+' requise',Bt(eur(c,0),'tm',a2.id,{dis:m.img<req||!can(c)})); }).join(''); }).join('')+'</div>'+'</div>'+
       '<div class="nf-row" style="margin:6px 4px 0"><small>Un terminal permet d’ouvrir des lignes vers sa région et les régions voisines, et des lignes intercontinentales vers vos autres terminaux. Vos escales y coûtent moitié moins.'+(m.uft?' Fret de vos usines transporté : '+eur(m.uft,0)+'.':'')+'</small></div>';
     h+=nfRest(b,X,'Décisions'); return h; }
 };
@@ -20702,6 +20718,9 @@ FX2.airline={
       '<button class="btn nf-b a w" style="margin-top:8px" data-a="alnew" data-i="'+b.id+'">Ouvrir une ligne</button>';
     h+=nfSec('Louer ou acheter','dépôt de 30 jours pour une location')+'<div class="sh2-ty">'+'<div class="nf-mr" data-k="alty" data-n="1">'+Object.entries(AL_TY).map(([k,T])=>'<div><span class="im al">'+NFA.plane.plane(k==='r70'?'region':k==='m180'?'moyen':'long',150,'#C8102E')+'</span><b>'+esc(T.n)+'</b><small>'+esc(T.d)+' · '+T.seats+' places · '+fmtN(T.rg,0)+' km</small><div class="sh2-ac">'+Bt('Louer · '+eur(T.ls,0)+' / j','lease',k,{a:1,dis:!can(T.ls*30)})+Bt('Acheter · '+eur(T.pr,0),'buy',k,{dis:!can(T.pr)})+'</div></div>').join('')+'</div>'+'</div>'+
       '<div class="nf-row" style="margin:6px 4px 0"><small>Un avion acheté ne paie que son entretien et se revend 70 % de son prix.</small></div>';
+    { const nx=Object.values(AL_AP).filter(a=>a.hub&&!m.hubs.includes(a.id)).map(a=>[a,alHubReq(b,a.id)]).filter(x=>x[1]>m.img).sort((x,y)=>x[1]-y[1])[0];
+      h+=nfSec('Image de marque','ce que pensent les voyageurs')+nfImgCard(m.img,alImgParts(b),alImgShare,nx? 'Prochaine place dans une tour à <b>'+nx[1]+'</b> : encore '+plu(Math.ceil(nx[1]-m.img),'point')+'.' : '',
+        'voyageurs'); }
     h+=nfSec('Les tours de contrôle','image de marque '+Math.round(m.img)+' / 100')+'<div class="nf-card nf-list">'+'<div class="nf-mr grp" data-k="alct" data-n="1">'+Object.keys(AL_CT).sort((c1,c2)=>(m.hubs.some(h=>AL_CO[alAp(h).co].ct===c2)?1:0)-(m.hubs.some(h=>AL_CO[alAp(h).co].ct===c1)?1:0)).map(ct=>{ const L=Object.values(AL_AP).filter(a2=>a2.hub&&AL_CO[a2.co].ct===ct); if(!L.length) return '';
       return '<div class="sh2-rg" style="color:#C8102E">'+esc(AL_CT[ct])+'</div>'+L.map(a2=>{ const own=m.hubs.includes(a2.id), req=alHubReq(b,a2.id), c=alHubCost(a2.id);
         if(own){ const n=(m.ext&&m.ext[a2.id])||0; return nfRowH(esc(a2.n),esc(AL_CO[a2.co].n)+' · '+alHubUsed(b,a2.id)+' / '+alHubCap(b,a2.id)+' lignes',n<3? Bt('Créneaux · '+eur(alExtCost(b,a2.id),0),'ext',a2.id,{dis:!can(alExtCost(b,a2.id))}) : '<span class="nf-ok">Au maximum</span>'); }
@@ -20712,6 +20731,27 @@ FX2.airline={
 
 /* les parcours maritimes et aériens restent dans la fiche */
 nfFlowWrap(['shnew','shnewa','shnewb','shnewgo','shadd','shaddgo','shch','shchgo','alnew','alnewa','alnewb','alnewgo','aladd','aladdgo']);
+
+/* V2.4.9 : carte « Image de marque » commune aux compagnies aérienne et maritime */
+function nfImgCard(img,P,share,next,unit){ const t=imgTarget(P), d30=(t-img)*(1-Math.pow(1-1/400,30)), sh=share(img), up=Math.round(img/10)*10+10<=100? Math.min(100,Math.ceil((img+.01)/10)*10) : 100;
+  const col=img>=70?'#2BB673':img>=45?'#F2C94C':'#E07A1F';
+  let h='<div class="nf-card im2"><div class="im2-top"><div class="im2-g"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="27" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="7"/><circle cx="32" cy="32" r="27" fill="none" stroke="'+col+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+(img/100*169.6).toFixed(1)+' 170" transform="rotate(-90 32 32)"/></svg><b>'+Math.round(img)+'</b><small>sur 100</small></div>'+
+    '<div class="im2-t"><b>'+(Math.abs(t-img)<.5? 'Stable à '+Math.round(t) : (t>img? 'Monte vers ' : 'Baisse vers ')+Math.round(t))+'</b><small>'+(Math.abs(d30)>=.1? (d30>0?'+':'')+fmtN(d30,1)+' point en 30 jours au rythme actuel' : 'L’image a atteint sa cible.')+'</small>'+
+    '<small>Vous attirez <b>'+Math.round(sh*100)+' %</b> des '+unit+' de vos lignes au prix normal'+(up>img&&up<=100? ' ; à '+up+', ce serait '+Math.round(share(up)*100)+' %' : '')+'.</small></div></div>';
+  h+='<div class="im2-f">'+P.map(([l,v,on,how])=>{ v=(Math.round(v*10)/10)||0; return '<div class="im2-r'+(on?'':' off')+'"><span>'+esc(l)+(on? '' : '<small>à acheter dans les options</small>')+'</span><b class="'+(v>0?'pos':v<0?'neg':'')+'">'+(on? (v>0?'+':'')+fmtN(v,v%1?1:0) : esc(how))+'</b></div>'; }).join('')+'<div class="im2-r tot"><span>Cible (base 30, plafond 95)</span><b>'+Math.round(t)+'</b></div></div>';
+  if(next) h+='<div class="im2-nx">'+next+'</div>';
+  return h+'</div>'; }
+NF_CSS.push(`
+.im2-top{display:flex;gap:14px;align-items:center}
+.im2-g{position:relative;width:72px;height:72px;flex:0 0 auto}.im2-g svg{width:100%;height:100%}
+.im2-g b{position:absolute;left:0;right:0;top:19px;text-align:center;font:800 22px var(--nf-df,var(--fd));color:var(--nf-h)}.im2-g small{position:absolute;left:0;right:0;top:44px;text-align:center;font:700 9.5px var(--fb);color:var(--ink-3)}
+.im2-t{min-width:0}.im2-t>b{display:block;font:800 16px var(--fb);color:var(--nf-h)}.im2-t small{display:block;font-size:12.5px;color:var(--ink-2);margin-top:3px}.im2-t small b{color:var(--nf-h)}
+.im2-f{margin-top:12px;border-top:1px solid var(--nf-bg2)}
+.im2-r{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--nf-bg2);font-size:13px}
+.im2-r small{display:block;font-size:11px;color:var(--ink-3)}.im2-r.off{color:var(--ink-3)}.im2-r.off b{font-weight:700;color:var(--ink-3)}
+.im2-r b.pos{color:#16804D}.im2-r b.neg{color:#C8352A}.im2-r.tot{border-bottom:0;font-weight:800}
+.im2-nx{margin-top:8px;padding:9px 11px;border-radius:12px;background:var(--nf-bg);font-size:12.5px;color:var(--ink-2)}
+`);
 
 /* ============================================================
    V2.4.8 : GLOBE TERRESTRE INTERACTIF (compagnie aérienne, compagnie maritime)
