@@ -11249,11 +11249,22 @@ function dcAuto(b,mode,q){ const m=b.m, d=bizDef(b);
   /* rééquilibre : déplace un client d'une salle trop chaude */
   m.rm.forEach(r=>{ if(dcLoad(b,r,true)>dcCoolKw(b,r)){ const c=m.cl.filter(x=>x.rm===r.id).sort((x,y)=>y.racks*y.util-x.racks*x.util)[0]; const t=c&&m.rm.filter(x=>x!==r&&dcUsed(b,x)+c.racks<=DC_SLOTS).sort((x,y)=>(dcCoolKw(b,y)-dcLoad(b,y,true))-(dcCoolKw(b,x)-dcLoad(b,x,true)))[0]; if(t&&dcCoolKw(b,t)-dcLoad(b,t,true)>c.racks*DC_RKW*c.util*1.25) MET.dc.acts.move(b,c.id+':'+t.id); } });
   if(mode!=='full'||S.day%7!==0) return;
-  if(dcSiteLoad(b)>m.pw*.8&&dlSpend(b,d.cost*.15,'Puissance électrique')) m.pw+=100;
-  const hot=m.rm.find(r=>dcLoad(b,r,true)>dcCoolKw(b,r)*.85&&r.cool==='air'); if(hot){ const k= mxHas(b,4)? 'imm' : dcColdF(b)>=.6? 'nat' : 'eau'; if(dlSpend(b,d.cost*DC_COOL[k].c,'Refroidissement')) hot.cool=k; }
-  const full=m.rm.every(r=>dcUsed(b,r)>=DC_SLOTS-3); if(full&&m.rm.length<6+b.lvl&&dlSpend(b,dcRoomCost(b),'Nouvelle salle')) m.rm.push({id:Math.max(...m.rm.map(r=>r.id))+1, cool:'air'});
-  for(const [k,f,l,rk] of [['intl',2,'Régions du monde',3],['sov',4,'Cloud souverain',5]]) if(!m[k]&&mxHas(b,rk)&&dcBuy(b,k,f,l,rk,true).ok) break;
+  /* V2.5.4 : jusqu'à 4 achats par semaine, dans l'ordre de dcNext (avant : salle seulement quand toutes étaient pleines,
+     refroidissement seulement depuis l'air, et aucun achat visé affiché) */
+  for(let k=0;k<4;k++){ const g=dcNext(b); if(!g||!dlCan(b,g.c,g.n)||!dlAct(b,g.c,()=>metAct(b,g.act,g.arg))) break; metLog(b,'Votre directeur : '+lc1(g.n)+' ('+eur(g.c,0)+').',''); }
 }
+/* prochain achat utile : puissance, refroidissement d'une salle chaude, nouvelle salle, puis régions et cloud souverain */
+function dcCoolWith(b,r,k){ const o=r.cool; r.cool=k; const kw=dcCoolKw(b,r); r.cool=o; return kw; }
+function dcNext(b){ const m=b.m, d=bizDef(b);
+  if(dcSiteLoad(b)>m.pw*.75) return {n:'Puissance électrique (+100 kW)', c:d.cost*.15, act:'pw', arg:''};
+  const hot=m.rm.map(r=>({r,u:dcLoad(b,r,true)/Math.max(1,dcCoolKw(b,r))})).filter(x=>x.u>.8).sort((x,y)=>y.u-x.u);
+  for(const {r} of hot){ const cur=dcCoolKw(b,r), opt=Object.keys(DC_COOL).filter(k=>k!==r.cool&&(!DC_COOL[k].rk||mxHas(b,DC_COOL[k].rk))&&(k!=='nat'||dcColdF(b)>=.3)&&dcCoolWith(b,r,k)>cur*1.15).sort((x,y)=>DC_COOL[x].c-DC_COOL[y].c)[0];
+    if(opt) return {n:'Refroidissement '+DC_COOL[opt].n.toLowerCase()+' en salle '+r.id, c:d.cost*DC_COOL[opt].c, act:'cool', arg:r.id+':'+opt}; }
+  const used=m.rm.reduce((a,r)=>a+dcUsed(b,r),0), cap=m.rm.length*DC_SLOTS, waiting=m.off.some(c=>{ const f=dcFit(b,c); return !f||f.head<0; });
+  if(m.rm.length<6+b.lvl&&!m.rm.some(r=>dcUsed(b,r)===0)&&(used>=cap*.7||waiting)) return {n:'Nouvelle salle', c:dcRoomCost(b), act:'room', arg:''};
+  for(const [k,f,l,rk] of [['intl',2,'Régions du monde',3],['sov',4,'Cloud souverain',5]]) if(!m[k]&&mxHas(b,rk)) return {n:l, c:d.cost*f, act:k, arg:''};
+  return null; }
+MET.dc.goal=function(b){ return dcNext(b); };
 
 /* ============================================================
    CONCESSION AUTOMOBILE (V1.2.7)
@@ -16793,13 +16804,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.5.3';
+const IB_VER='V2.5.4';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Le directeur du data center investit','En délégation totale, le directeur du data center achète lui-même ce qui manque : puissance électrique quand le site approche de sa limite, meilleur refroidissement pour les salles qui chauffent (eau glacée, naturel, puis immergé), nouvelle salle quand les baies se remplissent ou qu’un client ne trouve pas de place, puis les régions du monde et le cloud souverain. Son prochain achat s’affiche comme objectif.','V2.5.4'],
   ['Plus de messages de confirmation, directeur qui rachète','Les messages verts de confirmation ont disparu partout ; seuls les refus et les erreurs s’affichent. Le directeur d’une compagnie aérienne ou maritime rachète bien les appareils loués : il le fait avant d’ouvrir de nouvelles lignes, et dès que sa réserve couvre le rachat visé, priorité du groupe comprise.','V2.5.3'],
   ['Recrutement sans messages','Embaucher un candidat, compléter une équipe ou chercher d’autres profils n’affiche plus de message de confirmation. Les refus restent signalés.','V2.5.2'],
   ['Image de marque expliquée','Les compagnies aérienne et maritime affichent une carte « Image de marque » : la note, la cible vers laquelle elle va et à quel rythme, chaque facteur qui la fait monter ou baisser, la part de clientèle qu’elle vous apporte et les points qui manquent pour la prochaine plateforme ou le prochain terminal. La compagnie maritime parle désormais elle aussi d’image de marque, pour ne plus la confondre avec la réputation du groupe.','V2.5.1'],
