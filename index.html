@@ -9473,15 +9473,24 @@ function fmAuto(b,mode,q){
   if(S.day%3===0) for(let i=0;i<fmOwn(b);i++){ if(m.p[i]) continue;
     const L=FM_CROP.filter(c=>fmCanSow(b,c)&&(c.k==='cult'||mode==='full')).sort((a,c)=>fmScore(b,c)-fmScore(b,a));
     const c= rnd()<(1-q)*.3? pick(L) : L[0]; if(c) fmSow(b,i+':'+c.id,true); }
-  if(mode!=='full'||S.day%14!==0) return;
-  if(!m.vet&&m.p.some(x=>x&&fmCrop(x.c).k==='elev')&&dlBudget(b)>metR0(b)*3){ if(metBuy(b,metR0(b)*3,'Suivi vétérinaire')){ b.dlp-=metR0(b)*3; m.vet=1; return; } }
-  for(const k of Object.keys(FM_TR)){ const need=m.p.some(x=>x&&fmCrop(x.c).tr===k); if(need&&!m.tr[k]&&fmBuyK(b,'tr',k,true).ok) return; }
-  if(mxHas(b,1)) for(const k of ['irr','trac','serre']){ if(!m.mac[k]&&fmBuyK(b,'mac',k,true).ok) return; }
-  if(mxHas(b,2)&&!m.bio&&dlSpend(b,bizDef(b).cost*.3,'Conversion en bio')){ m.bio=S.day; return; }
-  if(mxHas(b,3)&&!m.shop&&fmBuyFlag(b,'shop',.4,'Magasin à la ferme',3,true).ok) return;
-  if(mxHas(b,4)&&!m.aoc&&fmBuyFlag(b,'aoc',.5,'Appellation régionale',4,true).ok) return;
-  fmBuyPlot(b,true);
+  /* V2.5.6 : chaque semaine, jusqu'à 3 achats dans l'ordre de fmNext (avant : toutes les deux semaines,
+     les parcelles en tout dernier et seulement si rien d'autre n'avait été tenté, sans objectif affiché) */
+  if(mode!=='full'||S.day%7!==0) return;
+  for(let k=0;k<3;k++){ const g=fmNext(b); if(!g||!dlCan(b,g.c,g.n)||!dlAct(b,g.c,()=>metAct(b,g.act,g.arg))) break; metLog(b,'Votre chef d’exploitation : '+lc1(g.n)+' ('+eur(g.c,0)+').',''); }
 }
+/* prochain achat utile : vétérinaire, transport manquant, parcelle quand toutes sont occupées, machines, bio, magasin, appellation */
+function fmNext(b){ const m=b.m, d=bizDef(b), n=fmOwn(b);
+  if(!m.vet&&m.p.some(x=>x&&fmCrop(x.c).k==='elev')) return {n:'Suivi vétérinaire', c:metR0(b)*3, act:'vet', arg:''};
+  for(const k of Object.keys(FM_TR)) if(!m.tr[k]&&m.p.some(x=>x&&fmCrop(x.c).tr===k)) return {n:FM_TR[k].n, c:d.cost*FM_TR[k].c, act:'tr', arg:k};
+  const room=n<12&&(n<8||mxHas(b,5)), full=m.p.slice(0,n).every(x=>!!x);
+  if(room&&full) return {n:'Achat d’une parcelle ('+(n+1)+'e)', c:fmPlotCost(b), act:'plot', arg:''};
+  if(mxHas(b,1)) for(const k of ['irr','trac','serre']) if(!m.mac[k]) return {n:FM_MAC[k].n, c:d.cost*FM_MAC[k].c, act:'mac', arg:k};
+  if(mxHas(b,2)&&!m.bio) return {n:'Conversion en bio', c:d.cost*.3, act:'bio', arg:''};
+  if(mxHas(b,3)&&!m.shop) return {n:'Magasin à la ferme', c:d.cost*.4, act:'shop', arg:''};
+  if(mxHas(b,4)&&!m.aoc) return {n:'Appellation régionale', c:d.cost*.5, act:'aoc', arg:''};
+  if(room) return {n:'Achat d’une parcelle ('+(n+1)+'e)', c:fmPlotCost(b), act:'plot', arg:''};
+  return null; }
+MET.farm.goal=function(b){ return fmNext(b); };
 /* lien : vos restaurants s'approvisionnent à votre ferme */
 const fmSupplies = () => S.biz.some(x=>x.def==='farm'&&x.status==='active');
 { const _rc=rsCost; rsCost=function(b,x){ return _rc(b,x)*(fmSupplies()?.9:1); }; }
@@ -16864,13 +16873,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.5.5';
+const IB_VER='V2.5.6';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Le chef d’exploitation achète des parcelles','En délégation totale, le chef d’exploitation d’une ferme fait ses achats chaque semaine : suivi vétérinaire, transformation qui manque, nouvelle parcelle dès que toutes sont occupées, puis machines, bio, magasin et appellation. Son prochain achat s’affiche comme objectif. Au-delà de huit parcelles, il faut le palier 5.','V2.5.6'],
   ['Prolongation et tirs au but','Dans les matchs à élimination directe (coupes, séries, coupes internationales), un score nul n’est plus tranché d’un coup : on joue une prolongation de deux fois quinze minutes, puis des tirs au but tirés un par un, avec mort subite après cinq tirs. L’animation du match montre la prolongation et chaque tir au but, et les résultats indiquent « après prolongation » et le score des tirs au but. Pour un match aller-retour, la prolongation se joue au retour si le cumul est à égalité.','V2.5.5'],
   ['Le directeur du data center investit','En délégation totale, le directeur du data center achète lui-même ce qui manque : puissance électrique quand le site approche de sa limite, meilleur refroidissement pour les salles qui chauffent (eau glacée, naturel, puis immergé), nouvelle salle quand les baies se remplissent ou qu’un client ne trouve pas de place, puis les régions du monde et le cloud souverain. Son prochain achat s’affiche comme objectif.','V2.5.4'],
   ['Plus de messages de confirmation, directeur qui rachète','Les messages verts de confirmation ont disparu partout ; seuls les refus et les erreurs s’affichent. Le directeur d’une compagnie aérienne ou maritime rachète bien les appareils loués : il le fait avant d’ouvrir de nouvelles lignes, et dès que sa réserve couvre le rachat visé, priorité du groupe comprise.','V2.5.3'],
