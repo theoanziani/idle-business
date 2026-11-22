@@ -8502,6 +8502,7 @@ function setDelegation(b,mode,bud){
   return ok(mode? 'Délégation : '+DL_MODES[b.dl||'me'].n.toLowerCase()+'.' : 'Budget mis à jour.');
 }
 /* réserve d'investissement du directeur : une part des bénéfices de chaque jour, plafonnée à un an de cette part */
+const lc1 = s => s.charAt(0).toLowerCase()+s.slice(1);   /* V2.5.3 : minuscule initiale seulement (noms propres gardés) */
 function dlBudget(b){ return Math.max(0,b.dlp||0); }
 function dlSpend(b,cost,label){ if(cost>dlBudget(b)) return false; if(!metBuy(b,cost,label)) return false; b.dlp=dlBudget(b)-cost; return true; }
 /* prochain achat visé par le directeur : le moins cher des investissements encore possibles */
@@ -8547,9 +8548,9 @@ function dlDaily(b){
   if(mode==='full'){ try{ for(let k=0;k<3;k++){ const g=dlGoal(b); if(!g||g.wait||!(g.act||g.up||g.rel)) break;
       /* V1.8.8 : « priorité du groupe » : à mi-chemin de l'achat visé, le directeur complète avec la trésorerie
          générale, sans descendre sous un mois de dépenses du groupe */
-      if(dlBudget(b)<g.c&&b.dlg&&dlBudget(b)>=g.c*.5){ const need=g.c-dlBudget(b); if(S.cash-need>=finBuf()){ b.dlp=(b.dlp||0)+need; metLog(b,'priorité du groupe : '+eur(need,0)+' de la trésorerie générale pour « '+g.n.toLowerCase()+' ».'); } }
+      if(dlBudget(b)<g.c&&b.dlg&&dlBudget(b)>=g.c*.5){ const need=g.c-dlBudget(b); if(S.cash-need>=finBuf()){ b.dlp=(b.dlp||0)+need; metLog(b,'priorité du groupe : '+eur(need,0)+' de la trésorerie générale pour « '+lc1(g.n)+' ».'); } }
       if(dlBudget(b)<g.c) break; const key=g.up? 'up' : g.rel? 'rel' : g.act+':'+g.arg;
-      const done=dlAct(b,g.c,()=>{ const r= g.up? (b.dlUpN=dlNetL(b), b.dlUpD=S.day, upgradeBiz(b)) : g.rel? relocBiz(b,g.rel) : metAct(b,g.act,g.arg); if(r&&r.ok!==false) metLog(b,'Votre directeur : '+g.n.toLowerCase()+' ('+eur(g.c,0)+').'); return r; });
+      const done=dlAct(b,g.c,()=>{ const r= g.up? (b.dlUpN=dlNetL(b), b.dlUpD=S.day, upgradeBiz(b)) : g.rel? relocBiz(b,g.rel) : metAct(b,g.act,g.arg); if(r&&r.ok!==false) metLog(b,'Votre directeur : '+lc1(g.n)+' ('+eur(g.c,0)+').'); return r; });
       /* refusé, ou achat renouvelable (cave, stock…) : on n'y revient pas avant 30 jours */
       b.dlSkip=b.dlSkip||{}; b.dlSkip[key]=S.day+30; if(!done) continue; } }catch(e){ console.error(e); } }
 }
@@ -8560,7 +8561,7 @@ function dlDaily(b){
    la trésorerie générale complète, sans descendre sous un mois de dépenses du groupe (avant : seuls l'agrandissement,
    le déménagement et les améliorations du métier en profitaient ; le reste attendait que la réserve atteigne tout le prix). */
 function dlTopUp(b,c,label){ if(!b||!b.dlg||!(c>0)) return; const r=dlBudget(b); if(r>=c||r<c*.5) return; const need=c-r;
-  if(S.cash-need<finBuf()) return; b.dlp=r+need; metLog(b,'priorité du groupe : '+eur(need,0)+' de la trésorerie générale pour « '+String(label||'un achat').toLowerCase()+' ».'); }
+  if(S.cash-need<finBuf()) return; b.dlp=r+need; metLog(b,'priorité du groupe : '+eur(need,0)+' de la trésorerie générale pour « '+lc1(String(label||'un achat'))+' ».'); }
 { const _ds=dlSpend; dlSpend=function(b,c,l){ dlTopUp(b,c,l); return _ds(b,c,l); }; }
 function dlCan(b,c,l){ dlTopUp(b,c,l); return dlBudget(b)>=c; }
 { const _da=dlAct; dlAct=function(b,c,fn){ dlTopUp(b,c); return _da(b,c,fn); }; }
@@ -11663,7 +11664,8 @@ function alAuto(b,mode,q){ const m=b.m;
   /* V2.2.9 : chaque semaine, la réserve sert : nouvelles lignes étudiées sur toutes les destinations (avion acheté si la
      loué puis racheté), créneaux, places dans les tours, rachat des avions loués ; jusqu’à 6 opérations (avant : une ligne
      par mois vers le plus grand aéroport d’une plateforme tirée au hasard) */
-  if(S.day%7===3) for(let k=0;k<6;k++){ if(!alNewLine(b,q)&&!alInvest(b)) break; }
+  /* V2.5.3 : rachats et tours avant les nouvelles lignes (avant : alInvest n'était tenté que si aucune ligne ne s'ouvrait) */
+  if(S.day%7===3) for(let k=0;k<6;k++){ if(!alInvest(b)&&!alNewLine(b,q)) break; }
   if(S.day%30===0){ if(!m.hedge&&m.fp<.75) alHedge(b);
     for(const [k,f,l,rk] of [['fid',1.5,'Programme de fidélité',1],['sal',3,'Salons à l’aéroport',2],['mnt',5,'Maintenance maison',3],['ali',8,'Alliance de compagnies',4],['fret',12,'Fret en soute',5]]) if(!m[k]&&mxHas(b,rk)&&alBuyR(b,k,f,l,rk,true).ok) break; }
 }
@@ -11689,7 +11691,7 @@ const alBuyOutCost = p => Math.max(0,AL_TY[p.t].pr*AL_BUYOUT-(p.dep||0));
 function alBuyOut(b,id,auto){ const m=b.m, p=m.fl.find(x=>x.id===id); if(!p) return err('Avion introuvable.'); if(p.own) return err('Cet avion vous appartient déjà.'); const T=AL_TY[p.t], c=alBuyOutCost(p);
   if(!(auto? dlSpend(b,c,'Rachat : '+T.n) : metBuy(b,c,'Rachat d’un avion loué : '+T.n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
   p.own=1; p.dep=0; return ok(T.n+' racheté '+eur(c,0)+' : il n’y a plus de loyer.'); }
-MET.airline.goal=function(b){ const H=alNextHub(b); if(H) return {n:'Place dans la tour : '+H.n, c:alHubCost(H.id), act:'hub', arg:H.id}; const x=alLeasedOnGood(b); return x? {n:AL_TY[x.p.t].n+' racheté', c:alBuyOutCost(x.p)} : null; };
+MET.airline.goal=function(b){ const H=alNextHub(b); if(H) return {n:'Place dans la tour : '+H.n, c:alHubCost(H.id), act:'hub', arg:H.id}; const x=alLeasedOnGood(b); return x? {n:'Rachat de l’'+AL_TY[x.p.t].n+' loué', c:alBuyOutCost(x.p), act:'own', arg:x.p.id} : null; };
 function alData(){ return {AL_AP, AL_CO, AL_TY}; }
 
 /* V2.4.9 : image de marque, détail des facteurs (même calcul que la journée) ; [libellé, points, acquis?] */
@@ -11972,7 +11974,7 @@ function shAuto(b,mode,q){ const m=b.m;
   if(mode!=='full') return;
   /* V2.2.9 : la réserve sert chaque semaine : nouvelles lignes (navire acheté d’occasion si la réserve le permet), quais,
      terminaux, rachat des navires loués ; jusqu’à 6 opérations tant que la réserve suit (avant : une par mois) */
-  if(S.day%7===3) for(let k=0;k<6;k++){ if(!shNewLine(b,q)&&!shInvest(b)) break; }
+  if(S.day%7===3) for(let k=0;k<6;k++){ if(!shInvest(b)&&!shNewLine(b,q)) break; }
   if(S.day%30===0){
     for(const [k,f,l,rk] of [['plan',1.5,'Planification des escales',1],['ali',3,'Alliance maritime',2],['eco',5,'Navires économes',3],['esc',6,'Sûreté et escortes',4],['d2d',10,'Logistique porte-à-porte',5]]) if(!m[k]&&mxHas(b,rk)&&shBuyR(b,k,f,l,rk,true).ok) break; }
 }
@@ -11997,7 +11999,7 @@ const shBuyOutCost = p => Math.max(0,SH_TY[p.t].pr*SH_OCC-(p.dep||0));
 function shBuyOut(b,id,auto){ const m=b.m, p=m.fl.find(x=>x.id===id); if(!p) return err('Navire introuvable.'); if(p.own) return err('Ce navire vous appartient déjà.'); const T=SH_TY[p.t], c=shBuyOutCost(p);
   if(!(auto? dlSpend(b,c,'Rachat : '+T.n) : metBuy(b,c,'Rachat d’un navire loué : '+T.n))) return err('Trésorerie insuffisante : '+eur(c,0)+'.');
   p.own=1; p.occ=1; p.dep=0; return ok(T.n+' racheté '+eur(c,0)+' : il n’y a plus de loyer.'); }
-MET.shipping.goal=function(b){ const m=b.m; if(m.tm.length&&m.tm.every(h=>shTmUsed(b,h)>=shTmCap(b,h))){ const h=m.tm[0]; if((m.ext&&m.ext[h]||0)<3) return {n:'Quais à '+shPt(h).n, c:shExtCost(b,h), act:'ext', arg:h}; } const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id), act:'tm', arg:T.id}; const x=shLeasedOnGood(b); return x? {n:SH_TY[x.p.t].n+' racheté', c:shBuyOutCost(x.p)} : null; };
+MET.shipping.goal=function(b){ const m=b.m; if(m.tm.length&&m.tm.every(h=>shTmUsed(b,h)>=shTmCap(b,h))){ const h=m.tm[0]; if((m.ext&&m.ext[h]||0)<3) return {n:'Quais à '+shPt(h).n, c:shExtCost(b,h), act:'ext', arg:h}; } const T=shNextTm(b); if(T) return {n:'Terminal à '+T.n, c:shTmCost(T.id), act:'tm', arg:T.id}; const x=shLeasedOnGood(b); return x? {n:'Rachat du '+SH_TY[x.p.t].n+' loué', c:shBuyOutCost(x.p), act:'own', arg:x.p.id} : null; };
 function shData(){ return {SH_PT, SH_TY, SH_RG, SH_NB}; }
 
 /* V2.4.9 : image de marque, détail des facteurs (même calcul que la journée) */
@@ -14209,7 +14211,7 @@ function saveCard(){ const p=(S.save&&S.save.pct)||0;
      c'est maintenant indiqué ici et réglable à part */
   const fin=mgrOn('fin')? '<div class="row sp" style="margin-top:6px"><div style="min-width:0"><b>Directeur financier</b><div class="sub">Chaque lundi, il place sur le livret la trésorerie au-delà d’un mois de dépenses.</div></div><div class="seg"><button class="'+(S.finLiv!==0?'on':'')+'" data-a="finliv" data-v="1">Activé</button><button class="'+(S.finLiv===0?'on':'')+'" data-a="finliv" data-v="0">Désactivé</button></div></div>' : '';
   return card('Épargne automatique','<div class="stack"><div class="sub">Chaque jour, une part du bénéfice de vos sociétés part sur le livret.</div><div class="seg">'+[0,.1,.25,.5].map(x=>'<button class="'+(p===x?'on':'')+'" data-a="saveset" data-v="'+x+'">'+(x?Math.round(x*100)+' %':'Non')+'</button>').join('')+'</div>'+fin+'</div>'); }
-ACT.finliv=el=>{ S.finLiv=+el.dataset.v; toast(S.finLiv? 'Le directeur financier place l’excédent sur le livret.' : 'Le directeur financier ne place plus l’excédent sur le livret.'); render(); };
+ACT.finliv=el=>{ S.finLiv=+el.dataset.v; toast(S.finLiv? 'Le directeur financier place l’excédent sur le livret.' : 'Le directeur financier ne place plus l’excédent sur le livret.','good'); render(); };
 function electionCard(){
   if(S.country) return '';
   const E=elecInit();
@@ -15730,7 +15732,7 @@ ACT.fnat=el=>{ ui.fn=el.dataset.i; ui.fl=null; ui.fg=0; ui.fcup=0; render(); };
 ACT.flg=el=>{ ui.fl=el.dataset.i; ui.fg=0; ui.fcup=0; render(); };
 ACT.fgrp=el=>{ ui.fg=+el.dataset.i; render(); };
 ACT.fclub=el=>{ footInit(); ui.modal={type:'fclub',id:+el.dataset.i,prev:ui.modal&&ui.modal.type!=='fclub'?ui.modal:null}; render(); };
-ACT.ffav=el=>{ const id=+el.dataset.i; S.foot.fav= S.foot.fav===id? null : id; render(); toast(S.foot.fav? 'Vous suivez '+footName(id)+' : ses résultats arrivent dans le journal.' : 'Vous ne suivez plus ce club.'); };
+ACT.ffav=el=>{ const id=+el.dataset.i; S.foot.fav= S.foot.fav===id? null : id; render(); toast(S.foot.fav? 'Vous suivez '+footName(id)+' : ses résultats arrivent dans le journal.' : 'Vous ne suivez plus ce club.','good'); };
 ACT.fgo=el=>{ const id=+el.dataset.i, lid=footLgOf(id); if(!lid) return; const L=FOOT_LEAGUES.find(x=>x.id===lid); ui.fn=L.nat; ui.fl=lid; ui.fg=Math.max(0,S.foot.lg[lid].grp.findIndex(g=>g.includes(id))); ui.modal=null; ui.tab='foot'; render(); };
 
 function footSquadHtml(id){
@@ -16330,7 +16332,7 @@ ACT.dsnewsok=()=>{ const D=fcOwn()&&fcOwn().ds; if(D) D.unseen=[]; ui.modal=null
 { const _rF=render; render=function(){ _rF.apply(this,arguments); try{ const el=document.querySelector('.fcs-tot:not([data-done])'); if(el){ el.setAttribute('data-done','1'); const v=+el.dataset.v; setTimeout(()=>tweenText(el,0,v,x=>eur(x,0),1400),700);
   if(typeof haptic==='function'){ const d=ui.modal&&ui.modal.d; haptic(d&&d.mv==='down'?'warning':'success'); } } }catch(e){} }; }
 
-ACT.fckeep=el=>{ const O=fcOwn(); if(!O) return; const id=el.dataset.i, p=O.sq.find(x=>String(x.id)===String(id)); if(!p) return; O.keep=O.keep||{}; if(O.keep[p.id]){ delete O.keep[p.id]; toast(p.n+' n’est plus protégé.'); } else { O.keep[p.id]=1; if(O.list[p.id]) delete O.list[p.id]; toast(p.n+' est intouchable : le directeur sportif ne le vendra pas.','good'); } render(); };
+ACT.fckeep=el=>{ const O=fcOwn(); if(!O) return; const id=el.dataset.i, p=O.sq.find(x=>String(x.id)===String(id)); if(!p) return; O.keep=O.keep||{}; if(O.keep[p.id]){ delete O.keep[p.id]; toast(p.n+' n’est plus protégé.','good'); } else { O.keep[p.id]=1; if(O.list[p.id]) delete O.list[p.id]; toast(p.n+' est intouchable : le directeur sportif ne le vendra pas.','good'); } render(); };
 
 /* ============================================================
    V1.9.1 : cérémonie de remise de trophée (club ou joueur du club) et palmarès
@@ -16658,7 +16660,7 @@ ACT.pksel=el=>{ const v=+el.dataset.v; ui.pk= v<0? null : {b:+el.dataset.i, c:v}
 /* une construction réussie referme le panneau */
 { const _met=ACT.met; ACT.met=el=>{ const v=el.dataset.v; _met(el); if((v==='place'||v==='rm'||v==='zone')&&ui.pk){ const b=S.biz.find(x=>x.id===ui.pk.b); if(b&&b.m&&(v!=='place'||b.m.cells[ui.pk.c])&&(v!=='zone'||b.m.zones[pkZone(ui.pk.c)].own)) { if(v!=='zone') ui.pk=null; render(); } } }; }
 
-ACT.dlgrp=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(!b) return; b.dlg=b.dlg?0:1; toast(b.dlg?'Priorité du groupe activée pour « '+b.name+' ».':'Priorité du groupe désactivée.'); render(); };
+ACT.dlgrp=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(!b) return; b.dlg=b.dlg?0:1; toast(b.dlg?'Priorité du groupe activée pour « '+b.name+' ».':'Priorité du groupe désactivée.','good'); render(); };
 
 /* ============================================================
    RESTAURANT : la carte et le chef dans la fiche
@@ -16791,13 +16793,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.5.2';
+const IB_VER='V2.5.3';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Plus de messages de confirmation, directeur qui rachète','Les messages verts de confirmation ont disparu partout ; seuls les refus et les erreurs s’affichent. Le directeur d’une compagnie aérienne ou maritime rachète bien les appareils loués : il le fait avant d’ouvrir de nouvelles lignes, et dès que sa réserve couvre le rachat visé, priorité du groupe comprise.','V2.5.3'],
   ['Recrutement sans messages','Embaucher un candidat, compléter une équipe ou chercher d’autres profils n’affiche plus de message de confirmation. Les refus restent signalés.','V2.5.2'],
   ['Image de marque expliquée','Les compagnies aérienne et maritime affichent une carte « Image de marque » : la note, la cible vers laquelle elle va et à quel rythme, chaque facteur qui la fait monter ou baisser, la part de clientèle qu’elle vous apporte et les points qui manquent pour la prochaine plateforme ou le prochain terminal. La compagnie maritime parle désormais elle aussi d’image de marque, pour ne plus la confondre avec la réputation du groupe.','V2.5.1'],
   ['Racheter avions et navires loués','Dans la flotte de la compagnie aérienne et de la compagnie maritime, chaque appareil loué peut être racheté sans quitter sa ligne : 90 % du prix neuf pour un avion, le prix de l’occasion pour un navire, dépôt de garantie déduit. Le loyer s’arrête aussitôt.','V2.4.9'],
@@ -21097,11 +21100,12 @@ vBank=function(){ const t=ui.bk||'acc'; let h=head('Banque','');
 VIEWS.bank=vBank;
 try{ TIP1.bank='Banque : votre compte, votre note de crédit, vos emprunts et votre épargne. L’onglet voisin permet de fonder votre propre banque.'; TIP1.luxe='Luxe : chaque bien donne du prestige ; votre rang de prestige augmente les ventes de vos sociétés de luxe et baisse vos taux d’emprunt.'; }catch(e){}
 
-/* V2.5.2 : plus de message de confirmation quand on recrute, cherche ou renouvelle des candidats
-   (les refus restent signalés). */
+/* V2.5.2 : plus de message de confirmation quand on recrute, cherche ou renouvelle des candidats.
+   V2.5.3 : plus aucun message de confirmation nulle part ; seuls les refus et erreurs s'affichent. */
 const QUIET_ACT=['hire','hirefill','candrefresh','aghire','agsearch','agrefresh'], QUIET_MET={resto:['chef'],couture:['hire']};
 let resQuiet=0;
-{ const _res=res; res=function(r,m){ if(resQuiet&&r&&r.ok) return r; return _res(r,m); }; }
+{ const _res=res; res=function(r,m){ if(r&&r.ok) return r; return _res(r,m); }; }
+{ const _t=toast; toast=function(m,c){ if(c==='good') return; return _t.apply(this,arguments); }; }
 const quietly=f=>function(){ resQuiet++; try{ return f.apply(this,arguments); } finally{ resQuiet--; } };
 QUIET_ACT.forEach(k=>{ if(ACT[k]) ACT[k]=quietly(ACT[k]); });
 { const _met=ACT.met; ACT.met=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i), L=b&&QUIET_MET[b.def]; return (L&&L.includes(el.dataset.v)? quietly(_met) : _met)(el); }; }
