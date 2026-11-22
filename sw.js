@@ -1,5 +1,5 @@
-/* Idle Business : fonctionnement hors ligne et mises à jour. Version 20261122-090425 */
-const CACHE = 'ib-20261122-090425';
+/* Idle Business : fonctionnement hors ligne et mises à jour. Version 20261122-091311 */
+const CACHE = 'ib-20261122-091311';
 const ASSETS = ["./", "index.html", "manifest.webmanifest", "icons/logo-192.png", "icons/logo-512.png", "icons/logo-apple-touch-icon.png", "fonts/nf-anton.woff", "fonts/nf-archivo.woff", "fonts/nf-barlowc.woff", "fonts/nf-bebas.woff", "fonts/nf-bitter.woff", "fonts/nf-bodoni.woff", "fonts/nf-caveat.woff", "fonts/nf-cormorant.woff", "fonts/nf-dmserif.woff", "fonts/nf-exo2.woff", "fonts/nf-fraunces.woff", "fonts/nf-jetbrains.woff", "fonts/nf-luckiest.woff", "fonts/nf-oswald.woff", "fonts/nf-patrick.woff", "fonts/nf-playfair.woff", "fonts/nf-rubik.woff", "fonts/nf-spaceg.woff", "fonts/nf-spacemono.woff", "fonts/nunito-latin-ext-wght-normal.woff2", "fonts/nunito-latin-wght-normal.woff2", "img/earth.jpg"];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));

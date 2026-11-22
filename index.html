@@ -842,7 +842,7 @@ html,body{overflow-anchor:none}
 .fm-ev.k-goal span{color:var(--green)}
 .fm-ev.k-yellow p::before,.fm-ev.k-red p::before{content:"";display:inline-block;width:9px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:#f4c430}
 .fm-ev.k-red p::before{background:#d93a2b}
-.fm-ev.k-ht,.fm-ev.k-ft{background:var(--paper-2);border-radius:10px;padding:8px 10px;border:0;margin:4px 0}
+.fm-ev.k-ht,.fm-ev.k-ft,.fm-ev.k-ft90,.fm-ev.k-eht,.fm-ev.k-ete{background:var(--paper-2);border-radius:10px;padding:8px 10px;border:0;margin:4px 0}
 .fm-ev.k-corner p,.fm-ev.k-sub p{color:var(--ink-2)}
 .fm-st{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;gap:10px;align-items:center;padding:6px 0}
 .fm-st b{font:800 16px var(--f-display);text-align:center}
@@ -1274,6 +1274,8 @@ html.dk .bk-cardv{background:linear-gradient(135deg,#161617 0%,#262627 100%);box
 .bk-app{border-top:1px solid var(--line);padding-top:10px;display:grid;gap:3px}.bk-app:first-child{border-top:0;padding-top:0}
 .bk-app .hd{display:flex;justify-content:space-between;align-items:center;gap:8px}.bk-app small{font-size:12px;color:var(--ink-3)}.bk-app .row{margin-top:6px}
 .px-rent{display:flex;justify-content:space-between;align-items:center;gap:10px}.px-rent>span{min-width:0}.px-rent b{display:block;font-size:14px}.px-rent small{display:block;font-size:12px;color:var(--ink-3)}
+/* V2.5.5 : tirs au but dans le commentaire du match */
+.fm-ev.k-pk.ok span{color:#16804D}.fm-ev.k-pk.ko span{color:#C8352A}
 
 html,body{-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 body{-webkit-user-select:none;user-select:none}
@@ -6100,7 +6102,23 @@ function footPoStart(lid,day){
   const dates=[]; let d=day+3; while(dates.length<4){ if(wdOf(d)===5) dates.push(d); d++; }
   lg.po={ri:0, dates, ties, last:null, champ:null};
 }
-function footKO(h,a){ let [gh,ga]=footPlay(h,a); let pen=null; if(gh===ga){ const p=.5+(footR(h)-footR(a))/200; pen=frnd()<p? h : a; } return {h,a,gh,ga,pen,w: gh>ga?h : ga>gh? a : pen}; }
+/* V2.5.5 : match à élimination directe : prolongation (2 × 15 min) puis tirs au but tirés un par un.
+   Résultat : gh, ga après prolongation ; et = buts de la prolongation ; pk = suite des tirs ('1' marqué, '0' manqué,
+   l'équipe à domicile tire en premier) ; ps = score des tirs au but. Champs absents = pas de prolongation. */
+function footET(h,a,neutral){ const rh=footR(h), ra=footR(a), k=1/27, adv=neutral?0:.15; return [fpois(1.30*Math.exp(k*(rh-ra)+adv)/3), fpois(1.10*Math.exp(k*(ra-rh)-(neutral?0:.04))/3)]; }
+function footShootout(h,a){ const d=(footR(h)-footR(a))/400, P=[clamp(.76+d,.6,.9),clamp(.76-d,.6,.9)], s=[0,0], n=[0,0]; let pk='';
+  for(let r=0;r<40;r++){ for(const t of [0,1]){ const g=frnd()<P[t]?1:0; s[t]+=g; n[t]++; pk+=g;
+      if(r<5&&(s[0]+5-n[0]<s[1]||s[1]+5-n[1]<s[0])) return {w:s[0]>s[1]?h:a, pk, ps:s}; }
+    if(r>=4&&s[0]!==s[1]) return {w:s[0]>s[1]?h:a, pk, ps:s}; }
+  return {w:h, pk, ps:s}; }
+/* prolongation et tirs au but après un score nul ; complète r et le match de votre club */
+function footExtra(r,neutral){ if(r.gh!==r.ga) return r; r.et=footET(r.h,r.a,neutral); r.gh+=r.et[0]; r.ga+=r.et[1];
+  if(r.gh===r.ga){ const T=footShootout(r.h,r.a); r.pen=T.w; r.pk=T.pk; r.ps=T.ps; }
+  r.w= r.gh>r.ga? r.h : r.ga>r.gh? r.a : r.pen; footKOOwn(r); return r; }
+/* match de votre club regardé en direct : on lui transmet la prolongation et les tirs au but */
+function footKOOwn(r){ try{ const O=typeof fcOwn==='function'&&fcOwn(); if(!r.et||!O||!O.last||O.last.h!==r.h||O.last.a!==r.a||O.last.day!==S.day) return; const ko={et:r.et,pk:r.pk||''}; O.last.ko=ko;
+  if(O.live&&O.live.h===r.h&&O.live.a===r.a){ O.live.ko=ko; O.live.gh=r.gh; O.live.ga=r.ga; O.live.pen=r.pen||null; } }catch(e){} }
+function footKO(h,a,neutral){ const [gh,ga]=footPlay(h,a,neutral); return footExtra({h,a,gh,ga,pen:null,w:gh>ga?h:ga>gh?a:null},neutral); }
 function footPoDay(lid,day){
   const lg=S.foot.lg[lid], P=lg.po, res=P.ties.map(([h,a])=>footKO(h,a)); P.last=res; P.ri++;
   const win=res.map(r=>r.w);
@@ -6186,7 +6204,7 @@ function footStep(day){
 
 /* ---------- Aides d'affichage ---------- */
 function footName(id){ const c=footClub(id); return c? c.n : '?'; }
-function footScore(r){ const h=r.h??r[0], a=r.a??r[1], gh=r.gh??r[2], ga=r.ga??r[3]; return footName(h)+' '+gh+'-'+ga+' '+footName(a)+(r.pen? ' (t.a.b., '+footName(r.pen)+')' : ''); }
+function footScore(r){ const h=r.h??r[0], a=r.a??r[1], gh=r.gh??r[2], ga=r.ga??r[3]; return footName(h)+' '+gh+'-'+ga+' '+footName(a)+(r.ps? ' (a.p., '+footName(r.pen)+' aux tirs au but '+r.ps[0]+'-'+r.ps[1]+')' : r.pen? ' (t.a.b., '+footName(r.pen)+')' : r.et? ' (a.p.)' : ''); }
 function footNotifyFav(lid,res){
   const f=S.foot.fav; if(!f) return; const r=res.find(x=>x[0]===f||x[1]===f); if(!r) return;
   const win=(r[0]===f&&r[2]>r[3])||(r[1]===f&&r[3]>r[2]);
@@ -7460,7 +7478,7 @@ function footXI(id){
 const FOOT_SCORE_W = {BU:5, AIL:3, MO:2.6, MC:1.2, MD:.6, DC:.55, DL:.45, G:0};
 function footPickW(R,list,wf){ let t=0; list.forEach(p=>t+=wf(p)); let x=R()*t; for(const p of list){ x-=wf(p); if(x<=0) return p; } return list[list.length-1]; }
 
-function footMatchScript(h,a,gh,ga,seed){
+function footMatchScript(h,a,gh,ga,seed,ko){
   const R=footSeedRng((seed>>>0)^(h*131+a*7919)), rh=footR(h), ra=footR(a);
   const X=[footXI(h),footXI(a)], ev=[];
   const poss=clamp(.5+(rh-ra)/110+.03+(R()-.5)*.08,.3,.72);
@@ -7491,14 +7509,30 @@ function footMatchScript(h,a,gh,ga,seed){
     const subs=X[s].bench.filter(p=>p.p!=='G'), out=xi.filter(p=>p.slot!=='G').slice().sort(()=>R()-.5), nsub=3+Math.floor(R()*3);
     for(let i=0;i<Math.min(nsub,subs.length);i++){ const m=56+Math.floor(R()*32); const inP=subs.find(q=>q.p===out[i].slot)||subs[i]; ev.push({t:ts({m,x:0}), m, x:0, k:'sub', s, p:inP.n, o:out[i].n}); }
   });
-  ev.push({t:HT, m:45, x:st1, k:'ht'}, {t:END, m:90, x:st2, k:'ft'});
+  ev.push({t:HT, m:45, x:st1, k:'ht'});
+  /* V2.5.5 : prolongation (91e à 120e) puis tirs au but */
+  let EE=0, PKS=0, ps=null;
+  if(ko&&ko.et){ const EH=END+15*60; EE=EH+15*60; ev.push({t:END, m:90, x:st2, k:'ft90'}, {t:EH, m:105, x:0, k:'eht'});
+    const tE=m=>END+(m-91)*60+Math.floor(R()*55);
+    [0,1].forEach(s=>{ const xi=X[s].xi, sh=(s?1-poss:poss);
+      for(let g=0;g<ko.et[s];g++){ const m=91+Math.floor(R()*30), sc=footPickW(R,xi,p=>FOOT_SCORE_W[p.slot]||.4), as=R()<.7? footPickW(R,xi.filter(p=>p!==sc&&p.slot!=='G'),p=>p.slot==='AIL'||p.slot==='MO'?3:1) : null;
+        ev.push({t:tE(m), m, x:0, k:'goal', s, p:sc.n, as:as&&as.n, kind:R()<.15?'head':'shot'}); }
+      const n=1+Math.floor(R()*(2+sh*3)); for(let i=0;i<n;i++){ const m=91+Math.floor(R()*30), sc=footPickW(R,xi,p=>(FOOT_SCORE_W[p.slot]||.4)+.3); ev.push({t:tE(m), m, x:0, k:R()<.38?'save':'miss', s, p:sc.n, gk:X[1-s].xi[0].n}); } });
+    if(ko.pk){ ev.push({t:EE, m:120, x:0, k:'ete'}); PKS=EE+60; ps=[0,0];
+      const order=X.map(x=>x.xi.filter(p=>p.slot!=='G').slice().sort((p,q)=>(FOOT_SCORE_W[q.slot]||.4)-(FOOT_SCORE_W[p.slot]||.4)));
+      ko.pk.split('').forEach((c,i)=>{ const s=i%2, k=Math.floor(i/2), p=order[s][k%order[s].length], made=c==='1'; if(made) ps[s]++;
+        ev.push({t:PKS+i*45, m:120, x:0, k:'pk', s, p:p.n, gk:X[1-s].xi[0].n, made, ps:ps.slice(), n:k+1}); });
+      ev.push({t:PKS+ko.pk.length*45+20, m:120, x:0, k:'ft'}); }
+    else ev.push({t:EE, m:120, x:0, k:'ft'}); }
+  else ev.push({t:END, m:90, x:st2, k:'ft'});
   ev.sort((x,y)=>x.t-y.t);
   /* score courant */
   let sc=[0,0]; ev.forEach(e=>{ if(e.k==='goal') sc[e.s]++; e.sc=sc.slice(); });
-  return {h, a, gh, ga, ev, poss, shots, on, corners, yellow:[0,1].map(s=>ev.filter(e=>e.k==='yellow'&&e.s===s).length), red:[0,1].map(s=>ev.filter(e=>e.k==='red'&&e.s===s).length), xi:X.map(x=>x.xi), ht:HT, end:END};
+  return {h, a, gh, ga, ev, poss, ee:EE, pks:PKS, ps, shots, on, corners, yellow:[0,1].map(s=>ev.filter(e=>e.k==='yellow'&&e.s===s).length), red:[0,1].map(s=>ev.filter(e=>e.k==='red'&&e.s===s).length), xi:X.map(x=>x.xi), ht:HT, end:END};
 }
 /* minute affichée pour un temps de jeu (secondes) */
 function footClock(M,t){
+  if(M.ee&&t>=M.end){ if(M.pks&&t>=M.pks-30) return 'Tirs au but'; return Math.min(120,91+Math.floor((t-M.end)/60))+'’'; }
   if(t<M.ht){ const m=Math.floor(t/60)+1; return m<=45? m+'’' : '45+'+(m-45)+'’'; }
   const m=46+Math.floor((t-M.ht)/60); return m<=90? m+'’' : '90+'+(m-90)+'’';
 }
@@ -7515,7 +7549,11 @@ function footComment(M,e){
     case 'red': return 'Carton rouge ! '+e.p+' ('+tm+') est exclu.';
     case 'sub': return 'Changement pour '+tm+' : '+e.p+' remplace '+e.o+'.';
     case 'ht': return 'Mi-temps : '+e.sc[0]+'-'+e.sc[1]+'.';
-    case 'ft': return 'Fin du match : '+T[0]+' '+e.sc[0]+'-'+e.sc[1]+' '+T[1]+'.';
+    case 'ft': return 'Fin du match : '+T[0]+' '+e.sc[0]+'-'+e.sc[1]+' '+T[1]+(M.ps? ', '+T[M.ps[0]>M.ps[1]?0:1]+' l’emporte aux tirs au but ('+M.ps[0]+'-'+M.ps[1]+').' : M.ee? ' après prolongation.' : '.');
+    case 'ft90': return 'Fin du temps réglementaire : '+e.sc[0]+'-'+e.sc[1]+'. Place à la prolongation.';
+    case 'eht': return 'Mi-temps de la prolongation : '+e.sc[0]+'-'+e.sc[1]+'.';
+    case 'ete': return 'Fin de la prolongation : '+e.sc[0]+'-'+e.sc[1]+'. Tirs au but.';
+    case 'pk': return 'Tir au but n° '+e.n+' pour '+tm+' : '+(e.made? e.p+' marque' : pick([e.gk+' arrête la tentative de '+e.p,e.p+' manque le cadre',e.p+' trouve le poteau']))+'. Tirs au but : '+e.ps[0]+'-'+e.ps[1]+'.';
   }
   return '';
 }
@@ -8275,9 +8313,12 @@ function fiPlayLeg(E,stage,leg,day){
   const res=[];
   E.ko.ties.forEach(t=>{
     const [a,b]=t, neutral=!!stage.neutral;
-    if(stage.d.length===1){ const r=footKO(a,b); if(neutral){ /* pas d'avantage du terrain en finale */ } t.r=[r.gh,r.ga]; t.w=r.w; t.pen=r.pen; res.push({h:a,a:b,gh:r.gh,ga:r.ga,pen:r.pen,w:r.w}); }
+    if(stage.d.length===1){ const r=footKO(a,b); t.r=[r.gh,r.ga]; t.w=r.w; t.pen=r.pen; res.push(r); }
     else if(leg===0){ const [gh,ga]=footPlay(b,a); footRecordGate(b,a); t.l1=[gh,ga]; res.push({h:b,a:a,gh,ga}); }
-    else { const [gh,ga]=footPlay(a,b); footRecordGate(a,b); t.l2=[gh,ga]; const ta=t.l1[1]+gh, tb=t.l1[0]+ga; let w= ta>tb? a : tb>ta? b : null, pen=null; if(!w){ const p=.5+(footR(a)-footR(b))/200; w=pen= frnd()<p? a : b; } t.w=w; t.pen=pen; res.push({h:a,a:b,gh,ga,pen,w,agg:[ta,tb]}); }
+    else { const [gh,ga]=footPlay(a,b); footRecordGate(a,b); const ta=t.l1[1]+gh, tb=t.l1[0]+ga, r={h:a,a:b,gh,ga,pen:null,w:ta>tb?a:tb>ta?b:null};
+      /* V2.5.5 : égalité au cumul : prolongation au retour, puis tirs au but */
+      if(!r.w){ r.et=footET(a,b); r.gh+=r.et[0]; r.ga+=r.et[1]; const A=t.l1[1]+r.gh, B=t.l1[0]+r.ga; if(A!==B) r.w=A>B?a:b; else { const T=footShootout(a,b); r.pen=r.w=T.w; r.pk=T.pk; r.ps=T.ps; } footKOOwn(r); }
+      t.l2=[r.gh,r.ga]; t.w=r.w; t.pen=r.pen; r.agg=[t.l1[1]+r.gh,t.l1[0]+r.ga]; res.push(r); }
   });
   E.last={name:stage.n+(stage.d.length>1? (leg? ' (retour)':' (aller)') : ''), day, res};
 }
@@ -15687,9 +15728,9 @@ function footLegend(lid){
   if(!nat.closed&&L.down) it.push(['down','Descente']);
   return it.length? '<div class="ft-leg">'+it.map(([k,t])=>'<span class="z-'+k+'"><i></i>'+t+'</span>').join('')+'</div>' : '';
 }
-function fres(r,day){ const h=r.h??r[0], a=r.a??r[1], gh=r.gh??r[2], ga=r.ga??r[3];
-  if(typeof fcHidden==='function'&&fcHidden(h,a,day||S.day)) return '<div class="fm-r">'+fclubBtn(h,'h')+'<button class="sc num hid" data-a="fmatch" data-i="'+h+'" data-j="'+a+'" data-v="'+gh+'-'+ga+'-'+(day||S.day)+'-'+(r.pen||0)+'" aria-label="Regarder le match">Voir</button>'+fclubBtn(a,'a')+'</div>';
-  return '<div class="fm-r">'+fclubBtn(h,'h'+(gh>ga||r.w===h&&r.pen?' w':''))+'<button class="sc num" data-a="fmatch" data-i="'+h+'" data-j="'+a+'" data-v="'+gh+'-'+ga+'-'+(day||S.day)+'-'+(r.pen||0)+'" aria-label="Voir le match">'+gh+' - '+ga+'</button>'+fclubBtn(a,'a'+(ga>gh||r.w===a&&r.pen?' w':''))+'</div>'+(r.pen?'<div class="fm-p">Tirs au but : '+esc(footName(r.pen))+'</div>':''); }
+function fres(r,day){ const h=r.h??r[0], a=r.a??r[1], gh=r.gh??r[2], ga=r.ga??r[3], kv=r.et? '-'+r.et[0]+'-'+r.et[1]+'-'+(r.pk||'x') : '';
+  if(typeof fcHidden==='function'&&fcHidden(h,a,day||S.day)) return '<div class="fm-r">'+fclubBtn(h,'h')+'<button class="sc num hid" data-a="fmatch" data-i="'+h+'" data-j="'+a+'" data-v="'+gh+'-'+ga+'-'+(day||S.day)+'-'+(r.pen||0)+kv+'" aria-label="Regarder le match">Voir</button>'+fclubBtn(a,'a')+'</div>';
+  return '<div class="fm-r">'+fclubBtn(h,'h'+(gh>ga||r.w===h&&r.pen?' w':''))+'<button class="sc num" data-a="fmatch" data-i="'+h+'" data-j="'+a+'" data-v="'+gh+'-'+ga+'-'+(day||S.day)+'-'+(r.pen||0)+kv+'" aria-label="Voir le match">'+gh+' - '+ga+'</button>'+fclubBtn(a,'a'+(ga>gh||r.w===a&&r.pen?' w':''))+'</div>'+(r.ps?'<div class="fm-p">Après prolongation · tirs au but '+r.ps[0]+'-'+r.ps[1]+' pour '+esc(footName(r.pen))+'</div>' : r.pen?'<div class="fm-p">Tirs au but : '+esc(footName(r.pen))+'</div>' : r.et?'<div class="fm-p">Après prolongation</div>':''); }
 const ffix = (h,a) => '<div class="fm-r">'+fclubBtn(h,'h')+'<b class="sc vs">-</b>'+fclubBtn(a,'a')+'</div>';
 
 function vFoot(){
@@ -15799,23 +15840,23 @@ function fmKits(h,a){
   if(fmColorDist(k0.f,k1.f)<110) k1= fmColorDist(k0.f,'#ffffff')>150? {f:'#ffffff', s:'#222222'} : {f:'#222222', s:'#ffffff'};
   return [k0,k1];
 }
-function fmStart(h,a,gh,ga,day,pen){
+function fmStart(h,a,gh,ga,day,pen,ko){
   { const O=S.foot&&S.foot.own; if(O&&O.last&&O.last.h===h&&O.last.a===a&&O.last.day===day) O.last.seen=1; }
-  const M=footMatchScript(h,a,gh,ga,day*977+13);
+  const M=footMatchScript(h,a,gh-(ko&&ko.et?ko.et[0]:0),ga-(ko&&ko.et?ko.et[1]:0),day*977+13,ko&&ko.et?ko:null);
   const L={M, h, a, pen, day, t:0, speed:1, play:true, i:0, feed:[], kits:fmKits(h,a), tab:'feed',
     pl:[], ball:{x:52.5,y:34,tx:52.5,ty:34,v:0}, side:0, holder:10, nextPass:.8, pause:0, flash:null, half:1, done:false, raf:0, lt:0, R:footSeedRng(day*31+h)};
   for(let s=0;s<2;s++) for(let i=0;i<11;i++){ const b=fmBasePos(L,s,i); L.pl.push({s,i,x:b[0],y:b[1],n:M.xi[s][i].n}); }
   fmKickoff(L,0);
   FOOT_LIVE=L; return L;
 }
-const fmDir = (L,s) => ((L.half===1)===(s===0))? 1 : -1;
+const fmDir = (L,s) => ((L.half%2===1)===(s===0))? 1 : -1;
 function fmBasePos(L,s,i){ const b=FM_BASE[i]; return fmDir(L,s)>0? [b[0],b[1]] : [105-b[0],68-b[1]]; }
 function fmKickoff(L,s){
   L.pl.forEach(p=>{ const b=fmBasePos(L,p.s,p.i); const d=fmDir(L,p.s); p.x=Math.min(d>0?51:105,Math.max(d>0?0:54,b[0]-d*12)); p.y=b[1]; });
   const st=L.pl.find(p=>p.s===s&&p.i===10); st.x=52.5; st.y=34; L.side=s; L.holder=st; L.ball.x=L.ball.tx=52.5; L.ball.y=L.ball.ty=34; L.ball.v=0; L.nextPass=.6;
 }
 /* prochaine action décisive (tir) */
-function fmNextShot(L){ const ev=L.M.ev; for(let j=L.i;j<ev.length;j++){ const e=ev[j]; if(e.k==='goal'||e.k==='save'||e.k==='miss') return e; if(e.k==='ht'||e.k==='ft') return null; } return null; }
+function fmNextShot(L){ const ev=L.M.ev; for(let j=L.i;j<ev.length;j++){ const e=ev[j]; if(e.k==='goal'||e.k==='save'||e.k==='miss') return e; if(e.k==='ht'||e.k==='ft'||e.k==='ft90'||e.k==='eht'||e.k==='ete'||e.k==='pk') return null; } return null; }
 function fmPass(L,to,speed){ L.ball.tx=to.x; L.ball.ty=to.y; L.ball.v=speed||55; L.ball.to=to; L.holder=null; }
 function fmGoalOf(L,s){ return fmDir(L,s)>0? 105 : 0; }
 /* exécute un événement du scénario */
@@ -15834,21 +15875,31 @@ function fmEvent(L,e){
   } else if(e.k==='corner'){
     const d=fmDir(L,e.s), cx=d>0?104.5:.5, cy=L.R()<.5?.5:67.5, tk=L.pl.find(p=>p.s===e.s&&(p.i===8||p.i===9));
     tk.x=cx; tk.y=cy; L.ball.x=L.ball.tx=cx; L.ball.y=L.ball.ty=cy; L.holder=tk; L.side=e.s; L.nextPass=.7; L.corner=true;
-  } else if(e.k==='ht'){ L.half=2; L.pause=1.2; L.after='kick'; L.afterS=1; L.flash={t:'Mi-temps', until:1.2}; }
+  } else if(e.k==='ft90'){ L.half=3; L.pause=2; L.after='kick'; L.afterS=0; L.flash={t:'Prolongation', until:2}; }
+  else if(e.k==='eht'){ L.half=4; L.pause=1.2; L.after='kick'; L.afterS=1; L.flash={t:'Mi-temps', until:1.2}; }
+  else if(e.k==='ete'){ L.shoot=true; fmPkLine(L); L.pause=2; L.after=null; L.flash={t:'Tirs au but', until:2}; }
+  else if(e.k==='pk'){ fmPkLine(L); const sh=L.pl.find(p=>p.s===e.s&&p.n===e.p)||L.pl.find(p=>p.s===e.s&&p.i===10), gk=L.pl.find(p=>p.s!==e.s&&p.i===0);
+    sh.x=105-11; sh.y=34; gk.x=104; gk.y=34; L.ball.x=105-11.6; L.ball.y=34; L.holder=null; L.ball.to=null; const R=L.R(), side=R<.5?-1:1;
+    if(e.made){ L.ball.tx=106.2; L.ball.ty=34+side*(1.5+L.R()*2); } else if(L.R()<.6){ gk.y=34+side*2.8; L.ball.tx=103.8; L.ball.ty=gk.y; } else { L.ball.tx=107; L.ball.ty=34+side*(4.6+L.R()*2); }
+    L.ball.v=60; L.pause=1.5; L.after=null; L.flash={t:e.made?'Marqué':'Manqué', s:e.s, until:1.2}; }
+  else if(e.k==='ht'){ L.half=2; L.pause=1.2; L.after='kick'; L.afterS=1; L.flash={t:'Mi-temps', until:1.2}; }
   else if(e.k==='ft'){ L.done=true; L.play=false; L.flash={t:'Fin du match', until:9e9}; }
   else if(e.k==='sub'){ const p=L.pl.find(q=>q.s===e.s&&q.n===e.o); if(p) p.n=e.p; }
 }
+/* V2.5.5 : tirs au but : joueurs alignés dans le rond central, les gardiens à part */
+function fmPkLine(L){ [0,1].forEach(s=>{ const T=L.pl.filter(p=>p.s===s&&p.i>0); T.forEach((p,k)=>{ p.x=44+k*1.7; p.y=s? 37.5 : 30.5; }); const g=L.pl.find(p=>p.s===s&&p.i===0); g.x=s? 60 : 45; g.y=s? 40 : 28; }); }
 /* pas d'animation (dt en secondes réelles) */
 function fmStep(L,dt){
   const vis=Math.min(L.speed,3), M=L.M;
   if(L.flash && L.flash.until<9e8){ L.flash.until-=dt; if(L.flash.until<=0) L.flash=null; }
-  if(L.pause>0){ L.pause-=dt; fmMoveBall(L,dt*vis); fmMovePlayers(L,dt*vis*.6); if(L.pause<=0){ if(L.after==='kick') fmKickoff(L,L.afterS); else if(L.after==='gk'){ const gk=L.pl.find(p=>p.s===L.afterS&&p.i===0); L.side=L.afterS; L.holder=gk; L.ball.x=gk.x; L.ball.y=gk.y; L.nextPass=.5; } L.after=null; } return; }
+  if(L.pause>0){ L.pause-=dt; fmMoveBall(L,dt*vis); if(!L.shoot) fmMovePlayers(L,dt*vis*.6); if(L.pause<=0){ if(L.after==='kick') fmKickoff(L,L.afterS); else if(L.after==='gk'){ const gk=L.pl.find(p=>p.s===L.afterS&&p.i===0); L.side=L.afterS; L.holder=gk; L.ball.x=gk.x; L.ball.y=gk.y; L.nextPass=.5; } L.after=null; } return; }
   if(!L.play) return;
   const gps=30*L.speed;                                   /* secondes de jeu par seconde réelle */
   const t1=L.t+dt*gps;
   /* événements atteints */
   while(L.i<M.ev.length && M.ev[L.i].t<=t1){ const e=M.ev[L.i++]; L.t=e.t; fmEvent(L,e); if(L.pause>0||L.done) return; }
   L.t=t1;
+  if(L.shoot){ fmMoveBall(L,dt*vis); return; }
   /* préparer l'action qui mène au prochain tir */
   const E=fmNextShot(L), rt= E? (E.t-L.t)/gps : 99;
   if(E && rt<2.6 && L.side!==E.s){ const h=L.holder||L.pl.find(p=>p.s===L.side&&p.i===6); const st=L.pl.filter(p=>p.s===E.s&&p.i>4).sort((a,b)=>Math.hypot(a.x-L.ball.x,a.y-L.ball.y)-Math.hypot(b.x-L.ball.x,b.y-L.ball.y))[0]; L.side=E.s; if(L.holder||L.ball.v===0){ L.holder=st; st.x=L.ball.x; st.y=L.ball.y; } else L.ball.to=st; L.nextPass=.35/vis; }
@@ -15917,7 +15968,7 @@ function fmDraw(L){
 }
 function fmScoreNow(L){ const e=L.feed.find(x=>x.sc); return e? e.sc : [0,0]; }
 function fmUpdateDom(L){
-  const s=fmScoreNow(L), el=document.getElementById('fm-score'); if(el) el.textContent=s[0]+' - '+s[1];
+  const s=fmScoreNow(L), el=document.getElementById('fm-score'), pk=L.feed.find(x=>x.k==='pk'); if(el) el.textContent=s[0]+' - '+s[1]+(pk? ' ('+pk.ps[0]+'-'+pk.ps[1]+')' : '');
   const ck=document.getElementById('fm-clock'); if(ck) ck.textContent= L.done? 'Terminé' : L.t>=L.M.ht&&L.half===1? 'Mi-temps' : footClock(L.M,L.t);
   const fd=document.getElementById('fm-feed'); if(fd && fd.dataset.n!==String(L.feed.length)+L.tab){ fd.dataset.n=String(L.feed.length)+L.tab; fd.innerHTML=fmTabHtml(L); }
 }
@@ -15948,7 +15999,7 @@ function fmTabHtml(L){
   }
   const imp=L.feed.filter(e=>e.k!=='corner'||L.feed.length<30);
   if(!imp.length) return '<div class="sub">Coup d’envoi.</div>';
-  return imp.map(e=>'<div class="fm-ev k-'+e.k+'"><span class="num">'+(e.k==='ft'||e.k==='ht'?'':footEvMin(e))+'</span><p>'+esc(footComment(M,e))+(e.k==='ft'&&L.pen? ' Qualification aux tirs au but pour '+esc(footName(L.pen))+'.' : '')+'</p></div>').join('');
+  return imp.map(e=>'<div class="fm-ev k-'+e.k+(e.k==='pk'?(e.made?' ok':' ko'):'')+'"><span class="num">'+(e.k==='ft'||e.k==='ht'||e.k==='ft90'||e.k==='eht'||e.k==='ete'?'':e.k==='pk'?'T.a.b.':footEvMin(e))+'</span><p>'+esc(footComment(M,e))+(e.k==='ft'&&L.pen&&!M.ps? ' Qualification aux tirs au but pour '+esc(footName(L.pen))+'.' : '')+'</p></div>').join('');
 }
 /* V1.9.2 : compétition du match (championnat et journée, coupe et tour, coupe internationale et phase) */
 /* le jour enregistré peut être le lendemain du jour du calendrier (le match est traité pendant le passage au jour suivant) */
@@ -15975,11 +16026,11 @@ function fmBody(L){
     '<div class="seg fm-tabs">'+[['feed','Commentaire'],['stats','Statistiques'],['xi','Compositions']].map(([k,t])=>'<button class="'+(L.tab===k?'on':'')+'" data-a="fmtab" data-v="'+k+'">'+t+'</button>').join('')+'</div>'+
     '<div id="fm-feed" class="fm-feed">'+fmTabHtml(L)+'</div></div>';
 }
-ACT.fmatch=el=>{ footInit(); const [gh,ga,day,pen]=el.dataset.v.split('-').map(Number); const L=fmStart(+el.dataset.i,+el.dataset.j,gh,ga,day||S.day,pen||null); ui.modal={type:'fmatch',prev:ui.modal&&ui.modal.type!=='fmatch'?ui.modal:null}; render(); };
+ACT.fmatch=el=>{ footInit(); const V=el.dataset.v.split('-'), [gh,ga,day,pen,eh,ea]=V.map(Number), pk=V[6]&&V[6]!=='x'? V[6] : '', ko= V.length>5&&!isNaN(eh)? {et:[eh,ea],pk} : null; const L=fmStart(+el.dataset.i,+el.dataset.j,gh,ga,day||S.day,pen||null,ko); ui.modal={type:'fmatch',prev:ui.modal&&ui.modal.type!=='fmatch'?ui.modal:null}; render(); };
 ACT.fmspeed=el=>{ const L=FOOT_LIVE; if(!L) return; L.speed=+el.dataset.v; if(!L.done) L.play=true; render(); };
 ACT.fmpause=()=>{ const L=FOOT_LIVE; if(!L||L.done) return; L.play=!L.play; render(); };
 ACT.fmtab=el=>{ const L=FOOT_LIVE; if(!L) return; L.tab=el.dataset.v; render(); };
-ACT.fmend=()=>{ const L=FOOT_LIVE; if(!L) return; L.pause=0; L.after=null; L.flash=null; while(L.i<L.M.ev.length){ const e=L.M.ev[L.i++]; L.t=e.t; if(e.k==='ft'){ L.feed.unshift(e); L.done=true; L.play=false; L.flash={t:'Fin du match',until:9e9}; } else { L.feed.unshift(e); if(e.k==='ht') L.half=2; } } fmKickoff(L,0); render(); };
+ACT.fmend=()=>{ const L=FOOT_LIVE; if(!L) return; L.pause=0; L.after=null; L.flash=null; while(L.i<L.M.ev.length){ const e=L.M.ev[L.i++]; L.t=e.t; if(e.k==='ft'){ L.feed.unshift(e); L.done=true; L.play=false; L.flash={t:'Fin du match',until:9e9}; } else { L.feed.unshift(e); if(e.k==='ht') L.half=2; } } L.shoot=false; fmKickoff(L,0); render(); };
 { const _mcM=modalContent; modalContent=function(){ const m=ui.modal; if(m&&m.type==='fmatch'){ if(!FOOT_LIVE){ ui.modal=m.prev||null; return _mcM(); } setTimeout(fmEnsureLoop,0); return {title:'Match',body:fmBody(FOOT_LIVE)}; } return _mcM(); }; }
 
 /* ============================================================
@@ -15993,8 +16044,8 @@ const FM_MAXSUB=5;
 function fmTm(M,t){ if(t<M.ht){ const m=Math.floor(t/60)+1; return m>45? {m:45,x:m-45} : {m,x:0}; } const m=46+Math.floor((t-M.ht)/60); return m>90? {m:90,x:m-90} : {m,x:0}; }
 /* le match peut-il encore changer ? première diffusion, le jour même (toutes compétitions) */
 function fmOwnLive(h,a,day){ const O=fcOwn(); return !!(O&&O.last&&!O.last.lock&&O.last.h===h&&O.last.a===a&&O.last.day===day&&frCanReplay(h,a,day)); }
-{ const _fs=fmStart; fmStart=function(h,a,gh,ga,day,pen){
-  const own=fmOwnLive(h,a,day), L=_fs(h,a,gh,ga,day,pen), O=fcOwn();
+{ const _fs=fmStart; fmStart=function(h,a,gh,ga,day,pen,ko){
+  const own=fmOwnLive(h,a,day), L=_fs(h,a,gh,ga,day,pen,ko), O=fcOwn();
   if(own){ L.own=true; L.ownS=O.id===h?0:1; L.subs=0; L.used=[]; L.ent=[new Array(11).fill(0),new Array(11).fill(0)];
     L.M.ev=L.M.ev.filter(e=>!(e.k==='sub'&&e.s===L.ownS)); }   /* vos changements, c'est vous */
   return L; }; }
@@ -16088,6 +16139,15 @@ function fmEnBar(e){ return '<i class="fm-en '+(e>=.75?'ok':e>=.55?'mid':'low')+
     '<div class="sub">Un joueur fatigué joue moins bien jusqu’à la fin. Le physique ralentit la fatigue.</div>'+(fcOwn()&&fcOwn().autoSub? '<div class="sub">Les changements sont confiés à l’entraîneur.</div>' : ''); }
   if(L.own&&L.tab==='sub'&&L.subUI&&L.subUI.o===null){ const s=L.ownS; L.M.xi[s].forEach((p,i)=>{ const e=fmEnergy(L,s,i,L.t); h=h.replace('data-a="fmsubo" data-i="'+i+'"><span class="fpos">','data-a="fmsubo" data-i="'+i+'"><span class="fpos">').replace(new RegExp('(data-a="fmsubo" data-i="'+i+'">[\\s\\S]*?<small>)'),'$1Forme '+Math.round(e*100)+' % · '); }); }
   return h; }; }
+
+/* V2.5.5 : prolongation et tirs au but gardés seulement si vos changements laissent le score du temps réglementaire inchangé ;
+   plus de nouvelle simulation une fois la prolongation commencée */
+{ const _rs=fmResim; fmResim=function(L){ const M=L.M; if(M.ee&&L.t>=M.end) return; const X=M.ev.filter(e=>M.ee&&e.t>=M.end&&e.k!=='ft'), g0=[M.gh,M.ga];
+  _rs(L); if(!M.ee) return; const fin=M.ev.find(e=>e.k==='ft');
+  if(M.gh===g0[0]&&M.ga===g0[1]){ M.ev=M.ev.filter(e=>e.k!=='ft').concat(X,fin?[fin]:[]); }
+  else { M.ee=0; M.pks=0; M.ps=null; if(fin){ fin.t=M.end; fin.m=90; } }
+  M.ev.sort((x,y)=>x.t-y.t); let sc=[0,0]; M.ev.forEach(e=>{ if(e.k==='goal'&&e.t<M.end) sc[e.s]++; }); M.gh=sc[0]; M.ga=sc[1];
+  sc=[0,0]; M.ev.forEach(e=>{ if(e.k==='goal') sc[e.s]++; e.sc=sc.slice(); }); L.i=M.ev.filter(e=>e.t<=L.t).length; }; }
 
 /* ============================================================
    FOOTBALL : écran « Mon club » et rachat depuis la fiche d'un club
@@ -16271,7 +16331,7 @@ ACT.fcsell=()=>{ const r=fcSell(); ui.modal=null; after(r); };
   return h.replace('<div class="sub" style="margin-top:8px">Le rachat d’un club arrivera dans une prochaine mise à jour.</div>',bb);
 }; }
 /* votre match s'ouvre en direct après la journée */
-{ const _rC=render; render=function(){ const O=S&&S.foot&&S.foot.own; if(O&&O.live&&!ui.modal&&typeof fmStart==='function'){ const L=O.live; O.live=null; fmStart(L.h,L.a,L.gh,L.ga,L.day,null); ui.modal={type:'fmatch'}; } _rC(); }; }
+{ const _rC=render; render=function(){ const O=S&&S.foot&&S.foot.own; if(O&&O.live&&!ui.modal&&typeof fmStart==='function'){ const L=O.live; O.live=null; fmStart(L.h,L.a,L.gh,L.ga,L.day,L.pen||null,L.ko||null); ui.modal={type:'fmatch'}; } _rC(); }; }
 /* positions de votre système sur le terrain animé */
 { const _bp=fmBasePos; fmBasePos=function(L,s,i){ const O=fcOwn(); const id= s? L.a : L.h; if(O&&O.id===id&&FC_FORM_POS[O.form]){ const b=FC_FORM_POS[O.form][i]; return fmDir(L,s)>0? [b[0],b[1]] : [105-b[0],68-b[1]]; } return _bp(L,s,i); }; }
 
@@ -16804,13 +16864,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.5.4';
+const IB_VER='V2.5.5';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Prolongation et tirs au but','Dans les matchs à élimination directe (coupes, séries, coupes internationales), un score nul n’est plus tranché d’un coup : on joue une prolongation de deux fois quinze minutes, puis des tirs au but tirés un par un, avec mort subite après cinq tirs. L’animation du match montre la prolongation et chaque tir au but, et les résultats indiquent « après prolongation » et le score des tirs au but. Pour un match aller-retour, la prolongation se joue au retour si le cumul est à égalité.','V2.5.5'],
   ['Le directeur du data center investit','En délégation totale, le directeur du data center achète lui-même ce qui manque : puissance électrique quand le site approche de sa limite, meilleur refroidissement pour les salles qui chauffent (eau glacée, naturel, puis immergé), nouvelle salle quand les baies se remplissent ou qu’un client ne trouve pas de place, puis les régions du monde et le cloud souverain. Son prochain achat s’affiche comme objectif.','V2.5.4'],
   ['Plus de messages de confirmation, directeur qui rachète','Les messages verts de confirmation ont disparu partout ; seuls les refus et les erreurs s’affichent. Le directeur d’une compagnie aérienne ou maritime rachète bien les appareils loués : il le fait avant d’ouvrir de nouvelles lignes, et dès que sa réserve couvre le rachat visé, priorité du groupe comprise.','V2.5.3'],
   ['Recrutement sans messages','Embaucher un candidat, compléter une équipe ou chercher d’autres profils n’affiche plus de message de confirmation. Les refus restent signalés.','V2.5.2'],
