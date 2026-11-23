@@ -1,0 +1,12 @@
+const {chromium}=require('playwright');(async()=>{const br=await chromium.launch();const p=await br.newPage();
+const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.goto('file:///home/claude/idle-business/index.html'); await p.waitForSelector('[data-a="slotnew"]'); await p.click('[data-a="slotnew"]'); await p.click('[data-a="startnew"]'); await p.waitForTimeout(500);
+console.log(await p.evaluate(()=>{ const o=[]; S.cash=5e12; S.peakNW=5e13; if(S.tut) S.tut.off=true;
+  o.push('LUX prestige par Md€ : '+D.LUX.map(l=>l.id+' '+(l.pr/l.price*1e9).toFixed(1)).join(', '));
+  const cs=Object.keys(D.CITIES).filter(id=>!cityOwned(id)); let tot=0, n=0;
+  for(let k=0;k<4;k++) cs.forEach(id=>{ if(!cityOwned(id)&&cityUnlocked(id)){ const pr=cityPriceEur(id); if(buyCity(id).ok){ tot+=pr; n++; } } });
+  o.push('villes achetées '+n+' pour '+(tot/1e9).toFixed(0)+' Md€ -> prestige villes '+Math.round(tot/1e8)+' ('+(1e9/1e8).toFixed(0)+' par Md€)');
+  const i0=S.infl; for(let d=0;d<720;d++) nextDay(); o.push('influence '+Math.round(i0)+' -> '+Math.round(S.infl)+' après 720 j ; lobbyPush max '+(0.45*(1+S.infl/150)).toFixed(2));
+  o.push('prestige '+Math.round(prCompute())+' rang '+JSON.stringify(prRank()).slice(0,40)+' ; revenus villes/j '+Math.round(Object.keys(S.cities).filter(cityOwned).reduce((a,id)=>a+cityIncome(id)-cityUpkeep(id),0)/1e6)+' M€');
+  return o.join('\n'); }));
+console.log('ERR',errs); await br.close();})();

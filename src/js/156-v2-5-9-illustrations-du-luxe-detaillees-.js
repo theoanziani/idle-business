@@ -209,7 +209,7 @@ pxArt=function(l){ const k=l.id; if(PXK[k]) return PXK[k];
 @media (prefers-reduced-motion:reduce){[class^="pxa-"]{animation:none!important}}`; document.head.appendChild(st); })();
 
 /* ---------- villes et pays : ce qu'ils rapportent ---------- */
-const CITY_YIELD=.10, CITY_SALES=.05, CTY_SALES=.05, PR_PER=1e8;
+const CITY_YIELD=.08, CITY_SALES=.05, CTY_SALES=.05, PR_PER=1e8;
 cityIncome=function(id){ const o=S.cities[id]; return cityValue(id)*CITY_YIELD/360*CPOL[o.pol===undefined?1:o.pol][1]*cityOcc(id)/.8; };
 const ctyOf = c => D.COUNTRIES.find(x=>x.cities.includes(c));
 const ctyGov = city => !!(S.country&&S.country.cities&&S.country.cities.includes(city));
@@ -236,7 +236,7 @@ function ctyGain(c){ const L=S.biz.filter(b=>b.status==='active'&&c.cities.inclu
 const gRow=(t,v,s)=>'<div class="cg-r"><span>'+t+(s?'<small>'+s+'</small>':'')+'</span><b class="num">'+v+'</b></div>';
 function cityGainHtml(id){ const g=cityGain(id), own=cityOwned(id), kids=D.CITY_ORDER.filter(k=>D.CITIES[k].parent===id);
   return '<div class="cg"><div class="cg-h">'+(own?'Ce que la ville vous rapporte':'Ce que la ville vous rapporterait')+'</div>'+
-    gRow('Loyers des locataires',signed(g.rent,0)+' / j','10 % de sa valeur par an, entretien déduit')+
+    gRow('Loyers des locataires',signed(g.rent,0)+' / j',pct(CITY_YIELD,0)+' de sa valeur par an, entretien déduit')+
     gRow('Vos sociétés ici ('+g.n+')',g.n? '+'+eur(g.sales,0)+' / j' : '—','ventes +5 %'+(own?'':', plus de loyer'+(g.save>0?' (−'+eur(g.save,0)+' / j)':'')))+
     gRow('Prestige','+'+fmtN(g.pr),'1 point par 100 M€ du prix')+(kids.length&&!own? gRow('Débloque',esc(kids.map(k=>D.CITIES[k].n).join(', ')),'') : '')+'</div>'; }
 { const _cc=cityCard; cityCard=function(id){ const h=_cc(id); try{ if(!cityUnlocked(id)&&!cityOwned(id)) return h; const k=h.lastIndexOf('</section>'); return k<0? h : h.slice(0,k)+cityGainHtml(id)+h.slice(k); }catch(e){ return h; } }; }
@@ -253,7 +253,7 @@ function ctyGainHtml(c){ const g=ctyGain(c), gov=S.country&&S.country.id===c.id;
     (gov&&S.country.ex===false? gRow('Impôt sur les sociétés évité','suspendu','vous avez renoncé à l’exonération') : gRow('Impôt sur les sociétés évité',g.n? '+'+eur(g.tax,0)+' / mois' : '—',g.n? plu(g.n,'société')+' du pays n’en paient plus' : 'aucune de vos sociétés dans le pays'))+
     gRow('Ventes de vos sociétés du pays',g.n? '+'+eur(g.sales,0)+' / j' : '—','+5 %, en plus du bonus de chaque ville')+
     gRow('Recettes fiscales nettes',signed(g.fisc,0)+' / j','impôts moins dépenses publiques, réglables')+
-    gRow('Prestige','+'+fmtN(g.pr),'1 point par 100 M€ du prix, plus réputation +10')+gRow('Influence politique','+'+CTY_INF/.002+' à terme','plus 100 par ville possédée')+(gov? ctyExHtml() : '')+'</div>'; }
+    gRow('Prestige','+'+fmtN(g.pr),'1 point par 100 M€ du prix, plus réputation +10')+gRow('Influence politique','+'+Math.round(CTY_INF/.002)+' à terme','plus '+Math.round(CITY_INF/.002)+' par ville possédée')+(gov? ctyExHtml() : '')+'</div>'; }
 function pxCountries(){ let h='<div class="notice info">Une ville achetée vous verse les loyers de ses locataires et fait vendre 5 % de plus à vos sociétés qui s’y trouvent. Avec les trois villes d’un pays, vous pouvez acheter le pays : vos sociétés n’y paient plus l’impôt sur les sociétés et vendent encore 5 % de plus.</div>';
   if(S.country){ const c=D.COUNTRIES.find(x=>x.id===S.country.id); const o=_vLuxeOld(), k=o.indexOf('<div class="cat-h">Pays entiers</div>');
     h+='<section class="card px-cty"><div class="px-ch">'+ctyFlag(c.id)+'<div><b>'+esc(c.n)+'</b><small>Vous gouvernez ce pays</small></div></div>'+ctyGainHtml(c)+'</section>'+(k>=0? o.slice(k+'<div class="cat-h">Pays entiers</div>'.length) : ''); return h; }

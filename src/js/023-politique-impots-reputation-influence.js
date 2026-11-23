@@ -3,7 +3,7 @@
    ============================================================ */
 const billDef = k => D.BILLS.find(x=>x.k===k);
 const lobbyScale = () => Math.max(1000,0.0025*Math.max(S.nw,0));
-const lobbyPush = spend => 0.45*(1-Math.exp(-spend/lobbyScale()))*(1+S.infl/150);
+const lobbyPush = spend => 0.45*(1-Math.exp(-spend/lobbyScale()))*(1+2*S.infl/(S.infl+250));
 
 function billProb(bl){
   const d=billDef(bl.k), tilt=(S.gov.ten-40)/40;
