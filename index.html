@@ -2161,8 +2161,8 @@ const MKT_PCT=[0,.015,.035,.06], MKT_BOOST=[1,1.05,1.085,1.105];
 function agencyBonus(){ let l=0; S.biz.forEach(b=>{ if(b.def==='agency'&&b.status==='active') l+=b.lvl; }); return Math.min(l,6); }
 function staffingLevel(){ let l=0; S.biz.forEach(b=>{ if(b.def==='staffing'&&b.status==='active') l+=b.lvl; }); return Math.min(l,6); }
 function buildCoLevel(){ let l=0; S.biz.forEach(b=>{ if(b.def==='build'&&b.status==='active') l+=b.lvl; }); return l; }
-function lawMult(d){
-  const L=S.laws; let m=1;
+function lawMult(d,b){
+  const L=b? lawsAt(b.city) : S.laws; let m=1;
   if(d.tags.includes('renew')&&L.subRenew) m*=1.25;
   if(d.tags.includes('tech')&&L.subTech) m*=1.10;
   if(d.tags.includes('retail')&&L.consLaw) m*=.97;
@@ -2190,7 +2190,7 @@ function bizProjection(b){
   const vol=clamp(1-d.el*(b.price-1),0.2,1.8);
   const loc=locMult(b,true);
   const mm=metMods(b);
-  const volF=mm.vol*base.R0*sf*demand*MKT_BOOST[b.mkt]*lawMult(d)*sat*synBonus(d)*rep*startupMult(b)*vol*tagMult(d.tags)*loc.total*csm*comp*(D.CAL[b.def]||1)*planEff(b).S*bldSales(b)*bossSales(b);
+  const volF=mm.vol*base.R0*sf*demand*MKT_BOOST[b.mkt]*lawMult(d,b)*sat*synBonus(d)*rep*startupMult(b)*vol*tagMult(d.tags)*loc.total*csm*comp*(D.CAL[b.def]||1)*planEff(b).S*bldSales(b)*bossSales(b);
   return {sf, csm, comp, demand, rep, sat, vol, loc, volF, mm, rev:volF*b.price*mm.price+mm.rev, cogs:volF*d.c*mm.cogs, R0:base.R0};
 }
 
@@ -4904,7 +4904,7 @@ function donate(amount){
 function decree(k){
   if(!S.country) return err('Réservé aux souverains.');
   if(S.day-S.decreeDay<10) return err('Un décret tous les 10 jours.');
-  const d=billDef(k), CL=ctyLaws(); if(!d||!ctyBill(d)) return err('Décret impossible.');
+  const d=ctyBillDef(k), CL=ctyLaws(); if(!d||!ctyBill(d)) return err('Décret impossible.');
   Object.assign(CL,d.set); S.country.sat=clamp(S.country.sat+1.5*(d.pop||0)-.5*(d.ten||0),0,100); S.decreeDay=S.day; S.lawLog.unshift({d:S.day,t:d.t,pass:true,decree:true});
   log('warn','Décret promulgué à '+S.country.name+' : '+d.t+'.');
   return ok();
@@ -13060,7 +13060,7 @@ function modalBiz(b){
         '<div class="stack"><b>Assurance</b><div class="seg"><button class="'+(!b.ins?'on':'')+'" data-a="setins" data-i="'+b.id+'" data-v="0">Aucune</button><button class="'+(b.ins?'on':'')+'" data-a="setins" data-i="'+b.id+'" data-v="1">Souscrite</button></div><div class="sub">Coût : '+eur(R0*0.006*insRisk(C),0)+' / jour. Réduit les pertes de vol de moitié et les dégâts de catastrophe de 70 %.</div></div></div></div>'; }
     /* facteurs */
     if(pr){
-      const f=[['Effectif et compétences',pr.sf],['Conjoncture et taux',pr.demand],['Réputation',pr.rep],['Saturation du marché ('+(satIndex(b)+1)+'e exemplaire)',pr.sat],['Effet du prix sur les volumes',pr.vol],['Marketing',MKT_BOOST[b.mkt]],['Quartier et clientèle',pr.loc.aff],['Prestige de l’adresse',pr.loc.pres],['Ville et pouvoir d’achat',pr.loc.city],['Fête en cours',pr.loc.fe],['Satisfaction des clients',pr.csm],['Concurrence ('+intLabel(intensity(rivKey(b))).toLowerCase()+')',pr.comp],['Synergies',synBonus(d)],['Lois et actualité',lawMult(d)*tagMult(d.tags)],['Phase de croissance',startupMult(b)]].filter(x=>Math.abs(x[1]-1)>0.004||x[0].startsWith('Effectif'));
+      const f=[['Effectif et compétences',pr.sf],['Conjoncture et taux',pr.demand],['Réputation',pr.rep],['Saturation du marché ('+(satIndex(b)+1)+'e exemplaire)',pr.sat],['Effet du prix sur les volumes',pr.vol],['Marketing',MKT_BOOST[b.mkt]],['Quartier et clientèle',pr.loc.aff],['Prestige de l’adresse',pr.loc.pres],['Ville et pouvoir d’achat',pr.loc.city],['Fête en cours',pr.loc.fe],['Satisfaction des clients',pr.csm],['Concurrence ('+intLabel(intensity(rivKey(b))).toLowerCase()+')',pr.comp],['Synergies',synBonus(d)],['Lois et actualité',lawMult(d,b)*tagMult(d.tags)],['Phase de croissance',startupMult(b)]].filter(x=>Math.abs(x[1]-1)>0.004||x[0].startsWith('Effectif'));
       body+='<div class="card"><h2>Ce qui fait vos ventes</h2><div class="tw"><table class="tbl"><tbody>'+f.map(x=>'<tr><td>'+x[0]+'</td><td class="r num '+(x[1]>1.004?'pos':x[1]<0.996?'neg':'')+'">'+multPct(x[1])+'</td></tr>').join('')+'</tbody></table></div>'+(d.syn&&synBonus(d)===1?'<div class="sub" style="margin-top:6px">Synergie possible : '+d.syn.txt+' (+'+Math.round(d.syn.b*100)+' %).</div>':'')+(b.mods.length?'<div class="row" style="margin-top:8px">'+b.mods.map(m=>pill(m.label+' jusqu’au '+dateL(m.until),m.mult>1?'good':'bad')).join('')+'</div>':'')+'</div>';
     }
     body+=bossPanel(b);
@@ -13248,11 +13248,11 @@ function vPol(){
   /* lois en vigueur */
   const lawGrid=(L,K)=>'<div class="grid g4">'+(K||Object.keys(LAWTXT)).filter(k=>LAWTXT[k]).map(k=>'<div><div class="tag">'+LAWTXT[k][0]+'</div><b class="num">'+LAWTXT[k][1](L[k])+'</b></div>').join('')+'</div>';
   h+=card(S.country? 'Lois du Parlement' : 'Lois en vigueur',(S.country? '<div class="sub" style="margin-bottom:8px">Elles s’appliquent partout sauf dans votre pays, ainsi qu’à vos impôts personnels (capital, fortune, luxe).</div>' : '')+lawGrid(S.laws));
-  if(S.country) h+=card('Lois de '+esc(S.country.name),'<div class="sub" style="margin-bottom:8px">Elles s’appliquent à vos sociétés installées dans le pays : impôt sur les sociétés, salaires, droit du travail, loyers. Les votes du Parlement ne les changent pas.</div>'+lawGrid(ctyLaws(),CTY_LAWK));
+  if(S.country) h+=card('Lois de '+esc(S.country.name),'<div class="sub" style="margin-bottom:8px">Elles s’appliquent à vos sociétés installées dans le pays : impôt sur les sociétés, salaires, droit du travail, loyers et subventions par secteur. Les votes du Parlement ne les changent pas.</div>'+lawGrid(ctyLaws(),CTY_LAWK)+ctyLawFxHtml());
   if(S.country){
     h+=card('Décrets',
       '<div class="sub" style="margin-bottom:8px">En tant que souverain, vous fixez seul les lois de '+esc(S.country.name)+'. Un décret tous les 10 jours'+(S.day-S.decreeDay<10?' (prochain dans '+(10-(S.day-S.decreeDay))+' j)':'')+'. La satisfaction de vos citoyens réagit 50 % plus fort qu’à une loi votée.</div><div class="stack">'+
-      D.BILLS.filter(ctyBill).map(b=>'<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:200px"><b>'+b.t+'</b><div class="sub">'+b.d+'</div></div>'+btn('Décréter','decree',{c:'sm pri',i:b.k,dis:S.day-S.decreeDay<10,why:'Un décret tous les 10 jours.'})+'</div>').join('')+'</div>');
+      ctyBillList().map(b=>'<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div style="flex:1;min-width:200px"><b>'+b.t+'</b><div class="sub">'+b.d+'</div></div>'+btn('Décréter','decree',{c:'sm pri',i:b.k,dis:S.day-S.decreeDay<10,why:'Un décret tous les 10 jours.'})+'</div>').join('')+'</div>');
   } else {
     const pre=lobbyPresets(), pi=ui.tmp.lob??1, amt=pre[pi];
     h+='<div class="row sp"><h2 style="font-family:var(--f-display);font-size:24px;text-transform:uppercase;letter-spacing:.05em">Projets de loi</h2><div class="row"><span class="sub">Budget par action :</span><div class="seg">'+pre.map((a,i)=>'<button class="'+(pi===i?'on':'')+'" data-a="lobpre" data-v="'+i+'">'+eur(a,0)+'</button>').join('')+'</div></div></div>';
@@ -21506,11 +21506,38 @@ ACT.ctyex=()=>{ const c=S.country; if(!c) return; c.ex= c.ex===false; log('info'
 /* ============================================================
    V2.6.3 : lois propres au pays gouverné (S.country.laws, copie des lois du Parlement à l'achat)
    ============================================================ */
-const CTY_LAWK=['corpTax','labor','minWage','rentCap'];
+const CTY_LAWK=['corpTax','labor','minWage','rentCap','subRenew','subTech','consLaw'];
 function ctyBill(b){ return Object.keys(b.set).every(k=>CTY_LAWK.includes(k))&&b.cond(ctyLaws()); }
 function ctyLaws(){ const c=S.country; return c? (c.laws||(c.laws=Object.assign({},S.laws))) : S.laws; }
 function lawsAt(city){ const c=S.country; return c&&c.cities&&c.cities.includes(city)? ctyLaws() : S.laws; }
 { const _bc=buyCountry; buyCountry=function(id){ const r=_bc(id); if(r.ok) ctyLaws(); return r; }; }
+/* ============================================================
+   V2.6.4 : subventions par pays, et vos lois façonnent le pays gouverné
+   Chaque loi du pays agit sur sa croissance (points par an), la satisfaction visée des citoyens
+   et, pour les subventions, sur le budget public (part du PIB par an).
+   ============================================================ */
+const CTY_XB=[
+  {k:'C_MINWAGE_DOWN', t:'Retour du salaire minimum à son niveau de base', d:'Salaires −9 %.', set:{minWage:1.0}, cond:l=>l.minWage>1, pop:-4, ten:4},
+  {k:'C_GREEN_OFF', t:'Fin des subventions aux renouvelables', d:'Producteurs d’énergie renouvelable : chiffre d’affaires −20 %.', set:{subRenew:0}, cond:l=>l.subRenew===1, pop:-1, ten:0},
+  {k:'C_RD_OFF', t:'Fin du crédit d’impôt recherche', d:'Sociétés technologiques : chiffre d’affaires −9 %.', set:{subTech:0}, cond:l=>l.subTech===1, pop:0, ten:0},
+  {k:'C_CONSUMER_OFF', t:'Allègement de la protection des consommateurs', d:'Marges du commerce +3 %.', set:{consLaw:0}, cond:l=>l.consLaw===1, pop:-2, ten:1}];
+const ctyBillDef = k => billDef(k)||CTY_XB.find(x=>x.k===k);
+const ctyBillList = () => D.BILLS.concat(CTY_XB).filter(ctyBill);
+/* effets de chaque loi : g = croissance (point par an), s = satisfaction, c = coût public (% du PIB par an) */
+function ctyLawFx(L){ const f={g:0,s:0,c:0};
+  f.g+=.2*(.25-L.corpTax)/.05; f.s-=(.25-L.corpTax)/.05;
+  if(L.labor){ f.g-=.3; f.s+=4; } if(L.minWage>1){ f.g-=.2; f.s+=3; } if(L.rentCap){ f.g-=.1; f.s+=3; }
+  if(L.subRenew){ f.g+=.2; f.s+=1; f.c+=.3; } if(L.subTech){ f.g+=.3; f.c+=.4; } if(L.consLaw){ f.g-=.05; f.s+=2; }
+  return f; }
+{ const _cs=countryStep; countryStep=function(){ _cs(); const c=S.country; if(!c) return; const f=ctyLawFx(ctyLaws());
+  const k=1+f.g/100/360; c.gdp*=k; c.price*=k; c.sat=clamp(c.sat+.05*f.s,0,100);
+  if(f.c>0){ const cost=c.gdp*f.c/100/360; pay('country','Subventions publiques de '+c.name,-cost); c.revenue-=cost; } }; }
+const fxSig=(v,d,u)=>(v>0?'+':v<0?'−':'')+fmtN(Math.abs(v),d)+u;
+function ctyLawFxHtml(){ const c=S.country, f=ctyLawFx(ctyLaws());
+  return '<div class="cg" style="margin-top:12px"><div class="cg-h">Effet de vos lois sur '+esc(c.name)+'</div>'+
+    gRow('Croissance du PIB',fxSig(f.g,2,' pt / an'),'baisse d’impôt et subventions l’accélèrent, protections la freinent')+
+    gRow('Satisfaction des citoyens',fxSig(f.s,1,' à terme'),'protections sociales appréciées, cadeaux fiscaux mal vus')+
+    gRow('Coût des subventions',f.c? '−'+eur(c.gdp*f.c/100/360,0)+' / j' : '—','payé par le budget du pays')+'</div>'; }
 </script>
 </body>
 </html>
