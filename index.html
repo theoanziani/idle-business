@@ -1939,7 +1939,7 @@ function rptAlerts(){
     if(b.status!=='active') return;
     if(staffFill(b)<.6) A.push({k:'warn',m:b.name+' : seulement '+Math.round(staffFill(b)*100)+' % des postes pourvus.'});
     if(avgLoy(b)<40&&headcount(b)>0) A.push({k:'warn',m:b.name+' : fidélité du personnel basse ('+Math.round(avgLoy(b))+').'});
-    if(b.hist.length>=10&&b.hist.slice(-10).reduce((a,x)=>a+x,0)<0) A.push({k:'bad',m:b.name+' perd de l’argent depuis 10 jours.'});
+    if(!bizCyc(b)&&b.hist.length>=10&&b.hist.slice(-10).reduce((a,x)=>a+x,0)<0) A.push({k:'bad',m:b.name+' perd de l’argent depuis 10 jours.'});
     if((b.arr||0)>=3) A.push({k:'bad',m:b.name+' : loyer impayé depuis '+b.arr+' jours, expulsion à '+EVICT_DAYS+'.'});
     if((b.fat||0)>65) A.push({k:'warn',m:b.name+' : équipe épuisée (fatigue '+Math.round(b.fat)+').'});
     const dd=distOf(b); if(dd.crime>=4&&!b.sec&&['luxe','commerce','hotel'].includes(bizSec(b.def))) A.push({k:'warn',m:b.name+' : quartier à risque ('+dd.n+') sans sécurité.'});
@@ -8553,6 +8553,11 @@ const dlSkipped = (b,k) => !!(b.dlSkip&&b.dlSkip[k]>S.day);
 const dlNet30 = b => { const h=(b.hist||[]).slice(-30); return h.length? h.reduce((a,x)=>a+x,0)/h.length : 0; };
 /* V2.0.2 : bénéfice moyen sur environ 120 jours (activités à cycles : collections, récoltes, films) */
 const dlNetL = b => b.dlE!==undefined? Math.max(b.dlE,dlNet30(b)) : dlNet30(b);
+/* V2.5.8 : activités à ventes ponctuelles (films, programmes immobiliers, enchères, collections, récoltes, chantiers) :
+   leurs alertes de perte se fondent sur la moyenne d'environ 4 mois, jamais sur 10 ou 30 jours */
+const BIZ_CYC=['studio','promo','gallery','couture','farm','build'];
+const bizCyc = b => BIZ_CYC.includes(b.def);
+const bizNetRef = b => bizCyc(b)? (b.dlE!==undefined? b.dlE : dlNet30(b)) : dlNet30(b);
 /* V2.1.9 : bâtiment visé pour grandir : le meilleur emplacement, puis le loyer le plus bas parmi ceux qui permettent
    au moins trois niveaux de plus (avant : toujours le plus grand, au loyer souvent démesuré pour l’activité) */
 function dlRelocPick(b){ const L=relocCands(b,1).filter(x=>x.mx>b.lvl); if(!L.length) return null; const need=Math.min(MAXLVL,b.lvl+3);
@@ -8576,8 +8581,9 @@ function dlGoal(b){ const mm=metOf(b); if(!mm||b.status!=='active') return null;
 function dlAct(b,cost,fn){ if(!(cost>0)||dlBudget(b)<cost) return false; const r=fn(); if(r&&r.ok){ b.dlp=dlBudget(b)-cost; return true; } return false; }
 function dlDaily(b){
   const m=metOf(b); if(!m||!m.auto||b.status!=='active') return;
-  const mode=dlMode(b); if(mode==='me') return;
+  /* V2.5.8 : moyenne longue tenue aussi quand vous gérez vous-même (sert aux alertes des activités à ventes ponctuelles) */
   if(b.last&&b.last.day!==b.dlEd){ b.dlEd=b.last.day; const n=b.last.net||0; b.dlE= b.dlE===undefined? n : b.dlE+(n-b.dlE)/120; }
+  const mode=dlMode(b); if(mode==='me') return;
   if(mode==='full'&&b.last){ const add=DL_BUD[b.dlb||0]*Math.max(0,b.last.net0!==undefined? b.last.net0 : b.last.net), g=dlGoal(b);
     /* V1.5.8 : réserve plafonnée à trois ans de mise de côté, ou au prix du prochain achat visé s'il est plus cher */
     b.dlp=Math.min(dlBudget(b)+add, Math.max(dlBudget(b),add*1080,g? g.c*1.05 : 0));
@@ -16873,13 +16879,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.5.7';
+const IB_VER='V2.5.8';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Moins de fausses alertes de perte','Les sociétés qui vendent par à-coups (studio, promoteur, galerie, maison de couture, ferme, construction) ne sont plus signalées en perte entre deux sorties ou deux ventes : plus d’alerte ni de conseil « perd de l’argent », et leur ligne de rentabilité se fonde sur la moyenne des quatre derniers mois.','V2.5.8'],
   ['Les directeurs ne s’arrêtent plus de grandir','Le directeur d’une compagnie maritime ou aérienne continuait d’agrandir toujours le même terminal ou le même aéroport ; une fois celui-ci au maximum de quais ou de créneaux, il n’ouvrait plus aucune ligne. Il agrandit maintenant le terminal ou l’aéroport le plus chargé qui peut encore l’être.','V2.5.7'],
   ['Le chef d’exploitation achète des parcelles','En délégation totale, le chef d’exploitation d’une ferme fait ses achats chaque semaine : suivi vétérinaire, transformation qui manque, nouvelle parcelle dès que toutes sont occupées, puis machines, bio, magasin et appellation. Son prochain achat s’affiche comme objectif. Au-delà de huit parcelles, il faut le palier 5.','V2.5.6'],
   ['Prolongation et tirs au but','Dans les matchs à élimination directe (coupes, séries, coupes internationales), un score nul n’est plus tranché d’un coup : on joue une prolongation de deux fois quinze minutes, puis des tirs au but tirés un par un, avec mort subite après cinq tirs. L’animation du match montre la prolongation et chaque tir au but, et les résultats indiquent « après prolongation » et le score des tirs au but. Pour un match aller-retour, la prolongation se joue au retour si le cumul est à égalité.','V2.5.5'],
@@ -17775,13 +17782,13 @@ ACT.pbest=el=>{ const b=S.biz.find(x=>x.id===+el.dataset.i); if(!b) return; cons
   el.textContent='Calcul…'; el.disabled=true; setTimeout(()=>{ pbCache()[pbKey(b,c)]=pbEstimate(b,c); render(); },20); };
 
 /* V1.7.4 : rentabilité du groupe (bénéfice des 30 derniers jours rapporté à l'argent investi) */
-function roiRows(){ return S.biz.filter(b=>b.status==='active').map(b=>{ const h=(b.hist||[]).slice(-30), n=h.length? h.reduce((a,x)=>a+x,0)/h.length : 0, inv=Math.max(1,(b.inv$||bizDef(b).cost)+Math.max(0,bizInvested(b)-bizDef(b).cost));
+function roiRows(){ return S.biz.filter(b=>b.status==='active').map(b=>{ const h=(b.hist||[]).slice(-30), n=bizCyc(b)? bizNetRef(b) : h.length? h.reduce((a,x)=>a+x,0)/h.length : 0, inv=Math.max(1,(b.inv$||bizDef(b).cost)+Math.max(0,bizInvested(b)-bizDef(b).cost));
   return {b, n, inv, roi:n*360/inv}; }).sort((x,y)=>y.roi-x.roi); }
 function roiCard(){ const R=roiRows(); if(R.length<2) return ''; const F=S.fcfold||{}, open=!!F.bz_roi;
-  const tot=R.reduce((a,r)=>a+r.n,0), inv=R.reduce((a,r)=>a+r.inv,0), neg=R.filter(r=>r.n<0).length;
-  const row=r=>'<div class="rs-d"><div><b>'+esc(r.b.name)+'</b><small>'+esc(bizDef(r.b).n)+' · '+esc(cityName(r.b.city))+' · investi '+eur(r.inv,0)+'</small><small class="num '+cls(r.n)+'">'+signed(r.n,0)+' / j · '+(r.n>0? fmtN(r.roi*100,0)+' % par an · remboursé en ≈ '+Math.max(1,Math.round(r.inv/r.n/30))+' mois' : 'en perte sur 30 jours')+'</small></div>'+pill(r.n<=0?'À revoir':r.roi>=1?'Excellent':r.roi>=.4?'Bon':'Faible',r.n<=0?'bad':r.roi>=.4?'good':'info')+'</div>';
+  const tot=R.reduce((a,r)=>a+r.n,0), inv=R.reduce((a,r)=>a+r.inv,0), neg=R.filter(r=>r.n<0&&!bizCyc(r.b)).length;
+  const row=r=>'<div class="rs-d"><div><b>'+esc(r.b.name)+'</b><small>'+esc(bizDef(r.b).n)+' · '+esc(cityName(r.b.city))+' · investi '+eur(r.inv,0)+'</small><small class="num '+cls(r.n)+'">'+signed(r.n,0)+' / j · '+(r.n>0? fmtN(r.roi*100,0)+' % par an · remboursé en ≈ '+Math.max(1,Math.round(r.inv/r.n/30))+' mois' : bizCyc(r.b)? 'ventes ponctuelles : à juger sur plusieurs mois' : 'en perte sur 30 jours')+'</small></div>'+(r.n<=0&&bizCyc(r.b)? pill('En cycle','info') : pill(r.n<=0?'À revoir':r.roi>=1?'Excellent':r.roi>=.4?'Bon':'Faible',r.n<=0?'bad':r.roi>=.4?'good':'info'))+'</div>';
   return '<section class="card fcd-c"><details class="fcd ag-f" data-k="bz_roi"'+(open?' open':'')+'><summary><span class="ag-s"><h2><span>Rentabilité du groupe</span></h2><small>'+signed(tot,0)+' / j pour '+eur(inv,0)+' investis · '+fmtN(inv>0?tot*360/inv*100:0,0)+' % par an'+(neg?' · <span class="warn-t">'+neg+' en perte</span>':'')+'</small></span></summary>'+
-    '<div class="sub">Classement par rendement annuel : bénéfice moyen des 30 derniers jours rapporté à tout ce que vous avez investi (création, agrandissements, achats). Agrandissez en priorité le haut du classement ; revoyez ou cédez le bas.</div><div class="ht-t">'+R.map(row).join('')+'</div></details></section>'; }
+    '<div class="sub">Classement par rendement annuel : bénéfice moyen des 30 derniers jours (4 mois pour les studios, promoteurs, galeries, maisons de couture, fermes et entreprises de construction) rapporté à tout ce que vous avez investi (création, agrandissements, achats). Agrandissez en priorité le haut du classement ; revoyez ou cédez le bas.</div><div class="ht-t">'+R.map(row).join('')+'</div></details></section>'; }
 { const _vbh4=vBizHome; vBizHome=function(){ const h=_vbh4(); return S.biz.length? h+roiCard() : h; }; }
 
 /* V1.8.8 : vue d'ensemble de la délégation (achat visé, réserve, derniers achats de chaque directeur) */
@@ -17804,7 +17811,7 @@ function advList(){ const L=[], act=S.biz.filter(b=>b.status==='active');
   /* V2.1.3 : trésorerie faible (moins de 15 jours de charges) */
   { let ch=0; act.forEach(b=>{ if(b.last) ch+=Math.max(0,(b.last.rev||0)-(b.last.net||0)); });
     if(ch>0&&S.cash<ch*15) L.push({p:95, t:'Trésorerie faible', d:'Il reste environ '+Math.max(0,Math.floor(S.cash/ch))+' jours de charges en caisse. Évitez les achats et lancements, ou empruntez à la banque : 14 jours à découvert mènent à la faillite.', b:btn('Banque','tab',{c:'sm pri',i:'bank'})}); }
-  act.forEach(b=>{ const h=b.hist||[]; if(h.length<30||S.day-b.since<60) return; const n=dlNet30(b);
+  act.forEach(b=>{ const h=b.hist||[]; if(bizCyc(b)||h.length<30||S.day-b.since<60) return; const n=dlNet30(b);
     if(n<0) L.push({p:80+Math.min(9,-n/1e4), t:b.name+' perd de l’argent', d:'En moyenne '+eur(-n,0)+' par jour sur 30 jours.', b:btn('Gérer','bizopen',{c:'sm pri',i:b.id})}); });
   act.filter(b=>dlMode(b)!=='full').forEach(b=>{ let g=null; try{ g=dlGoal(b); }catch(e){} if(!g||g.wait||!(g.c>0)||g.c>S.cash*.6) return;
     const n=Math.max(1,dlNetL(b)); L.push({p:40+Math.min(15,n*30/g.c), t:b.name+' : '+g.n, d:'Coûte '+eur(g.c,0)+', soit '+Math.max(1,Math.round(g.c/n))+' jours de bénéfice de la société.', b:btn('Gérer','bizopen',{c:'sm',i:b.id})}); });
