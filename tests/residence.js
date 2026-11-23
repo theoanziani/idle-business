@@ -1,0 +1,14 @@
+const {chromium}=require('playwright');(async()=>{const br=await chromium.launch();const p=await br.newPage({viewport:{width:400,height:860},deviceScaleFactor:2});
+const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.goto('file:///home/claude/idle-business/index.html'); await p.waitForSelector('[data-a="slotnew"]'); await p.click('[data-a="slotnew"]'); await p.click('[data-a="startnew"]'); await p.waitForTimeout(500);
+console.log(await p.evaluate(()=>{ S.cash=1e10; S.peakNW=1e13; if(S.tut) S.tut.off=true; const o=[];
+  for(let d=0;d<5;d++) nextDay();
+  const fr=S.laws; o.push('avant home '+polHome()+' capTax '+S.laws.capTax);
+  const hr=Object.assign({},polOf('usa').laws); hr.x=1;
+  polOf('usa').laws.capTax=.12; const r=moveHome('usa'); o.push('move '+r.ok+' '+(r.msg||'')+' home '+polHome()+' S.laws.capTax '+S.laws.capTax+' france gardée '+(S.pol.france&&S.pol.france.laws===fr)+' usa dans pol '+!!S.pol.usa);
+  o.push('lawsAt paris '+(lawsAt('paris')===fr)+' miami '+(lawsAt('miami')===S.laws));
+  o.push('2e move '+moveHome('croatie').ok);
+  for(let d=0;d<60;d++) nextDay(); o.push('france votes '+S.pol.france.lawLog.length);
+  ui.tab='pol'; ui.polC='croatie'; render(); return o.join('\n'); }));
+await p.waitForTimeout(300); const t=await p.$('table.tbl'); if(t){ await t.scrollIntoViewIfNeeded(); await p.evaluate(()=>window.scrollBy(0,-200)); } await p.screenshot({path:'s_home.png'});
+console.log('ERR',errs); await br.close();})();

@@ -1,0 +1,21 @@
+const {chromium}=require('playwright');(async()=>{const br=await chromium.launch();const p=await br.newPage({viewport:{width:400,height:860},deviceScaleFactor:2});
+const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.goto('file:///home/claude/idle-business/index.html'); await p.waitForSelector('[data-a="slotnew"]'); await p.click('[data-a="slotnew"]'); await p.click('[data-a="startnew"]'); await p.waitForTimeout(500);
+console.log(await p.evaluate(()=>{ S.cash=1e12; S.peakNW=1e13; if(S.tut) S.tut.off=true; const o=[];
+  const open=(city)=>{ for(const d of D.CITIES[city].d){ for(const x of bldList(city,d.id)){ if(!rentBuilding(x.id).ok) continue; const r=launchBiz('repair',0,city,d.id,x.id,'T'); if(r.ok){ const b=S.biz[S.biz.length-1]; b.status='active'; entRoles(b).forEach(([r,sl])=>hireFill(b,r,sl)); return b; } } } };
+  const bp=open('paris'), bz=open('zagreb'); o.push('biz '+!!bp+' '+!!bz);
+  for(let d=0;d<200;d++) nextDay();
+  o.push('pol keys '+Object.keys(S.pol||{}).join(','));
+  D.COUNTRIES.forEach(c=>{ const P=polOf(c.id)||{laws:S.laws,lawLog:S.lawLog,elec:S.elec}; o.push(c.id+' IS '+P.laws.corpTax+' votes '+P.lawLog.length+' élu '+(P.elec&&P.elec.last?P.elec.last.name:'-')); });
+  o.push('lawsAt zagreb '+lawsAt('zagreb').corpTax+' paris '+lawsAt('paris').corpTax+' miami '+lawsAt('miami').corpTax);
+  bp.hist=Array(30).fill(1e6); bz.hist=Array(30).fill(1e6); o.push('taux effectif '+corpRateEff().toFixed(3));
+  const news=S.journal.slice().reverse().slice(0,400).map(x=>x.m||x.msg||x[1]||'').filter(m=>/Parlement|Loi |élu/.test(m)); o.push('news '+news.length+' ex: '+news.slice(0,4).join(' / ').slice(0,300));
+  o.push('news usa/chine '+news.filter(m=>/^(États-Unis|USA|Chine|Brésil|Espagne)/.test(m)).length);
+  ui.polC='croatie'; ui.tab='pol'; render();
+  const bl=(S.pol.croatie.bills||[]); o.push('bills croatie '+bl.length);
+  if(bl.length){ const r=lobby(bl[0].id,'pro',1e6); o.push('lobby '+r.ok+' pro '+S.pol.croatie.bills[0].pro+' home bills pro '+S.bills.map(b=>b.pro).join(',')); }
+  return o.join('\n'); }));
+await p.waitForTimeout(300); await p.screenshot({path:'s_polc.png'});
+const r2=await p.evaluate(()=>{ ['paris','marseille','toulouse'].forEach(buyCity); const r=buyCountry('france'); S.decreeDay=-99; const L=ctyBillList().map(b=>b.k); ui.polC='france'; render(); const d=decree('WEALTH_ON'); for(let i=0;i<40;i++) nextDay(); ui.polC='espagne'; render(); return 'gov '+r.ok+' décrets '+L.length+' wealth '+d.ok+' S.laws.wealthTax '+S.laws.wealthTax+' html espagne '+document.body.innerHTML.includes('Projets de loi'); });
+console.log(r2); await p.screenshot({path:'s_polc2.png'});
+console.log('ERR',errs); await br.close();})();

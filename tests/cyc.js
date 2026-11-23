@@ -1,0 +1,7 @@
+const {chromium}=require('playwright');(async()=>{const br=await chromium.launch();const p=await br.newPage(); const E=[]; p.on('pageerror',e=>E.push(e.message));
+await p.goto('file:///home/claude/idle-business/index.html'); await p.waitForSelector('[data-a="slotnew"]'); await p.click('[data-a="slotnew"]'); await p.click('[data-a="startnew"]'); await p.waitForTimeout(500);
+console.log(await p.evaluate(()=>{ S.cash=2e9; S.peakNW=5e10; if(S.tut) S.tut.off=true; const ids=[]; for(const def of ['studio','resto']){ let id; for(const d of D.CITIES.paris.d){ for(const x of bldList('paris',d.id)){ if(bldMaxLvl(x,def)<2) continue; if(!rentBuilding(x.id).ok) continue; const r=launchBiz(def,0,'paris',d.id,x.id,def); if(r.ok){ const b=S.biz[S.biz.length-1]; b.status='active'; entRoles(b).forEach(([r,sl])=>hireFill(b,r,sl)); id=b.id; break; } } if(id) break; } ids.push(id); }
+ let adv=0, ten=0, lossDays=0; for(let i=0;i<220;i++){ doNext(1); const st=S.biz.find(b=>b.def==='studio'); if(dlNet30(st)<0) lossDays++; if(i>150){ if(advList().some(x=>/studio perd/.test(x.t))) adv++; } }
+ ui.tab='biz'; render(); const html=document.body.innerHTML; const st=S.biz.find(b=>b.def==='studio');
+ return JSON.stringify({lossDays30:lossDays, advStudio:adv, net30:Math.round(dlNet30(st)), netL:Math.round(bizNetRef(st)), roiText:(html.match(/ventes ponctuelles[^<]*|en perte sur [^<']*/g)||[]).slice(0,2), alerts:(typeof alertsList==='function'?1:0)}); }));
+console.log(JSON.stringify(E)); await br.close();})();
