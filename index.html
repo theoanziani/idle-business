@@ -11734,7 +11734,7 @@ function alAuto(b,mode,q){ const m=b.m;
 function alNextHub(b){ const m=b.m; return Object.values(AL_AP).filter(a=>a.hub&&!m.hubs.includes(a.id)&&alHubReq(b,a.id)<=m.img).sort((x,y)=>y.sz-x.sz)[0]; }
 function alLeasedOnGood(b){ const m=b.m; return m.fl.filter(p=>!p.own&&p.ln).map(p=>({p,l:alLine(b,p.ln)})).filter(x=>x.l&&(x.l.st||alLineDay(b,x.l,true)).net>0).sort((x,y)=>AL_TY[x.p.t].pr-AL_TY[y.p.t].pr)[0]; }
 function alNewLine(b,q){ const m=b.m, cands=[]; m.hubs.forEach(h=>alDests(b,h).filter(x=>!alCanLine(b,h,x.id)).forEach(x=>cands.push([h,x.id])));
-  if(!cands.length){ const h=m.hubs.slice().sort((x,y)=>alHubUsed(b,y)-alHubUsed(b,x))[0]; return !!h&&((m.ext&&m.ext[h])||0)<3&&dlCan(b,alExtCost(b,h),'Créneaux')&&alExt(b,h,true).ok; }
+  if(!cands.length){ const h=m.hubs.filter(t=>((m.ext&&m.ext[t])||0)<3).sort((x,y)=>alHubUsed(b,y)-alHubUsed(b,x))[0]; return !!h&&dlCan(b,alExtCost(b,h),'Créneaux')&&alExt(b,h,true).ok; }   /* V2.5.7 : idem pour les créneaux */
   const sc=[]; ['r70','m180','l300'].forEach(t=>{ const T=AL_TY[t]; if(mDlp(b)<=T.ls*30) return; const own=false;   /* location : la croissance reste rapide, le rachat vient ensuite (alInvest) */
     const tp={id:-7, t, own:own?1:0, ln:-1, down:0, dep:0}; m.fl.push(tp);
     cands.forEach(([h,x])=>{ if(T.rg<alDist(h,x)) return; const l={id:-1, a:h, b:x, p:1, cab:1}; m.ln.push(l); const v=alLineDay(b,l,true).net; m.ln.pop(); if(v>0) sc.push([v,v,h,x,t,own]); });
@@ -12043,7 +12043,7 @@ function shAuto(b,mode,q){ const m=b.m;
 function shNextTm(b){ const m=b.m; return Object.values(SH_PT).filter(a=>a.tm&&!m.tm.includes(a.id)&&shTmReq(b,a.id)<=m.img).sort((x,y)=>shTmCost(x.id)-shTmCost(y.id))[0]; }
 function shLeasedOnGood(b){ const m=b.m; return m.fl.filter(p=>!p.own&&p.ln&&SH_TY[p.t].k==='box').map(p=>({p,l:shLine(b,p.ln)})).filter(x=>x.l&&(x.l.st||shLineDay(b,x.l)).net>0).sort((x,y)=>SH_TY[x.p.t].pr-SH_TY[y.p.t].pr)[0]; }
 function shNewLine(b,q){ const m=b.m; const cands=[]; m.tm.forEach(h=>shDests(b,h).filter(x=>!shCanLine(b,h,x.id)).forEach(x=>cands.push([h,x])));
-  if(!cands.length){ if(!m.tm.length) return false; const h=m.tm.slice().sort((x,y)=>shTmUsed(b,y)-shTmUsed(b,x))[0]; return dlCan(b,shExtCost(b,h),'Quais')&&shExt(b,h,true).ok; }
+  if(!cands.length){ if(!m.tm.length) return false; const h=m.tm.filter(t=>((m.ext&&m.ext[t])||0)<3).sort((x,y)=>shTmUsed(b,y)-shTmUsed(b,x))[0]; return !!h&&dlCan(b,shExtCost(b,h),'Quais')&&shExt(b,h,true).ok; }   /* V2.5.7 : quais ajoutés au terminal le plus chargé qui n'est pas au maximum (avant : toujours le plus chargé, bloqué une fois plein) */
   const own=mDlp(b)>=SH_TY.p5.pr*SH_OCC*1.2; if(!own&&mDlp(b)<=SH_TY.p5.ls*30) return false;
   /* étude avec un navire fictif : rien n’est acheté si aucune ligne n’est rentable */
   const t={id:-7, t:'p5', own:own?1:0, occ:own?1:0, ln:-1, down:0, dep:0, yard:0}; m.fl.push(t); const sc=[];
@@ -16873,13 +16873,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.5.6';
+const IB_VER='V2.5.7';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
+  ['Les directeurs ne s’arrêtent plus de grandir','Le directeur d’une compagnie maritime ou aérienne continuait d’agrandir toujours le même terminal ou le même aéroport ; une fois celui-ci au maximum de quais ou de créneaux, il n’ouvrait plus aucune ligne. Il agrandit maintenant le terminal ou l’aéroport le plus chargé qui peut encore l’être.','V2.5.7'],
   ['Le chef d’exploitation achète des parcelles','En délégation totale, le chef d’exploitation d’une ferme fait ses achats chaque semaine : suivi vétérinaire, transformation qui manque, nouvelle parcelle dès que toutes sont occupées, puis machines, bio, magasin et appellation. Son prochain achat s’affiche comme objectif. Au-delà de huit parcelles, il faut le palier 5.','V2.5.6'],
   ['Prolongation et tirs au but','Dans les matchs à élimination directe (coupes, séries, coupes internationales), un score nul n’est plus tranché d’un coup : on joue une prolongation de deux fois quinze minutes, puis des tirs au but tirés un par un, avec mort subite après cinq tirs. L’animation du match montre la prolongation et chaque tir au but, et les résultats indiquent « après prolongation » et le score des tirs au but. Pour un match aller-retour, la prolongation se joue au retour si le cumul est à égalité.','V2.5.5'],
   ['Le directeur du data center investit','En délégation totale, le directeur du data center achète lui-même ce qui manque : puissance électrique quand le site approche de sa limite, meilleur refroidissement pour les salles qui chauffent (eau glacée, naturel, puis immergé), nouvelle salle quand les baies se remplissent ou qu’un client ne trouve pas de place, puis les régions du monde et le cloud souverain. Son prochain achat s’affiche comme objectif.','V2.5.4'],
