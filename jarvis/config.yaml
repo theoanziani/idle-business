@@ -1,0 +1,23 @@
+ollama:
+  host: http://localhost:11434
+  model: qwen3:8b
+  keep_alive: 5m
+whisper:
+  model: large-v3-turbo
+  device: cuda
+  compute_type: float16
+  idle_unload_s: 300
+wake:
+  model: hey_jarvis
+  threshold: 0.5
+listen:
+  silence_rms: 500
+  silence_s: 1.0
+  start_timeout_s: 5
+  max_s: 15
+voice:
+  model: voices/fr_FR-tom-medium.onnx
+claude:
+  projects_dir: ~/projets
+memory:
+  path: data/memoire.db
