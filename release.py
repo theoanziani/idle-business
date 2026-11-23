@@ -5,7 +5,7 @@ ver,title,text=sys.argv[1:4]; SITE='../idle-business'
 for p in glob.glob('src/js/*.js'):
   s=open(p,encoding='utf-8').read()
   if "IB_VER='" not in s: continue
-  s=re.sub(r"IB_VER='V[\d.]+'","IB_VER='"+ver+"'",s,1)
+  s=re.sub(r"IB_VER='V[\d.]+'","IB_VER='"+ver+"'",s,count=1)
   m=re.search(r"\['[^'\n]*','[^'\n]*','V\d+\.\d+\.\d+'\],",s); assert m,'liste des actualités introuvable'
   q=lambda t:t.replace("\\","\\\\").replace("'","’")
   s=s[:m.start()]+"['"+q(title)+"','"+q(text)+"','"+ver+"'],"+s[m.start():]

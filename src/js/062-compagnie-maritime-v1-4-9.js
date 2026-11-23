@@ -112,6 +112,7 @@ function shLineDay(b,l){
   const big=(x,y)=>(x==='as'&&(y==='neu'||y==='med'||y==='naw'))||(y==='as'&&(x==='neu'||x==='med'||x==='naw'));
   let dem=260*Math.sqrt(A.sz*B.sz)/(1+d0/18000)*(A.rg===B.rg&&d0<1500?.55:1)*(big(A.rg,B.rg)?1.6:1);
   const inter=A.rg!==B.rg&&!SH_NB[A.rg].includes(B.rg); if(inter&&m.ali) dem*=1.15;
+  dem*=tradeF(PORT_CTY[l.a],PORT_CTY[l.b],1.5);
   const pm=SH_PRICE[l.p]||1, share=clamp(.2+m.img/260,.1,.65)*Math.pow(pm,-2.4);
   const want=dem*share*(4000/(4000+dem*share));
   let cap=0, cost=0, calls=0, canal=0, teuK=0;

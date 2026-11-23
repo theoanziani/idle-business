@@ -7,7 +7,7 @@
    Le pays que vous gouvernez n'a plus de Parlement : vos décrets font la loi.
    ============================================================ */
 const POL_K=['laws','gov','bills','lawLog','elec'];
-const POL0={croatie:{corpTax:.20}, espagne:{labor:1}, usa:{corpTax:.20,subTech:1}, bresil:{corpTax:.33,labor:1,consLaw:1}, chine:{cryptoReg:1,subRenew:1,subTech:1}};
+const POL0={croatie:{corpTax:.20}, espagne:{labor:1}, usa:{corpTax:.20,subTech:1,tariff:.10}, bresil:{corpTax:.33,labor:1,consLaw:1,tariff:.10}, chine:{cryptoReg:1,subRenew:1,subTech:1,tariff:.10}};
 const polHome = () => S.home||'france';
 const ctyIdOf = city => { const c=ctyOf(city); return c? c.id : polHome(); };
 const ctyName = id => (D.COUNTRIES.find(c=>c.id===id)||{n:id}).n;

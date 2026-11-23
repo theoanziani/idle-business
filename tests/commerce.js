@@ -1,0 +1,14 @@
+const {chromium}=require('playwright');(async()=>{const br=await chromium.launch();const p=await br.newPage({viewport:{width:400,height:860},deviceScaleFactor:2});
+const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.goto('file:///home/claude/idle-business/index.html'); await p.waitForSelector('[data-a="slotnew"]'); await p.click('[data-a="slotnew"]'); await p.click('[data-a="startnew"]'); await p.waitForTimeout(500);
+console.log(await p.evaluate(()=>{ S.cash=1e12; S.peakNW=1e13; S.infl=500; if(S.tut) S.tut.off=true; const o=[];
+  const f=()=>['FOS→SHA '+tradeF('france','chine',1.5).toFixed(2),'LEH→RTM '+tradeF('france',undefined,1.5).toFixed(2),'NYC→SHA '+tradeF('usa','chine',1.5).toFixed(2),'avion CDG-PEK '+tradeF('france','chine',.5).toFixed(2)].join(' ; ');
+  o.push('départ '+f());
+  ['paris','marseille','toulouse'].forEach(buyCity); buyCountry('france');
+  S.decreeDay=-99; o.push('décret '+decree('TARIFF_ON').ok+' ; '+f());
+  const mk=(def)=>{ const b={def,city:'paris',pol:1}; return b; };
+  o.push('lois FR '+ctyLaws().tariff+' ; growth fx '+JSON.stringify(ctyLawFx(ctyLaws())));
+  S.decreeDay=-99; o.push('ALE chine '+ftaToggle('chine').ok+' ; '+f()+' infl '+S.infl);
+  for(let d=0;d<30;d++) nextDay(); ui.tab='pol'; ui.polC='france'; render(); return o.join('\n'); }));
+await p.evaluate(()=>window.scrollTo(0,document.body.scrollHeight)); await p.waitForTimeout(200); await p.screenshot({path:'/home/claude/work/s_fta.png'});
+console.log('ERR',errs); await br.close();})();

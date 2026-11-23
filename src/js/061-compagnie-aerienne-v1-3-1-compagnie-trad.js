@@ -100,6 +100,7 @@ function alLineDay(b,l,sim){
   /* demande (passagers par jour, deux sens) et part de marché de la compagnie */
   let dem=+(170)*Math.sqrt(A.sz*B.sz)/(1+d/4000)*(d<350?.6:1);
   if((A.lei||B.lei)&&alEv(m,'ete')) dem*=1.25;
+  dem*=tradeF(AP_CTY[A.co],AP_CTY[B.co],.5);
   if(long){ const feed=m.ln.filter(x=>x!==l&&(x.a===l.a||x.a===l.b||x.b===l.a||x.b===l.b)&&alDist(x.a,x.b)<=3500).length; dem*=1+Math.min(.4,.04*feed)+(m.ali?.15:0); }
   const pm=AL_PRICE[l.p]||1, share=clamp(.22+m.img/250+(m.fid?.05:0),.1,.7)*Math.pow(pm,-2.6);
   /* concurrence : plus la route est grosse, plus d'autres compagnies s'y battent */
