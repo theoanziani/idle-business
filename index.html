@@ -11609,6 +11609,7 @@ function alLineDay(b,l,sim){
   /* demande (passagers par jour, deux sens) et part de marché de la compagnie */
   let dem=+(170)*Math.sqrt(A.sz*B.sz)/(1+d/4000)*(d<350?.6:1);
   if((A.lei||B.lei)&&alEv(m,'ete')) dem*=1.25;
+  dem*=tradeF(AP_CTY[A.co],AP_CTY[B.co],.5);
   if(long){ const feed=m.ln.filter(x=>x!==l&&(x.a===l.a||x.a===l.b||x.b===l.a||x.b===l.b)&&alDist(x.a,x.b)<=3500).length; dem*=1+Math.min(.4,.04*feed)+(m.ali?.15:0); }
   const pm=AL_PRICE[l.p]||1, share=clamp(.22+m.img/250+(m.fid?.05:0),.1,.7)*Math.pow(pm,-2.6);
   /* concurrence : plus la route est grosse, plus d'autres compagnies s'y battent */
@@ -11882,6 +11883,7 @@ function shLineDay(b,l){
   const big=(x,y)=>(x==='as'&&(y==='neu'||y==='med'||y==='naw'))||(y==='as'&&(x==='neu'||x==='med'||x==='naw'));
   let dem=260*Math.sqrt(A.sz*B.sz)/(1+d0/18000)*(A.rg===B.rg&&d0<1500?.55:1)*(big(A.rg,B.rg)?1.6:1);
   const inter=A.rg!==B.rg&&!SH_NB[A.rg].includes(B.rg); if(inter&&m.ali) dem*=1.15;
+  dem*=tradeF(PORT_CTY[l.a],PORT_CTY[l.b],1.5);
   const pm=SH_PRICE[l.p]||1, share=clamp(.2+m.img/260,.1,.65)*Math.pow(pm,-2.4);
   const want=dem*share*(4000/(4000+dem*share));
   let cap=0, cost=0, calls=0, canal=0, teuK=0;
@@ -16881,14 +16883,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.6.7';
+const IB_VER='V2.6.8';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
-  ['Écran Empire','Nouvel écran Empire (Plus, rubrique Pouvoir) : pour chaque pays, vos sociétés, leur bénéfice sur 30 jours, l’impôt sur les sociétés estimé, les lois clés et le climat politique, avec un accès direct à sa page Politique.','V2.6.7'],['Résidence fiscale','Vous pouvez choisir votre pays de résidence depuis l’onglet Politique : vos impôts personnels (revenus du capital, fortune, luxe, transactions) suivent ses lois. Un tableau compare les deux pays. Déménager coûte une taxe de sortie de 1 % de votre valeur nette, une fois par an au plus.','V2.6.6'],['Un Parlement par pays','Chaque pays a maintenant ses propres lois, son gouvernement, ses projets de loi et ses élections, avec des candidats locaux. Vos sociétés paient l’impôt du pays où elles se trouvent. L’onglet Politique propose un onglet par pays pour suivre les votes, faire du lobbying et financer des campagnes. Vos impôts personnels suivent votre pays de résidence, la France.','V2.6.5'],['Vos lois façonnent le pays','Les subventions par secteur (renouvelables, recherche, protection des consommateurs) dépendent maintenant du pays où se trouve chaque société. Dans votre pays, chaque loi agit sur la croissance du PIB et sur la satisfaction des citoyens ; les subventions sont payées par le budget public. De nouveaux décrets permettent de les supprimer.','V2.6.4'],['Lois de votre pays','Le pays que vous gouvernez a ses propres lois : impôt sur les sociétés, salaire minimum, droit du travail et encadrement des loyers. Vos décrets ne changent qu’elles, et les votes du Parlement ne s’y appliquent plus. Vos sociétés ailleurs et vos impôts personnels restent soumis au Parlement.','V2.6.3'],['Villes, pays et politique','Les recettes fiscales de votre pays ne sont plus soumises à l’impôt sur les sociétés. Exonérer vos sociétés devient un choix : plus elles pèsent dans le pays, plus les citoyens s’en agacent et plus la presse s’y intéresse. Chaque ville possédée apporte de l’influence politique.','V2.6.2'],['Luxe animé','Les illustrations du luxe s’animent : roues et route qui défilent, yachts qui flottent, vagues, nuages, étoiles qui scintillent, tourbillons de La Nuit étoilée, aiguille de Big Ben et flamme de la Liberté. Les animations s’arrêtent si votre téléphone demande de réduire les mouvements.','V2.6.1'],['Prestige, villes et pays','Les illustrations du luxe sont redessinées en scènes détaillées. Une ville achetée rapporte 10 % de sa valeur par an et fait vendre 5 % de plus à vos sociétés qui s’y trouvent. Un pays gouverné exonère vos sociétés de l’impôt sur les sociétés et ajoute 5 % de ventes. Villes et pays comptent désormais dans le prestige.','V2.5.9'],['Moins de fausses alertes de perte','Les sociétés qui vendent par à-coups (studio, promoteur, galerie, maison de couture, ferme, construction) ne sont plus signalées en perte entre deux sorties ou deux ventes : plus d’alerte ni de conseil « perd de l’argent », et leur ligne de rentabilité se fonde sur la moyenne des quatre derniers mois.','V2.5.8'],
+  ['Commerce entre pays','Chaque pays peut voter des droits de douane (10 % ou 25 %). Ils réduisent les échanges des lignes maritimes, et un peu des lignes aériennes, entre pays ; ils protègent l’industrie locale mais renchérissent le commerce. Les États-Unis, le Brésil et la Chine taxent déjà leurs importations. Le pays que vous gouvernez peut signer des accords de libre-échange, qui suppriment les droits entre les deux pays.','V2.6.8'],['Écran Empire','Nouvel écran Empire (Plus, rubrique Pouvoir) : pour chaque pays, vos sociétés, leur bénéfice sur 30 jours, l’impôt sur les sociétés estimé, les lois clés et le climat politique, avec un accès direct à sa page Politique.','V2.6.7'],['Résidence fiscale','Vous pouvez choisir votre pays de résidence depuis l’onglet Politique : vos impôts personnels (revenus du capital, fortune, luxe, transactions) suivent ses lois. Un tableau compare les deux pays. Déménager coûte une taxe de sortie de 1 % de votre valeur nette, une fois par an au plus.','V2.6.6'],['Un Parlement par pays','Chaque pays a maintenant ses propres lois, son gouvernement, ses projets de loi et ses élections, avec des candidats locaux. Vos sociétés paient l’impôt du pays où elles se trouvent. L’onglet Politique propose un onglet par pays pour suivre les votes, faire du lobbying et financer des campagnes. Vos impôts personnels suivent votre pays de résidence, la France.','V2.6.5'],['Vos lois façonnent le pays','Les subventions par secteur (renouvelables, recherche, protection des consommateurs) dépendent maintenant du pays où se trouve chaque société. Dans votre pays, chaque loi agit sur la croissance du PIB et sur la satisfaction des citoyens ; les subventions sont payées par le budget public. De nouveaux décrets permettent de les supprimer.','V2.6.4'],['Lois de votre pays','Le pays que vous gouvernez a ses propres lois : impôt sur les sociétés, salaire minimum, droit du travail et encadrement des loyers. Vos décrets ne changent qu’elles, et les votes du Parlement ne s’y appliquent plus. Vos sociétés ailleurs et vos impôts personnels restent soumis au Parlement.','V2.6.3'],['Villes, pays et politique','Les recettes fiscales de votre pays ne sont plus soumises à l’impôt sur les sociétés. Exonérer vos sociétés devient un choix : plus elles pèsent dans le pays, plus les citoyens s’en agacent et plus la presse s’y intéresse. Chaque ville possédée apporte de l’influence politique.','V2.6.2'],['Luxe animé','Les illustrations du luxe s’animent : roues et route qui défilent, yachts qui flottent, vagues, nuages, étoiles qui scintillent, tourbillons de La Nuit étoilée, aiguille de Big Ben et flamme de la Liberté. Les animations s’arrêtent si votre téléphone demande de réduire les mouvements.','V2.6.1'],['Prestige, villes et pays','Les illustrations du luxe sont redessinées en scènes détaillées. Une ville achetée rapporte 10 % de sa valeur par an et fait vendre 5 % de plus à vos sociétés qui s’y trouvent. Un pays gouverné exonère vos sociétés de l’impôt sur les sociétés et ajoute 5 % de ventes. Villes et pays comptent désormais dans le prestige.','V2.5.9'],['Moins de fausses alertes de perte','Les sociétés qui vendent par à-coups (studio, promoteur, galerie, maison de couture, ferme, construction) ne sont plus signalées en perte entre deux sorties ou deux ventes : plus d’alerte ni de conseil « perd de l’argent », et leur ligne de rentabilité se fonde sur la moyenne des quatre derniers mois.','V2.5.8'],
   ['Les directeurs ne s’arrêtent plus de grandir','Le directeur d’une compagnie maritime ou aérienne continuait d’agrandir toujours le même terminal ou le même aéroport ; une fois celui-ci au maximum de quais ou de créneaux, il n’ouvrait plus aucune ligne. Il agrandit maintenant le terminal ou l’aéroport le plus chargé qui peut encore l’être.','V2.5.7'],
   ['Le chef d’exploitation achète des parcelles','En délégation totale, le chef d’exploitation d’une ferme fait ses achats chaque semaine : suivi vétérinaire, transformation qui manque, nouvelle parcelle dès que toutes sont occupées, puis machines, bio, magasin et appellation. Son prochain achat s’affiche comme objectif. Au-delà de huit parcelles, il faut le palier 5.','V2.5.6'],
   ['Prolongation et tirs au but','Dans les matchs à élimination directe (coupes, séries, coupes internationales), un score nul n’est plus tranché d’un coup : on joue une prolongation de deux fois quinze minutes, puis des tirs au but tirés un par un, avec mort subite après cinq tirs. L’animation du match montre la prolongation et chaque tir au but, et les résultats indiquent « après prolongation » et le score des tirs au but. Pour un match aller-retour, la prolongation se joue au retour si le cumul est à égalité.','V2.5.5'],
@@ -21506,7 +21508,7 @@ ACT.ctyex=()=>{ const c=S.country; if(!c) return; c.ex= c.ex===false; log('info'
 /* ============================================================
    V2.6.3 : lois propres au pays gouverné (S.country.laws, copie des lois du Parlement à l'achat)
    ============================================================ */
-const CTY_LAWK=['corpTax','labor','minWage','rentCap','subRenew','subTech','consLaw'];
+const CTY_LAWK=['corpTax','labor','minWage','rentCap','subRenew','subTech','consLaw','tariff'];
 function ctyBill(b){ return Object.keys(b.set).every(k=>CTY_LAWK.includes(k))&&b.cond(ctyLaws()); }
 function ctyLaws(){ const c=S.country; return c? (c.laws||(c.laws=Object.assign({},S.laws))) : S.laws; }
 function lawsAt(city){ const c=S.country; return c&&c.cities&&c.cities.includes(city)? ctyLaws() : S.laws; }
@@ -21527,7 +21529,7 @@ const ctyBillList = () => D.BILLS.concat(CTY_XB).filter(ctyBill);
 function ctyLawFx(L){ const f={g:0,s:0,c:0};
   f.g+=.2*(.25-L.corpTax)/.05; f.s-=(.25-L.corpTax)/.05;
   if(L.labor){ f.g-=.3; f.s+=4; } if(L.minWage>1){ f.g-=.2; f.s+=3; } if(L.rentCap){ f.g-=.1; f.s+=3; }
-  if(L.subRenew){ f.g+=.2; f.s+=1; f.c+=.3; } if(L.subTech){ f.g+=.3; f.c+=.4; } if(L.consLaw){ f.g-=.05; f.s+=2; }
+  if(L.subRenew){ f.g+=.2; f.s+=1; f.c+=.3; } if(L.subTech){ f.g+=.3; f.c+=.4; } if(L.consLaw){ f.g-=.05; f.s+=2; } if(L.tariff){ f.g-=4*L.tariff; f.s+=10*L.tariff; }
   return f; }
 { const _cs=countryStep; countryStep=function(){ _cs(); const c=S.country; if(!c) return; const f=ctyLawFx(ctyLaws());
   const k=1+f.g/100/360; c.gdp*=k; c.price*=k; c.sat=clamp(c.sat+.05*f.s,0,100);
@@ -21535,7 +21537,7 @@ function ctyLawFx(L){ const f={g:0,s:0,c:0};
 const fxSig=(v,d,u)=>(v>0?'+':v<0?'−':'')+fmtN(Math.abs(v),d)+u;
 function ctyLawFxHtml(){ const c=S.country, f=ctyLawFx(ctyLaws());
   return '<div class="cg" style="margin-top:12px"><div class="cg-h">Effet de vos lois sur le pays</div>'+
-    gRow('Croissance du PIB',fxSig(f.g,2,' pt / an'),'baisse d’impôt et subventions l’accélèrent, protections la freinent')+
+    gRow('Croissance du PIB',fxSig(f.g,2,' pt / an'),'baisse d’impôt et subventions l’accélèrent, protections et douanes la freinent')+
     gRow('Satisfaction des citoyens',fxSig(f.s,1,' à terme'),'protections sociales appréciées, cadeaux fiscaux mal vus')+
     gRow('Coût des subventions',f.c? '−'+eur(c.gdp*f.c/100/360,0)+' / j' : '—','payé par le budget du pays')+'</div>'; }
 /* ============================================================
@@ -21547,7 +21549,7 @@ function ctyLawFxHtml(){ const c=S.country, f=ctyLawFx(ctyLaws());
    Le pays que vous gouvernez n'a plus de Parlement : vos décrets font la loi.
    ============================================================ */
 const POL_K=['laws','gov','bills','lawLog','elec'];
-const POL0={croatie:{corpTax:.20}, espagne:{labor:1}, usa:{corpTax:.20,subTech:1}, bresil:{corpTax:.33,labor:1,consLaw:1}, chine:{cryptoReg:1,subRenew:1,subTech:1}};
+const POL0={croatie:{corpTax:.20}, espagne:{labor:1}, usa:{corpTax:.20,subTech:1,tariff:.10}, bresil:{corpTax:.33,labor:1,consLaw:1,tariff:.10}, chine:{cryptoReg:1,subRenew:1,subTech:1,tariff:.10}};
 const polHome = () => S.home||'france';
 const ctyIdOf = city => { const c=ctyOf(city); return c? c.id : polHome(); };
 const ctyName = id => (D.COUNTRIES.find(c=>c.id===id)||{n:id}).n;
@@ -21638,7 +21640,7 @@ function empRow(c){ const id=c.id, home=id===polHome(), gov=!!(S.country&&S.coun
   const P=home? {gov:S.gov} : polOf(id)||{gov:S.gov}, cities=c.cities.filter(cityOwned).length;
   return {c,id,home,gov,L,n:B.length,prof,rate,tax,cities,pres:home||gov||B.length>0||cities>0,clim: gov? ['Satisfaction',S.country.sat] : ['Popularité',P.gov.pop], ten: gov? null : P.gov.ten}; }
 function empCard(r){ const L=r.L, st= r.gov? pill('Vous gouvernez','good') : r.home? pill('Résidence','info') : '';
-  const laws=[['Impôt sociétés',pct(L.corpTax,0)],['Salaire min.','× '+fmtN(L.minWage,2)],['Travail',L.labor?'Protégé':'Souple'],['Loyers',L.rentCap?'Encadrés':'Libres'],['Subventions',[L.subRenew&&'renouvelables',L.subTech&&'recherche'].filter(Boolean).join(', ')||'aucune']];
+  const laws=[['Impôt sociétés',pct(L.corpTax,0)],['Salaire min.','× '+fmtN(L.minWage,2)],['Travail',L.labor?'Protégé':'Souple'],['Loyers',L.rentCap?'Encadrés':'Libres'],['Douane',L.tariff?pct(L.tariff,0):'aucune'],['Subventions',[L.subRenew&&'renouvelables',L.subTech&&'recherche'].filter(Boolean).join(', ')||'aucune']];
   return '<section class="card emp"><div class="px-ch">'+ctyFlag(r.id)+'<div style="flex:1"><b>'+esc(r.c.n)+'</b><small>'+plu(r.n,'société')+' · '+plu(r.cities,'ville')+' possédée'+(r.cities>1?'s':'')+'</small></div>'+st+'</div>'+
     '<div class="emp-k"><div><div class="tag">Bénéfice 30 j</div><b class="num '+(r.prof<0?'neg':'')+'">'+signed(r.prof,0)+'</b></div><div><div class="tag">Impôt estimé / mois</div><b class="num">'+(r.gov&&r.rate===0? 'exonéré' : eur(r.tax,0))+'</b></div><div><div class="tag">'+r.clim[0]+'</div><b class="num">'+Math.round(r.clim[1])+'</b>'+(r.ten!==null?'<small class="sub" style="display:block">tension '+Math.round(r.ten)+'</small>':'')+'</div></div>'+
     '<div class="emp-l">'+laws.map(([k,v])=>'<span><i>'+k+'</i> '+v+'</span>').join('')+'</div>'+
@@ -21658,6 +21660,47 @@ ICON.empire='<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 1
 (function(){ const st=document.createElement('style'); st.textContent=`.emp{padding:14px}.emp .px-ch{margin-bottom:10px}.emp-k{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.emp-k .tag{font-size:11px}.emp-k b{font-size:15px}
 .emp-l{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.emp-l span{font:700 12px var(--f-body);padding:4px 9px;border-radius:999px;background:var(--paper-2)}.emp-l i{font-style:normal;color:var(--ink-3);font-weight:600}
 .emp-o .px-ch{margin:0}.num.big{font-size:17px}.num.neg{color:var(--red)}`; document.head.appendChild(st); })();
+
+/* ============================================================
+   V2.6.8 : COMMERCE ENTRE PAYS
+   Droits de douane (loi « tariff » de chaque pays : 0, 10 % ou 25 %) et accords de libre-échange.
+   - Lignes maritimes entre deux pays : demande × (1 − 1,5 × somme des droits) ; lignes aériennes × (1 − 0,5 × ...).
+   - Dans un pays qui taxe les importations : industrie +60 % du taux en ventes (protégée),
+     commerce −40 % du taux (produits importés plus chers).
+   - Pays gouverné : croissance −4 pt par 100 % de droits, satisfaction +10 (le protectionnisme plaît).
+   - Accord de libre-échange (décret, S.country.fta = [ids]) : plus aucun droit entre les deux pays,
+     et +5 % d'échanges. Signer coûte 150 d'influence.
+   ============================================================ */
+D.LAW0.tariff=0;
+LAWTXT.tariff=['Droits de douane',v=>v?pct(v,0)+' sur les importations':'Aucun'];
+D.BILLS.push(
+  {k:'TARIFF_ON', t:'Droits de douane de 10 % sur les importations', d:'Protège l’industrie locale, renchérit les produits importés et freine le commerce maritime.', lean:-.3, set:{tariff:.10}, cond:l=>!(l.tariff>0), pop:2, ten:-1},
+  {k:'TARIFF_HIGH', t:'Droits de douane relevés à 25 %', d:'Forte protection de l’industrie ; échanges internationaux nettement réduits.', lean:-.6, set:{tariff:.25}, cond:l=>l.tariff>0&&l.tariff<.25, pop:1, ten:1},
+  {k:'TARIFF_OFF', t:'Suppression des droits de douane', d:'Commerce plus fluide, industrie locale moins protégée.', lean:.6, set:{tariff:0}, cond:l=>l.tariff>0, pop:-1, ten:1});
+const PORT_CTY={LEH:'france',FOS:'france',BCN:'espagne',VLC:'espagne',RJK:'croatie',NYC:'usa',SAV:'usa',MIA:'usa',HOU:'usa',LAX:'usa',SEA:'usa',SSZ:'bresil',RIO:'bresil',SHA:'chine',SZX:'chine',HKG:'chine'};
+const AP_CTY={fr:'france',es:'espagne',us:'usa',br:'bresil',cn:'chine'};
+const tariffOf = cid => cid? (pLaw(cid).tariff||0) : 0;
+const ftaOn = (x,y) => { const c=S.country, f=c&&c.fta||[]; return !!c&&((c.id===x&&f.includes(y))||(c.id===y&&f.includes(x))); };
+function tradeF(x,y,k){ if(!x&&!y||x===y) return 1; if(ftaOn(x,y)) return 1.05; return Math.max(.4,1-k*(tariffOf(x)+tariffOf(y))); }
+{ const _mm=metMods; metMods=function(b){ const z=_mm(b); try{ const t=b&&lawsAt(b.city).tariff||0, sec=b&&D.BIZSEC[b.def];
+  const k= !t? 1 : sec==='industrie'? 1+.6*t : sec==='commerce'? 1-.4*t : 1;
+  if(z&&k!==1){ if(z.vol>0) z.vol*=k; else z.rev=(z.rev||0)*k; } }catch(e){} return z; }; }
+/* accords de libre-échange : décret du pays gouverné */
+const FTA_INF=150;
+function ftaToggle(id){ const c=S.country; if(!c) return err('Vous ne gouvernez aucun pays.'); c.fta=c.fta||[];
+  if(S.day-S.decreeDay<10) return err('Un décret tous les 10 jours.');
+  const on=c.fta.includes(id);
+  if(!on&&S.infl<FTA_INF) return err('Influence insuffisante : '+FTA_INF+' requis.');
+  if(on) c.fta=c.fta.filter(x=>x!==id); else { c.fta.push(id); S.infl-=FTA_INF; }
+  S.decreeDay=S.day; log('warn',(on?'Fin de l’accord de libre-échange entre ':'Accord de libre-échange signé entre ')+c.name+' et '+ctyName(id)+'.','news');
+  return ok(on?'Accord rompu.':'Accord signé.'); }
+ACT.fta=el=>after(ftaToggle(el.dataset.v));
+function ftaCard(){ const c=S.country, f=c.fta||[], w=S.day-S.decreeDay<10;
+  return card('Accords de libre-échange','<div class="sub" style="margin-bottom:8px">Un accord supprime les droits de douane entre '+esc(c.name)+' et l’autre pays, dans les deux sens : vos lignes maritimes et aériennes entre eux gagnent 5 % d’échanges. Signer coûte '+FTA_INF+' d’influence et compte comme un décret.</div><div class="stack">'+
+    D.COUNTRIES.filter(x=>x.id!==c.id).map(x=>{ const on=f.includes(x.id), t=tariffOf(x.id);
+      return '<div class="row sp" style="border-bottom:1px solid var(--line);padding-bottom:8px"><div class="row" style="gap:10px;flex:1">'+ctyFlag(x.id)+'<div><b>'+esc(x.n)+'</b><div class="sub">'+(on?'Accord en vigueur':'Ses droits de douane : '+(t?pct(t,0):'aucun'))+'</div></div></div>'+
+        btn(on?'Rompre':'Signer','fta',{c:'sm'+(on?'':' pri'),v:x.id,dis:w||(!on&&S.infl<FTA_INF),why:w?'Un décret tous les 10 jours.':'Influence insuffisante : '+FTA_INF+' requis.'})+'</div>'; }).join('')+'</div>'); }
+{ const _vp=vPol; vPol=function(){ const h=_vp(), cid=ui.polC||polHome(); if(!(S.country&&S.country.id===cid)) return h; return h+ftaCard(); }; VIEWS.pol=vPol; }
 </script>
 </body>
 </html>
