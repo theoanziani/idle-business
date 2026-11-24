@@ -16,7 +16,7 @@ MET.airline.html=function(b){
   /* lignes */
   h+='<div class="pk-head"><b>Lignes</b><span class="sub">'+(m.ln.length? m.ln.length+' en service' : 'Aucune ligne')+'</span></div><div class="ht-t">';
   m.ln.forEach(l=>{ const x=l.st||alLineDay(b,l,true), P=m.fl.filter(p=>p.ln===l.id), d=alDist(l.a,l.b);
-    h+='<div class="rs-d"><div><b>'+esc(alAp(l.a).n)+' – '+esc(alAp(l.b).n)+'</b><small>'+fmtN(d,0)+' km · '+P.map(p=>AL_TY[p.t].n).join(', ')+' · '+(x.legs||0)+' vols par jour · remplissage '+Math.round((x.lf||0)*100)+' %</small>'+
+    h+='<div class="rs-d"><div><b>'+esc(alAp(l.a).n)+' – '+esc(alAp(l.b).n)+'</b><small>'+fmtN(d,0)+' km · '+P.map(p=>AL_TY[p.t].n).join(', ')+' · '+alFreq(x.legs||0)+' · remplissage '+Math.round((x.lf||0)*100)+' %</small>'+
       '<small>Billet éco '+eur(alEco(d)*(AL_PRICE[l.p]||1),0)+' ('+Math.round((AL_PRICE[l.p]||1)*100)+' % du prix habituel) · affaires : '+['aucune','8 % de la cabine','15 % de la cabine'][l.cab]+' · résultat '+'<b class="num '+cls(x.net||0)+'">'+signed(x.net||0,0)+' / j</b>'+(x.strike?' · grève':'')+'</small>'+
       (ui.lnG!==l.id? '<div class="fm-a"><button class="btn sm" data-a="lng" data-i="'+l.id+'">Gérer</button></div>' : '<div class="fm-a">'+alBt(b,'Prix −','price',l.id+':'+Math.max(0,l.p-1),{c:'sm ghost',dis:l.p<=0})+alBt(b,'Prix +','price',l.id+':'+Math.min(3,l.p+1),{c:'sm ghost',dis:l.p>=3})+alBt(b,'Cabine','cab',l.id+':'+((l.cab+1)%3),{c:'sm ghost'})+
       '<button class="btn sm ghost" data-a="aladd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un avion</button>'+alBt(b,'Fermer la ligne','close',l.id,{c:'sm ghost'})+'<button class="btn sm" data-a="lng" data-i="0">Terminé</button></div>')+'</div></div>'; });
@@ -61,7 +61,7 @@ function alAddEst(b,lid,t,pid){ const m=b.m, l=alLine(b,lid); if(!l) return null
   let r1; try{ r1=alLineDay(b,l,true); } finally{ if(tmp) m.fl.pop(); else p.ln=old; }
   return {net:r1.net-r0.net, lf:r1.lf, add:1}; }
 function alEstFor(b,t,pid){ const M=ui.modal; if(!M) return ''; if(M.type==='alnew'&&M.a&&M.to) return alEstTxt(alEst(b,M.a,M.to,t,pid)); if(M.type==='aladd'&&M.l) return alEstTxt(alAddEst(b,M.l,t,pid)); return ''; }
-function alEstTxt(r){ if(r&&r.add) return 'gain estimé '+signed(r.net,0)+' / j pour la ligne · remplissage '+Math.round((r.lf||0)*100)+' %'; return r? 'résultat estimé '+signed(r.net,0)+' / j · remplissage '+Math.round((r.lf||0)*100)+' %' : ''; }
+function alEstTxt(r){ if(r&&r.add) return 'gain estimé '+signed(r.net,0)+' / j pour la ligne · remplissage '+Math.round((r.lf||0)*100)+' %'; if(!r) return ''; const low=r.net<0&&r.seats>1.6*r.want; return 'résultat estimé '+signed(r.net,0)+' / j · remplissage '+Math.round((r.lf||0)*100)+' %'+(low? ' · '+fmtN(Math.round(r.want))+' passagers / j pour '+fmtN(Math.round(r.seats))+' sièges : avion trop grand' : ''); }
 function alBestEst(b,a,to){ const d=alDist(a,to); let best=null; Object.entries(AL_TY).forEach(([k,T])=>{ if(!alReach(k,d)) return; const r=alEst(b,a,to,k); if(!best||r.net>best.net) best=Object.assign({k},r); }); return best; }
 function alPlaneChoice(b,d,act){ const m=b.m, idle=m.fl.filter(p=>(!p.ln||!m.ln.some(l=>l.id===p.ln))&&alReach(p.t,d)), can=x=>mAvail(b)>=x;
   return (idle.length? '<div class="tag">Avions au sol</div>'+idle.map(p=>'<button class="pk-o" data-a="'+act+'" data-v="'+p.id+'"><span><b>'+esc(AL_TY[p.t].n)+'</b><small>'+AL_TY[p.t].seats+' places · '+(p.own?'acheté':'loué')+(alStop(p.t,d)?' · avec escale':'')+'</small>'+'<small class="num">'+alEstFor(b,p.t,p.id)+'</small>'+'</span></button>').join('') : '')+

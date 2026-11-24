@@ -79,6 +79,9 @@ function alLine(b,id){ return b.m.ln.find(l=>l.id===id); }
 /* au-delà de son rayon d'action, un avion fait une escale technique (jusqu'à deux fois son rayon) */
 const alStop = (t,d) => d>AL_TY[t].rg;
 const alReach = (t,d) => d<=AL_TY[t].rg*2;
+/* long-courrier : la fréquence suit la demande, jusqu'à 3 allers-retours par semaine (6 vols / 7 jours) */
+const AL_MINW=6/7;
+const alFreq = n => n>=1? fmtN(n,Number.isInteger(n)?0:1)+' vols par jour' : Math.round(n*7)+' vols par semaine';
 function alBlock(t,d){ return d/AL_TY[t].v+.75+(alStop(t,d)?1.5:0); }
 function alLegs(t,d){ return Math.max(1,Math.floor(13/alBlock(t,d)))&~1 || 2; }
 /* prix moyen d'un billet économique selon la distance */
@@ -111,7 +114,7 @@ function alLineDay(b,l,sim){
   const want=dem*share*(2500/(2500+dem))*(m.fid?1.08:1), bshare=((long?.12:.06)+(m.sal?.03:0))*(m.fid?1.2:1);
   /* le planning ajuste la fréquence à la demande (allers-retours), dans la limite des avions */
   const fuel=alFuel(b)*(alEv(m,'ker')?1.35:1);
-  let seats=0, legs=0, bseats=0, cost=0; const avgS=P.reduce((a,p)=>a+AL_TY[p.t].seats,0)/P.length, need=Math.max(2,2*Math.ceil(want/(2*avgS*.85)));
+  let seats=0, legs=0, bseats=0, cost=0; const avgS=P.reduce((a,p)=>a+AL_TY[p.t].seats,0)/P.length, need= long? Math.max(AL_MINW,want/(avgS*.85)) : Math.max(2,2*Math.ceil(want/(2*avgS*.85)));
   P.forEach(p=>{ const T=AL_TY[p.t], mx=alLegs(p.t,d), lg=Math.min(mx,Math.max(0,need-legs)), cab=p.t==='r70'?0:(AL_CAB[l.cab]||0), bs=Math.round(T.seats*cab/2.5), es=T.seats-Math.round(bs*2.5);
     legs+=lg; seats+=lg*(es+bs); bseats+=lg*bs; cost+=lg*(T.burn*d*fuel+alBlock(p.t,d)*T.crew+(alStop(p.t,d)?1600:800))+(p.own? T.pr*.00012*(m.mnt?.8:1) : T.ls)+T.ls*.2; });
   const bwant=want*bshare, bpax=Math.min(bseats,bwant), epax=Math.min(seats-bseats,want-bwant), pax=bpax+epax;
@@ -153,7 +156,7 @@ MET.airline = {
       else if(r<.009){ m.ev={k:'ker', until:S.day+30}; metLog(b,'flambée du kérosène : carburant 35 % plus cher pendant un mois.','bad'); } }
   },
   kpis(b){ const m=b.m, d=m.st||alDay(b,true);
-    return [['Passagers / jour', fmtN(Math.round(d.pax)), d.legs+' vols par jour'],
+    return [['Passagers / jour', fmtN(Math.round(d.pax)), alFreq(d.legs)],
             ['Remplissage', Math.round(d.lf*100)+' %', m.ln.length+' ligne'+(m.ln.length>1?'s':'')],
             ['Image de marque', Math.round(m.img)+' / 100', m.hubs.length+' plateforme'+(m.hubs.length>1?'s':'')],
             ['Kérosène', fmtN(alFuel(b),2)+' € / kg', m.hedge? 'Couvert encore '+(m.hedge.until-S.day)+' j' : 'Non couvert']];

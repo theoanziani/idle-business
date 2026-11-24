@@ -404,7 +404,7 @@ FX2.renew={
 };
 /* ---- compagnie aérienne ---- */
 FX2.airline={
-  chip:b=>{ const d=b.m.st||alDay(b,true); return d.legs+' vols par jour · '+plu(b.m.fl.length,'avion'); },
+  chip:b=>{ const d=b.m.st||alDay(b,true); return alFreq(d.legs)+' · '+plu(b.m.fl.length,'avion'); },
   stat:b=>{ const d=b.m.st||alDay(b,true); return ['Remplissage',Math.round(d.lf*100)+' %']; },
   noRest:true,
   mgmt:{local:'Aéroports'},
@@ -427,7 +427,7 @@ FX2.airline={
     ['price','cab','close','drop','own','lease','buy','hub','ext'].forEach(a=>X.get(a)); const can=x=>mAvail(b)>=x;
     const Bt=(lab,act,arg,o)=>{ o=o||{}; return '<button class="btn nf-b'+(o.a?' a':'')+'" data-a="met" data-i="'+b.id+'" data-v="'+act+'"'+(arg!==undefined?' data-j="'+esc(String(arg))+'"':'')+(o.dis?' disabled':'')+'>'+lab+'</button>'; };
     h+=nfSec('Les lignes',m.ln.length? m.ln.length+' en service' : 'aucune ligne')+'<div class="nf-mr" data-k="alln" data-n="3">'+m.ln.map(l=>{ const x=l.st||alLineDay(b,l,true), P=m.fl.filter(p=>p.ln===l.id), d=alDist(l.a,l.b), on=ui.lnG===l.id, lf=x.lf||0;
-      return '<div class="al2-ln"><div class="nf-row"><span><b>'+esc(alAp(l.a).n)+' → '+esc(alAp(l.b).n)+'</b><small>'+fmtN(d,0)+' km · '+P.map(p=>AL_TY[p.t].n).join(', ')+' · '+(x.legs||0)+' vols par jour'+(x.strike?' · grève':'')+'</small></span><span class="px"><b class="'+cls(x.net||0)+'">'+signed(x.net||0,0)+'</b><small>par jour</small></span></div>'+
+      return '<div class="al2-ln"><div class="nf-row"><span><b>'+esc(alAp(l.a).n)+' → '+esc(alAp(l.b).n)+'</b><small>'+fmtN(d,0)+' km · '+P.map(p=>AL_TY[p.t].n).join(', ')+' · '+alFreq(x.legs||0)+(x.strike?' · grève':'')+'</small></span><span class="px"><b class="'+cls(x.net||0)+'">'+signed(x.net||0,0)+'</b><small>par jour</small></span></div>'+
         '<div class="al2-seats" aria-label="Remplissage '+Math.round(lf*100)+' %">'+Array.from({length:30},(_,i)=>'<i class="'+(i<Math.round(lf*30)?'on':'')+(i<[0,3,5][l.cab]?' biz':'')+'"></i>').join('')+'</div>'+
         '<div class="nf-row"><small>Remplissage '+Math.round(lf*100)+' % · billet éco '+eur(alEco(d)*(AL_PRICE[l.p]||1),0)+' ('+Math.round((AL_PRICE[l.p]||1)*100)+' % du prix habituel) · affaires : '+['aucune','8 % de la cabine','15 % de la cabine'][l.cab]+'</small></div>'+
         (on? '<div class="sh2-ac">'+Bt('Prix −','price',l.id+':'+Math.max(0,l.p-1),{dis:l.p<=0})+Bt('Prix +','price',l.id+':'+Math.min(3,l.p+1),{dis:l.p>=3})+Bt('Cabine affaires : '+['aucune','8 %','15 %'][(l.cab+1)%3],'cab',l.id+':'+((l.cab+1)%3))+'<button class="btn nf-b" data-a="aladd" data-i="'+b.id+'" data-j="'+l.id+'">Ajouter un avion</button>'+Bt('Fermer la ligne','close',l.id)+'<button class="btn nf-b a" data-a="lng" data-i="0">Terminé</button></div>' : '<div class="sh2-ac"><button class="btn nf-b" data-a="lng" data-i="'+l.id+'">Gérer la ligne</button></div>')+'</div>'; }).join('')+'</div>'+
