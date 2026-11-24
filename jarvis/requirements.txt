@@ -17,3 +17,5 @@ nvidia-ml-py>=12
 winrt-runtime>=2
 winrt-Windows.Media.Control>=2
 winrt-Windows.Foundation>=2
+edge-tts>=7
+miniaudio>=1.59

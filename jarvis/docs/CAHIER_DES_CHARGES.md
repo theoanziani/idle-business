@@ -1,4 +1,4 @@
-# Jarvis — Cahier des charges
+﻿# Jarvis — Cahier des charges
 
 ## 1. Vision et périmètre
 
@@ -33,8 +33,8 @@ Micro ─► openWakeWord (CPU) ─► enregistrement ─► faster-whisper (GPU
 
 - **Mot d'activation** : « Hey Jarvis », écoute permanente.
 - **Langue** : français.
-- **Personnalité** : majordome britannique, vouvoiement, appelle l'utilisateur « monsieur », pince-sans-rire, réponses brèves à l'oral.
-- **Voix** : Piper, voix française masculine (remplaçable par une voix plus proche du film plus tard).
+- **Personnalité** : comme le J.A.R.V.I.S. des films avec Tony Stark : naturel, direct, humour sec, partenaire plutôt que majordome ; vouvoiement, « monsieur » avec parcimonie.
+- **Voix** : Microsoft Rémy (en ligne, phrases mises en cache sur le disque) ; repli local Piper si le réseau ne répond pas.
 - **Parole spontanée** (V4) : alertes, rappels ; muette pendant les heures de sommeil configurables.
 
 ## 4. Cerveau

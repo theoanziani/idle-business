@@ -1,7 +1,13 @@
-"""Fenêtre HUD : pywebview (WebView2) en plein écran, cachée au repos, ouverte à « Hey Jarvis »."""
+"""Fenêtre HUD : pywebview (WebView2) en plein écran.
+
+Économie de mémoire : au repos il n'existe aucune fenêtre (WebView2 libère ~300 Mo). « Hey Jarvis » la crée
+(~0,4 s, en parallèle de la voix) ; la masquer la détruit. La conversation et l'état sont gardés côté Python
+et renvoyés à chaque ouverture.
+"""
 import json
 import threading
 import time
+from collections import deque
 from pathlib import Path
 
 import webview
@@ -27,6 +33,10 @@ class Api:
     def enregistrer_disposition(self, layout):
         return self._layout.save(layout)
 
+    def historique(self):
+        """Conversation et état courant, pour une fenêtre qui vient d'être (re)créée."""
+        return {"messages": list(self._hud.history), "etat": self._hud.current_state}
+
     def systeme(self):
         return data.system()
 
@@ -49,7 +59,7 @@ class Api:
         return True
 
     def masquer(self):
-        self._hud.hide()
+        threading.Thread(target=self._hud.hide, daemon=True).start()
         return True
 
     def activite(self):
@@ -63,50 +73,57 @@ class Hud:
         self.cfg = cfg.get("hud", {})
         self.on_text = None
         self.window = None
-        self.visible = False
+        self.history = deque(maxlen=60)
+        self.current_state = "idle"
+        self._api = Api(self, self.cfg)
+        self._want_show = threading.Event()
         self._ready = threading.Event()
         self._quitting = False
         self._last_activity = time.time()
+
+    @property
+    def visible(self):
+        return self.window is not None
 
     def _screen(self):
         screens = webview.screens
         i = self.cfg.get("ecran", -1)
         return screens[i] if -len(screens) <= i < len(screens) else screens[0]
 
-    def create(self):
-        screen = self._screen()
-        self.window = webview.create_window(
-            "Jarvis", url=str(WEB / "index.html"), js_api=Api(self, self.cfg), hidden=not self.cfg.get("ouvert", False),
-            frameless=True, fullscreen=True, screen=screen, width=screen.width, height=screen.height,
-            background_color="#02070c", text_select=False, easy_drag=False)
-        self.window.events.loaded += self._ready.set
-        self.window.events.closing += self._on_closing
-        self.visible = self.cfg.get("ouvert", False)
-        return self.window
-
-    def _on_closing(self):
-        """Alt+F4 ou fermeture depuis la barre des tâches : on masque au lieu de détruire,
-        sinon le prochain « Hey Jarvis » n'aurait plus de fenêtre à rouvrir. Seul « Quitter » ferme vraiment."""
-        if self._quitting:
-            return True
-        threading.Thread(target=self.hide, daemon=True).start()
-        return False
-
-    def run(self, worker):
-        """Bloque le thread principal (exigence de pywebview) ; `worker` tourne dans un thread à part."""
-        webview.start(worker, debug=self.cfg.get("debug", False), private_mode=False)
+    def run(self):
+        """Boucle du thread principal (exigence de pywebview) : une fenêtre par ouverture du HUD."""
+        if self.cfg.get("ouvert", False):
+            self._want_show.set()
+        while not self._quitting:
+            if not self._want_show.wait(0.5):  # attente courte : Ctrl+C reste possible dans la console
+                continue
+            if self._quitting:
+                break
+            self._want_show.clear()
+            screen = self._screen()
+            self._ready.clear()
+            self.window = webview.create_window(
+                "Jarvis", url=str(WEB / "index.html"), js_api=self._api, frameless=True, fullscreen=True,
+                screen=screen, width=screen.width, height=screen.height, background_color="#02070c",
+                text_select=False, easy_drag=False)
+            self.window.events.loaded += self._ready.set
+            self._last_activity = time.time()
+            webview.start(debug=self.cfg.get("debug", False), private_mode=False)  # rend la main à la fermeture
+            self.window = None
 
     # --- Python -> JS -------------------------------------------------------------
     def _js(self, fn, *args):
-        if self.window and self._ready.is_set():
+        w = self.window
+        if w and self._ready.is_set():
             try:
-                self.window.evaluate_js(f"window.jarvis && jarvis.{fn}({','.join(json.dumps(a, ensure_ascii=False) for a in args)})")
+                w.evaluate_js(f"window.jarvis && jarvis.{fn}({','.join(json.dumps(a, ensure_ascii=False) for a in args)})")
             except Exception:
                 pass
 
     def state(self, s):
         """idle, ecoute, reflexion, parole."""
         self._last_activity = time.time()
+        self.current_state = s
         self._js("etat", s)
 
     def level(self, v):
@@ -114,33 +131,36 @@ class Hud:
 
     def message(self, role, text):
         self._last_activity = time.time()
+        self.history.append({"role": role, "text": text})
         self._js("message", role, text)
 
     # --- Fenêtre ------------------------------------------------------------------
     def show(self):
         self._last_activity = time.time()
-        if self.window and not self.visible:
-            self.window.show()
-            self.visible = True
-            self._js("apparition")
+        if not self.window:
+            self._want_show.set()
 
     def hide(self):
-        if self.window and self.visible:
-            self.window.hide()
-            self.visible = False
+        """Détruit la fenêtre : WebView2 rend sa mémoire. Elle sera recréée au prochain réveil."""
+        w = self.window
+        if w:
+            try:
+                w.destroy()
+            except Exception:
+                pass
 
     def toggle(self):
         self.hide() if self.visible else self.show()
 
     def idle_watch(self):
-        """Masque le HUD après `masquer_apres_s` secondes sans activité vocale."""
+        """Masque le HUD après `masquer_apres_s` secondes sans activité."""
         delay = self.cfg.get("masquer_apres_s", 90)
-        while delay:
+        while delay and not self._quitting:
             time.sleep(5)
             if self.visible and time.time() - self._last_activity > delay:
                 self.hide()
 
     def close(self):
         self._quitting = True
-        if self.window:
-            self.window.destroy()
+        self._want_show.set()
+        self.hide()

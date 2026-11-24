@@ -233,6 +233,9 @@
     if (started) return; started = true;
     const saved = await call("charger_disposition");
     apply(Array.isArray(saved) && saved.length ? saved : DEFAULT.map((s) => ({ ...s })));
+    // La fenêtre est recréée à chaque réveil : on récupère la conversation et l'état gardés par Python.
+    const h = await call("historique");
+    if (h) { (h.messages || []).forEach((m) => jarvis.message(m.role, m.text)); jarvis.etat(h.etat || "idle"); }
     jarvis.apparition();
   }
   if (window.pywebview && window.pywebview.api) start();

@@ -30,7 +30,23 @@ class Ears:
         self.on_level = lambda v: None  # niveau du micro 0..1 pendant l'écoute (HUD)
 
     def _read(self):
-        return self.stream.read(FRAME)[0][:, 0]
+        """Lit 80 ms. Si le pilote lâche (MME error 6, micro réinitialisé par Windows), on rouvre le flux."""
+        for attempt in range(20):
+            try:
+                return self.stream.read(FRAME)[0][:, 0]
+            except sd.PortAudioError as e:
+                print(f"[micro] {e} : réouverture du flux", flush=True)
+                try:
+                    self.stream.close()
+                except Exception:
+                    pass
+                time.sleep(min(5, 0.5 * (attempt + 1)))
+                try:
+                    self.stream = sd.InputStream(samplerate=RATE, channels=1, dtype="int16", blocksize=FRAME)
+                    self.stream.start()
+                except sd.PortAudioError:
+                    pass
+        raise RuntimeError("Micro indisponible après plusieurs tentatives.")
 
     def _flush(self):
         self.stream.read(self.stream.read_available)

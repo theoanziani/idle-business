@@ -28,6 +28,6 @@ def test_slow_tool_is_announced(tmp_path, monkeypatch):
     b = Brain({"ollama": {"host": "", "model": "x", "keep_alive": "1m"}}, lambda p: False, said.append)
     call = NS(function=NS(name="demander_claude", arguments={"tache": "lance les tests", "projet": "x"}))
     replies = iter([NS(content="", tool_calls=[call]), NS(content="Tout est vert, monsieur.", tool_calls=None)])
-    b.client = NS(chat=lambda **kw: NS(message=next(replies)))
+    b.client = NS(chat=lambda **kw: iter([NS(message=next(replies))]))
     assert b.ask("demande à Claude de lancer les tests") == "Tout est vert, monsieur."
     assert said and "Claude" in said[0]

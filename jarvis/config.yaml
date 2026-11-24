@@ -2,6 +2,8 @@ ollama:
   host: http://localhost:11434
   model: qwen3:4b-instruct-2507-q4_K_M  # variante sans raisonnement : réponses directes
   keep_alive: 5m
+  num_ctx: 3072         # contexte réduit : moins de mémoire, génération plus rapide
+  historique: 12        # messages gardés d'un échange à l'autre
 whisper:
   model: models/whisper-small  # téléchargé par setup.ps1
   device: cuda
@@ -16,7 +18,12 @@ listen:
   start_timeout_s: 5
   max_s: 15
 voice:
-  model: voices/fr_FR-tom-medium.onnx
+  edge: fr-FR-RemyMultilingualNeural   # voix Microsoft (en ligne) ; vide = voix locale Piper seule
+  vitesse: "+0%"
+  paralleles: 3         # requêtes simultanées par phrase (le réseau en coupe une sur deux)
+  delai_max_s: 4        # au-delà, la phrase est dite par la voix locale
+  cache: data/voix_cache
+  model: voices/fr_FR-tom-medium.onnx   # voix locale de secours (chargée seulement si besoin)
 claude:
   projects_dirs: [~/Documents, ~/Desktop]   # dossiers où chercher « le projet X »
   permission_mode: auto   # Claude agit seul sur ce qui est sûr (tests, lecture), refuse le reste

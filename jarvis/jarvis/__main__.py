@@ -20,6 +20,9 @@ def text_mode(cfg):
         print("\nJarvis : Au revoir, monsieur.")
 
 
+ONLINE = "Jarvis en ligne. À votre service, monsieur."
+
+
 class Assistant:
     """Boucle vocale V1, avec branchements facultatifs vers le HUD."""
 
@@ -59,28 +62,43 @@ class Assistant:
 
     def handle(self, text):
         with self.lock:
-            print("Vous :", text)
+            print("Vous :", text, flush=True)
             self._hud("message", "vous", text)
             self._hud("state", "reflexion")
+            spoken = []
+
+            def speak_now(sentence):  # la voix démarre dès la première phrase générée
+                if not spoken:
+                    self._hud("state", "parole")
+                spoken.append(sentence)
+                self.voice.feed(sentence)
+
             try:
-                answer = self.brain.ask(text)
+                answer = self.brain.ask(text, on_text=speak_now if self.voice else None)
             except Exception as e:
                 answer = f"Mon cerveau ne répond pas, monsieur ({e}). Ollama est-il lancé ?"
-            print("Jarvis :", answer)
+            print("Jarvis :", answer, flush=True)
             self._hud("message", "jarvis", answer)
-            self.say(answer)
+            if spoken:
+                self.voice.wait()
+                self._hud("state", "idle")
+            else:
+                self.say(answer)
 
     def start_audio(self):
+        from jarvis.brain import ANNOUNCE
         from jarvis.ears import Ears
-        from jarvis.voice import Voice
+        from jarvis.voice import Speaker
 
-        self.voice = Voice(config.resolve(self.cfg["voice"]["model"]))
+        vcfg = dict(self.cfg["voice"], model=config.resolve(self.cfg["voice"]["model"]))
+        self.voice = Speaker(vcfg, config.resolve(vcfg.get("cache", "data/voix_cache")))
+        self.voice.prefetch([ONLINE, *ANNOUNCE.values()])
         self.ears = Ears(self.cfg)
         if self.hud:
             self.voice.on_level = self.ears.on_level = self.hud.level
 
     def loop(self):
-        self.say("Jarvis en ligne. À votre service, monsieur.")
+        self.say(ONLINE)
         while True:
             self.ears.wait_wake()
             print("[réveil]", flush=True)
@@ -111,7 +129,6 @@ def hud_mode(cfg, show):
     if show:
         cfg.setdefault("hud", {})["ouvert"] = True
     hud = Hud(cfg)
-    hud.create()
     a = Assistant(cfg, hud)
     hud.on_text = a.handle
 
@@ -135,7 +152,8 @@ def hud_mode(cfg, show):
         tray.notify("Jarvis en ligne. Dites « Hey Jarvis ».")
         a.loop()
 
-    hud.run(worker)
+    threading.Thread(target=worker, daemon=True, name="voix").start()
+    hud.run()  # thread principal : crée la fenêtre à chaque ouverture, la détruit à chaque masquage
 
 
 def mic_check(cfg, seconds=15):

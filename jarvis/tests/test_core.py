@@ -47,7 +47,8 @@ class FakeClient:
         self.replies = iter(replies)
 
     def chat(self, **kw):
-        return NS(message=next(self.replies))
+        m = next(self.replies)
+        return iter([NS(message=m)]) if kw.get("stream") else NS(message=m)
 
 
 def make_brain(tmp_path, replies, answer):
