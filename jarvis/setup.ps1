@@ -8,5 +8,5 @@ New-Item -ItemType Directory -Force voices | Out-Null
 $base = "https://huggingface.co/rhasspy/piper-voices/resolve/main/fr/fr_FR/tom/medium/fr_FR-tom-medium.onnx"
 Invoke-WebRequest $base -OutFile voices\fr_FR-tom-medium.onnx
 Invoke-WebRequest "$base.json" -OutFile voices\fr_FR-tom-medium.onnx.json
-ollama pull qwen3:8b
+ollama pull qwen3:4b
 Write-Host "Installation terminée. Lancez : .\.venv\Scripts\python -m jarvis"

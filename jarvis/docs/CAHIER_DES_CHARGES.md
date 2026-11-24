@@ -18,16 +18,16 @@ Utilisateur unique au départ ; l'architecture n'empêche pas le multi-utilisate
 ```
 Micro ─► openWakeWord (CPU) ─► enregistrement ─► faster-whisper (GPU)
                                                       │
-                                     Ollama / Qwen3 8B (GPU) ◄─► Outils ◄─► Mémoire SQLite
+                                     Ollama / Qwen3 4B (GPU) ◄─► Outils ◄─► Mémoire SQLite
                                                       │
                                                 Piper (CPU) ─► Haut-parleurs
 ```
 
 - **Langage** : Python 3.11, Windows 10/11.
-- **Matériel** : RTX 3060 12 Go, webcam 1080p du portable, 3 écrans (portable, 20", 27" incurvé).
+- **Matériel** : RTX 3050 Laptop 4 Go, webcam 1080p du portable, 3 écrans (portable, 20", 27" incurvé).
 - **Démarrage** : l'app se lance avec Windows en arrière-plan (zone de notification) ; la fenêtre HUD ne s'ouvre qu'à l'appel.
 - **VRAM** : rien au repos. Whisper et le LLM se chargent à la demande ; Ollama décharge le modèle après 5 min d'inactivité. Le chargement démarre dès le mot d'activation.
-- **Budget VRAM** : Qwen3 8B Q4 (~6 Go) + Whisper turbo (~2 Go) + marge pour le HUD.
+- **Budget VRAM** : Qwen3 4B Q4 (~3 Go) + Whisper small int8 (~0,5 Go). Le HUD reste léger ; les tâches complexes passent par Claude Code.
 
 ## 3. Voix
 
@@ -39,7 +39,7 @@ Micro ─► openWakeWord (CPU) ─► enregistrement ─► faster-whisper (GPU
 
 ## 4. Cerveau
 
-- **Par défaut** : Ollama, modèle Qwen3 8B, appel d'outils natif, 100 % local.
+- **Par défaut** : Ollama, modèle Qwen3 4B, appel d'outils natif, 100 % local.
 - **Relais Claude Code** : pour les tâches de code lourdes ou sur demande explicite (« demande à Claude »), via la CLI `claude` et l'abonnement existant.
 - **Internet** : recherche web autorisée.
 - **Mémoire** : faits sur l'utilisateur conservés indéfiniment (SQLite), injectés dans le contexte. Suppression uniquement sur ordre (« oublie… »).
