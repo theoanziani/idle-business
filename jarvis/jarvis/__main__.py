@@ -271,6 +271,36 @@ def add_calendar():
     print(f"Agenda « {nom} » ajouté : {len(evs)} événement(s) dans les 30 prochains jours.")
 
 
+def add_mail():
+    """Ajoute une boîte mail : adresse dans config.local.yaml, mot de passe d'application dans le Gestionnaire
+    d'identification de Windows (jamais dans un fichier). Le mot de passe se tape sans s'afficher."""
+    import getpass
+
+    import keyring
+
+    from jarvis.tools import mails
+
+    print("Ajout d'une boîte mail (lecture seule). Utilise un MOT DE PASSE D'APPLICATION, pas ton mot de passe habituel.")
+    adresse = input("Adresse mail : ").strip()
+    if "@" not in adresse:
+        print("Adresse invalide : rien n'a été ajouté.")
+        return
+    serveur = input(f"Serveur IMAP [{mails.server_for(adresse)}] : ").strip() or mails.server_for(adresse)
+    pwd = getpass.getpass("Mot de passe d'application (il ne s'affiche pas) : ").strip().replace(" ", "")
+    account = {"nom": input("Nom court (ex. Gmail, iCloud) : ").strip() or adresse, "adresse": adresse, "serveur": serveur}
+    try:
+        box = mails.connect(account, pwd)
+        _, data = box.uid("search", None, "UNSEEN")
+        box.logout()
+    except Exception as e:
+        print(f"Connexion refusée ({type(e).__name__}). Vérifie le mot de passe d'application. Rien n'a été ajouté.")
+        return
+    keyring.set_password(mails.SERVICE, adresse, pwd)
+    comptes = [a for a in mails.accounts() if a["adresse"] != adresse]
+    config.save_local({"mails": {"comptes": comptes + [account]}})
+    print(f"Boîte « {account['nom']} » ajoutée : {len(data[0].split()) if data and data[0] else 0} message(s) non lu(s).")
+
+
 def _redirect_output():
     """Sous pythonw (démarrage avec Windows) il n'y a pas de console : on écrit dans data/jarvis.log."""
     if sys.stdout is None or sys.stderr is None:
@@ -291,7 +321,11 @@ def main():
                    help="enregistre votre « Hey Jarvis » et entraîne un vérificateur contre les faux réveils")
     p.add_argument("--ajouter-agenda", action="store_true",
                    help="ajoute un agenda Google, iCloud ou Outlook (adresse iCal secrète, gardée sur ce PC)")
+    p.add_argument("--ajouter-mail", action="store_true",
+                   help="ajoute une boîte mail en lecture seule (mot de passe d'application rangé dans Windows)")
     args = p.parse_args()
+    if args.ajouter_mail:
+        return add_mail()
     if args.ajouter_agenda:
         return add_calendar()
     if args.entrainer_reveil:

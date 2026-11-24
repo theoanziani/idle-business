@@ -16,5 +16,5 @@ def tool(confirm=None):
 
 def load():
     for m in ("tools.system", "tools.web", "tools.meteo", "tools.claude", "tools.rappels", "tools.presse_papier",
-              "tools.fichiers", "tools.agenda", "tools.notes", "memory"):
+              "tools.fichiers", "tools.agenda", "tools.notes", "tools.mails", "memory"):
         importlib.import_module(f"jarvis.{m}")

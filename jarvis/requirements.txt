@@ -21,3 +21,4 @@ edge-tts>=7
 miniaudio>=1.59
 icalendar>=6
 recurring-ical-events>=3
+keyring>=25
