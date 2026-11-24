@@ -123,7 +123,7 @@ function marketsStep(){
     c.hist.push(Math.round(c.price*10000)/10000); if(c.hist.length>360) c.hist.shift();
   });
   /* Livret */
-  if(S.livret.bal>0){ const i=S.livret.bal*livretRate()/100/360; pay('livret','Intérêts du livret',i,'cap'); }
+  if(S.livret.bal>0){ const i=S.livret.bal*livretRate()*(1+cardLiv())/100/360; pay('livret','Intérêts du livret',i,'cap'); }
 }
 const livretRate = () => Math.max(0.5,S.macro.rate-1.5);
 
@@ -247,7 +247,7 @@ function repay(id,amount){
   return ok();
 }
 function debtStep(){
-  let i=0; S.debts.forEach(d=>{ i+=d.p*d.r/100/360; });
+  let i=0; S.debts.forEach(d=>{ i+=d.p*d.r/100/360; }); i*=1-cardLoan();
   if(i>0) pay('debt','Intérêts d’emprunt',-i,'corp');
   if(S.cash<0){ const od=-S.cash*0.0012; pay('debt','Intérêts de découvert',-od); }
 }

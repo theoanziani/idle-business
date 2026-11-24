@@ -115,7 +115,7 @@ function nextDay(){
   macroStep(); eventsStep(); fxStep(); cityStep();
   marketsStep(); ordersStep();
   S.biz.slice().forEach(processBiz);
-  propStep(); luxStep(); lux2Step(); bankStep(); vcStep(); debtStep(); countryStep();
+  propStep(); luxStep(); lux2Step(); bankStep(); vcStep(); debtStep(); acctStep(); countryStep();
   socialStep();
   agencyStep(); hrStep(); rivStep(); riv2Step(); empireStep(); bldStep(); procStep(); indStep(); consStep(); mgrStep(); bossStep(); electionStep(); savingStep();
   taxStep(); offmStep(); d100Step();

@@ -1,0 +1,12 @@
+const {chromium}=require('playwright');(async()=>{const br=await chromium.launch();const p=await br.newPage({viewport:{width:400,height:860},deviceScaleFactor:2});
+const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.goto('file:///home/claude/idle-business/index.html'); await p.waitForSelector('[data-a="slotnew"]'); await p.click('[data-a="slotnew"]'); await p.click('[data-a="startnew"]'); await p.waitForTimeout(3200);
+console.log(await p.evaluate(()=>{ document.documentElement.setAttribute('data-theme','dark'); S.cash=5e7; if(S.tut) S.tut.off=true; const o=[];
+  o.push('carte '+cardPick(3).ok+' obs '+JSON.stringify(cardPick(4)));
+  borrow(1e7); o.push('taux '+debtRateEff().toFixed(2)+' / '+debtRate().toFixed(2));
+  o.push('dat '+invest('dat',null,2e6).ok+' bond '+invest('bond','bresil',1e6).ok+' '+invest('bond','france',1e6).ok);
+  o.push('notes '+D.COUNTRIES.map(c=>c.id+' '+bondGrade(c.id)[0]+' '+bondRate(c.id).toFixed(2)).join(', '));
+  S.autoRes=1e7; S.autoX=1; S.autoR=1; const c0=S.cash; for(let d=0;d<30;d++) nextDay(); o.push('cash '+Math.round(c0)+' -> '+Math.round(S.cash)+' livret '+Math.round(S.livret.bal)+' dettes '+Math.round(debtTotal())+' prestige carte '+S.prB.card);
+  ui.tab='bank'; ui.bk='acc'; render(); window.scrollTo(0,0); return o.join('\n'); }));
+await p.waitForTimeout(400); await p.screenshot({path:'/home/claude/work/ac1.png'}); await p.evaluate(()=>window.scrollBy(0,700)); await p.waitForTimeout(200); await p.screenshot({path:'/home/claude/work/ac2.png'}); await p.evaluate(()=>window.scrollBy(0,900)); await p.waitForTimeout(200); await p.screenshot({path:'/home/claude/work/ac3.png'});
+console.log('ERR',errs); await br.close();})();

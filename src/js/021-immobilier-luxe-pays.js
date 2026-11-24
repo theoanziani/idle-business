@@ -96,14 +96,14 @@ function luxStep(){
   if(up>0) pay('lux','Entretien, assurances et personnel du luxe',-up);
   S.prestige=S.lux.reduce((a,o)=>a+D.LUX.find(x=>x.id===o.id).pr,0)+S.prop.reduce((a,p)=>a+(D.PROP[p.t].pr||0),0);
 }
-function luxBuyPrice(l){ return S.luxVal[l.id]*(1.03+S.laws.luxTax); }
+function luxBuyPrice(l){ return S.luxVal[l.id]*(1.03+S.laws.luxTax)*(1-cardLux()); }
 function luxSellPrice(l){
   let sp=l.spread; if(l.kind==='art'&&S.biz.some(b=>b.def==='gallery'&&b.status==='active')) sp*=0.5;
   return S.luxVal[l.id]*(1-sp);
 }
 function buyLux(id){
   const l=D.LUX.find(x=>x.id===id); if(!l) return err('Article inconnu.');
-  if(!unlocked(l.tier)) return err('Palier de richesse insuffisant.');
+  if(!luxTierOk(l)) return err('Palier de richesse insuffisant.');
   if(S.lux.some(o=>o.id===id)) return err('Vous possédez déjà cet article.');
   const c=luxBuyPrice(l); if(S.cash<c) return err('Trésorerie insuffisante : '+eur(c)+' requis.');
   payCap('lux','Achat : '+l.n,-c); S.lux.push({id, paid:c, day:S.day});

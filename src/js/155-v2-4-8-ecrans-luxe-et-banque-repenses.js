@@ -55,7 +55,7 @@ function pxHero(){ const p=S.prestige||0, r=prRank(p), nx=PR_RANKS[r+1], cur=PR_
 ACT.galago=()=>after(galaHold());
 ACT.lxtab=el=>{ ui.lx=el.dataset.v; render(); };
 /* ---------- vitrine ---------- */
-function pxItem(l){ const own=S.lux.find(o=>o.id===l.id), lock=!unlocked(l.tier)&&!own, bp=luxBuyPrice(l), sp=luxSellPrice(l), v=S.luxVal[l.id], H=(S.luxH&&S.luxH[l.id])||[], ch=H.length>1? v/H[0]-1 : 0, up=v*l.up*(1+.03*tierNow());
+function pxItem(l){ const own=S.lux.find(o=>o.id===l.id), lock=!luxTierOk(l)&&!own, bp=luxBuyPrice(l), sp=luxSellPrice(l), v=S.luxVal[l.id], H=(S.luxH&&S.luxH[l.id])||[], ch=H.length>1? v/H[0]-1 : 0, up=v*l.up*(1+.03*tierNow());
   let h='<section class="card px-it'+(own?' own':'')+(lock?' lock':'')+'"><div class="px-im">'+pxArt(l)+(own? '<span class="px-tag ok">'+(own.rent?'Loué':'À vous')+'</span>' : lock? '<span class="px-tag">Palier '+esc(D.TIERS[l.tier].n)+'</span>' : '')+'<span class="px-pr">+'+l.pr+'</span></div>'+
     '<div class="px-b"><div class="px-n"><b>'+esc(l.n)+'</b><small>'+esc(D.LUX_KIND[l.kind])+' · prestige +'+l.pr+(own&&own.rent?' (moitié en location)':'')+'</small></div>'+
     '<div class="px-v"><div><small>Cote</small><b class="num">'+eur(v,0)+'</b>'+(H.length>1? '<small class="num '+cls(ch)+'">'+(ch>=0?'+':'')+fmtN(ch*100,1)+' % sur '+(H.length>=52?'un an':plu(H.length*7,'jour'))+'</small>' : '')+'</div>'+(H.length>2? '<div class="px-sp">'+spark(H.concat([v]),96,30)+'</div>' : '')+'</div>';
@@ -81,7 +81,7 @@ vLuxe=function(){ const mine=S.lux.length>0; let t=ui.lx||(mine?'mine':'car'); i
 VIEWS.luxe=vLuxe;
 /* ---------- banque ---------- */
 ACT.bktab=el=>{ ui.bk=el.dataset.v; render(); };
-ACT.borrowq=el=>{ const a=Math.floor(debtLimit()*(+el.dataset.v)/1000)*1000; if(a<=0) return toast('Capacité d’emprunt épuisée.'); ask('Emprunter '+eur(a,0),'Taux fixe de <b>'+fmtN(debtRate(),2)+' %</b> par an, soit '+eur(a*debtRate()/100/360,0)+' d’intérêts par jour. Remboursable à tout moment, sans frais.','Emprunter',()=>after(borrow(a))); };
+ACT.borrowq=el=>{ const a=Math.floor(debtLimit()*(+el.dataset.v)/1000)*1000; if(a<=0) return toast('Capacité d’emprunt épuisée.'); after(borrow(a)); };
 function bkAccount(){ const G=crGrade(), lev=crLev(), d=debtTotal(), lim=debtLimit(), rt=debtRate(), intD=S.debts.reduce((a,x)=>a+x.p*x.r/100/360,0), livD=S.livret.bal*livretRate()/100/360, r=prRank();
   let h='<section class="bk-cardv"><div class="bk-chip"></div><div class="bk-brand">IDLE BUSINESS · COMPTE COURANT</div><small>Solde disponible</small><b class="num'+(S.cash<0?' neg':'')+'">'+eur(S.cash,0)+'</b>'+
     '<div class="bk-row"><span><small>Livret</small>'+eur(S.livret.bal,0)+'</span><span><small>Emprunts</small>'+eur(d,0)+'</span><span><small>Note</small><em class="g'+G[0]+'">'+G[0]+'</em></span></div></section>';
