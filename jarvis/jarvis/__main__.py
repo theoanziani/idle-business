@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 import sys
 import threading
 import traceback
@@ -10,7 +11,7 @@ from jarvis.tools import rappels
 
 
 def text_mode(cfg):
-    brain = Brain(cfg, lambda p: is_yes(input(f"Jarvis : {p}. Confirmez-vous, monsieur ? > ")),
+    brain = Brain(cfg, lambda p: is_yes(input(f"Jarvis : Tu me demandes {elide(p)}. Tu confirmes ? > ")),
                   announce=lambda t: print("Jarvis :", t))
     try:
         while True:
@@ -25,7 +26,21 @@ def text_mode(cfg):
         print("\nJarvis : À plus tard.")
 
 
-ONLINE = "Jarvis en ligne. À votre service, monsieur."
+ONLINE = "Jarvis est prêt."
+SLEEP = "Je me mets en veille. Appelle-moi si tu as besoin."
+SLEEP_WORDS = re.compile(r"\ben veille\b|\bbonne nuit\b|\bc'est tout\b(?! à fait)|\btu peux (disposer|te reposer)\b"
+                         r"|\bvous pouvez (disposer|vous reposer)\b|\bfin de (la )?conversation\b|\bau revoir\b"
+                         r"|\b(va|tu peux|vous pouvez) dormir\b", re.I)
+
+
+def elide(phrase):
+    """« de éteindre » -> « d'éteindre »."""
+    return ("d'" if phrase[:1].lower() in "aeiouyéèêàâîôûh" else "de ") + phrase
+
+
+def is_sleep(text):
+    """« Mets-toi en veille », « c'est tout », « bonne nuit »… : fin de la conversation."""
+    return bool(SLEEP_WORDS.search(text))
 
 
 class Assistant:
@@ -44,7 +59,7 @@ class Assistant:
             getattr(self.hud, fn)(*a)
 
     def confirm(self, phrase):
-        question = f"Vous me demandez de {phrase}. Confirmez-vous, monsieur ?"
+        question = f"Tu me demandes {elide(phrase)}. Tu confirmes ?"
         self._hud("message", "jarvis", question)
         self.say(question)
         if not self.ears:
@@ -131,12 +146,34 @@ class Assistant:
             for warm in (self.brain.warmup, self.ears.whisper):
                 threading.Thread(target=warm, daemon=True).start()
             self.voice.chime()
+            self.conversation()
+
+    def conversation(self):
+        """Après « Hey Jarvis » : écoute continue, sans mot d'activation, jusqu'à « mets-toi en veille »."""
+        while True:
+            self._hud("state", "ecoute")
             text = self.ears.listen()
             self._hud("level", 0)
             if not text:
-                self._hud("state", "idle")
-                continue
+                continue  # silence : on reste à l'écoute
+            if is_sleep(text):
+                print("Vous :", text, flush=True)
+                self._hud("message", "vous", text)
+                self._hud("message", "jarvis", SLEEP)
+                self.say(SLEEP)
+                self.sleep()
+                return
             self.handle(text)
+
+    def sleep(self):
+        """Veille : décharge le modèle et Whisper pour rendre la VRAM tout de suite (au lieu d'attendre 5 min)."""
+        self._hud("state", "idle")
+        for unload in (self.brain.unload, self.ears.unload):
+            try:
+                unload()
+            except Exception as e:
+                print(f"[veille] {e}", flush=True)
+        print("[veille]", flush=True)
 
 
 def voice_mode(cfg):
@@ -171,10 +208,10 @@ def hud_mode(cfg, show):
             a.start_audio()
         except Exception as e:
             traceback.print_exc()
-            hud.message("jarvis", f"Micro ou voix indisponible ({e}). Le clavier reste à votre service, monsieur.")
+            hud.message("jarvis", f"Micro ou voix indisponible ({e}). Tu peux toujours m'écrire dans le HUD.")
             tray.notify("Micro ou voix indisponible : mode clavier dans le HUD.")
             return
-        tray.notify("Jarvis en ligne. Dites « Hey Jarvis ».")
+        tray.notify("Jarvis en ligne. Dis « Hey Jarvis », puis parle librement ; « mets-toi en veille » pour finir.")
         a.loop()
 
     threading.Thread(target=worker, daemon=True, name="voix").start()
@@ -189,7 +226,7 @@ def mic_check(cfg, seconds=15):
 
     wake = Model(wakeword_models=[cfg["wake"]["model"]], inference_framework="onnx")
     seuil = cfg["listen"]["silence_rms"]
-    print(f"Micro : {sd.query_devices(kind='input')['name']}. Parlez normalement, puis dites « Hey Jarvis » ({seconds} s).")
+    print(f"Micro : {sd.query_devices(kind='input')['name']}. Parle normalement, puis dis « Hey Jarvis » ({seconds} s).")
     peak = best = 0
     frames = []
     with sd.InputStream(samplerate=16000, channels=1, dtype="int16", blocksize=1280) as s:

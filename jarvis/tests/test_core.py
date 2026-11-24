@@ -85,3 +85,40 @@ def test_relevant_facts():
     assert relevant_facts(facts, "Quelle heure est-il ?") == []
     assert relevant_facts(facts, "Fais-moi un café") == ["Je préfère le café noir"]
     assert relevant_facts(facts, "Que sais-tu de moi ?") == facts
+
+
+def test_sleep_phrases():
+    from jarvis.__main__ import is_sleep
+    for t in ("Mets-toi en veille.", "Merci, c'est tout.", "Bonne nuit Jarvis", "Tu peux disposer", "Au revoir"):
+        assert is_sleep(t), t
+    for t in ("C'est tout à fait ça.", "Quelle heure est-il ?", "Je dors mal en ce moment"):
+        assert not is_sleep(t), t
+
+
+def test_weather_context(monkeypatch):
+    from jarvis.brain import weather_context
+    asked = []
+    monkeypatch.setitem(TOOLS, "meteo", lambda ville="": asked.append(ville) or "10 °C, couvert")
+    assert "10 °C" in weather_context("Quel temps fait-il cet après-midi ?") and asked[-1] == ""
+    weather_context("Est-ce qu'il va pleuvoir à Toulouse demain ?")
+    assert asked[-1] == "Toulouse"
+    weather_context("Quelle est la météo à Saint-Jean-de-Luz ?")
+    assert asked[-1] == "Saint-Jean-de-Luz"
+    assert weather_context("Quelle heure est-il ?") == ""
+
+
+def test_action_aliases_and_elision():
+    from jarvis.__main__ import elide
+    from jarvis.tools.system import MUSIC, VOLUME, _alias
+    assert _alias("pause", MUSIC) == "lecture_pause" and _alias("piste suivante", MUSIC) == "suivant"
+    assert _alias("augmenter", VOLUME) == "monter" and _alias("couper le son", VOLUME) == "muet"
+    assert _alias("danse", MUSIC) is None
+    assert elide("éteindre l'ordinateur") == "d'éteindre l'ordinateur" and elide("effacer") == "d'effacer"
+    assert elide("supprimer") == "de supprimer"
+
+
+def test_emojis_removed():
+    from jarvis.brain import strip_think
+    from jarvis.voice import clean
+    assert strip_think("Salut ! 😊 Ça roule 🚀") == "Salut ! Ça roule"
+    assert clean("Bien reçu 👍") == "Bien reçu"

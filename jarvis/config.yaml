@@ -35,7 +35,7 @@ memory:
   path: data/memoire.db
 hud:
   ecran: -1             # écran du HUD : 0 = principal, -1 = dernier branché (le 20" une fois connecté)
-  masquer_apres_s: 90   # masque le HUD après ce délai sans activité (0 = jamais)
+  masquer_apres_s: 0    # 0 = le HUD ne se ferme jamais tout seul (seulement par ✕, Échap ou l'icône)
   layout: data/hud_layout.json
   meteo:                # à adapter à votre ville
     ville: Nailloux

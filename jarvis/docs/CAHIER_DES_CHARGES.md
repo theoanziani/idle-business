@@ -31,9 +31,9 @@ Micro ─► openWakeWord (CPU) ─► enregistrement ─► faster-whisper (GPU
 
 ## 3. Voix
 
-- **Mot d'activation** : « Hey Jarvis », écoute permanente.
+- **Mot d'activation** : « Hey Jarvis » (vérificateur entraîné sur la voix de l'utilisateur), puis conversation continue sans mot d'activation jusqu'à « mets-toi en veille » ; la veille libère la VRAM.
 - **Langue** : français.
-- **Personnalité** : comme le J.A.R.V.I.S. des films avec Tony Stark : naturel, direct, humour sec, partenaire plutôt que majordome ; vouvoiement, « monsieur » avec parcimonie.
+- **Personnalité** : naturelle, simple et chaleureuse, comme un ami compétent ; tutoiement ; ni majordome ni formules ampoulées.
 - **Voix** : Microsoft Rémy (en ligne, phrases mises en cache sur le disque) ; repli local Piper si le réseau ne répond pas.
 - **Parole spontanée** (V4) : alertes, rappels ; muette pendant les heures de sommeil configurables.
 

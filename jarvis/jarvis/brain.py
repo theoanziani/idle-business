@@ -6,31 +6,40 @@ import ollama
 from jarvis import memory
 from jarvis.tools import CONFIRM, TOOLS
 
-PERSONA = """Tu es Jarvis, l'IA personnelle de l'utilisateur, comme le J.A.R.V.I.S. de Tony Stark dans les films Iron Man. Tu parles français.
-Ton : naturel, direct et efficace, avec un humour sec et subtil, comme un partenaire de confiance plutôt qu'un domestique.
+PERSONA = """Tu es Jarvis, l'assistant personnel de l'utilisateur. Tu parles français.
+Ton : naturel, simple et chaleureux, comme un ami compétent qui aide volontiers. Clair et direct, honnête sur ce que tu sais
+ou pas, une pointe d'humour quand ça s'y prête. Ni formules de politesse ampoulées, ni ton de majordome, ni flatterie.
 Utilise les outils pour agir. Pour une tâche de code lourde, délègue à demander_claude. Retiens avec souviens_toi ce qui mérite d'être retenu.
 Nous sommes le {now}. Sers-t'en pour calculer les dates des rappels (« dans 20 minutes », « demain à 9 h »).
+L'utilisateur habite à {ville} : c'est la ville à utiliser pour la météo s'il n'en précise pas d'autre.
 Souvenirs utiles pour cette demande :
 {facts}
 
 RÈGLES (toujours) :
-1. Vouvoie l'utilisateur, même s'il te tutoie : « vous », jamais « tu ». « Monsieur » de temps en temps seulement.
-2. N'invente rien : ni agenda, ni appareils, ni météo, ni fichiers. Seuls comptent les souvenirs ci-dessus et les résultats d'outils. Si tu ne sais pas, dis-le ou propose de chercher.
-3. Une à trois phrases courtes, l'information utile d'abord. Pas de markdown, de listes ni d'emoji : c'est lu à voix haute."""
+1. Tutoie l'utilisateur, toujours (« tu », jamais « vous » ni « monsieur »).
+2. Une action (éteindre, ouvrir, régler le volume, la musique, un rappel…) n'est faite QUE si tu appelles l'outil correspondant.
+   Ne dis jamais qu'une action est faite sans avoir appelé l'outil et reçu son résultat.
+3. N'invente rien : ni agenda, ni appareils, ni météo, ni fichiers. Seuls comptent les souvenirs ci-dessus et les résultats d'outils. Si tu ne sais pas, dis-le ou propose de chercher.
+4. Une à trois phrases courtes, l'information utile d'abord. Pas de markdown, de listes ni d'emoji : c'est lu à voix haute."""
 
 # Outils lents : Jarvis prévient avant de se lancer, pour ne pas laisser un long silence.
-ANNOUNCE = {"demander_claude": "Je confie cela à Claude, monsieur. Cela peut prendre quelques minutes.",
-            "recherche_web": "Je consulte Internet, monsieur."}
+ANNOUNCE = {"demander_claude": "Je confie ça à Claude. Ça peut prendre quelques minutes.",
+            "recherche_web": "Je regarde sur Internet."}
 
 YES = {"oui", "confirme", "confirmé", "vas-y", "affirmatif", "ok", "d'accord", "go"}
 
 
+EMOJI = re.compile("[\U0001F000-\U0001FAFF☀-➿️‍]")
+
+
 def strip_think(text):
-    """Retire le raisonnement des modèles « thinking » (Qwen3 2507 ignore think=False) : seule la réponse est dite."""
+    """Retire le raisonnement des modèles « thinking » (Qwen3 2507 ignore think=False) et les émojis :
+    seule la réponse est dite."""
     text = text or ""
     if "</think>" in text:
         text = text.rsplit("</think>", 1)[1]
-    return re.sub(r"<think>.*", "", text, flags=re.S).strip()
+    text = re.sub(r"<think>.*", "", text, flags=re.S)
+    return re.sub(r" {2,}", " ", EMOJI.sub("", text)).strip()
 
 
 STOP = set("avec dans pour quoi quel quelle quels quelles elle elles nous vous sont être avoir fait faire plus moins très "
@@ -51,14 +60,31 @@ def relevant_facts(facts, question):
     return [f for f in facts if _words(f) & q]
 
 
+WEATHER = re.compile(r"m[ée]t[ée]o|quel temps|temps (qu'il )?(fait|fera|va)|pleuv|pluie|neige|temp[ée]rature"
+                     r"|fait[- ]il (froid|chaud|beau)|parapluie|ensoleill", re.I)
+CITY = re.compile(r"\b(?:à|a|sur|pour|vers)\s+([A-ZÉÈÀÂÎ][\w'-]*(?:(?:[ -](?:sur|de|la|le|les|en|du))?[ -][A-ZÉÈÀÂÎ][\w'-]*)*)")
+
+
+def weather_context(text):
+    """Le petit modèle oublie parfois l'outil météo et invente : on va chercher les vraies données nous-mêmes."""
+    if not WEATHER.search(text):
+        return ""
+    m = CITY.search(text)
+    try:
+        data = TOOLS["meteo"](m.group(1) if m else "")
+    except Exception as e:
+        data = f"indisponible ({e})"
+    return f"\nMétéo réelle (outil, à utiliser telle quelle, sans rien inventer) :\n{data}"
+
+
 def explain_error(e):
     """Message clair quand le cerveau (Ollama) ne répond pas."""
     s = str(e).lower()
     if "out-of-memory" in s or "allocate" in s or "out of memory" in s:
         return ("Pas assez de mémoire pour charger mon modèle : un jeu ou une appli gourmande occupe le PC. "
-                "Réessayez quand elle sera fermée.")
+                "Réessaie quand elle sera fermée.")
     if "connect" in s or "refused" in s:
-        return "Je n'arrive pas à joindre Ollama. Vérifiez qu'il est lancé, son icône doit être dans la zone de notification."
+        return "Je n'arrive pas à joindre Ollama. Vérifie qu'il est lancé, son icône doit être dans la zone de notification."
     return f"Mon cerveau a un problème : {e}"
 
 
@@ -70,6 +96,7 @@ def is_yes(text):
 class Brain:
     def __init__(self, cfg, confirm, announce=None):
         self.cfg, self.confirm = cfg["ollama"], confirm
+        self.city = cfg.get("hud", {}).get("meteo", {}).get("ville", "une ville non précisée")
         self.announce = announce or (lambda text: None)
         self.client = ollama.Client(host=self.cfg["host"])
         self.history = []
@@ -81,6 +108,10 @@ class Brain:
 
     def warmup(self):
         self.client.generate(model=self.cfg["model"], prompt="", keep_alive=self.cfg["keep_alive"], options=self.options)
+
+    def unload(self):
+        """Libère tout de suite la VRAM/RAM du modèle (sinon Ollama le garde keep_alive = 5 min)."""
+        self.client.generate(model=self.cfg["model"], prompt="", keep_alive=0)
 
     def _trim(self):
         """Garde les derniers échanges, en commençant toujours par un message de l'utilisateur."""
@@ -116,7 +147,7 @@ class Brain:
         from jarvis.tools.system import date_heure
         system = {"role": "system", "content": PERSONA.format(
             facts="\n".join(facts) or "rien qui concerne cette demande",
-            now=f"{date_heure()} ({datetime.now():%Y-%m-%d %H:%M})")}
+            now=f"{date_heure()} ({datetime.now():%Y-%m-%d %H:%M})", ville=self.city) + weather_context(text)}
         for _ in range(6):
             content, calls = self._chat([system, *self.history], on_text)
             self.history.append({"role": "assistant", "content": content, **({"tool_calls": calls} if calls else {})})
@@ -125,7 +156,7 @@ class Brain:
             for call in calls:
                 f = call.function
                 self.history.append({"role": "tool", "tool_name": f.name, "content": self.run(f.name, f.arguments)})
-        return "Je crains de tourner en rond, monsieur."
+        return "Je tourne en rond, je n'y arrive pas. Reformule ta demande ?"
 
     def run(self, name, args):
         if name not in TOOLS:

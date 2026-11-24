@@ -131,7 +131,7 @@ def guided_session(cfg, folder, n_pos=10, n_neg=3):
         return " ".join(s.text for s in stt.transcribe(a, language="fr")[0]).strip()
 
     folder.mkdir(parents=True, exist_ok=True)
-    voice.say("Entraînement du mot d'activation. Après chaque bip, dites Hey Jarvis, à votre distance habituelle.")
+    voice.say("Entraînement du mot d'activation. Après chaque bip, dis Hey Jarvis, à ta distance habituelle.")
     i = len(list(folder.glob("pos_*.wav")))
     fails = 0
     while i < n_pos and fails < 8:
@@ -147,19 +147,19 @@ def guided_session(cfg, folder, n_pos=10, n_neg=3):
             print(f"  ✗ « {text or '(rien)'} » : on recommence", flush=True)
             voice.say("Je n'ai pas entendu Hey Jarvis. On recommence.")
     if i < n_pos:
-        voice.say("Je n'arrive pas à vous entendre correctement. On réessaiera plus tard.")
+        voice.say("Je n'arrive pas à bien t'entendre. On réessaiera plus tard.")
         raise RuntimeError(f"seulement {i} prises valides")
-    voice.say("Parfait. Maintenant, parlez normalement pendant six secondes après chaque bip, sans dire Hey Jarvis.")
+    voice.say("Parfait. Maintenant, parle normalement pendant six secondes après chaque bip, sans dire Hey Jarvis.")
     j = len(list(folder.glob("neg_*.wav")))
     while j < n_neg:
         voice.chime()
         audio = _record(6)
         text = heard(audio)
         if WAKE_HEARD.search(text):
-            voice.say("Sans dire Hey Jarvis, s'il vous plaît.")
+            voice.say("Sans dire Hey Jarvis, s'il te plaît.")
             continue
         if len(re.findall(r"[\w']+", text)) < 4:
-            voice.say("Je n'ai presque rien entendu. Parlez un peu plus, s'il vous plaît.")
+            voice.say("Je n'ai presque rien entendu. Parle un peu plus, s'il te plaît.")
             continue
         j += 1
         _save(folder / f"neg_{j:02d}.wav", audio)
@@ -183,4 +183,4 @@ def session(cfg):
     neg = [v for k, v in scores.items() if k.startswith("neg")]
     print(f"« Hey Jarvis » reconnus : {sum(v > seuil for v in pos)}/{len(pos)}  (scores {', '.join(f'{v:.2f}' for v in pos)})")
     print(f"Faux réveils sur la parole normale : {sum(v > seuil for v in neg)}/{len(neg)}  (scores {', '.join(f'{v:.2f}' for v in neg)})")
-    voice.say(f"Terminé. J'ai reconnu {sum(v > seuil for v in pos)} Hey Jarvis sur {len(pos)}.")
+    voice.say(f"C'est bon. J'ai reconnu {sum(v > seuil for v in pos)} Hey Jarvis sur {len(pos)}.")

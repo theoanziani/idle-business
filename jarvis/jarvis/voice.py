@@ -19,7 +19,9 @@ import sounddevice as sd
 
 
 def clean(text):
-    return re.sub(r"[*#`_>|]", "", text or "").strip()
+    """Texte prêt à dire : sans markdown ni émojis."""
+    text = re.sub("[\U0001F000-\U0001FAFF☀-➿️‍]", "", text or "")
+    return re.sub(r" {2,}", " ", re.sub(r"[*#`_>|]", "", text)).strip()
 
 
 def split_sentences(text):

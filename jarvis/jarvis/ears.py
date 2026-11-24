@@ -109,6 +109,12 @@ class Ears:
         self._last = time.time()
         return self._whisper
 
+    def unload(self):
+        """Libère Whisper (VRAM) ; il sera rechargé au prochain réveil."""
+        with self._lock:
+            self._whisper = None
+        gc.collect()
+
     def record(self):
         self._flush()
         frames, spoke, silent = [], False, 0.0

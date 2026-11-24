@@ -1,4 +1,5 @@
 import ctypes
+import re
 import subprocess
 from datetime import datetime
 
@@ -8,6 +9,23 @@ JOURS = "lundi mardi mercredi jeudi vendredi samedi dimanche".split()
 MOIS = "janvier février mars avril mai juin juillet août septembre octobre novembre décembre".split()
 KEYS = {"monter": 0xAF, "baisser": 0xAE, "muet": 0xAD,
         "lecture_pause": 0xB3, "suivant": 0xB0, "precedent": 0xB1}
+
+
+# Le modèle n'emploie pas toujours le mot exact : « pause », « play », « suivante », « augmenter »…
+MUSIC = {"lecture_pause": ("pause", "lecture", "play", "reprend", "joue", "stop", "arret", "arrêt", "toggle"),
+         "suivant": ("suiv", "next", "prochain", "passe", "skip"),
+         "precedent": ("préc", "prec", "previous", "prev", "retour", "avant")}
+VOLUME = {"monter": ("mont", "augment", "plus", "fort", "hausse", "up"),
+          "baisser": ("baiss", "dimin", "moins", "bas", "down"),
+          "muet": ("muet", "mute", "coup", "silence", "sourdine")}
+
+
+def _alias(action, table):
+    a = (action or "").lower().strip()
+    if a in table:
+        return a
+    said = re.findall(r"\w+", a)  # début de mot : « couper » ne doit pas matcher « up »
+    return next((k for k, syns in table.items() if any(w.startswith(s) for w in said for s in syns)), None)
 
 
 def _press(key, times=1):
@@ -47,7 +65,10 @@ def musique(action: str) -> str:
     Args:
       action: lecture_pause, suivant ou precedent
     """
-    _press(action)
+    key = _alias(action, MUSIC)
+    if not key:
+        return f"Action inconnue « {action} » : lecture_pause, suivant ou precedent."
+    _press(key)
     return "OK"
 
 
@@ -59,7 +80,10 @@ def volume(action: str, pas: int = 5) -> str:
       action: monter, baisser ou muet
       pas: nombre de crans (1 cran = 2 %)
     """
-    _press(action, 1 if action == "muet" else pas)
+    key = _alias(action, VOLUME)
+    if not key:
+        return f"Action inconnue « {action} » : monter, baisser ou muet."
+    _press(key, 1 if key == "muet" else pas)
     return "OK"
 
 

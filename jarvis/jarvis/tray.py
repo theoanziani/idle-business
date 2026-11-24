@@ -16,7 +16,7 @@ def icon_image(size=64):
 
 class Tray:
     def __init__(self, on_show, on_quit, autostart_get, autostart_set):
-        self.icon = pystray.Icon("jarvis", icon_image(), "Jarvis — dites « Hey Jarvis »", menu=pystray.Menu(
+        self.icon = pystray.Icon("jarvis", icon_image(), "Jarvis — dis « Hey Jarvis »", menu=pystray.Menu(
             pystray.MenuItem("Afficher le HUD", lambda: on_show(), default=True),
             pystray.MenuItem("Lancer avec Windows", lambda: autostart_set(not autostart_get()),
                              checked=lambda _: autostart_get()),
