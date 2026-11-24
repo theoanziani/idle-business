@@ -219,24 +219,45 @@ function flyCoins(n){
   };
 }
 
-/* ---------- Écran de démarrage animé ---------- */
+/* ---------- Écran de démarrage : la courbe devient ville (V2.7.3) ----------
+   Une courbe dorée suit les toits d'une ville qui monte, se reflète dans l'eau ; les fenêtres s'allument.
+   La valeur du groupe vient de la dernière partie sauvegardée (ib.m.N). */
+function spLastSave(){ let best=null; try{ for(let i=1;i<=9;i++){ const t=localStorage.getItem('ib.m.'+i); if(!t) continue; const m=JSON.parse(t); if(m&&(!best||(m.updated||0)>(best.updated||0))) best=m; } }catch(e){} return best; }
+function spCity(){ let x=0, h=30, k=0, seed=7; const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647, W=300, top=[], body=[], win=[];
+  const T=['flat','spire','step','dome','flat','antenna','step','spire'];
+  while(x<390){ const w=24+Math.floor(rnd()*16); h+=4+rnd()*11; const y=W-h, t=T[k++%T.length];
+    body.push('<rect x="'+x+'" y="'+y.toFixed(0)+'" width="'+w+'" height="'+(W-y).toFixed(0)+'"/>');
+    if(t==='spire'){ body.push('<path d="M'+(x+w/2-5)+' '+y.toFixed(0)+'L'+(x+w/2)+' '+(y-30).toFixed(0)+'L'+(x+w/2+5)+' '+y.toFixed(0)+'Z"/>'); top.push([x,y],[x+w/2-5,y],[x+w/2,y-30],[x+w/2+5,y],[x+w,y]); }
+    else if(t==='step'){ body.push('<rect x="'+(x+5)+'" y="'+(y-13).toFixed(0)+'" width="'+(w-10)+'" height="13"/>'); top.push([x,y],[x+5,y],[x+5,y-13],[x+w-5,y-13],[x+w-5,y],[x+w,y]); }
+    else if(t==='dome'){ const r=w/2-3; body.push('<path d="M'+(x+3)+' '+y.toFixed(0)+'A'+r+' '+r+' 0 0 1 '+(x+w-3)+' '+y.toFixed(0)+'Z"/>'); top.push([x,y],[x+3,y]); for(let a=0;a<=10;a++){ const t2=Math.PI+a/10*Math.PI; top.push([x+w/2+r*Math.cos(t2),y+r*Math.sin(t2)]); } top.push([x+w,y]); }
+    else if(t==='antenna'){ body.push('<rect x="'+(x+w/2-1)+'" y="'+(y-26).toFixed(0)+'" width="2" height="26"/>'); top.push([x,y],[x+w/2-1,y],[x+w/2-1,y-26],[x+w/2+1,y-26],[x+w/2+1,y],[x+w,y]); }
+    else top.push([x,y],[x+w,y]);
+    for(let yy=y+9; yy<W-4; yy+=12) for(let xx=x+5; xx<x+w-6; xx+=8) if(rnd()<.34) win.push('<rect x="'+xx+'" y="'+yy.toFixed(0)+'" width="4" height="6" rx="1" style="animation-delay:'+(.5+xx/390*1.6+rnd()*.4).toFixed(2)+'s;opacity:'+[.95,.65,.4][Math.floor(rnd()*3)]+'"/>');
+    x+=w; }
+  const pts=top.map(([a,b])=>a.toFixed(0)+','+b.toFixed(0)).join(' ');
+  return {W, b:'<g class="sp-b">'+body.join('')+'</g>', w:'<g class="sp-w">'+win.join('')+'</g>', pts}; }
 function showSplash(){
   if(document.getElementById('splash')||!document.body) return;
-  const B=[[8,46,'var(--c1)'],[17,70,'var(--c6)'],[28,38,'var(--c5)'],[37,84,'var(--blue)'],[48,52,'var(--c2)'],[58,64,'var(--c4)'],[68,40,'var(--c3)'],[77,76,'var(--c6)'],[88,50,'var(--c1)']];
-  const bld=B.map(([x,h,c],i)=>{
-    let w=''; for(let r=0;r<Math.floor((h-10)/12);r++) for(let k=0;k<2;k++) w+='<rect class="sw" x="'+(x+1.6+k*3.6)+'" y="'+(116-h+8+r*12)+'" width="2.4" height="4" rx=".8" style="animation-delay:'+(0.9+((i*7+r*3+k*5)%11)*0.09).toFixed(2)+'s"/>';
-    return '<g class="sb" style="animation-delay:'+(0.15+i*0.07).toFixed(2)+'s"><rect x="'+x+'" y="'+(116-h)+'" width="9" height="'+h+'" rx="2" fill="'+c+'"/>'+w+'</g>';
-  }).join('');
+  const C=spCity(), m=spLastSave(), H=C.W+190;
+  const svg='<svg class="sp-svg" viewBox="0 0 390 '+H+'" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs><filter id="spg"><feGaussianBlur stdDeviation="4"/></filter>'+
+    '<linearGradient id="spwf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="sp-wt"/><stop offset="1" class="sp-wb"/></linearGradient></defs>'+
+    C.b+C.w+'<polyline class="sp-glow" points="'+C.pts+'" filter="url(#spg)" pathLength="1"/><polyline class="sp-line" points="'+C.pts+'" pathLength="1"/>'+
+    '<g class="sp-refl" transform="translate(0,'+(2*C.W)+') scale(1,-1)">'+C.b+C.w+'</g><rect class="sp-water" y="'+C.W+'" width="390" height="190" fill="url(#spwf)"/>'+
+    [...Array(14)].map((_,i)=>'<rect class="sp-rip" x="'+((i*67)%370)+'" y="'+(C.W+14+(i*29)%160)+'" width="'+(12+(i*13)%30)+'" height="1.5" style="animation-delay:'+(i*.21).toFixed(2)+'s"/>').join('')+'</svg>';
   const el=document.createElement('div'); el.id='splash'; el.setAttribute('role','presentation');
-  el.innerHTML='<div class="sp-sky"><svg class="sp-city" viewBox="0 0 104 120" preserveAspectRatio="xMidYMax meet" aria-hidden="true">'+
-    '<circle class="sp-sun" cx="78" cy="40" r="11"/>'+bld+'<rect x="0" y="115" width="104" height="5" rx="2" class="sp-ground"/></svg></div>'+
-    '<div class="sp-logo"><span class="sp-coin" aria-hidden="true"></span><b>Idle<br>Business</b><small>Bâtissez votre empire, un jour à la fois</small><div class="sp-load" aria-hidden="true"><i></i></div></div>'+
-    '<span class="sp-cl c1" aria-hidden="true"></span><span class="sp-cl c2" aria-hidden="true"></span>'+
-    [[12,14],[30,8],[52,20],[70,10],[86,16],[20,30],[64,32],[92,6]].map(([x,y],i)=>'<span class="sp-st" style="left:'+x+'%;top:'+y+'%;animation-delay:'+(0.2+i*0.15).toFixed(2)+'s" aria-hidden="true"></span>').join('');
+  el.innerHTML=svg+'<div class="sp-top"><b class="sp-title">Idle<br>Business</b><small>Bâtissez votre empire, un jour à la fois</small></div>'+
+    (m&&m.nw? '<div class="sp-val"><b class="num" data-v="'+m.nw+'">0 €</b><small>valeur de votre groupe</small><span>Jour '+fmtN(m.day||1)+' · '+plu(m.biz||0,'société')+'</span></div>' : '')+
+    '<div class="sp-bar"><div class="sp-trk"><i></i></div><div class="sp-lb"><span>Ouverture de la séance…</span><b>0 %</b></div></div>';
   document.body.appendChild(el);
+  const T=RM()? 600 : 2900, t0=performance.now(), lb=el.querySelector('.sp-lb span'), pc=el.querySelector('.sp-lb b'), bar=el.querySelector('.sp-trk i'), v=el.querySelector('.sp-val b');
+  const MSG=['Ouverture de la séance…','Mise à jour des cours…','Allumage des bureaux…','Votre empire vous attend'];
+  const tick=now=>{ if(!el.isConnected) return; const k=Math.min(1,(now-t0)/(T-250)), e=k<.5? 2*k*k : 1-Math.pow(2-2*k,2)/2;
+    bar.style.width=(e*100).toFixed(1)+'%'; pc.textContent=Math.round(e*100)+' %'; lb.textContent=MSG[Math.min(3,Math.floor(k*3.999))];
+    if(v) v.textContent=fmtN(Math.round(+v.dataset.v*e))+' €'; if(k<1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
   const done=()=>{ if(!el.isConnected||el.classList.contains('out')) return; el.classList.add('out'); setTimeout(()=>el.remove(),450); };
   el.addEventListener('click',done);
-  setTimeout(done, RM()? 600 : 2900);
+  setTimeout(done, T);
 }
 if(!window.__noSplash) showSplash();
 
