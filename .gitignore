@@ -3,3 +3,4 @@ keystore.properties
 *.jks
 *.keystore
 node_modules/
+*.apk
