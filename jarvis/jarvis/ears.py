@@ -27,6 +27,7 @@ class Ears:
         self.stream = sd.InputStream(samplerate=RATE, channels=1, dtype="int16", blocksize=FRAME)
         self.stream.start()
         self._whisper, self._last, self._lock = None, 0.0, threading.Lock()
+        self.on_level = lambda v: None  # niveau du micro 0..1 pendant l'écoute (HUD)
 
     def _read(self):
         return self.stream.read(FRAME)[0][:, 0]
@@ -60,7 +61,9 @@ class Ears:
         for _ in range(int(self.lcfg["max_s"] / step)):
             f = self._read()
             frames.append(f)
-            loud = np.sqrt(np.mean(f.astype(np.float32) ** 2)) > self.lcfg["silence_rms"]
+            rms = np.sqrt(np.mean(f.astype(np.float32) ** 2))
+            self.on_level(min(1.0, rms / 4000))
+            loud = rms > self.lcfg["silence_rms"]
             spoke |= loud
             silent = 0.0 if loud else silent + step
             limit = self.lcfg["silence_s"] if spoke else self.lcfg["start_timeout_s"]

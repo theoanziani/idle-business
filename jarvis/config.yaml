@@ -21,3 +21,12 @@ claude:
   projects_dir: ~/projets
 memory:
   path: data/memoire.db
+hud:
+  ecran: -1             # écran du HUD : 0 = principal, -1 = dernier branché (le 20" une fois connecté)
+  masquer_apres_s: 90   # masque le HUD après ce délai sans activité (0 = jamais)
+  layout: data/hud_layout.json
+  meteo:                # à adapter à votre ville
+    ville: Paris
+    latitude: 48.8566
+    longitude: 2.3522
+  agenda_ics: ""        # chemin ou URL d'un calendrier .ics (Google, iCloud, Outlook : « adresse secrète iCal »)

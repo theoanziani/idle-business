@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Jarvis</title>
+<link rel="stylesheet" href="hud.css">
+</head>
+<body class="idle">
+<canvas id="reactor"></canvas>
+<div id="grid"></div>
+<div id="status"><span class="dot"></span><span id="status-text">En veille</span></div>
+<div id="panels"></div>
+
+<div id="dock">
+  <button id="btn-add" title="Ajouter un panneau">+</button>
+  <div id="add-menu" hidden></div>
+  <button id="btn-reset" title="Disposition par défaut">⟲</button>
+  <button id="btn-hide" title="Masquer le HUD (Échap)">✕</button>
+</div>
+
+<template id="tpl-panel">
+  <section class="panel">
+    <header><span class="title"></span><button class="close" title="Retirer">×</button></header>
+    <div class="body"></div>
+    <div class="resize"></div>
+  </section>
+</template>
+
+<script src="reactor.js"></script>
+<script src="hud.js"></script>
+</body>
+</html>
