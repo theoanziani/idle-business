@@ -1,7 +1,7 @@
 /* ============================================================
    BANQUE : dépôts, prêts, taux, réserves, liquidité, réputation
    ============================================================ */
-const CAPR=0.05; // fonds propres minimaux / prêts
+const capr = () => (S.bank.stg||1)>=3? .08 : .05; // fonds propres minimaux / prêts (8 % dès l’étape internationale)
 const APP_TYPES=[
   {k:'conso',lab:'Crédit consommation',w:.45,amt:[1000,15000],term:[90,360],col:[0,25],gw:[.15,.30,.30,.17,.08],mx:[10,20]},
   {k:'immo',lab:'Crédit immobilier',w:.15,amt:[40000,350000],term:[360,1080],col:[70,100],gw:[.30,.40,.20,.08,.02],mx:[6,11]},
@@ -9,10 +9,10 @@ const APP_TYPES=[
   {k:'startup',lab:'Prêt start-up',w:.10,amt:[30000,600000],term:[180,540],col:[0,10],gw:[.02,.10,.25,.40,.23],mx:[10,22]}
 ];
 const bankOpen = () => wdOf(S.day)<5;
-const bankLoans = () => S.bank.loans.reduce((a,l)=>a+l.p,0);
+const bankLoans = () => S.bank.loans.reduce((a,l)=>a+l.p,0)+ownDebt();
 function bankEquity(){ const B=S.bank; return B.res+bankLoans()+holdingsValue('bank')-B.dep-(B.cb||0); }
-const bankReq = () => S.laws.reserve*S.bank.dep;
-function bankCapacity(){ const B=S.bank; return Math.max(0,Math.min(bankEquity()/CAPR-bankLoans(), B.res-bankReq())); }
+const bankReq = () => bankReqW()*S.bank.dep;
+function bankCapacity(){ const B=S.bank; return Math.max(0,Math.min(bankEquity()/capr()-bankLoans(), B.res-bankReq())); }
 function bankRoles(){ const B=S.bank; return [['banquier',1+Math.floor(B.dep/1.5e6)+Math.floor(B.atm/10),110],['manager',Math.floor(B.dep/6e6),140]].filter(r=>r[1]>0); }
 
 function depTarget(sf){
@@ -40,18 +40,18 @@ function bankInject(a){
 }
 function bankWithdraw(a){
   const B=S.bank; if(!(a>0)) return err('Montant invalide.');
-  const max=Math.max(0,Math.min(B.res-bankReq(), bankEquity()-CAPR*bankLoans()));
+  const max=Math.max(0,Math.min(B.res-bankReq(), bankEquity()-capr()*bankLoans()));
   if(a>max+0.01) return err('Retrait possible : '+eur(max)+' (réserves obligatoires et fonds propres).');
   B.res-=a; payCap('bank','Retrait de capital de la banque',a); return ok();
 }
 function setBankRate(k,v){ const B=S.bank; if(k==='rd') B.rd=clamp(Math.round(v*10)/10,0,12); if(k==='rl') B.rl=clamp(Math.round(v*10)/10,2,25); }
 function buyBranch(){
-  const B=S.bank; if(B.br>=12) return err('Réseau complet : 12 agences maximum.');
+  const B=S.bank; if(B.br>=12*bStg()) return err('Réseau complet : '+12*bStg()+' agences maximum à cette étape.');
   const c=D.BANK.branchCost*(1+0.15*(B.br-1)); if(S.cash<c) return err('Trésorerie insuffisante : '+eur(c)+' requis.');
   payCap('bank','Ouverture d’une agence',-c); B.br++; return ok();
 }
 function buyAtm(){
-  const B=S.bank; if(B.atm>=60) return err('Réseau de distributeurs complet.');
+  const B=S.bank; if(B.atm>=60*bStg()) return err('Réseau de distributeurs complet à cette étape.');
   if(S.cash<D.BANK.atmCost) return err('Trésorerie insuffisante.');
   payCap('bank','Installation d’un distributeur',-D.BANK.atmCost); B.atm++; return ok();
 }
@@ -79,7 +79,7 @@ function setPolicy(k,v){ const P=S.bank.pol; if(k==='auto') P.auto=!!v; else if(
 function bankFail(){
   const B=S.bank;
   pay('bank','Amende de faillite bancaire',-Math.max(0,S.nw)*0.02);
-  S.rep=clamp(S.rep-35,0,100); B.lic=false; B.dep=0; B.loans=[]; B.res=0; B.apps=[]; B.run={d:0,f:0}; B.cb=0; B.failed++;
+  S.rep=clamp(S.rep-35,0,100); S.debts.forEach(d=>{ if(d.own){ d.own=0; d.r=debtRate(); } }); B.lic=false; B.stg=1; B.cty=[]; B.aum=0; B.dep=0; B.loans=[]; B.res=0; B.apps=[]; B.run={d:0,f:0}; B.cb=0; B.failed++;
   S.pf.bank={stock:{},bond:{},crypto:{}}; B.ent.staff={};
   log('crit','Faillite de votre banque : licence retirée, déposants lésés. Votre réputation s’effondre.');
 }

@@ -12,7 +12,7 @@ function vBank(){
       (B.failed?'<div class="notice bad">Votre précédente banque a fait faillite : la nouvelle licence coûte plus cher.</div>':'')+
       (unlocked(D.BANK.tier)? '' : '<div class="notice">Disponible à partir du palier <b>'+D.TIERS[D.BANK.tier].n+'</b> ('+eur(D.TIERS[D.BANK.tier].nw,0)+' de valeur nette).</div>')+
       '<div>'+btn('Obtenir la licence : '+eur(need,0),'banklic',{c:'pri',dis:!unlocked(D.BANK.tier)||S.cash<need,why:!unlocked(D.BANK.tier)?'Palier « '+D.TIERS[D.BANK.tier].n+' » requis.':undefined})+'</div></div>')+
-      card('Règles du métier','<ul style="margin:0;padding-left:18px" class="stack"><li><b>Réserves obligatoires</b> : la loi impose de garder un pourcentage des dépôts en liquidités ('+pct(S.laws.reserve,0)+' actuellement).</li><li><b>Fonds propres</b> : vos prêts ne peuvent pas dépasser '+Math.round(1/CAPR)+' fois vos fonds propres.</li><li><b>Taux</b> : un taux de dépôt attractif attire de l’argent, un taux de prêt élevé fait fuir les emprunteurs.</li><li><b>Notation A à E</b> : les profils risqués paient plus mais font plus souvent défaut.</li><li><b>Panique bancaire</b> : une mauvaise réputation ou des réserves trop faibles peuvent déclencher des retraits massifs.</li><li>Les agences sont fermées le week-end.</li></ul>')+'</div>';
+      card('Règles du métier','<ul style="margin:0;padding-left:18px" class="stack"><li><b>Réserves obligatoires</b> : la loi impose de garder un pourcentage des dépôts en liquidités ('+pct(S.laws.reserve,0)+' actuellement).</li><li><b>Fonds propres</b> : vos prêts ne peuvent pas dépasser '+Math.round(1/capr())+' fois vos fonds propres.</li><li><b>Taux</b> : un taux de dépôt attractif attire de l’argent, un taux de prêt élevé fait fuir les emprunteurs.</li><li><b>Notation A à E</b> : les profils risqués paient plus mais font plus souvent défaut.</li><li><b>Panique bancaire</b> : une mauvaise réputation ou des réserves trop faibles peuvent déclencher des retraits massifs.</li><li>Les agences sont fermées le week-end.</li></ul>')+'</div>';
     return h;
   }
   const req=bankReq(), eq=bankEquity(), L=bankLoans(), cap=bankCapacity();
@@ -25,7 +25,7 @@ function vBank(){
     '<div><span>Dépôts clients</span><b class="num">'+eur(B.dep,0)+'</b></div>'+
     '<div><span>Prêts en cours</span><b class="num">'+eur(L,0)+'</b></div>'+
     '<div><span>Réserve (min. '+eur(req,0)+')</span><b class="num '+(B.res<req?'neg':'')+'">'+eur(B.res,0)+'</b></div>'+
-    '<div><span>Fonds propres</span><b class="num '+(eq<CAPR*L?'neg':'')+'">'+eur(eq,0)+'</b></div>'+
+    '<div><span>Fonds propres</span><b class="num '+(eq<capr()*L?'neg':'')+'">'+eur(eq,0)+'</b></div>'+
     '<div><span>Capacité de prêt</span><b class="num">'+eur(cap,0)+'</b></div>'+
     '<div><span>Réputation</span><b>'+Math.round(B.rep)+' / 100</b></div>'+
     '<div><span>Résultat cumulé</span><b class="num '+cls(net-B.st.loss)+'">'+signed(net-B.st.loss,0)+'</b></div>'+
