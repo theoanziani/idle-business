@@ -54,9 +54,29 @@ def _gpu():
         return {}
 
 
+_cpu = None
+
+
+def _cpu_sampler():
+    """psutil mémorise le dernier relevé par thread, or pywebview répond depuis un thread neuf à chaque appel :
+    un thread dédié mesure donc le CPU en continu."""
+    global _cpu
+    import threading
+
+    def loop():
+        global _cpu
+        while True:
+            _cpu = psutil.cpu_percent(interval=1.5)
+
+    _cpu = 0.0
+    threading.Thread(target=loop, daemon=True, name="cpu").start()
+
+
 def system():
+    if _cpu is None:
+        _cpu_sampler()
     vm = psutil.virtual_memory()
-    return {"cpu": psutil.cpu_percent(), "ram": vm.percent, "ram_used": round(vm.used / 2**30, 1),
+    return {"cpu": _cpu, "ram": vm.percent, "ram_used": round(vm.used / 2**30, 1),
             "ram_total": round(vm.total / 2**30, 1), **_gpu()}
 
 

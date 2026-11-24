@@ -39,7 +39,7 @@ Micro ─► openWakeWord (CPU) ─► enregistrement ─► faster-whisper (GPU
 
 ## 4. Cerveau
 
-- **Par défaut** : Ollama, modèle Qwen3 4B, appel d'outils natif, 100 % local.
+- **Par défaut** : Ollama, modèle Qwen3 4B Instruct 2507 (variante sans raisonnement : la variante « thinking » ignore `think=False` et met des minutes à répondre sur 4 Go de VRAM), appel d'outils natif, 100 % local.
 - **Relais Claude Code** : pour les tâches de code lourdes ou sur demande explicite (« demande à Claude »), via la CLI `claude` et l'abonnement existant.
 - **Internet** : recherche web autorisée.
 - **Mémoire** : faits sur l'utilisateur conservés indéfiniment (SQLite), injectés dans le contexte. Suppression uniquement sur ordre (« oublie… »).

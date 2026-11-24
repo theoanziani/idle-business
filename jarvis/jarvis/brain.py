@@ -14,6 +14,14 @@ Ce que tu sais de l'utilisateur :
 YES = {"oui", "confirme", "confirmé", "vas-y", "affirmatif", "ok", "d'accord", "go"}
 
 
+def strip_think(text):
+    """Retire le raisonnement des modèles « thinking » (Qwen3 2507 ignore think=False) : seule la réponse est dite."""
+    text = text or ""
+    if "</think>" in text:
+        text = text.rsplit("</think>", 1)[1]
+    return re.sub(r"<think>.*", "", text, flags=re.S).strip()
+
+
 def is_yes(text):
     words = set(re.findall(r"[\w'-]+", text.lower()))
     return bool(words & YES) and "non" not in words
@@ -35,6 +43,7 @@ class Brain:
             msg = self.client.chat(model=self.cfg["model"], messages=[system, *self.history], tools=list(TOOLS.values()),
                                    think=False, keep_alive=self.cfg["keep_alive"]).message
             self.history.append(msg)
+            msg.content = strip_think(msg.content)
             if not msg.tool_calls:
                 return msg.content
             for call in msg.tool_calls:

@@ -76,7 +76,7 @@ class Hud:
         screen = self._screen()
         self.window = webview.create_window(
             "Jarvis", url=str(WEB / "index.html"), js_api=Api(self, self.cfg), hidden=not self.cfg.get("ouvert", False),
-            frameless=True, fullscreen=False, x=screen.x, y=screen.y, width=screen.width, height=screen.height,
+            frameless=True, fullscreen=True, screen=screen, width=screen.width, height=screen.height,
             background_color="#02070c", text_select=False, easy_drag=False)
         self.window.events.loaded += self._ready.set
         self.visible = self.cfg.get("ouvert", False)
@@ -111,7 +111,6 @@ class Hud:
         self._last_activity = time.time()
         if self.window and not self.visible:
             self.window.show()
-            self.window.restore()
             self.visible = True
             self._js("apparition")
 

@@ -50,7 +50,11 @@ class Ears:
             if not self._whisper:
                 _cuda_dlls()
                 from faster_whisper import WhisperModel
-                self._whisper = WhisperModel(self.scfg["model"], device=self.scfg["device"], compute_type=self.scfg["compute_type"])
+                from jarvis import config
+                name = self.scfg["model"]  # nom (« small ») ou dossier local téléchargé par setup.ps1
+                local = config.resolve(name)
+                self._whisper = WhisperModel(str(local) if local.is_dir() else name, device=self.scfg["device"],
+                                             compute_type=self.scfg["compute_type"])
         self._last = time.time()
         return self._whisper
 

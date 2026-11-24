@@ -34,17 +34,18 @@
       float d2=torus(p2, vec2(.95*pulse,.014));
       float d3=torus(p3, vec2(.62*pulse,.05));
       float d4=torus(p4, vec2(1.42,.006));
-      float core=length(p)-(.24+lvl*.12);
-      float d=min(min(min(d1,d2),min(d3,d4)),core);
+      float d=min(min(d1,d2),min(d3,d4));
       col+=ringCol(.010/(abs(d1)+.012))*(.4+.6*seg(p1,48.,.8));
       col+=ringCol(.008/(abs(d2)+.012))*seg(p2,6.,.85);
       col+=ringCol(.018/(abs(d3)+.02))*(.25+.75*seg(p3,10.,.7))*(0.6+nrg*.6);
       col+=ringCol(.004/(abs(d4)+.01))*seg(p4,120.,.5);
-      col+=vec3(.75,.95,1.)*(.016+.03*lvl+.01*nrg)/(abs(core)+.03);
       tt+=max(abs(d)*.6,.02);
       if(tt>6.) break;
     }
-    col*=.042*(0.7+nrg*.5+lvl*.8);
+    col*=.16*(1.25+nrg*.4+lvl*.45);
+    // cœur : lueur selon la distance minimale du rayon au centre (pas de surface creuse)
+    float cd=length(cross(rd,ro)), cr=.16+lvl*.1+nrg*.03;
+    col+=vec3(.7,.95,1.)*(cr*cr*.9/(cd*cd+.004))*(.8+lvl);
     float r=length(uv);
     col+=vec3(.1,.5,.7)*.12/(r*r*8.+.4)*(.5+lvl);   // halo
     col=1.-exp(-col*1.6);                           // tonemapping

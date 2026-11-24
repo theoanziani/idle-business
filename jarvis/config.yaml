@@ -1,9 +1,9 @@
 ollama:
   host: http://localhost:11434
-  model: qwen3:4b
+  model: qwen3:4b-instruct-2507-q4_K_M  # variante sans raisonnement : réponses directes
   keep_alive: 5m
 whisper:
-  model: small
+  model: models/whisper-small  # téléchargé par setup.ps1
   device: cuda
   compute_type: int8_float16
   idle_unload_s: 300

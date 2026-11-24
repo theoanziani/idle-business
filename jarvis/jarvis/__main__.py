@@ -10,8 +10,13 @@ from jarvis.brain import Brain, is_yes
 
 def text_mode(cfg):
     brain = Brain(cfg, lambda p: is_yes(input(f"Jarvis : {p}. Confirmez-vous, monsieur ? > ")))
-    while True:
-        print("Jarvis :", brain.ask(input("Vous > ")))
+    try:
+        while True:
+            text = input("Vous > ").strip()
+            if text:
+                print("Jarvis :", brain.ask(text))
+    except (EOFError, KeyboardInterrupt):
+        print("\nJarvis : Au revoir, monsieur.")
 
 
 class Assistant:
@@ -124,6 +129,27 @@ def hud_mode(cfg, show):
     hud.run(worker)
 
 
+def mic_check(cfg, seconds=15):
+    """Affiche le niveau du micro en direct, pour régler listen.silence_rms et wake.threshold."""
+    import numpy as np
+    import sounddevice as sd
+    from openwakeword.model import Model
+
+    wake = Model(wakeword_models=[cfg["wake"]["model"]], inference_framework="onnx")
+    seuil = cfg["listen"]["silence_rms"]
+    print(f"Micro : {sd.query_devices(kind='input')['name']}. Parlez normalement, puis dites « Hey Jarvis » ({seconds} s).")
+    peak = 0
+    with sd.InputStream(samplerate=16000, channels=1, dtype="int16", blocksize=1280) as s:
+        for _ in range(int(seconds * 16000 / 1280)):
+            f = s.read(1280)[0][:, 0]
+            rms = float(np.sqrt(np.mean(f.astype(np.float32) ** 2)))
+            score = max(wake.predict(f).values())
+            peak = max(peak, rms)
+            bar = "#" * min(50, int(rms / 40))
+            print(f"\rRMS {rms:6.0f} {'PAROLE' if rms > seuil else '      '} réveil {score:.2f} |{bar:<50}|", end="", flush=True)
+    print(f"\nPic : {peak:.0f}. Réglez listen.silence_rms entre le bruit de fond et ce pic (actuel : {seuil}).")
+
+
 def _redirect_output():
     """Sous pythonw (démarrage avec Windows) il n'y a pas de console : on écrit dans data/jarvis.log."""
     if sys.stdout is None or sys.stderr is None:
@@ -139,7 +165,10 @@ def main():
     p.add_argument("--sans-hud", action="store_true", help="mode vocal seul (V1), sans fenêtre ni icône")
     p.add_argument("--montrer", action="store_true", help="ouvre le HUD dès le lancement")
     p.add_argument("--demarrage", choices=["oui", "non"], help="lancer (ou non) Jarvis avec Windows, puis quitter")
+    p.add_argument("--micro", action="store_true", help="affiche le niveau du micro pour régler les seuils, puis quitte")
     args = p.parse_args()
+    if args.micro:
+        return mic_check(config.load())
     if args.demarrage:
         from jarvis.hud import data
         data.set_autostart(args.demarrage == "oui", config.Path(sys.executable), config.ROOT)

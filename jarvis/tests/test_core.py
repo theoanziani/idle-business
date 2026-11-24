@@ -15,6 +15,14 @@ def test_is_yes():
     assert not is_yes("")
 
 
+def test_strip_think():
+    from jarvis.brain import strip_think
+    assert strip_think("Okay, let me see...\n</think>\n\nIl est 9 h, monsieur.") == "Il est 9 h, monsieur."
+    assert strip_think("<think>hmm</think>Bien.") == "Bien."
+    assert strip_think("<think>coupé en plein raisonnement") == ""
+    assert strip_think(None) == ""
+
+
 def test_irreversible_tools_need_confirmation():
     assert {"eteindre", "powershell", "oublie"} <= CONFIRM.keys()
     assert "date_heure" not in CONFIRM
