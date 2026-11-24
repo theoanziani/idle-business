@@ -227,7 +227,12 @@ def main():
     p.add_argument("--montrer", action="store_true", help="ouvre le HUD dès le lancement")
     p.add_argument("--demarrage", choices=["oui", "non"], help="lancer (ou non) Jarvis avec Windows, puis quitter")
     p.add_argument("--micro", action="store_true", help="affiche le niveau du micro pour régler les seuils, puis quitte")
+    p.add_argument("--entrainer-reveil", action="store_true",
+                   help="enregistre votre « Hey Jarvis » et entraîne un vérificateur contre les faux réveils")
     args = p.parse_args()
+    if args.entrainer_reveil:
+        from jarvis import reveil
+        return reveil.session(config.load())
     if args.micro:
         return mic_check(config.load())
     if args.demarrage:

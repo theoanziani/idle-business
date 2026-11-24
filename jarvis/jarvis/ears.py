@@ -1,5 +1,6 @@
 import gc
 import os
+import re
 import sys
 import threading
 import time
@@ -20,10 +21,44 @@ def _cuda_dlls():
             os.environ["PATH"] = f"{d};{os.environ['PATH']}"
 
 
+# Phrases que Whisper invente sur du bruit ou du silence (apprises sur des sous-titres de vidéos).
+HALLUCINATIONS = re.compile(r"sous-titr|amara\.org|merci d'avoir regard|abonnez-vous|n'oubliez pas de vous abonner"
+                            r"|^\W*(merci|musique)\W*$", re.I)
+
+
+def clean_transcript(segments):
+    """Garde les segments où Whisper entend vraiment de la parole ; retire hallucinations et répétitions."""
+    kept = []
+    for s in segments:
+        text = s.text.strip()
+        if not text or HALLUCINATIONS.search(text):
+            continue
+        if getattr(s, "no_speech_prob", 0) > 0.6 and getattr(s, "avg_logprob", 0) < -0.8:
+            continue
+        if kept and text.lower() == kept[-1].lower():  # « C'est une idée. C'est une idée. C'est une idée. »
+            continue
+        kept.append(text)
+    return " ".join(kept).strip()
+
+
+def load_wake(cfg):
+    """Modèle « Hey Jarvis », avec le vérificateur entraîné sur la voix de l'utilisateur s'il existe
+    (python -m jarvis --entrainer-reveil). Renvoie (modèle, seuil de réveil)."""
+    from jarvis import config
+    w = cfg["wake"]
+    verifier = config.resolve(w.get("verifier", "data/reveil_verificateur.pkl"))
+    if verifier.exists():
+        model = Model(wakeword_models=[w["model"]], inference_framework="onnx",
+                      custom_verifier_models={w["model"]: str(verifier)},
+                      custom_verifier_threshold=w.get("verifier_base", 0.05))
+        return model, w.get("verifier_threshold", 0.5)
+    return Model(wakeword_models=[w["model"]], inference_framework="onnx"), w["threshold"]
+
+
 class Ears:
     def __init__(self, cfg):
         self.wcfg, self.lcfg, self.scfg = cfg["wake"], cfg["listen"], cfg["whisper"]
-        self.wake = Model(wakeword_models=[self.wcfg["model"]], inference_framework="onnx")
+        self.wake, self.threshold = load_wake(cfg)
         self.stream = sd.InputStream(samplerate=RATE, channels=1, dtype="int16", blocksize=FRAME)
         self.stream.start()
         self._whisper, self._last, self._lock = None, 0.0, threading.Lock()
@@ -57,7 +92,7 @@ class Ears:
             if self._whisper and time.time() - self._last > self.scfg["idle_unload_s"]:
                 self._whisper = None
                 gc.collect()
-            if max(self.wake.predict(self._read()).values()) > self.wcfg["threshold"]:
+            if max(self.wake.predict(self._read()).values()) > self.threshold:
                 self.wake.reset()
                 return
 
@@ -96,4 +131,4 @@ class Ears:
         if audio is None:
             return ""
         segs, _ = self.whisper().transcribe(audio.astype(np.float32) / 32768, language="fr", vad_filter=True)
-        return " ".join(s.text for s in segs).strip()
+        return clean_transcript(segs)

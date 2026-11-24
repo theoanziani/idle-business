@@ -12,6 +12,9 @@ whisper:
 wake:
   model: hey_jarvis
   threshold: 0.1   # mesuré : « Hey Jarvis » 0,12 à 0,72 avec l'accent français, phrase normale 0,00
+  verifier: data/reveil_verificateur.pkl   # créé par --entrainer-reveil ; s'il existe, il remplace le seuil ci-dessus
+  verifier_base: 0.05   # score minimal du modèle de base pour consulter le vérificateur
+  verifier_threshold: 0.5   # réveil si le vérificateur reconnaît votre voix au-delà de ce score
 listen:
   silence_rms: 150   # mesuré avec --micro (micro Windows à 100 %) : bruit 2-5, voix ~4700
   silence_s: 1.0
