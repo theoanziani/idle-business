@@ -8,6 +8,7 @@ import traceback
 from jarvis import config, memory, tools
 from jarvis.brain import Brain, explain_error, is_yes
 from jarvis.tools import rappels
+from jarvis.tools.system import SLEEP_REQUEST
 
 
 def text_mode(cfg):
@@ -30,7 +31,11 @@ ONLINE = "Jarvis est prêt."
 SLEEP = "Je me mets en veille. Appelle-moi si tu as besoin."
 SLEEP_WORDS = re.compile(r"\ben veille\b|\bbonne nuit\b|\bc'est tout\b(?! à fait)|\btu peux (disposer|te reposer)\b"
                          r"|\bvous pouvez (disposer|vous reposer)\b|\bfin de (la )?conversation\b|\bau revoir\b"
-                         r"|\b(va|tu peux|vous pouvez) dormir\b", re.I)
+                         r"|\b(va|tu peux|vous pouvez) (dormir|te coucher|vous coucher)\b|\bva te coucher\b"
+                         r"|\bcouche[- ]toi\b|\barr[êe]te (de m'[ée]couter|d'[ée]couter)\b", re.I)
+# Ordres courts, reconnus seulement s'ils forment toute la phrase (« dors », pas « je dors mal »).
+SLEEP_SHORT = re.compile(r"^\W*(dors|dodo|c'est bon|ça suffit|ca suffit|stop|repos|tais[- ]toi|silence|veille)"
+                         r"(\W+(jarvis|merci|maintenant))*\W*$", re.I)
 
 
 def elide(phrase):
@@ -40,7 +45,7 @@ def elide(phrase):
 
 def is_sleep(text):
     """« Mets-toi en veille », « c'est tout », « bonne nuit »… : fin de la conversation."""
-    return bool(SLEEP_WORDS.search(text))
+    return bool(SLEEP_WORDS.search(text) or SLEEP_SHORT.match(text.strip()))
 
 
 class Assistant:
@@ -164,6 +169,10 @@ class Assistant:
                 self.sleep()
                 return
             self.handle(text)
+            if SLEEP_REQUEST.is_set():  # le modèle a compris une demande de veille (outil mettre_en_veille)
+                SLEEP_REQUEST.clear()
+                self.sleep()
+                return
 
     def sleep(self):
         """Veille : décharge le modèle et Whisper pour rendre la VRAM tout de suite (au lieu d'attendre 5 min)."""

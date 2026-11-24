@@ -89,9 +89,9 @@ def test_relevant_facts():
 
 def test_sleep_phrases():
     from jarvis.__main__ import is_sleep
-    for t in ("Mets-toi en veille.", "Merci, c'est tout.", "Bonne nuit Jarvis", "Tu peux disposer", "Au revoir"):
+    for t in ("Mets-toi en veille.", "Merci, c'est tout.", "Bonne nuit Jarvis", "Tu peux disposer", "Au revoir", "dors", "Dors Jarvis !", "c'est bon", "Va te coucher, va te coucher.", "Couche-toi", "Arrête de m'écouter", "Stop."):
         assert is_sleep(t), t
-    for t in ("C'est tout à fait ça.", "Quelle heure est-il ?", "Je dors mal en ce moment"):
+    for t in ("C'est tout à fait ça.", "Quelle heure est-il ?", "Je dors mal en ce moment", "C'est bon, et la météo ?", "Le stop est à droite"):
         assert not is_sleep(t), t
 
 

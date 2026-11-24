@@ -1,6 +1,7 @@
 import ctypes
 import re
 import subprocess
+import threading
 from datetime import datetime
 
 from jarvis.tools import tool
@@ -38,6 +39,17 @@ def _press(key, times=1):
 def _run(cmd, timeout=60):
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
     return (r.stdout + r.stderr).strip()[-2000:] or "OK"
+
+
+SLEEP_REQUEST = threading.Event()  # lu par la boucle vocale après chaque réponse
+
+
+@tool()
+def mettre_en_veille() -> str:
+    """Met Jarvis en veille (il arrête d'écouter jusqu'au prochain « Hey Jarvis ») quand l'utilisateur veut finir
+    la conversation, quelle que soit la formule : « va te coucher », « tu peux arrêter », « c'est bon pour moi »…"""
+    SLEEP_REQUEST.set()
+    return "Veille activée après ta réponse : dis juste au revoir en quelques mots."
 
 
 @tool()
