@@ -71,3 +71,17 @@ def test_safe_tool_runs_without_confirmation(tmp_path):
     b = make_brain(tmp_path, [NS(content="", tool_calls=[_call("souviens_toi", fait="aime le thé")]), NS(content="Noté.", tool_calls=None)], False)
     assert b.ask("retiens que j'aime le thé") == "Noté."
     assert memory.facts() == ["aime le thé"]
+
+
+def test_explain_error():
+    from jarvis.brain import explain_error
+    assert "mémoire" in explain_error(Exception("llama-server reported out-of-memory during startup"))
+    assert "Ollama" in explain_error(Exception("Failed to connect to Ollama"))
+
+
+def test_relevant_facts():
+    from jarvis.brain import relevant_facts
+    facts = ["Je préfère le café noir", "Mon projet s'appelle idle business"]
+    assert relevant_facts(facts, "Quelle heure est-il ?") == []
+    assert relevant_facts(facts, "Fais-moi un café") == ["Je préfère le café noir"]
+    assert relevant_facts(facts, "Que sais-tu de moi ?") == facts

@@ -5,7 +5,7 @@ import threading
 import traceback
 
 from jarvis import config, memory, tools
-from jarvis.brain import Brain, is_yes
+from jarvis.brain import Brain, explain_error, is_yes
 
 
 def text_mode(cfg):
@@ -15,9 +15,13 @@ def text_mode(cfg):
         while True:
             text = input("Vous > ").strip()
             if text:
-                print("Jarvis :", brain.ask(text))
+                try:
+                    print("Jarvis :", brain.ask(text))
+                except Exception as e:
+                    brain.history.clear()
+                    print("Jarvis :", explain_error(e))
     except (EOFError, KeyboardInterrupt):
-        print("\nJarvis : Au revoir, monsieur.")
+        print("\nJarvis : À plus tard.")
 
 
 ONLINE = "Jarvis en ligne. À votre service, monsieur."
@@ -76,7 +80,8 @@ class Assistant:
             try:
                 answer = self.brain.ask(text, on_text=speak_now if self.voice else None)
             except Exception as e:
-                answer = f"Mon cerveau ne répond pas, monsieur ({e}). Ollama est-il lancé ?"
+                self.brain.history.clear()
+                answer = explain_error(e)
             print("Jarvis :", answer, flush=True)
             self._hud("message", "jarvis", answer)
             if spoken:
