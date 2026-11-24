@@ -76,7 +76,10 @@ function alDests(b,from){ const m=b.m, A=alAp(from), co=AL_CO[A.co], ok=[A.co].c
   return Object.values(AL_AP).filter(x=>x.id!==from&&(ok.includes(x.co)||m.hubs.includes(x.id))); }
 function alPlane(b,id){ return b.m.fl.find(p=>p.id===id); }
 function alLine(b,id){ return b.m.ln.find(l=>l.id===id); }
-function alBlock(t,d){ return d/AL_TY[t].v+.75; }
+/* au-delà de son rayon d'action, un avion fait une escale technique (jusqu'à deux fois son rayon) */
+const alStop = (t,d) => d>AL_TY[t].rg;
+const alReach = (t,d) => d<=AL_TY[t].rg*2;
+function alBlock(t,d){ return d/AL_TY[t].v+.75+(alStop(t,d)?1.5:0); }
 function alLegs(t,d){ return Math.max(1,Math.floor(13/alBlock(t,d)))&~1 || 2; }
 /* prix moyen d'un billet économique selon la distance */
 function alEco(d){ return d<1500? 76+.064*d : 172+.045*(d-1500); }
@@ -101,6 +104,7 @@ function alLineDay(b,l,sim){
   let dem=+(170)*Math.sqrt(A.sz*B.sz)/(1+d/4000)*(d<350?.6:1);
   if((A.lei||B.lei)&&alEv(m,'ete')) dem*=1.25;
   dem*=tradeF(AP_CTY[A.co],AP_CTY[B.co],.5);
+  if(P.some(p=>alStop(p.t,d))) dem*=.85;
   if(long){ const feed=m.ln.filter(x=>x!==l&&(x.a===l.a||x.a===l.b||x.b===l.a||x.b===l.b)&&alDist(x.a,x.b)<=3500).length; dem*=1+Math.min(.4,.04*feed)+(m.ali?.15:0); }
   const pm=AL_PRICE[l.p]||1, share=clamp(.22+m.img/250+(m.fid?.05:0),.1,.7)*Math.pow(pm,-2.6);
   /* concurrence : plus la route est grosse, plus d'autres compagnies s'y battent */
@@ -109,7 +113,7 @@ function alLineDay(b,l,sim){
   const fuel=alFuel(b)*(alEv(m,'ker')?1.35:1);
   let seats=0, legs=0, bseats=0, cost=0; const avgS=P.reduce((a,p)=>a+AL_TY[p.t].seats,0)/P.length, need=Math.max(2,2*Math.ceil(want/(2*avgS*.85)));
   P.forEach(p=>{ const T=AL_TY[p.t], mx=alLegs(p.t,d), lg=Math.min(mx,Math.max(0,need-legs)), cab=p.t==='r70'?0:(AL_CAB[l.cab]||0), bs=Math.round(T.seats*cab/2.5), es=T.seats-Math.round(bs*2.5);
-    legs+=lg; seats+=lg*(es+bs); bseats+=lg*bs; cost+=lg*(T.burn*d*fuel+alBlock(p.t,d)*T.crew+800)+(p.own? T.pr*.00012*(m.mnt?.8:1) : T.ls)+T.ls*.2; });
+    legs+=lg; seats+=lg*(es+bs); bseats+=lg*bs; cost+=lg*(T.burn*d*fuel+alBlock(p.t,d)*T.crew+(alStop(p.t,d)?1600:800))+(p.own? T.pr*.00012*(m.mnt?.8:1) : T.ls)+T.ls*.2; });
   const bwant=want*bshare, bpax=Math.min(bseats,bwant), epax=Math.min(seats-bseats,want-bwant), pax=bpax+epax;
   const eco=alEco(d)*pm, biz=eco*3.2;
   let rev=epax*eco+bpax*biz; if(m.fret&&long) rev*=1.08;
@@ -200,10 +204,10 @@ function alCanLine(b,a,bb){ const m=b.m; if(!m.hubs.includes(a)) return 'Départ
   if(!alDests(b,a).some(x=>x.id===bb)) return 'Destination hors de portée : même pays, pays voisin, ou une autre de vos plateformes.';
   if(m.ln.some(l=>(l.a===a&&l.b===bb)||(l.a===bb&&l.b===a))) return 'Cette ligne existe déjà.'; return ''; }
 function alOpen(b,a,bb,pid){ const m=b.m, e=alCanLine(b,a,bb); if(e) return err(e); const p=alPlane(b,pid); if(!p) return err('Choisissez un avion.');
-  if(p.ln&&m.ln.some(l=>l.id===p.ln)) return err('Cet avion vole déjà sur une autre ligne.'); const d=alDist(a,bb); if(AL_TY[p.t].rg<d) return err('Trop loin pour cet avion ('+fmtN(d,0)+' km).');
+  if(p.ln&&m.ln.some(l=>l.id===p.ln)) return err('Cet avion vole déjà sur une autre ligne.'); const d=alDist(a,bb); if(!alReach(p.t,d)) return err('Trop loin pour cet avion, même avec une escale ('+fmtN(d,0)+' km).');
   const l={id:m.nid++, a, b:bb, p:1, cab:1}; m.ln.push(l); p.ln=l.id; metLog(b,'nouvelle ligne '+alAp(a).n+' – '+alAp(bb).n+'.','good'); return ok('Ligne ouverte : '+alAp(a).n+' – '+alAp(bb).n+'.'); }
 function alAssign(b,lid,pid){ const m=b.m, l=alLine(b,lid), p=alPlane(b,pid); if(!l||!p) return err('Introuvable.'); if(p.ln&&m.ln.some(x=>x.id===p.ln)) return err('Cet avion vole déjà.');
-  if(AL_TY[p.t].rg<alDist(l.a,l.b)) return err('Trop loin pour cet avion.'); p.ln=l.id; return ok(AL_TY[p.t].n+' ajouté sur la ligne.'); }
+  if(!alReach(p.t,alDist(l.a,l.b))) return err('Trop loin pour cet avion, même avec une escale.'); p.ln=l.id; return ok(AL_TY[p.t].n+' ajouté sur la ligne.'); }
 function alClose(b,lid){ const m=b.m, l=alLine(b,lid); if(!l) return err('Ligne introuvable.'); m.ln=m.ln.filter(x=>x!==l); m.fl.forEach(p=>{ if(p.ln===lid) p.ln=0; }); return ok('Ligne fermée ; ses avions sont disponibles.'); }
 function alGet(b,t,own,auto){ const m=b.m, T=AL_TY[t]; if(!T) return err('Modèle inconnu.');
   if(own){ if(!(auto? dlSpend(b,T.pr,'Achat : '+T.n) : metBuy(b,T.pr,'Achat d’un avion : '+T.n))) return err('Trésorerie insuffisante : '+eur(T.pr,0)+'.'); }
@@ -235,7 +239,7 @@ function alNewLine(b,q){ const m=b.m, cands=[]; m.hubs.forEach(h=>alDests(b,h).f
   if(!cands.length){ const h=m.hubs.filter(t=>((m.ext&&m.ext[t])||0)<3).sort((x,y)=>alHubUsed(b,y)-alHubUsed(b,x))[0]; return !!h&&dlCan(b,alExtCost(b,h),'Créneaux')&&alExt(b,h,true).ok; }   /* V2.5.7 : idem pour les créneaux */
   const sc=[]; ['r70','m180','l300'].forEach(t=>{ const T=AL_TY[t]; if(mDlp(b)<=T.ls*30) return; const own=false;   /* location : la croissance reste rapide, le rachat vient ensuite (alInvest) */
     const tp={id:-7, t, own:own?1:0, ln:-1, down:0, dep:0}; m.fl.push(tp);
-    cands.forEach(([h,x])=>{ if(T.rg<alDist(h,x)) return; const l={id:-1, a:h, b:x, p:1, cab:1}; m.ln.push(l); const v=alLineDay(b,l,true).net; m.ln.pop(); if(v>0) sc.push([v,v,h,x,t,own]); });
+    cands.forEach(([h,x])=>{ if(!alReach(t,alDist(h,x))) return; const l={id:-1, a:h, b:x, p:1, cab:1}; m.ln.push(l); const v=alLineDay(b,l,true).net; m.ln.pop(); if(v>0) sc.push([v,v,h,x,t,own]); });
     m.fl.pop(); });
   if(!sc.length) return false; sc.sort((x,y)=>y[0]-x[0]);
   const k= rnd()<(1-q)*.8? Math.floor(rnd()*Math.min(5,sc.length)) : 0, c=sc[k];
