@@ -131,16 +131,18 @@ def parse_ics(text, now=None, days=7):
     return sorted(events, key=lambda e: e["debut"])[:8]
 
 
-def agenda(source):
-    if not source:
-        return {"evenements": [], "info": "Aucun agenda configuré (hud.agenda_ics dans config.yaml)."}
-    if source.startswith(("http://", "https://", "webcal://")):
-        with urllib.request.urlopen(source.replace("webcal://", "https://"), timeout=10) as r:
-            text = r.read().decode("utf-8", "replace")
-    else:
-        from jarvis import config
-        text = config.resolve(source).read_text(encoding="utf-8", errors="replace")
-    return {"evenements": parse_ics(text)}
+def agenda(_source=None):
+    """Événements des 7 prochains jours, tous calendriers confondus (voir jarvis.tools.agenda)."""
+    from jarvis.tools import agenda as ag
+    if not ag.calendars():
+        return {"evenements": [], "info": "Aucun agenda configuré : python -m jarvis --ajouter-agenda"}
+    now = datetime.now()
+    evs, errors = ag.events(now - timedelta(hours=1), now + timedelta(days=7))
+    out = {"evenements": [{"debut": e["debut"].isoformat(timespec="minutes"),
+                           "titre": e["titre"] + (" (journée)" if e["journee"] else "")} for e in evs[:12]]}
+    if errors:
+        out["info"] = "Inaccessible : " + " ; ".join(errors)
+    return out
 
 
 async def _smtc():

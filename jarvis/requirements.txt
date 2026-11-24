@@ -19,3 +19,5 @@ winrt-Windows.Media.Control>=2
 winrt-Windows.Foundation>=2
 edge-tts>=7
 miniaudio>=1.59
+icalendar>=6
+recurring-ical-events>=3

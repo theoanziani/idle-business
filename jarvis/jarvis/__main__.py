@@ -248,6 +248,29 @@ def mic_check(cfg, seconds=15):
     print(f"Enregistrement : {path}")
 
 
+def add_calendar():
+    """Ajoute un agenda (adresse iCal secrète) dans config.local.yaml, sans l'afficher à l'écran."""
+    import getpass
+    from datetime import datetime, timedelta
+
+    from jarvis.tools import agenda as ag
+
+    print("Ajout d'un agenda. L'adresse iCal secrète reste sur ce PC (config.local.yaml, jamais sur GitHub).")
+    nom = input("Nom de l'agenda (ex. Google, iCloud, Outlook) : ").strip() or "Agenda"
+    url = getpass.getpass("Colle l'adresse iCal secrète puis Entrée (elle ne s'affiche pas) : ").strip()
+    if not url:
+        print("Aucune adresse : rien n'a été ajouté.")
+        return
+    try:
+        evs = ag.events_between(ag.fetch(url, ttl=0), datetime.now(), datetime.now() + timedelta(days=30), nom)
+    except Exception as e:
+        print(f"Impossible de lire cet agenda ({type(e).__name__}) : vérifie l'adresse. Rien n'a été ajouté.")
+        return
+    cals = [c for c in (config.load().get("agenda") or {}).get("calendriers") or [] if c.get("ics") != url]
+    config.save_local({"agenda": {"calendriers": cals + [{"nom": nom, "ics": url}]}})
+    print(f"Agenda « {nom} » ajouté : {len(evs)} événement(s) dans les 30 prochains jours.")
+
+
 def _redirect_output():
     """Sous pythonw (démarrage avec Windows) il n'y a pas de console : on écrit dans data/jarvis.log."""
     if sys.stdout is None or sys.stderr is None:
@@ -266,7 +289,11 @@ def main():
     p.add_argument("--micro", action="store_true", help="affiche le niveau du micro pour régler les seuils, puis quitte")
     p.add_argument("--entrainer-reveil", action="store_true",
                    help="enregistre votre « Hey Jarvis » et entraîne un vérificateur contre les faux réveils")
+    p.add_argument("--ajouter-agenda", action="store_true",
+                   help="ajoute un agenda Google, iCloud ou Outlook (adresse iCal secrète, gardée sur ce PC)")
     args = p.parse_args()
+    if args.ajouter_agenda:
+        return add_calendar()
     if args.entrainer_reveil:
         from jarvis import reveil
         return reveil.session(config.load())
