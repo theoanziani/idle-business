@@ -11,6 +11,10 @@ Utilise les outils pour agir. Pour une tâche de code lourde, délègue à deman
 Ce que tu sais de l'utilisateur :
 {facts}"""
 
+# Outils lents : Jarvis prévient avant de se lancer, pour ne pas laisser un long silence.
+ANNOUNCE = {"demander_claude": "Je confie cela à Claude, monsieur. Cela peut prendre quelques minutes.",
+            "recherche_web": "Je consulte Internet, monsieur."}
+
 YES = {"oui", "confirme", "confirmé", "vas-y", "affirmatif", "ok", "d'accord", "go"}
 
 
@@ -28,8 +32,9 @@ def is_yes(text):
 
 
 class Brain:
-    def __init__(self, cfg, confirm):
+    def __init__(self, cfg, confirm, announce=None):
         self.cfg, self.confirm = cfg["ollama"], confirm
+        self.announce = announce or (lambda text: None)
         self.client = ollama.Client(host=self.cfg["host"])
         self.history = []
 
@@ -58,6 +63,8 @@ class Brain:
             detail = " : " + ", ".join(map(str, args.values())) if args else ""
             if not self.confirm(CONFIRM[name] + detail):
                 return "Action annulée par l'utilisateur."
+        if name in ANNOUNCE:
+            self.announce(ANNOUNCE[name])
         try:
             return str(TOOLS[name](**args))
         except Exception as e:

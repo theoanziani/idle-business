@@ -18,7 +18,9 @@ listen:
 voice:
   model: voices/fr_FR-tom-medium.onnx
 claude:
-  projects_dir: ~/projets
+  projects_dirs: [~/Documents, ~/Desktop]   # dossiers où chercher « le projet X »
+  permission_mode: auto   # Claude agit seul sur ce qui est sûr (tests, lecture), refuse le reste
+  timeout_s: 900
 memory:
   path: data/memoire.db
 hud:
@@ -26,7 +28,7 @@ hud:
   masquer_apres_s: 90   # masque le HUD après ce délai sans activité (0 = jamais)
   layout: data/hud_layout.json
   meteo:                # à adapter à votre ville
-    ville: Paris
-    latitude: 48.8566
-    longitude: 2.3522
+    ville: Nailloux
+    latitude: 43.35611
+    longitude: 1.62292
   agenda_ics: ""        # chemin ou URL d'un calendrier .ics (Google, iCloud, Outlook : « adresse secrète iCal »)

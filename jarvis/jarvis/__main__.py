@@ -9,7 +9,8 @@ from jarvis.brain import Brain, is_yes
 
 
 def text_mode(cfg):
-    brain = Brain(cfg, lambda p: is_yes(input(f"Jarvis : {p}. Confirmez-vous, monsieur ? > ")))
+    brain = Brain(cfg, lambda p: is_yes(input(f"Jarvis : {p}. Confirmez-vous, monsieur ? > ")),
+                  announce=lambda t: print("Jarvis :", t))
     try:
         while True:
             text = input("Vous > ").strip()
@@ -26,7 +27,7 @@ class Assistant:
         self.cfg, self.hud = cfg, hud
         self.lock = threading.Lock()
         self.voice = self.ears = None
-        self.brain = Brain(cfg, self.confirm)
+        self.brain = Brain(cfg, self.confirm, self.announce)
 
     def _hud(self, fn, *a):
         if self.hud:
@@ -42,6 +43,13 @@ class Assistant:
         answer = self.ears.listen()
         self._hud("message", "vous", answer or "…")
         return is_yes(answer)
+
+    def announce(self, text):
+        """Prévient avant un outil lent, puis repasse en réflexion pendant qu'il travaille."""
+        print("Jarvis :", text)
+        self._hud("message", "jarvis", text)
+        self.say(text)
+        self._hud("state", "reflexion")
 
     def say(self, text):
         if self.voice:
