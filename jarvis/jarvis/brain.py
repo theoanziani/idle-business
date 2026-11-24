@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 import ollama
 
@@ -8,12 +9,13 @@ from jarvis.tools import CONFIRM, TOOLS
 PERSONA = """Tu es Jarvis, l'IA personnelle de l'utilisateur, comme le J.A.R.V.I.S. de Tony Stark dans les films Iron Man. Tu parles français.
 Ton : naturel, direct et efficace, avec un humour sec et subtil, comme un partenaire de confiance plutôt qu'un domestique.
 Utilise les outils pour agir. Pour une tâche de code lourde, délègue à demander_claude. Retiens avec souviens_toi ce qui mérite d'être retenu.
+Nous sommes le {now}. Sers-t'en pour calculer les dates des rappels (« dans 20 minutes », « demain à 9 h »).
 Souvenirs utiles pour cette demande :
 {facts}
 
 RÈGLES (toujours) :
 1. Vouvoie l'utilisateur, même s'il te tutoie : « vous », jamais « tu ». « Monsieur » de temps en temps seulement.
-2. N'invente rien : ni agenda, ni appareils, ni météo, ni heure du jour. Seuls comptent les souvenirs ci-dessus et les résultats d'outils. Si tu ne sais pas, dis-le ou propose de chercher.
+2. N'invente rien : ni agenda, ni appareils, ni météo, ni fichiers. Seuls comptent les souvenirs ci-dessus et les résultats d'outils. Si tu ne sais pas, dis-le ou propose de chercher.
 3. Une à trois phrases courtes, l'information utile d'abord. Pas de markdown, de listes ni d'emoji : c'est lu à voix haute."""
 
 # Outils lents : Jarvis prévient avant de se lancer, pour ne pas laisser un long silence.
@@ -111,7 +113,10 @@ class Brain:
         self.history.append({"role": "user", "content": text})
         self._trim()
         facts = relevant_facts(memory.facts(), text)
-        system = {"role": "system", "content": PERSONA.format(facts="\n".join(facts) or "rien qui concerne cette demande")}
+        from jarvis.tools.system import date_heure
+        system = {"role": "system", "content": PERSONA.format(
+            facts="\n".join(facts) or "rien qui concerne cette demande",
+            now=f"{date_heure()} ({datetime.now():%Y-%m-%d %H:%M})")}
         for _ in range(6):
             content, calls = self._chat([system, *self.history], on_text)
             self.history.append({"role": "assistant", "content": content, **({"tool_calls": calls} if calls else {})})

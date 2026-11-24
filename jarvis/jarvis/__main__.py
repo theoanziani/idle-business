@@ -6,6 +6,7 @@ import traceback
 
 from jarvis import config, memory, tools
 from jarvis.brain import Brain, explain_error, is_yes
+from jarvis.tools import rappels
 
 
 def text_mode(cfg):
@@ -34,7 +35,9 @@ class Assistant:
         self.cfg, self.hud = cfg, hud
         self.lock = threading.Lock()
         self.voice = self.ears = None
+        self.on_notify = None  # notification Windows (icône de notification)
         self.brain = Brain(cfg, self.confirm, self.announce)
+        rappels.on_due = self.remind
 
     def _hud(self, fn, *a):
         if self.hud:
@@ -50,6 +53,22 @@ class Assistant:
         answer = self.ears.listen()
         self._hud("message", "vous", answer or "…")
         return is_yes(answer)
+
+    def remind(self, r):
+        """Minuteur ou rappel arrivé à échéance : bip, HUD et annonce vocale (après l'échange en cours)."""
+        what = "Minuteur terminé" if r["genre"] == "minuteur" else "Rappel"
+        text = f"{what} : {r['message']}." if r["message"] != "minuteur" else f"{what}."
+        if r.get("retard"):
+            text += f" Il était prévu à {r['quand']:%H:%M}."
+        with self.lock:
+            print("Jarvis :", text, flush=True)
+            self._hud("show")
+            self._hud("message", "jarvis", text)
+            if self.on_notify:
+                self.on_notify(text)
+            if self.voice:
+                self.voice.chime()
+            self.say(text)
 
     def announce(self, text):
         """Prévient avant un outil lent, puis repasse en réflexion pendant qu'il travaille."""
@@ -144,6 +163,7 @@ def hud_mode(cfg, show):
     tray = Tray(hud.show, quit_all, data.get_autostart,
                 lambda on: data.set_autostart(on, config.Path(sys.executable), config.ROOT))
     tray.start()
+    a.on_notify = tray.notify
 
     def worker():
         threading.Thread(target=hud.idle_watch, daemon=True).start()
@@ -218,6 +238,7 @@ def main():
     cfg = config.load()
     memory.init(config.resolve(cfg["memory"]["path"]))
     tools.load()
+    rappels.init(config.resolve(cfg.get("rappels", {}).get("path", "data/rappels.db")))
     if args.texte:
         text_mode(cfg)
     elif args.sans_hud:
