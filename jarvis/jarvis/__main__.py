@@ -75,6 +75,7 @@ class Assistant:
         self.say("Jarvis en ligne. À votre service, monsieur.")
         while True:
             self.ears.wait_wake()
+            print("[réveil]", flush=True)
             self._hud("show")
             self._hud("state", "ecoute")
             for warm in (self.brain.warmup, self.ears.whisper):
@@ -138,16 +139,25 @@ def mic_check(cfg, seconds=15):
     wake = Model(wakeword_models=[cfg["wake"]["model"]], inference_framework="onnx")
     seuil = cfg["listen"]["silence_rms"]
     print(f"Micro : {sd.query_devices(kind='input')['name']}. Parlez normalement, puis dites « Hey Jarvis » ({seconds} s).")
-    peak = 0
+    peak = best = 0
+    frames = []
     with sd.InputStream(samplerate=16000, channels=1, dtype="int16", blocksize=1280) as s:
         for _ in range(int(seconds * 16000 / 1280)):
-            f = s.read(1280)[0][:, 0]
+            f = s.read(1280)[0][:, 0].copy()
+            frames.append(f)
             rms = float(np.sqrt(np.mean(f.astype(np.float32) ** 2)))
             score = max(wake.predict(f).values())
-            peak = max(peak, rms)
+            peak, best = max(peak, rms), max(best, score)
             bar = "#" * min(50, int(rms / 40))
             print(f"\rRMS {rms:6.0f} {'PAROLE' if rms > seuil else '      '} réveil {score:.2f} |{bar:<50}|", end="", flush=True)
     print(f"\nPic : {peak:.0f}. Réglez listen.silence_rms entre le bruit de fond et ce pic (actuel : {seuil}).")
+    print(f"Meilleur score « Hey Jarvis » : {best:.2f} (réveil au-dessus de wake.threshold = {cfg['wake']['threshold']}).")
+    import wave
+    path = config.resolve("data/micro.wav")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(1), w.setsampwidth(2), w.setframerate(16000), w.writeframes(np.concatenate(frames).tobytes())
+    print(f"Enregistrement : {path}")
 
 
 def _redirect_output():

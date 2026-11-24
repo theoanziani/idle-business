@@ -9,9 +9,9 @@ whisper:
   idle_unload_s: 300
 wake:
   model: hey_jarvis
-  threshold: 0.5
+  threshold: 0.1   # mesuré : « Hey Jarvis » 0,12 à 0,72 avec l'accent français, phrase normale 0,00
 listen:
-  silence_rms: 500
+  silence_rms: 150   # mesuré avec --micro (micro Windows à 100 %) : bruit 2-5, voix ~4700
   silence_s: 1.0
   start_timeout_s: 5
   max_s: 15

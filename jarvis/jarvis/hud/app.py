@@ -65,6 +65,7 @@ class Hud:
         self.window = None
         self.visible = False
         self._ready = threading.Event()
+        self._quitting = False
         self._last_activity = time.time()
 
     def _screen(self):
@@ -79,8 +80,17 @@ class Hud:
             frameless=True, fullscreen=True, screen=screen, width=screen.width, height=screen.height,
             background_color="#02070c", text_select=False, easy_drag=False)
         self.window.events.loaded += self._ready.set
+        self.window.events.closing += self._on_closing
         self.visible = self.cfg.get("ouvert", False)
         return self.window
+
+    def _on_closing(self):
+        """Alt+F4 ou fermeture depuis la barre des tâches : on masque au lieu de détruire,
+        sinon le prochain « Hey Jarvis » n'aurait plus de fenêtre à rouvrir. Seul « Quitter » ferme vraiment."""
+        if self._quitting:
+            return True
+        threading.Thread(target=self.hide, daemon=True).start()
+        return False
 
     def run(self, worker):
         """Bloque le thread principal (exigence de pywebview) ; `worker` tourne dans un thread à part."""
@@ -131,5 +141,6 @@ class Hud:
                 self.hide()
 
     def close(self):
+        self._quitting = True
         if self.window:
             self.window.destroy()
