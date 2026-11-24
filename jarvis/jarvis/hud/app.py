@@ -144,6 +144,7 @@ class Hud:
         """Détruit la fenêtre : WebView2 rend sa mémoire. Elle sera recréée au prochain réveil."""
         w = self.window
         if w:
+            self._ready.clear()  # plus aucun appel JS vers une fenêtre en cours de destruction
             try:
                 w.destroy()
             except Exception:
