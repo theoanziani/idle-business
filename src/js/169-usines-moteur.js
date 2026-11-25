@@ -96,7 +96,7 @@ const fabStock = p => fabSites().reduce((a,x)=>a+(x.st[p]||0),0);
 /* ---------- une journée de production ---------- */
 function fabStep(){ const F=fabInit(); if(!F.sites.length){ F.day=null; return; }
   const day={rev:0, own:0, cost:0, mat:0, u:{}}, need={};
-  F.sites.slice().sort((a,b)=>FAB_ORDER.indexOf(a.t)-FAB_ORDER.indexOf(b.t)).forEach(s=>{ s.st=s.st||{}; s.qm=s.qm||{}; const d=s.d={u:{}, cost:0, mat:0, sold:0, own:0, br:0};
+  F.sites.slice().sort((a,b)=>FAB_ORDER.indexOf(a.t)-FAB_ORDER.indexOf(b.t)).forEach(s=>{ s.st=s.st||{}; s.qm=s.qm||{}; const d=s.d={u:{}, cost:0, mat:0, sold:0, own:(s.d&&s.d.own)||0, br:0};
     /* ferme : parcelles */
     if(s.t==='farm') Object.keys(s.parc||{}).forEach(c=>{ const n=s.parc[c]||0, C=FAB_CROP[c]; if(!n||!C) return;
       const u=n*C.y*(.92+.16*rnd())*(typeof wmoFarmY==='function'? wmoFarmY() : 1); s.st[C.p]=(s.st[C.p]||0)+u; d.u[C.p]=(d.u[C.p]||0)+u; d.cost+=n*(FAB_PARCEL*.0025+100*fabWage(s.city)); });
