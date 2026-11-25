@@ -18,7 +18,7 @@ function bankRoles(){ const B=S.bank; return [['banquier',1+Math.floor(B.dep/1.5
 function depTarget(sf){
   const B=S.bank, M=S.macro;
   const solv=B.dep>1000? clamp((bankEquity()/B.dep)/0.04,0.3,1) : 1;
-  return solv*(150000+650000*Math.pow(B.br,0.9)+40000*B.atm)*(0.5+0.9*B.rep/100)*clamp(1+0.35*(B.rd-(M.rate-1)),0.2,2.5)*D.BANK.mktBoost[B.mk]*(0.6+0.4*Math.min(1,sf))*(0.85+0.15*M.econ)*(1+0.25*tierNow());
+  return solv*(600000+2600000*Math.pow(B.br,0.9)+160000*B.atm)*(0.5+0.9*B.rep/100)*clamp(1+0.35*(B.rd-(M.rate-1)),0.2,2.5)*D.BANK.mktBoost[B.mk]*(0.6+0.4*Math.min(1,sf))*(0.85+0.15*M.econ)*(1+0.25*tierNow());
 }
 
 function bankLicence(){
@@ -59,7 +59,7 @@ function buyAtm(){
 function genApp(){
   const t=wpick(APP_TYPES,x=>x.w), tier=tierNow();
   const g=D.BANK.grades[(()=>{ let r=rnd(),i=0; for(;i<4;i++){ r-=t.gw[i]; if(r<=0) break; } return i; })()];
-  const amt=Math.round((t.amt[0]+rnd()*(t.amt[1]-t.amt[0]))*(1+0.35*tier)/100)*100;
+  const amt=Math.round((t.amt[0]+rnd()*(t.amt[1]-t.amt[0]))*4*(1+0.35*tier)/100)*100;
   const nm= t.k==='startup'? pick(D.VC_NAMES) : t.k==='pme'? 'Éts '+pick(D.LN) : pick(D.FN)+' '+pick(D.LN);
   return {id:S.nid++, t:t.k, lab:t.lab, n:nm, amt, term:rint(t.term[0],t.term[1]), g, c:rint(t.col[0],t.col[1]), max:Math.round((t.mx[0]+rnd()*(t.mx[1]-t.mx[0]))*10)/10, born:S.day};
 }

@@ -12,7 +12,7 @@
    Revenus suivis par métier (B.rv, moyenne sur ~30 jours). Champs lus avec des valeurs par défaut.
    ============================================================ */
 const BSTG=[{n:'Locale'},{n:'Nationale',eq:2e7,lic:1e7},{n:'Internationale',eq:1.5e8,lic:6e7},{n:'Banque d’affaires',eq:1e9,lic:3e8},{n:'Mondiale',eq:8e9,lic:2e9}];
-const BSHARE=[0,.03,.03,.045,.08];
+const BSHARE=[0,.06,.06,.09,.16];
 const bStg = () => S.bank.stg||1;
 const bCty = () => { const B=S.bank; return [polHome()].concat((B.cty||[]).filter(c=>c!==polHome())); };
 const ctyGdp = id => S.country&&S.country.id===id? S.country.gdp : D.COUNTRIES.find(c=>c.id===id).gdp;
@@ -53,30 +53,31 @@ ACT.bankcty=el=>after(bankCtyOpen(el.dataset.v));
 const RVK=['int','fees','card','own','aum','trade','deal','net'];
 function rvAdd(k,v){ const B=S.bank; B.rvd=B.rvd||{}; B.rvd[k]=(B.rvd[k]||0)+v; }
 { const _bs=bankStep; bankStep=function(){ const B=S.bank; if(!B.lic){ _bs(); return; }
-  const st0={i:B.st.intIn,f:B.st.fees}; B.rvd={};
+  const st0={i:B.st.intIn,f:B.st.fees,o:B.st.intOut,w:B.st.wage,l:B.st.loss}; B.rvd={};
   if(B.frz&&S.day<B.frz&&B.pol) B.apps=[];
   _bs(); if(!B.lic) return;
   rvAdd('int',B.st.intIn-st0.i); rvAdd('fees',B.st.fees-st0.f);
   const n=bStg(), open=bankOpen(), M=S.macro;
-  if(n>=2){ const card=B.dep*.012/360; pay('bank','Cartes et paiements',card,'corp'); rvAdd('card',card);
+  if(n>=2){ const card=B.dep*.02/360; pay('bank','Cartes et paiements',card,'corp'); rvAdd('card',card);
     const oi=S.debts.reduce((a,d)=>a+(d.own?d.p*d.r/100/360:0),0); if(oi>0){ pay('bank','Intérêts des prêts à vos sociétés',oi,'corp'); rvAdd('own',oi); }
     if(open){ const k=poisson(.25*n); for(let i=0;i<k&&B.apps.length<20;i++) B.apps.push(genBigApp()); } }
-  if(n>=3){ const tgt=bOpenGdp()*.08*(B.rep/100)*(1+(S.prestige||0)/3000)*(.8+.2*M.econ); B.aum=(B.aum||0)+(tgt-(B.aum||0))*.02;
+  if(n>=3){ const tgt=bOpenGdp()*.15*(B.rep/100)*(1+(S.prestige||0)/3000)*(.8+.2*M.econ); B.aum=(B.aum||0)+(tgt-(B.aum||0))*.02;
     const f=B.aum*.009/360; pay('bank','Gestion de fortune',f,'corp'); rvAdd('aum',f);
     const eq=Math.max(0,bankEquity()), tr=eq*(.08/360+.003*norm()); pay('bank','Salle des marchés',tr,'corp'); rvAdd('trade',tr);
     if(S.day%360===180){ const okT=bSolv()>=.08; B.st5=okT?1:0; if(okT) log('good','Test de résistance réussi : solvabilité '+pct(bSolv(),1)+'.');
       else { const fine=B.dep*.01; pay('bank','Amende du régulateur (test de résistance)',-fine,'corp'); B.frz=S.day+60; log('crit','Test de résistance échoué : amende de '+eur(fine,0)+' et nouveaux prêts gelés 60 jours.'); } } }
-  if(n>=4&&open&&rnd()<.05){ const size=bOpenGdp()*(.002+rnd()*.018), fee=size*(.02+rnd()*.01), kind=rnd()<.5;
+  if(n>=4&&open&&rnd()<.08){ const size=bOpenGdp()*(.002+rnd()*.018), fee=size*(.02+rnd()*.01), kind=rnd()<.5;
     pay('bank',kind?'Commission d’introduction en bourse':'Commission de conseil en rachat',fee,'corp'); rvAdd('deal',fee);
     log('good',(kind?'Introduction en bourse de ':'Rachat conseillé : ')+pick(['Groupe','Holding','Industries'])+' '+pick(D.LN)+' ('+eur(size,0)+') : commission de '+eur(fee,0)+'.'); }
-  if(n>=5){ const w=D.COUNTRIES.reduce((a,c)=>a+ctyGdp(c.id),0)*.006/360*(.7+.3*M.econ); pay('bank','Réseau IdlePay',w,'corp'); rvAdd('net',w); }
-  B.rv=B.rv||{}; RVK.forEach(k=>{ B.rv[k]=(B.rv[k]||0)*(29/30)+((B.rvd[k]||0))/30; }); }; }
+  if(n>=5){ const w=D.COUNTRIES.reduce((a,c)=>a+ctyGdp(c.id),0)*.012/360*(.7+.3*M.econ); pay('bank','Réseau IdlePay',w,'corp'); rvAdd('net',w); }
+  B.rv=B.rv||{}; RVK.forEach(k=>{ B.rv[k]=(B.rv[k]||0)*(29/30)+((B.rvd[k]||0))/30; });
+  const dn=RVK.reduce((a,k)=>a+(B.rvd[k]||0),0)-(B.st.intOut-st0.o)-(B.st.wage-st0.w)-(B.st.loss-st0.l); B.rvN=(B.rvN||0)*(29/30)+dn/30; }; }
 { const _ap=acceptApp; acceptApp=function(id,silent){ const B=S.bank; if(B.frz&&S.day<B.frz) return err('Nouveaux prêts gelés par le régulateur jusqu’au '+dateS(B.frz)+'.'); return _ap(id,silent); }; }
 /* ---------- écran ---------- */
 function bkStages(){ const B=S.bank, n=bStg(), eq=bankEquity();
   const steps='<div class="bs-st">'+BSTG.map((t,i)=>'<div class="'+(i+1<n?'ok':i+1===n?'cur':'')+'"><i>'+(i+1<n?'✓':i+1)+'</i>'+t.n.replace('Banque d’affaires','Affaires')+'</div>').join('')+'</div>';
   let h='<section class="card"><div class="ch-row"><b>'+esc(S.bankName||'Idle Bank')+'</b><span class="sub">'+BSTG[n-1].n+'</span></div>'+steps+
-    '<div class="emp-k"><div><div class="tag">Dépôts</div><b class="num">'+eur(B.dep,0)+'</b></div><div><div class="tag">Prêts</div><b class="num">'+eur(bankLoans(),0)+'</b></div><div><div class="tag">Fonds propres</div><b class="num">'+eur(eq,0)+'</b></div></div></section>';
+    '<div class="emp-k"><div><div class="tag">Dépôts</div><b class="num">'+eur(B.dep,0)+'</b></div><div><div class="tag">Prêts</div><b class="num">'+eur(bankLoans(),0)+'</b></div><div><div class="tag">Fonds propres</div><b class="num">'+eur(eq,0)+'</b></div></div><div class="bs-net"><span>Bénéfice net</span><b class="num '+((B.rvN||0)<0?'neg':'pos')+'">'+signed(B.rvN||0,0)+' / j</b></div><div class="sub">Il grandit avec vos fonds propres : chaque euro apporté permet de prêter environ '+Math.floor(1/capr())+' €.</div></section>';
   const R=[['int','Intérêts des prêts',1,'#3DDC97'],['fees','Frais et abonnements',1,'#F2C14E'],['card','Cartes et paiements',2,'#5B8CFF'],['own','Prêts à vos sociétés',2,'#B57BFF'],['aum','Gestion de fortune',3,'#2FC6C6'],['trade','Salle des marchés',3,'#FF8A5C'],['deal','Bourse et rachats',4,'#E86CA8'],['net','Réseau IdlePay',5,'#C9A24A']];
   const rv=B.rv||{}, mx=Math.max(1,...R.map(r=>Math.abs(rv[r[0]]||0)));
   h+=card('D’où viennent les revenus','<div class="sub" style="margin-bottom:6px">Par jour, en moyenne sur un mois. Intérêts versés aux déposants : '+eur(B.dep*B.rd/100/360,0)+' / j.</div>'+R.map(([k,t,s,c])=>{ const v=rv[k]||0, lock=n<s;
@@ -101,4 +102,5 @@ function bkStages(){ const B=S.bank, n=bStg(), eq=bankEquity();
 .bs-st .ok{color:var(--green)}.bs-st .ok i{border-color:var(--green);background:var(--green-soft)}.bs-st .cur{color:#C9971F}.bs-st .cur i{border-color:#F2C14E;background:rgba(242,193,78,.15)}
 .bs-rv{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px;font-weight:700}.bs-rv span{width:132px;flex:0 0 auto;font-size:12.5px}.bs-rv .b{flex:1;height:8px;border-radius:5px;background:var(--paper-2);overflow:hidden}.bs-rv .b i{display:block;height:100%;border-radius:5px}.bs-rv b{width:84px;text-align:right;flex:0 0 auto}.bs-rv.lock{opacity:.45}
 .bs-c{display:flex;justify-content:space-between;align-items:center;gap:10px}.bs-cn{display:flex;gap:10px;align-items:center;min-width:0}.bs-c .pill,.bs-c .btn{flex:0 0 auto}
+.bs-net{display:flex;justify-content:space-between;align-items:center;margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:var(--paper-2);font-weight:800}.bs-net b{font-size:18px}.bs-net .pos{color:var(--green)}.bs-net .neg{color:var(--red)}
 .bs-req{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin:6px 0}.bs-req span small{display:block;font-weight:600;color:var(--ink-3);font-size:11.5px}.bs-req b.pos{color:var(--green)}.bs-req b.neg{color:var(--red)}`; document.head.appendChild(st); })();
