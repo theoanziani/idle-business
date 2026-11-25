@@ -196,8 +196,8 @@ pxArt=function(l){ const k=l.id; if(PXK[k]) return PXK[k];
 .pxa-hand{transform-origin:200px 60px;animation:pxspin 12s linear infinite}
 .pxa-flame{transform-box:fill-box;transform-origin:50% 100%;animation:pxflame .5s ease-in-out infinite alternate}
 .pxa-cloud{animation:pxcloud 40s linear infinite}
-@keyframes pxspin{to{transform:rotate(360deg)}}
-@keyframes pxroad{to{transform:translateX(-44px)}}
+@keyframes pxspin{to{transform:rotate(-360deg)}}
+@keyframes pxroad{from{transform:translateX(-44px)}to{transform:translateX(0)}}
 @keyframes pxbob{to{transform:translateY(-.8px)}}
 @keyframes pxtw{0%,100%{opacity:.9}50%{opacity:.25}}
 @keyframes pxwave{to{transform:translateX(10px)}}

@@ -50,14 +50,14 @@ NF_CSS.push(`
 @keyframes fabBlink{50%{opacity:.15}}@keyframes fabScan{0%,100%{transform:translateY(0)}50%{transform:translateY(14px)}}@keyframes fabPst{0%,100%{transform:scale(1)}40%{transform:scale(.72)}}
 @keyframes fabShut{0%,100%{transform:translateX(0)}50%{transform:translateX(22px)}}@keyframes fabGlow{50%{opacity:.6}}@keyframes fabMist{50%{opacity:.18}}
 @keyframes fabSteam{0%{transform:translateY(0);opacity:.7}100%{transform:translateY(-6px);opacity:0}}@keyframes fabBob{50%{transform:translateY(-2px)}}
-@keyframes fabSwing{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}@keyframes fabShake{50%{transform:translateX(1.5px)}}@keyframes fabHot{50%{stroke-opacity:.25}}
+@keyframes fabDrive{0%{transform:translateX(-14px);opacity:0}20%{opacity:1}80%{opacity:1}100%{transform:translateX(10px);opacity:0}}@keyframes fabFly{0%{transform:translate(-10px,6px)}100%{transform:translate(10px,-6px)}}@keyframes fabSway{0%,100%{transform:skewX(-6deg)}50%{transform:skewX(6deg)}}@keyframes fabWave{to{transform:translateX(16px)}}@keyframes fabSwing{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}@keyframes fabShake{50%{transform:translateX(1.5px)}}@keyframes fabHot{50%{stroke-opacity:.25}}
 .fab-belt{animation:fabBelt .6s linear infinite}.fab-spin{transform-box:fill-box;transform-origin:center;animation:fabSpin 2.4s linear infinite}
 .fab-arm{animation:fabArm 1.8s ease-in-out infinite}.fab-spark,.fab-led{animation:fabBlink .7s steps(2) infinite}
 .fab-scan{animation:fabScan 1.6s ease-in-out infinite}.fab-pst{transform-box:fill-box;transform-origin:center;animation:fabPst 1.1s ease-in infinite}
 .fab-shuttle{animation:fabShut 1.4s ease-in-out infinite}.fab-glow{animation:fabGlow 1.6s ease-in-out infinite}.fab-mist{animation:fabMist 1.6s ease-in-out infinite}
 .fab-steam{animation:fabSteam 2s ease-out infinite}.fab-bob{animation:fabBob 1s ease-in-out infinite}.fab-swing{transform-box:view-box;animation:fabSwing 3s ease-in-out infinite}
-.fab-shake{animation:fabShake .25s linear infinite}.fab-hot{animation:fabHot 1.2s ease-in-out infinite}
-@media (prefers-reduced-motion:reduce){.fab-grid *,.fab-ico *{animation:none!important}}
+.fab-shake{animation:fabShake .25s linear infinite}.fab-drive{animation:fabDrive 3.2s ease-in-out infinite}.fab-fly{animation:fabFly 3s ease-in-out infinite alternate}.fab-sway{transform-box:fill-box;transform-origin:bottom;animation:fabSway 2.4s ease-in-out infinite}.fab-wave{animation:fabWave 2s linear infinite}.fab-hot{animation:fabHot 1.2s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.fab-grid *,.fab-ico *,.fab-pic *{animation:none!important}}
 `);
 try{ const e=document.getElementById('nf-css'); if(e) e.textContent+='\n'+NF_CSS[NF_CSS.length-1]; else nfCssOnce(); }catch(e){}
 const fabUI = () => (ui.fab=ui.fab||{});

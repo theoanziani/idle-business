@@ -13,7 +13,7 @@ function fabInit(){ if(!S.fab) S.fab={sites:[], n:1}; if(typeof gpInit==='functi
 const fabSites = () => fabInit().sites;
 const fabSite = id => fabSites().find(s=>s.id===+id);
 const fabProdDef = p => D.PRODS[p]||FAB_RAW[p];
-const fabPrice = p => { const P=fabProdDef(p); return P.v*(typeof gIdx==='function'&&S.gp&&S.gp[P.g]? gIdx(P.g) : 1); };
+function fabPrice(p){ const P=fabProdDef(p); return P.v*(typeof gIdx==='function'&&S.gp&&S.gp[P.g]? gIdx(P.g) : 1); }
 const FAB_NRJ={France:1, Espagne:1.05, Croatie:1.1, 'États-Unis':.8, 'Brésil':.9, Chine:.85};
 const fabWage = cid => { const C=D.CITIES[cid]; return .4+.15*((C&&C.idx&&C.idx.wage)||3); };
 const fabNrj = cid => FAB_NRJ[(D.CITIES[cid]||{}).country]||1;
@@ -99,7 +99,7 @@ function fabStep(){ const F=fabInit(); if(!F.sites.length){ F.day=null; return; 
   F.sites.slice().sort((a,b)=>FAB_ORDER.indexOf(a.t)-FAB_ORDER.indexOf(b.t)).forEach(s=>{ s.st=s.st||{}; s.qm=s.qm||{}; const d=s.d={u:{}, cost:0, mat:0, sold:0, own:0, br:0};
     /* ferme : parcelles */
     if(s.t==='farm') Object.keys(s.parc||{}).forEach(c=>{ const n=s.parc[c]||0, C=FAB_CROP[c]; if(!n||!C) return;
-      const u=n*C.y*(.92+.16*rnd()); s.st[C.p]=(s.st[C.p]||0)+u; d.u[C.p]=(d.u[C.p]||0)+u; d.cost+=n*(FAB_PARCEL*.0025+100*fabWage(s.city)); });
+      const u=n*C.y*(.92+.16*rnd())*(typeof wmoFarmY==='function'? wmoFarmY() : 1); s.st[C.p]=(s.st[C.p]||0)+u; d.u[C.p]=(d.u[C.p]||0)+u; d.cost+=n*(FAB_PARCEL*.0025+100*fabWage(s.city)); });
     s.lines.forEach(l=>{ if(l.on===0) return; const A=fabAnalyze(s,l), P=D.PRODS[l.p], o=fabLineOpex(s,l); d.cost+=o.lab+o.nrj; l.br=0;
       let u=A.rate; if(u<=0) return;
       if(rnd()<(A.mnt?.006:.02)){ u*=.5; l.br=S.day; d.br++; }
