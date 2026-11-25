@@ -649,7 +649,7 @@ button.fgrey{cursor:default}
 /* ---------- Écran d'accueil « Ville vivante » (ui_v20.js) ---------- */
 .ts{position:fixed;inset:0;overflow:auto;background:var(--paper);color:var(--ink);z-index:1;display:flex;flex-direction:column;padding-top:calc(env(safe-area-inset-top,0px) + 96px);box-sizing:border-box}
 .ts .ts-sky{position:absolute;left:0;right:0;top:0;height:min(62vh,560px);margin:0;border-radius:0;box-shadow:none;overflow:hidden;aspect-ratio:auto}
-.ts .ts-sky{background:#0B1020}.ts .ts-sky svg{position:absolute;left:0;bottom:0;width:100%;height:auto;display:block;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 30%);mask-image:linear-gradient(to bottom,transparent 0,#000 30%)}
+.ts .ts-sky{background:#0B1020}.ts .ts-sky svg{position:absolute;left:0;bottom:0;width:100%;max-width:none;height:auto;display:block;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16%);mask-image:linear-gradient(to bottom,transparent 0,#000 16%)}
 .ts-fade{position:absolute;left:0;right:0;top:calc(min(62vh,560px) - 170px);height:171px;background:linear-gradient(color-mix(in srgb,var(--paper) 0%,transparent),var(--paper));pointer-events:none}
 .ts-top{position:absolute;left:16px;right:16px;top:calc(env(safe-area-inset-top,0px) + 18px);display:flex;justify-content:space-between;align-items:center;gap:10px;animation:rise .6s cubic-bezier(.2,.9,.3,1.2) both}
 .ts-logo,.ts-ib{background:color-mix(in srgb,var(--card) 72%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
