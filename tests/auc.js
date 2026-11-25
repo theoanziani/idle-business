@@ -1,0 +1,13 @@
+const {chromium}=require('playwright');(async()=>{const br=await chromium.launch();const p=await br.newPage({viewport:{width:400,height:860},deviceScaleFactor:2});
+const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:8765/index.html'); await p.waitForSelector('[data-a="slotnew"]'); await p.click('[data-a="slotnew"]'); await p.click('[data-a="startnew"]'); await p.waitForTimeout(500);
+console.log(await p.evaluate(()=>{ S.cash=5e8; S.peakNW=1e9; if(S.tut) S.tut.off=true; S.tipsOff=1; ui.theme='dark'; document.documentElement.setAttribute('data-theme','dark');
+  for(let d=0;d<3;d++) nextDay(); computeNW(); const s=aucSale(); aucOrder(s.lots[0].id, s.lots[0].est*1.45); ui.tab='auction'; render(); return s.n+' j'+s.day+' auj '+S.day; }));
+await p.waitForTimeout(500); await p.screenshot({path:'/home/claude/work/a1.png'});
+await p.evaluate(()=>{ ui.modal={type:'auclot',id:aucSale().lots[0].id}; render(); }); await p.waitForTimeout(400); await p.screenshot({path:'/home/claude/work/a2.png'});
+await p.evaluate(()=>{ ui.modal=null; mysteryBox(2); ui.modal={type:'aucrev',id:aucInit().coll[aucInit().coll.length-1].id}; render(); }); await p.waitForTimeout(3800); await p.screenshot({path:'/home/claude/work/a3.png'});
+await p.evaluate(()=>{ ui.modal=null; while(S.day<aucSale().day) nextDay(); render(); }); await p.click('[data-a="aucin"]'); await p.waitForTimeout(2500); await p.click('[data-a="aucbid"]'); await p.waitForTimeout(1500); await p.screenshot({path:'/home/claude/work/a4.png'});
+await p.waitForTimeout(9000); console.log(await p.evaluate(()=>JSON.stringify(aucSale().lots.map(l=>l.out)))); 
+await p.evaluate(()=>closeModal()); await p.evaluate(()=>{ nextDay(); ui.aucT='coll'; render(); }); await p.waitForTimeout(400); await p.screenshot({path:'/home/claude/work/a5.png'});
+console.log(await p.evaluate(()=>'coll '+aucInit().coll.length+' sale '+aucSale().id+' '+aucSale().n));
+console.log('ERR',errs); await br.close();})();
