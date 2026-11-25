@@ -86,6 +86,9 @@ function glbMount(el){ el.dataset.on='1'; const key=el.dataset.g, data=GLB.data[
   function overlay(now){ x1.clearRect(0,0,N,N); const c=N/2, R=N/2*.9*st.zoom;
     const ga=x1.createRadialGradient(c,c,R*.96,c,c,R*1.1); ga.addColorStop(0,'rgba(120,180,255,.42)'); ga.addColorStop(.4,'rgba(90,150,255,.16)'); ga.addColorStop(1,'rgba(90,150,255,0)'); x1.fillStyle=ga; x1.beginPath(); x1.arc(c,c,R*1.1,0,7); x1.fill();
     const tt=(now-t0)/1000;
+    /* zones colorées (régions) : [lat, lon, rayon relatif, couleur rgb 'r,g,b', opacité] */
+    (data.zones||[]).forEach(z=>{ const q=proj(z[0],z[1],0); if(q[2]<.02) return; const rz=z[2]*R*(.75+.25*q[2]), g=x1.createRadialGradient(q[0],q[1],0,q[0],q[1],rz), a2=z[4]*Math.min(1,q[2]*2.5);
+      g.addColorStop(0,'rgba('+z[3]+','+a2+')'); g.addColorStop(.65,'rgba('+z[3]+','+(a2*.45)+')'); g.addColorStop(1,'rgba('+z[3]+',0)'); x1.fillStyle=g; x1.beginPath(); x1.arc(q[0],q[1],rz,0,7); x1.fill(); });
     (data.routes||[]).forEach((r,ri)=>{ const Q=r.p.map((q,i)=>{ const t=i/(r.p.length-1); return proj(q[0],q[1],(r.h||0)*Math.sin(Math.PI*t)+.003); });
       const path=()=>{ x1.beginPath(); let on=false; Q.forEach(q=>{ if(q[2]<0){ on=false; return; } if(!on){ x1.moveTo(q[0],q[1]); on=true; } else x1.lineTo(q[0],q[1]); }); };
       x1.lineCap='round'; x1.lineJoin='round'; x1.setLineDash(r.dash? [4*dpr,4*dpr] : []);
