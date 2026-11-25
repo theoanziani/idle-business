@@ -77,8 +77,10 @@ const tsIco=(k,cls)=>'<svg class="'+(cls||'')+'" aria-hidden="true" viewBox="0 0
 function tsFree(){ for(let i=1;i<=SV.N;i++) if(!SV.meta[i-1]) return i; return 0; }
 function tsSky(cid){
   let a=(typeof CITY_ART!=='undefined')&&(CITY_ART[cid]||CITY_ART.paris); if(!a) return '';
-  a=a.replace('<svg ','<svg preserveAspectRatio="xMidYMid slice" ').replace(/(<clipPath[^>]*><rect[^>]*?) rx="22"/,'$1');
-  return '<div class="cban ts-sky" aria-hidden="true">'+a+'</div>';
+  /* l'illustration garde ses proportions, posée en bas ; le ciel continue au-dessus avec sa couleur du haut */
+  const top=(a.match(/id="[a-z]*sky"[^>]*><stop offset="0" stop-color="([^"]+)"/)||[])[1]||'#0B1020';
+  a=a.replace('<svg ','<svg preserveAspectRatio="xMidYMax meet" ').replace(/(<clipPath[^>]*><rect[^>]*?) rx="22"/,'$1');
+  return '<div class="cban ts-sky" aria-hidden="true" style="background:'+top+'">'+a+'</div>';
 }
 function tsTier(m){
   const t=Math.max(0,Math.min(D.TIERS.length-1,m.tier||0)), nx=D.TIERS[t+1];
