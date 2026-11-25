@@ -129,12 +129,12 @@ function vGuide(){
       '<b>OPA</b> (palier Tycoon) : quand un groupe est affaibli (puissance sous 0,80), rachetez-le entier ; ses enseignes dans vos villes deviennent les vôtres et il disparaît.',
       '<b>Classement des magnats</b> dans Rivaux : valeur nette estimée et bénéfice quotidien de chaque groupe.'
     ])),
-    sec('Usines et logistique',ul([
-      'L’usine textile, l’usine électronique et la ferme produisent des unités (vêtements, composants électroniques, produits alimentaires) vendues au prix du marché de gros, qui varie chaque jour. Les smartphones de l’usine électronique se vendent directement aux clients, hors contrats.',
-      '<b>Vendre</b> écoule la production chaque jour ; <b>Stocker</b> la garde pour vendre plus cher plus tard. Stock : 10 jours × équipement, +15 jours par niveau d’entrepôt dans la même ville.',
-      '<b>Contrats</b> : des clients commandent une quantité à livrer dans une ville avant une date, 15 à 45 % au-dessus du prix de gros. La production nécessaire est réservée et expédiée automatiquement dès que le stock suffit. Retard : 30 % retenus ; non livré : pénalité de 15 %.',
-      '<b>Transport</b> : 1 jour dans la ville, 2 dans le pays, 4 sur le continent, 9 ailleurs, de 1 à 7 % de la valeur. Votre compagnie maritime (avec au moins une ligne) transporte vers les autres pays : délais −40 %, coût −50 %, payé à la compagnie.',
-      '<b>Intégration</b> : l’usine électronique assemble ses smartphones avec ses propres puces ; vos ateliers de réparation paient leurs pièces moins cher grâce à elle.'
+    sec('Usines',ul([
+      'Les usines se créent dans Plus > Usines : 9 types (ferme, textile, agroalimentaire, mobilier, électronique, aciérie, automobile, chantier naval, aéronautique). Chaque site a des places de ligne selon la surface du terrain ; un hall en ajoute deux.',
+      '<b>Plan d’une ligne</b> : une grille de 8 × 10 cases. Le convoyeur principal relie le quai d’arrivée au quai d’expédition ; les machines qui le longent travaillent, dans l’ordre des étapes. La ligne produit au rythme de son étape la plus lente (le goulot), en exemplaires par jour.',
+      'Un convoyeur long ou sinueux ralentit la ligne ; les stocks tampons évitent les arrêts ; le contrôle qualité vend 8 % plus cher ; l’atelier de maintenance divise les pannes par trois.',
+      '<b>Matières</b> : prises d’abord dans vos usines (acier, tôles, puces, tissus, récoltes), sinon achetées au marché. <b>Débouchés</b> : vos sociétés clientes d’abord, puis le marché de gros (ou le stock).',
+      '<b>Coûts</b> : ouvriers et énergie selon la ville ; ferme : parcelles de cultures et d’élevage, puis lignes de transformation (farine, fromages, vin).'
     ])),
     sec('Modes et gérant',ul([
       '<b>Défi des 100 jours</b> (au choix à la création) : faites le plus gros bénéfice en 100 jours face à trois magnats IA ; classement sur l’accueil.',

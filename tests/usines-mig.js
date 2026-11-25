@@ -1,0 +1,12 @@
+const {chromium}=require('playwright');(async()=>{const br=await chromium.launch();const p=await br.newPage({viewport:{width:400,height:860}});
+const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:8765/index.html'); await p.waitForSelector('[data-a="slotnew"]'); await p.click('[data-a="slotnew"]'); await p.click('[data-a="startnew"]'); await p.waitForTimeout(500);
+console.log(await p.evaluate(()=>{ S.cash=1e9; S.peakNW=1e10; const o=[];
+  ['farm','farm','textile','electronics'].forEach(d=>{ const r=launchBiz(d,1,'paris'); o.push(d+' '+r.ok+' '+r.msg); });
+  for(let d=0;d<20;d++) nextDay();
+  const nw0=Math.round(S.nw), c0=Math.round(S.cash); o.push('avant : biz usines '+S.biz.filter(b=>FAB_OLD.includes(b.def)).length+' nw '+nw0);
+  S=migrateState(JSON.parse(JSON.stringify(S))); computeNW();
+  o.push('après : biz usines '+S.biz.filter(b=>FAB_OLD.includes(b.def)).length+' sites '+fabSites().map(s=>s.name+' L'+s.lines.length+' P'+JSON.stringify(s.parc)).join(' ; ')+' nw '+Math.round(S.nw)+' cash +'+Math.round(S.cash-c0));
+  for(let d=0;d<5;d++) nextDay(); o.push('5 jours ok, fab net '+Math.round(S.fab.day.net));
+  return o.join('\n'); }));
+console.log('ERR',errs); await br.close();})();

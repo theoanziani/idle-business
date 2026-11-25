@@ -1,0 +1,16 @@
+const {chromium}=require('playwright');(async()=>{const br=await chromium.launch();const p=await br.newPage({viewport:{width:400,height:860},deviceScaleFactor:2});
+const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:8765/index.html'); await p.waitForSelector('[data-a="slotnew"]'); await p.click('[data-a="slotnew"]'); await p.click('[data-a="startnew"]'); await p.waitForTimeout(500);
+await p.evaluate(()=>{ S.cash=5e10; S.peakNW=1e12; if(S.tut) S.tut.off=true; S.tipsOff=1; ui.theme='dark'; document.documentElement.setAttribute('data-theme','dark');
+  const mk=(t,c)=>{ const bd=fabPlots(c,t)[0]; const r=fabBuild(t,bd.id); const s=fabSite(+r.msg); fabProdsOf(t).slice(0,3).forEach(pp=>{ if(s.lines.length>=fabSlots(s)) fabHall(s.id); const rl=fabLineNew(s.id,pp); fabAuto(s.id,+rl.msg); }); return s; };
+  mk('auto','paris'); const f=mk('farm','paris'); fabParcelBuy(f.id,'ble',12); fabParcelBuy(f.id,'vaches',8); mk('aero','barcelone'); mk('acier','paris');
+  const s=fabSites()[0], l=s.lines[0]; fabPlace(s.id,l.id,'buf',7,2,0); fabPlace(s.id,l.id,'qc',4,8,0); fabPlace(s.id,l.id,'mnt',0,8,0);
+  for(let d=0;d<10;d++) nextDay(); ui.tab='logi'; render(); });
+const shot=async(n,fn,y)=>{ await p.evaluate(fn); await p.waitForTimeout(500); await p.evaluate(y=>window.scrollTo(0,y),y||0); await p.waitForTimeout(300); await p.screenshot({path:'/home/claude/work/'+n+'.png'}); };
+await shot('v1',()=>{ ui.fab={}; render(); },300);
+await shot('v2',()=>{ ui.fab={pk:{}}; render(); },300);
+await shot('v3',()=>{ ui.fab={s:fabSites()[0].id}; render(); },300);
+await shot('v4',()=>{ const s=fabSites()[0]; ui.fab={s:s.id,l:s.lines[0].id,tool:'pei'}; render(); },420);
+await shot('v5',()=>{},1250);
+await shot('v6',()=>{ ui.fab={s:fabSites()[1].id,tab:'parc'}; render(); },300);
+console.log('ERR',errs); await br.close();})();
