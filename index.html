@@ -13560,12 +13560,12 @@ function vGuide(){
       '<b>OPA</b> (palier Tycoon) : quand un groupe est affaibli (puissance sous 0,80), rachetez-le entier ; ses enseignes dans vos villes deviennent les vôtres et il disparaît.',
       '<b>Classement des magnats</b> dans Rivaux : valeur nette estimée et bénéfice quotidien de chaque groupe.'
     ])),
-    sec('Usines et logistique',ul([
-      'L’usine textile, l’usine électronique et la ferme produisent des unités (vêtements, composants électroniques, produits alimentaires) vendues au prix du marché de gros, qui varie chaque jour. Les smartphones de l’usine électronique se vendent directement aux clients, hors contrats.',
-      '<b>Vendre</b> écoule la production chaque jour ; <b>Stocker</b> la garde pour vendre plus cher plus tard. Stock : 10 jours × équipement, +15 jours par niveau d’entrepôt dans la même ville.',
-      '<b>Contrats</b> : des clients commandent une quantité à livrer dans une ville avant une date, 15 à 45 % au-dessus du prix de gros. La production nécessaire est réservée et expédiée automatiquement dès que le stock suffit. Retard : 30 % retenus ; non livré : pénalité de 15 %.',
-      '<b>Transport</b> : 1 jour dans la ville, 2 dans le pays, 4 sur le continent, 9 ailleurs, de 1 à 7 % de la valeur. Votre compagnie maritime (avec au moins une ligne) transporte vers les autres pays : délais −40 %, coût −50 %, payé à la compagnie.',
-      '<b>Intégration</b> : l’usine électronique assemble ses smartphones avec ses propres puces ; vos ateliers de réparation paient leurs pièces moins cher grâce à elle.'
+    sec('Usines',ul([
+      'Les usines se créent dans Plus > Usines : 9 types (ferme, textile, agroalimentaire, mobilier, électronique, aciérie, automobile, chantier naval, aéronautique). Chaque site a des places de ligne selon la surface du terrain ; un hall en ajoute deux.',
+      '<b>Plan d’une ligne</b> : une grille de 8 × 10 cases. Le convoyeur principal relie le quai d’arrivée au quai d’expédition ; les machines qui le longent travaillent, dans l’ordre des étapes. La ligne produit au rythme de son étape la plus lente (le goulot), en exemplaires par jour.',
+      'Un convoyeur long ou sinueux ralentit la ligne ; les stocks tampons évitent les arrêts ; le contrôle qualité vend 8 % plus cher ; l’atelier de maintenance divise les pannes par trois.',
+      '<b>Matières</b> : prises d’abord dans vos usines (acier, tôles, puces, tissus, récoltes), sinon achetées au marché. <b>Débouchés</b> : vos sociétés clientes d’abord, puis le marché de gros (ou le stock).',
+      '<b>Coûts</b> : ouvriers et énergie selon la ville ; ferme : parcelles de cultures et d’élevage, puis lignes de transformation (farine, fromages, vin).'
     ])),
     sec('Modes et gérant',ul([
       '<b>Défi des 100 jours</b> (au choix à la création) : faites le plus gros bénéfice en 100 jours face à trois magnats IA ; classement sur l’accueil.',
@@ -16906,14 +16906,14 @@ MET.textile.html=function(b){
 };
 
 /* ---------- Version du jeu et fenêtre des nouveautés ---------- */
-const IB_VER='V2.7.9';
+const IB_VER='V2.8.1';
 const ibVN = v => { const m=/V?(\d+)\.(\d+)\.(\d+)/.exec(v||''); return m? (+m[1])*1e4+(+m[2])*100+(+m[3]) : 0; };
 /* nouveautés plus récentes que la version vue ; sans version connue : celles de la version actuelle seulement */
 const ibNewsSince = prev => { const p=ibVN(prev); return IB_NEWS.filter(x=> p? ibVN(x[2])>p : x[2]===IB_VER); };
 /* Numéro de version : V1.1.1 → V1.1.9, puis V1.2.1 … V1.9.9, puis V2.1.1. À chaque mise à jour notable, passer au numéro suivant et remplacer cette liste. */
 /* V2.0.4 : chaque nouveauté porte sa version ; à la reprise, seules celles parues depuis la dernière partie s'affichent */
 const IB_NEWS=[
-  ['Blasons des clubs','Les blasons des clubs sont redessinés : couleurs et motifs des maillots, symbole de la ville, bord en métal et reflet holographique animé.','V2.7.9'],['Logos des banques','Les douze banques à racheter dans la conquête mondiale ont de nouveaux logos détaillés : émail en dégradé, cadre biseauté, emblème en relief et symbole propre à chaque pays.','V2.7.8'],['Banque : conquête mondiale','À l’étape mondiale, votre banque part à la conquête de cinq grandes régions du monde, sur le globe : Europe, Amérique du Nord, Asie-Pacifique, Amérique latine, Afrique et Moyen-Orient. Montez votre part de marché en investissant ou en rachetant des banques locales, débloquez cinq paliers (gestion d’actifs, services aux États, cryptomonnaie IdleCoin, banque systémique) et surveillez le régulateur, les cyberattaques, les crises et les nationalisations. De quelques dizaines de millions par jour à plus d’un milliard.','V2.7.7'],['Banque plus rentable','Les revenus de la banque sont nettement relevés : quatre fois plus de dépôts et de crédits à l’étape locale, des parts de marché doublées ensuite, et des cartes, de la gestion de fortune, des commissions et du réseau IdlePay plus rémunérateurs. Le bénéfice net par jour s’affiche en tête de votre banque.','V2.7.6'],['Banque : cinq étapes','Votre banque grandit en cinq étapes : locale, nationale, internationale, banque d’affaires et mondiale. Chacune demande des fonds propres et une licence, et ouvre de nouveaux métiers : crédits aux grandes entreprises, cartes et paiements, prêts à vos propres sociétés, agences dans d’autres pays, gestion de fortune, salle des marchés, prêts aux États, introductions en bourse et rachats, puis le réseau de paiement mondial IdlePay. Un régulateur fait passer un test de résistance chaque année.','V2.7.5'],['Banque : votre compte','Mon compte est refait. Six abonnements bancaires, de l’Essentiel gratuit à la Souveraine, avec chacun sa carte : intérêts d’emprunt réduits, livret mieux rémunéré, luxe moins cher et prestige. Nouveaux placements : dépôt à terme et obligations d’État des six pays, notées selon leur stabilité. Automatismes : placer l’excédent et rembourser les emprunts chers. Emprunter ne demande plus de confirmation.','V2.7.4'],['Nouvel écran de chargement','Nouvel écran de chargement : une courbe dorée dessine les toits d’une ville qui se reflète dans l’eau, les fenêtres s’allument et la valeur de votre groupe défile jusqu’à son montant réel.','V2.7.3'],['Long-courriers plus souples','Sur les vols long-courriers, la fréquence suit maintenant la demande, jusqu’à 3 allers-retours par semaine : les petites lignes ne volent plus à moitié vides chaque jour. L’estimation d’une nouvelle ligne signale quand l’avion est trop grand pour la demande.','V2.7.2'],['Vols avec escale','Les lignes aériennes plus longues que le rayon d’action de l’avion sont maintenant possibles avec une escale technique, jusqu’à deux fois ce rayon. 71 liaisons entre plateformes étaient impossibles, comme Nadi – Nice ou Paris – Sydney. Une escale allonge le vol d’1 h 30, double les taxes d’atterrissage et attire 15 % de passagers en moins.','V2.7.1'],['Équilibrage de fin de partie','Les villes rapportent 8 % de leur valeur par an (environ 10 % avec la hausse de l’immobilier), soit une dizaine d’années pour les rembourser. Elles apportent moins d’influence (+25 chacune, +150 pour un pays), et l’effet de l’influence sur le lobbying plafonne désormais : posséder beaucoup de villes ne rend plus toutes les lois acquises.','V2.6.9'],['Commerce entre pays','Chaque pays peut voter des droits de douane (10 % ou 25 %). Ils réduisent les échanges des lignes maritimes, et un peu des lignes aériennes, entre pays ; ils protègent l’industrie locale mais renchérissent le commerce. Les États-Unis, le Brésil et la Chine taxent déjà leurs importations. Le pays que vous gouvernez peut signer des accords de libre-échange, qui suppriment les droits entre les deux pays.','V2.6.8'],['Écran Empire','Nouvel écran Empire (Plus, rubrique Pouvoir) : pour chaque pays, vos sociétés, leur bénéfice sur 30 jours, l’impôt sur les sociétés estimé, les lois clés et le climat politique, avec un accès direct à sa page Politique.','V2.6.7'],['Résidence fiscale','Vous pouvez choisir votre pays de résidence depuis l’onglet Politique : vos impôts personnels (revenus du capital, fortune, luxe, transactions) suivent ses lois. Un tableau compare les deux pays. Déménager coûte une taxe de sortie de 1 % de votre valeur nette, une fois par an au plus.','V2.6.6'],['Un Parlement par pays','Chaque pays a maintenant ses propres lois, son gouvernement, ses projets de loi et ses élections, avec des candidats locaux. Vos sociétés paient l’impôt du pays où elles se trouvent. L’onglet Politique propose un onglet par pays pour suivre les votes, faire du lobbying et financer des campagnes. Vos impôts personnels suivent votre pays de résidence, la France.','V2.6.5'],['Vos lois façonnent le pays','Les subventions par secteur (renouvelables, recherche, protection des consommateurs) dépendent maintenant du pays où se trouve chaque société. Dans votre pays, chaque loi agit sur la croissance du PIB et sur la satisfaction des citoyens ; les subventions sont payées par le budget public. De nouveaux décrets permettent de les supprimer.','V2.6.4'],['Lois de votre pays','Le pays que vous gouvernez a ses propres lois : impôt sur les sociétés, salaire minimum, droit du travail et encadrement des loyers. Vos décrets ne changent qu’elles, et les votes du Parlement ne s’y appliquent plus. Vos sociétés ailleurs et vos impôts personnels restent soumis au Parlement.','V2.6.3'],['Villes, pays et politique','Les recettes fiscales de votre pays ne sont plus soumises à l’impôt sur les sociétés. Exonérer vos sociétés devient un choix : plus elles pèsent dans le pays, plus les citoyens s’en agacent et plus la presse s’y intéresse. Chaque ville possédée apporte de l’influence politique.','V2.6.2'],['Luxe animé','Les illustrations du luxe s’animent : roues et route qui défilent, yachts qui flottent, vagues, nuages, étoiles qui scintillent, tourbillons de La Nuit étoilée, aiguille de Big Ben et flamme de la Liberté. Les animations s’arrêtent si votre téléphone demande de réduire les mouvements.','V2.6.1'],['Prestige, villes et pays','Les illustrations du luxe sont redessinées en scènes détaillées. Une ville achetée rapporte 10 % de sa valeur par an et fait vendre 5 % de plus à vos sociétés qui s’y trouvent. Un pays gouverné exonère vos sociétés de l’impôt sur les sociétés et ajoute 5 % de ventes. Villes et pays comptent désormais dans le prestige.','V2.5.9'],['Moins de fausses alertes de perte','Les sociétés qui vendent par à-coups (studio, promoteur, galerie, maison de couture, ferme, construction) ne sont plus signalées en perte entre deux sorties ou deux ventes : plus d’alerte ni de conseil « perd de l’argent », et leur ligne de rentabilité se fonde sur la moyenne des quatre derniers mois.','V2.5.8'],
+  ['Usines','Les usines deviennent des sites industriels, avec leur propre onglet : 9 types (ferme, textile, agroalimentaire, mobilier, électronique, aciérie, automobile, chantier naval, aéronautique), des lignes de production dont vous dessinez le plan machine par machine, et une production en exemplaires par jour. Vos anciennes usines sont regroupées par type et par ville. L’usine de smartphones disparaît.','V2.8.1'],['Blasons des clubs','Les blasons des clubs sont redessinés : couleurs et motifs des maillots, symbole de la ville, bord en métal et reflet holographique animé.','V2.7.9'],['Logos des banques','Les douze banques à racheter dans la conquête mondiale ont de nouveaux logos détaillés : émail en dégradé, cadre biseauté, emblème en relief et symbole propre à chaque pays.','V2.7.8'],['Banque : conquête mondiale','À l’étape mondiale, votre banque part à la conquête de cinq grandes régions du monde, sur le globe : Europe, Amérique du Nord, Asie-Pacifique, Amérique latine, Afrique et Moyen-Orient. Montez votre part de marché en investissant ou en rachetant des banques locales, débloquez cinq paliers (gestion d’actifs, services aux États, cryptomonnaie IdleCoin, banque systémique) et surveillez le régulateur, les cyberattaques, les crises et les nationalisations. De quelques dizaines de millions par jour à plus d’un milliard.','V2.7.7'],['Banque plus rentable','Les revenus de la banque sont nettement relevés : quatre fois plus de dépôts et de crédits à l’étape locale, des parts de marché doublées ensuite, et des cartes, de la gestion de fortune, des commissions et du réseau IdlePay plus rémunérateurs. Le bénéfice net par jour s’affiche en tête de votre banque.','V2.7.6'],['Banque : cinq étapes','Votre banque grandit en cinq étapes : locale, nationale, internationale, banque d’affaires et mondiale. Chacune demande des fonds propres et une licence, et ouvre de nouveaux métiers : crédits aux grandes entreprises, cartes et paiements, prêts à vos propres sociétés, agences dans d’autres pays, gestion de fortune, salle des marchés, prêts aux États, introductions en bourse et rachats, puis le réseau de paiement mondial IdlePay. Un régulateur fait passer un test de résistance chaque année.','V2.7.5'],['Banque : votre compte','Mon compte est refait. Six abonnements bancaires, de l’Essentiel gratuit à la Souveraine, avec chacun sa carte : intérêts d’emprunt réduits, livret mieux rémunéré, luxe moins cher et prestige. Nouveaux placements : dépôt à terme et obligations d’État des six pays, notées selon leur stabilité. Automatismes : placer l’excédent et rembourser les emprunts chers. Emprunter ne demande plus de confirmation.','V2.7.4'],['Nouvel écran de chargement','Nouvel écran de chargement : une courbe dorée dessine les toits d’une ville qui se reflète dans l’eau, les fenêtres s’allument et la valeur de votre groupe défile jusqu’à son montant réel.','V2.7.3'],['Long-courriers plus souples','Sur les vols long-courriers, la fréquence suit maintenant la demande, jusqu’à 3 allers-retours par semaine : les petites lignes ne volent plus à moitié vides chaque jour. L’estimation d’une nouvelle ligne signale quand l’avion est trop grand pour la demande.','V2.7.2'],['Vols avec escale','Les lignes aériennes plus longues que le rayon d’action de l’avion sont maintenant possibles avec une escale technique, jusqu’à deux fois ce rayon. 71 liaisons entre plateformes étaient impossibles, comme Nadi – Nice ou Paris – Sydney. Une escale allonge le vol d’1 h 30, double les taxes d’atterrissage et attire 15 % de passagers en moins.','V2.7.1'],['Équilibrage de fin de partie','Les villes rapportent 8 % de leur valeur par an (environ 10 % avec la hausse de l’immobilier), soit une dizaine d’années pour les rembourser. Elles apportent moins d’influence (+25 chacune, +150 pour un pays), et l’effet de l’influence sur le lobbying plafonne désormais : posséder beaucoup de villes ne rend plus toutes les lois acquises.','V2.6.9'],['Commerce entre pays','Chaque pays peut voter des droits de douane (10 % ou 25 %). Ils réduisent les échanges des lignes maritimes, et un peu des lignes aériennes, entre pays ; ils protègent l’industrie locale mais renchérissent le commerce. Les États-Unis, le Brésil et la Chine taxent déjà leurs importations. Le pays que vous gouvernez peut signer des accords de libre-échange, qui suppriment les droits entre les deux pays.','V2.6.8'],['Écran Empire','Nouvel écran Empire (Plus, rubrique Pouvoir) : pour chaque pays, vos sociétés, leur bénéfice sur 30 jours, l’impôt sur les sociétés estimé, les lois clés et le climat politique, avec un accès direct à sa page Politique.','V2.6.7'],['Résidence fiscale','Vous pouvez choisir votre pays de résidence depuis l’onglet Politique : vos impôts personnels (revenus du capital, fortune, luxe, transactions) suivent ses lois. Un tableau compare les deux pays. Déménager coûte une taxe de sortie de 1 % de votre valeur nette, une fois par an au plus.','V2.6.6'],['Un Parlement par pays','Chaque pays a maintenant ses propres lois, son gouvernement, ses projets de loi et ses élections, avec des candidats locaux. Vos sociétés paient l’impôt du pays où elles se trouvent. L’onglet Politique propose un onglet par pays pour suivre les votes, faire du lobbying et financer des campagnes. Vos impôts personnels suivent votre pays de résidence, la France.','V2.6.5'],['Vos lois façonnent le pays','Les subventions par secteur (renouvelables, recherche, protection des consommateurs) dépendent maintenant du pays où se trouve chaque société. Dans votre pays, chaque loi agit sur la croissance du PIB et sur la satisfaction des citoyens ; les subventions sont payées par le budget public. De nouveaux décrets permettent de les supprimer.','V2.6.4'],['Lois de votre pays','Le pays que vous gouvernez a ses propres lois : impôt sur les sociétés, salaire minimum, droit du travail et encadrement des loyers. Vos décrets ne changent qu’elles, et les votes du Parlement ne s’y appliquent plus. Vos sociétés ailleurs et vos impôts personnels restent soumis au Parlement.','V2.6.3'],['Villes, pays et politique','Les recettes fiscales de votre pays ne sont plus soumises à l’impôt sur les sociétés. Exonérer vos sociétés devient un choix : plus elles pèsent dans le pays, plus les citoyens s’en agacent et plus la presse s’y intéresse. Chaque ville possédée apporte de l’influence politique.','V2.6.2'],['Luxe animé','Les illustrations du luxe s’animent : roues et route qui défilent, yachts qui flottent, vagues, nuages, étoiles qui scintillent, tourbillons de La Nuit étoilée, aiguille de Big Ben et flamme de la Liberté. Les animations s’arrêtent si votre téléphone demande de réduire les mouvements.','V2.6.1'],['Prestige, villes et pays','Les illustrations du luxe sont redessinées en scènes détaillées. Une ville achetée rapporte 10 % de sa valeur par an et fait vendre 5 % de plus à vos sociétés qui s’y trouvent. Un pays gouverné exonère vos sociétés de l’impôt sur les sociétés et ajoute 5 % de ventes. Villes et pays comptent désormais dans le prestige.','V2.5.9'],['Moins de fausses alertes de perte','Les sociétés qui vendent par à-coups (studio, promoteur, galerie, maison de couture, ferme, construction) ne sont plus signalées en perte entre deux sorties ou deux ventes : plus d’alerte ni de conseil « perd de l’argent », et leur ligne de rentabilité se fonde sur la moyenne des quatre derniers mois.','V2.5.8'],
   ['Les directeurs ne s’arrêtent plus de grandir','Le directeur d’une compagnie maritime ou aérienne continuait d’agrandir toujours le même terminal ou le même aéroport ; une fois celui-ci au maximum de quais ou de créneaux, il n’ouvrait plus aucune ligne. Il agrandit maintenant le terminal ou l’aéroport le plus chargé qui peut encore l’être.','V2.5.7'],
   ['Le chef d’exploitation achète des parcelles','En délégation totale, le chef d’exploitation d’une ferme fait ses achats chaque semaine : suivi vétérinaire, transformation qui manque, nouvelle parcelle dès que toutes sont occupées, puis machines, bio, magasin et appellation. Son prochain achat s’affiche comme objectif. Au-delà de huit parcelles, il faut le palier 5.','V2.5.6'],
   ['Prolongation et tirs au but','Dans les matchs à élimination directe (coupes, séries, coupes internationales), un score nul n’est plus tranché d’un coup : on joue une prolongation de deux fois quinze minutes, puis des tirs au but tirés un par un, avec mort subite après cinq tirs. L’animation du match montre la prolongation et chaque tir au but, et les résultats indiquent « après prolongation » et le score des tirs au but. Pour un match aller-retour, la prolongation se joue au retour si le cumul est à égalité.','V2.5.5'],
@@ -22233,6 +22233,804 @@ NF_CSS.push(`
 @keyframes fcspk{0%,70%,100%{opacity:0;transform:scale(.4)}80%{opacity:.95;transform:scale(1.2)}}
 @media (prefers-reduced-motion:reduce){.fc .fc-holo,.fc .fc-spk{animation:none;opacity:0}}`);
 try{ nfCssOnce(); }catch(e){}
+/* ============================================================
+   V2.8.1 : USINES (1/3) · DONNÉES ET DESSINS
+   Les usines ne sont plus des sociétés : ce sont des sites (onglet Usines) avec des lignes de production.
+   Chaque ligne est une grille de 8 × 10 cases où le joueur place machines, convoyeurs, stocks tampons,
+   contrôle qualité et atelier de maintenance. 9 types : textile, électronique, ferme, agroalimentaire,
+   mobilier, aciérie, automobile, chantier naval, aéronautique. L'usine de smartphones disparaît.
+   ============================================================ */
+/* ---------- suppression définitive de l'usine de smartphones ---------- */
+delete D.biz.phones; if(D.GOODS) delete D.GOODS.tel; if(D.FACT) delete D.FACT.phones; if(D.FACTIN) delete D.FACTIN.phones;
+if(D.biz.repair) D.biz.repair.syn={with:'electronics', b:.08, txt:'pièces moins chères grâce à votre usine électronique'};
+/* les usines quittent la liste des sociétés : elles se créent dans l'onglet Usines */
+const FAB_OLD=['farm','textile','electronics','phones'];
+D.bizOrder=D.bizOrder.filter(d=>!FAB_OLD.includes(d));
+
+/* ---------- familles du marché de gros ---------- */
+Object.assign(D.GOODS,{
+  aci:{n:'Acier', u:'tonnes', v:700, vol:.014}, agro:{n:'Agroalimentaire', u:'caisses', v:30, vol:.01},
+  meu:{n:'Mobilier', u:'pièces', v:350, vol:.01}, auto:{n:'Automobiles', u:'véhicules', v:25000, vol:.008},
+  naval:{n:'Navires', u:'navires', v:12e6, vol:.006}, aero:{n:'Avions', u:'avions', v:28e6, vol:.006}});
+/* matières achetées au marché uniquement */
+const FAB_RAW={fib:{n:'Fibres textiles', u:'kg', v:6, g:'vet'}, sil:{n:'Silicium', u:'kg', v:15, g:'comp'},
+  min:{n:'Minerai de fer', u:'tonnes', v:110, g:'aci'}, bois:{n:'Bois d’œuvre', u:'m³', v:90, g:'meu'}};
+
+/* ---------- types d'usines ---------- */
+const FAB_T={
+  farm:{n:'Ferme', tier:1, vRef:25, area:1500, col:'#5B8C2A', d:'Parcelles de cultures et d’élevage, puis lignes de transformation'},
+  textile:{n:'Usine textile', tier:1, vRef:30, area:1500, col:'#6B4FB0', d:'Tissus de coton, laine et soie, vêtements'},
+  agro:{n:'Usine agroalimentaire', tier:1, vRef:30, area:1500, col:'#C4661F', d:'Plats cuisinés et boissons pour vos restaurants'},
+  meuble:{n:'Usine de mobilier', tier:2, vRef:350, area:1500, col:'#8A5A2B', d:'Meubles d’hôtel et mobilier de bureau'},
+  electronics:{n:'Usine électronique', tier:2, vRef:45, area:1500, col:'#0B6E8A', d:'Puces, écrans, batteries, pièces automobiles'},
+  acier:{n:'Aciérie', tier:3, vRef:700, area:6000, col:'#B0412A', d:'Acier brut et tôles pour vos autres usines'},
+  auto:{n:'Usine automobile', tier:3, vRef:25000, area:5000, col:'#C8352A', d:'Citadines, berlines, SUV et utilitaires'},
+  naval:{n:'Chantier naval', tier:4, vRef:12e6, area:12000, col:'#1B5E8A', d:'Yachts, ferries et porte-conteneurs'},
+  aero:{n:'Usine aéronautique', tier:5, vRef:28e6, area:15000, col:'#3B4F7A', d:'Avions régionaux, moyen et long-courriers'}
+};
+const FAB_ORDER=['farm','acier','textile','electronics','agro','meuble','auto','naval','aero'];
+
+/* ---------- produits : valeur, matières par unité, étapes (machines), cadence relative ---------- */
+const kit=(o,f)=>{ const r={}; Object.keys(o).forEach(k=>r[k]=o[k]*f); return r; };
+const AUTO_K={tol:.9, pau:80, puc:25, bat:40, ecr:3, cot:6}, AERO_K={tol:2600, puc:6e4, ecr:12000, bat:2e4, pau:6e4, meu:300};
+D.PRODS={
+  /* ferme : récoltes (parcelles) */
+  cer:{fac:'farm', g:'alim', n:'Céréales', u:'quintaux', v:20, raw:1},
+  leg:{fac:'farm', g:'alim', n:'Légumes et fruits', u:'caisses', v:10, raw:1},
+  lai:{fac:'farm', g:'alim', n:'Lait', u:'caisses', v:14, raw:1},
+  oeu:{fac:'farm', g:'alim', n:'Œufs et volaille', u:'caisses', v:16, raw:1},
+  rai:{fac:'farm', g:'alim', n:'Raisin', u:'caisses', v:12, raw:1},
+  /* ferme : lignes de transformation */
+  far:{fac:'farm', g:'alim', n:'Farine', u:'sacs', v:24, in:{cer:.35}, st:['net','mou','ens'], k:1},
+  fro:{fac:'farm', g:'alim', n:'Fromages', u:'caisses', v:32, in:{lai:1.1}, st:['past','cav'], k:.8},
+  vin:{fac:'farm', g:'alim', n:'Vin', u:'caisses', v:36, in:{rai:1.2}, st:['pres','cuv','emb'], k:1},
+  /* textile */
+  cot:{fac:'textile', g:'vet', n:'Tissu de coton', u:'rouleaux', v:36, in:{fib:2}, st:['carde','fil','tis','tei'], k:1},
+  lan:{fac:'textile', g:'vet', n:'Tissu de laine', u:'rouleaux', v:55, in:{fib:3.6}, st:['carde','fil','tis','tei'], k:.7},
+  soi:{fac:'textile', g:'vet', n:'Soie', u:'rouleaux', v:110, in:{fib:7}, st:['carde','fil','tis','tei'], k:.4},
+  pap:{fac:'textile', g:'vet', n:'Vêtements', u:'pièces', v:25, in:{cot:.33}, st:['coupe','conf'], k:1},
+  /* électronique */
+  puc:{fac:'electronics', g:'comp', n:'Puces', u:'lots', v:54, in:{sil:1.6}, st:['lith','grav','test'], k:1},
+  ecr:{fac:'electronics', g:'comp', n:'Écrans', u:'lots', v:52, in:{sil:1.2}, st:['dep','lamv','test'], k:1},
+  bat:{fac:'electronics', g:'comp', n:'Batteries', u:'lots', v:36, in:{sil:.3, min:.06}, st:['elec','cell','test'], k:1.1},
+  pau:{fac:'electronics', g:'comp', n:'Pièces automobiles', u:'lots', v:42, in:{aci:.02, sil:.1}, st:['usin','asmp','test'], k:1},
+  /* aciérie */
+  aci:{fac:'acier', g:'aci', n:'Acier brut', u:'tonnes', v:650, in:{min:2.4}, st:['hf','cvt','cc'], k:1},
+  tol:{fac:'acier', g:'aci', n:'Tôle laminée', u:'tonnes', v:1250, in:{aci:1.05}, st:['four','lam','bob'], k:.9},
+  /* agroalimentaire */
+  pla:{fac:'agro', g:'agro', n:'Plats cuisinés', u:'caisses', v:42, in:{leg:1.2, cer:.1, lai:.2}, st:['lav','cui','cond'], k:1},
+  bsn:{fac:'agro', g:'agro', n:'Boissons', u:'caisses', v:24, in:{leg:.8}, st:['jus','pst','cond'], k:1.4},
+  /* mobilier */
+  meu:{fac:'meuble', g:'meu', n:'Meubles d’hôtel', u:'pièces', v:560, in:{bois:1.2, cot:2}, st:['sci','cnc','tap','ver','mon'], k:.9},
+  mbu:{fac:'meuble', g:'meu', n:'Mobilier de bureau', u:'pièces', v:340, in:{bois:1, tol:.012}, st:['sci','cnc','ver','mon'], k:1.2},
+  /* automobile */
+  voi:{fac:'auto', g:'auto', n:'Citadines', u:'citadines', v:22000, in:kit(AUTO_K,1), st:['pre','sou','pei','ass'], k:1.3},
+  ber:{fac:'auto', g:'auto', n:'Berlines', u:'berlines', v:32000, in:kit(AUTO_K,1.75), st:['pre','sou','pei','ass'], k:1},
+  suv:{fac:'auto', g:'auto', n:'SUV', u:'SUV', v:41000, in:kit(AUTO_K,2.25), st:['pre','sou','pei','ass'], k:.8},
+  utl:{fac:'auto', g:'auto', n:'Utilitaires', u:'utilitaires', v:31000, in:kit(AUTO_K,1.45), st:['pre','sou','pei','ass'], k:.9},
+  /* chantier naval */
+  yac:{fac:'naval', g:'naval', n:'Yachts', u:'yachts', v:12e6, in:{tol:1400, meu:2500, puc:12000, ecr:4000, cot:15000}, st:['dec','blo','cal','arm'], k:1},
+  fer:{fac:'naval', g:'naval', n:'Ferries', u:'ferries', v:7e7, in:{tol:9000, meu:22000, puc:50000, ecr:16000, cot:60000, pau:60000}, st:['dec','blo','cal','arm'], k:.22},
+  pcn:{fac:'naval', g:'naval', n:'Porte-conteneurs', u:'porte-conteneurs', v:8.5e7, in:{tol:17000, pau:120000, puc:20000}, st:['dec','blo','cal','arm'], k:.16},
+  /* aéronautique */
+  a1:{fac:'aero', g:'aero', n:'Avions régionaux', u:'avions', v:3.4e7, in:kit(AERO_K,1), st:['fus','ail','fin','cab','ess'], k:1},
+  a2:{fac:'aero', g:'aero', n:'Moyen-courriers', u:'avions', v:9.5e7, in:kit(AERO_K,3.4), st:['fus','ail','fin','cab','ess'], k:.45},
+  a3:{fac:'aero', g:'aero', n:'Long-courriers', u:'avions', v:2.3e8, in:kit(AERO_K,8.2), st:['fus','ail','fin','cab','ess'], k:.2}
+};
+/* compatibilité : anciens modules (FACT_P) */
+if(typeof FACT_P!=='undefined'){ Object.keys(FACT_P).forEach(k=>delete FACT_P[k]); Object.keys(D.PRODS).forEach(p=>{ const f=D.PRODS[p].fac; (FACT_P[f]=FACT_P[f]||[]).push(p); }); }
+const fabProdsOf = t => Object.keys(D.PRODS).filter(p=>D.PRODS[p].fac===t&&!D.PRODS[p].raw);
+
+/* ---------- cultures de la ferme : production par parcelle et par jour ---------- */
+const FAB_CROP={ble:{n:'Blé', p:'cer', y:42}, mais:{n:'Maïs', p:'cer', y:48}, leg:{n:'Maraîchage', p:'leg', y:110}, verger:{n:'Verger', p:'leg', y:95},
+  vigne:{n:'Vigne', p:'rai', y:85}, vaches:{n:'Vaches laitières', p:'lai', y:90}, poules:{n:'Poules pondeuses', p:'oeu', y:80}};
+const FAB_PARCEL=90000;
+
+/* ---------- machines : nom, taille (cases), cadence de base par jour (produit de référence), type ---------- */
+const FAB_M={
+  in:{n:'Quai d’arrivée', w:2, h:1, aux:1, d:'Entrée des matières : le convoyeur part d’ici.'},
+  out:{n:'Quai d’expédition', w:2, h:1, aux:1, d:'Sortie des produits finis : le convoyeur doit y arriver.'},
+  cv:{n:'Convoyeur', w:1, h:1, aux:1, d:'Relie les quais et les machines. Les machines travaillent sur le convoyeur qui les longe.'},
+  buf:{n:'Stock tampon', w:1, h:2, aux:1, d:'Évite les arrêts de la ligne : +6 % de cadence chacun, jusqu’à 2.'},
+  qc:{n:'Contrôle qualité', w:2, h:1, aux:1, d:'Placé après la dernière étape : produits vendus 8 % plus cher.'},
+  mnt:{n:'Atelier de maintenance', w:2, h:2, aux:1, d:'Raccordé à la ligne : pannes trois fois moins fréquentes.'},
+  /* ferme */
+  net:{n:'Trieur-nettoyeur', w:2, h:1, c:1400}, mou:{n:'Moulin à cylindres', w:2, h:2, c:1100}, ens:{n:'Ensacheuse', w:2, h:1, c:1600},
+  past:{n:'Pasteurisateur', w:2, h:1, c:1200}, cav:{n:'Cave d’affinage', w:2, h:2, c:800},
+  pres:{n:'Pressoir', w:2, h:2, c:900}, cuv:{n:'Cuverie inox', w:3, h:2, c:700}, emb:{n:'Embouteilleuse', w:2, h:1, c:1300},
+  /* textile */
+  carde:{n:'Cardeuse', w:1, h:2, c:900}, fil:{n:'Continu à filer', w:2, h:1, c:700}, tis:{n:'Métier à tisser', w:2, h:2, c:520},
+  tei:{n:'Teinturerie', w:2, h:1, c:800}, coupe:{n:'Table de coupe', w:2, h:1, c:2600}, conf:{n:'Atelier de confection', w:2, h:2, c:1700},
+  /* électronique */
+  lith:{n:'Lithographie', w:2, h:2, c:320}, grav:{n:'Gravure plasma', w:2, h:1, c:380}, dep:{n:'Dépôt de couches', w:2, h:1, c:420},
+  lamv:{n:'Laminage de verre', w:2, h:1, c:380}, elec:{n:'Ligne d’électrodes', w:2, h:1, c:500}, cell:{n:'Assemblage de cellules', w:2, h:1, c:420},
+  usin:{n:'Centre d’usinage', w:2, h:1, c:450}, asmp:{n:'Montage de pièces', w:2, h:1, c:480}, test:{n:'Banc de test', w:1, h:1, c:600},
+  /* aciérie */
+  hf:{n:'Haut fourneau', w:2, h:3, c:950}, cvt:{n:'Convertisseur', w:2, h:2, c:1000}, cc:{n:'Coulée continue', w:3, h:1, c:1150},
+  four:{n:'Four de réchauffage', w:2, h:2, c:1000}, lam:{n:'Laminoir', w:3, h:1, c:880}, bob:{n:'Bobineuse', w:2, h:1, c:1100},
+  /* agroalimentaire */
+  lav:{n:'Laveuse-trieuse', w:2, h:1, c:1600}, cui:{n:'Cuisson industrielle', w:2, h:2, c:1200}, cond:{n:'Conditionneuse', w:2, h:1, c:1900},
+  jus:{n:'Extracteur de jus', w:2, h:1, c:1500}, pst:{n:'Tunnel de pasteurisation', w:3, h:1, c:1700},
+  /* mobilier */
+  sci:{n:'Scie à panneaux', w:2, h:1, c:90}, cnc:{n:'Défonceuse numérique', w:2, h:2, c:70}, tap:{n:'Atelier de tapisserie', w:2, h:1, c:55},
+  ver:{n:'Cabine de vernis', w:2, h:1, c:80}, mon:{n:'Montage et emballage', w:2, h:1, c:75},
+  /* automobile */
+  pre:{n:'Presse d’emboutissage', w:2, h:2, c:64}, sou:{n:'Robot de soudure', w:1, h:2, c:30}, pei:{n:'Cabine de peinture', w:3, h:1, c:38},
+  ass:{n:'Chaîne d’assemblage', w:4, h:1, c:55},
+  /* chantier naval */
+  dec:{n:'Découpe des tôles', w:2, h:1, c:.32}, blo:{n:'Atelier des blocs', w:2, h:2, c:.14}, cal:{n:'Cale de construction', w:4, h:2, c:.1},
+  arm:{n:'Quai d’armement', w:2, h:2, c:.13},
+  /* aéronautique */
+  fus:{n:'Tronçons de fuselage', w:2, h:2, c:.12}, ail:{n:'Atelier des ailes', w:2, h:2, c:.12}, fin:{n:'Assemblage final', w:4, h:2, c:.09},
+  cab:{n:'Aménagement cabine', w:2, h:1, c:.14}, ess:{n:'Banc d’essais', w:2, h:1, c:.16}
+};
+const FAB_AUX=['cv','in','out','buf','qc','mnt'];
+const FAB_W=8, FAB_H=10;
+
+/* ============================================================
+   DESSINS
+   ============================================================ */
+const fabSh=(hex,k)=>{ const n=parseInt(hex.slice(1),16), f=v=>Math.max(0,Math.min(255,Math.round(k<0? v*(1+k) : v+(255-v)*k))); return '#'+[n>>16,(n>>8)&255,n&255].map(v=>f(v).toString(16).padStart(2,'0')).join(''); };
+/* dégradés communs d'une grille (préfixe unique par écran) */
+function fabDefs(u){ return '<defs>'+
+  '<pattern id="'+u+'fl" width="40" height="40" patternUnits="userSpaceOnUse"><rect width="40" height="40" fill="#16191E"/><rect x=".5" y=".5" width="39" height="39" fill="none" stroke="#23272F"/><circle cx="3" cy="3" r="1" fill="#2D323B"/><circle cx="37" cy="37" r="1" fill="#2D323B"/><path d="M6 20 H12 M28 20 H34" stroke="#1C2026"/></pattern>'+
+  '<pattern id="'+u+'hz" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3.5" height="7" fill="#F2C230"/><rect x="3.5" width="3.5" height="7" fill="#1A1A1A"/></pattern>'+
+  '<linearGradient id="'+u+'mt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8E97A6"/><stop offset=".5" stop-color="#6A7382"/><stop offset="1" stop-color="#4C5461"/></linearGradient>'+
+  '<linearGradient id="'+u+'st" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E4E8EE"/><stop offset=".5" stop-color="#AEB6C2"/><stop offset="1" stop-color="#7E8794"/></linearGradient>'+
+  '<linearGradient id="'+u+'gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#CFEAF8" stop-opacity=".85"/><stop offset="1" stop-color="#5D8CA8" stop-opacity=".7"/></linearGradient>'+
+  '<radialGradient id="'+u+'hot"><stop offset="0" stop-color="#FFF4B0"/><stop offset=".45" stop-color="#FF9A2E"/><stop offset="1" stop-color="#B3261E"/></radialGradient>'+
+  '<linearGradient id="'+u+'wd" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C99A62"/><stop offset=".5" stop-color="#B07F48"/><stop offset="1" stop-color="#8E6232"/></linearGradient>'+
+  '</defs>'; }
+/* boîtier commun : ombre, carrosserie, biseau, boulons, grilles d'aération, plaque */
+function fabBox(u,W,H,col,o){ o=o||{}; const c1=fabSh(col,.28), c2=col, c3=fabSh(col,-.38);
+  let s='<rect x="3" y="5" width="'+(W-6)+'" height="'+(H-6)+'" rx="6" fill="#000" opacity=".5"/>'+
+    '<rect x="3" y="3" width="'+(W-6)+'" height="'+(H-6)+'" rx="6" fill="'+c3+'"/>'+
+    '<rect x="4" y="4" width="'+(W-8)+'" height="'+(H-9)+'" rx="5" fill="'+c2+'"/>'+
+    '<rect x="5" y="5" width="'+(W-10)+'" height="'+Math.min(10,(H-10)/3)+'" rx="4" fill="'+c1+'" opacity=".55"/>';
+  if(!o.nb) [[8,8],[W-8,8],[8,H-9],[W-8,H-9]].forEach(([x,y])=>{ s+='<circle cx="'+x+'" cy="'+y+'" r="1.6" fill="'+fabSh(col,-.55)+'"/><circle cx="'+(x-.4)+'" cy="'+(y-.4)+'" r=".6" fill="'+c1+'"/>'; });
+  if(o.hz) s+='<rect x="4" y="'+(H-8)+'" width="'+(W-8)+'" height="3" fill="url(#'+u+'hz)" opacity=".85"/>';
+  return s; }
+const fabVent=(x,y,n,w,col)=>[...Array(n)].map((_,i)=>'<rect x="'+x+'" y="'+(y+i*3)+'" width="'+w+'" height="1.4" rx=".7" fill="'+col+'"/>').join('');
+const fabLed=(x,y,c,a)=>'<circle cx="'+x+'" cy="'+y+'" r="1.8" fill="'+c+'"'+(a?' class="fab-led"':'')+'/>';
+const fabTxt=(x,y,t,c,s)=>'<text x="'+x+'" y="'+y+'" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="900" font-size="'+(s||6.5)+'" fill="'+(c||'#F2F3F7')+'" letter-spacing=".4">'+t+'</text>';
+
+/* dessin d'une machine vue de dessus, taille W×H pixels */
+function fabMachineSvg(k,W,H,u,lab){ const m=FAB_M[k]; let s='';
+  const B=(col,o)=>fabBox(u,W,H,col,o), cx=W/2, cy=H/2;
+  switch(k){
+  case 'in': case 'out': { const c= k==='in'? '#3C4452' : '#2F3A33';
+    s=B(c,{nb:1})+'<rect x="7" y="7" width="'+(W-14)+'" height="'+(H-16)+'" rx="3" fill="'+fabSh(c,-.35)+'"/>';
+    for(let i=0;i<Math.floor((W-16)/17);i++) s+='<g transform="translate('+(10+i*17)+' 10)"><rect width="14" height="'+(H-22)+'" fill="#8A6A43"/><rect y="1.5" width="14" height="2.5" fill="#B48B57"/><rect y="'+(H-28)+'" width="14" height="2.5" fill="#B48B57"/><rect x="2" y="5" width="10" height="'+(H-34)+'" fill="'+(k==='in'?'#9AA3B2':'#E8B84A')+'" opacity=".9"/></g>';
+    s+='<rect x="4" y="'+(H-8)+'" width="'+(W-8)+'" height="3" fill="url(#'+u+'hz)"/>'+fabTxt(W-9,H-10,k==='in'?'ENTRÉE':'SORTIE','#E8EDF4',5.5).replace('middle','end'); break; }
+  case 'cv': s=''; break;
+  case 'buf': s=B('#3A3F48')+[0,1,2,3].map(i=>'<g transform="translate(9 '+(10+i*16)+')"><rect width="'+(W-18)+'" height="12" fill="#8A6A43"/><rect y="1" width="'+(W-18)+'" height="2" fill="#B48B57"/><rect x="3" y="4" width="'+(W-24)+'" height="6" fill="#C9CED6" opacity=".85"/></g>').join('')+'<rect x="6" y="6" width="2" height="'+(H-14)+'" fill="#F2C230"/><rect x="'+(W-8)+'" y="6" width="2" height="'+(H-14)+'" fill="#F2C230"/>'; break;
+  case 'qc': s=B('#1F5A3C')+'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-17)+'" rx="3" fill="#0F2F20"/><rect class="fab-scan" x="9" y="9" width="'+(W-18)+'" height="2.5" fill="#6EE7A0"/>'+
+    '<path d="M'+(cx-6)+' '+(cy-1)+' l4 4 l8 -9" stroke="#6EE7A0" stroke-width="2.4" fill="none" stroke-linecap="round"/>'+fabLed(W-11,10,'#6EE7A0',1); break;
+  case 'mnt': s=B('#4A4F5A',{hz:1})+'<rect x="8" y="8" width="'+(W-16)+'" height="20" rx="3" fill="#2B2F36"/>'+[0,1,2,3,4].map(i=>'<rect x="'+(11+i*12)+'" y="11" width="3" height="14" rx="1" fill="'+['#D9534F','#F2C230','#5B9BD5','#9AA3B2','#6EE7A0'][i]+'"/>').join('')+
+    '<g transform="translate('+cx+' '+(cy+10)+') rotate(-30)"><rect x="-3" y="-14" width="6" height="22" rx="2" fill="#C9CED6"/><circle cy="-16" r="6" fill="none" stroke="#C9CED6" stroke-width="3.5"/></g><g transform="translate('+(cx+14)+' '+(cy+12)+')"><circle r="7" fill="#9AA3B2"/><circle r="2.5" fill="#4A4F5A"/>'+[0,1,2,3,4,5].map(i=>'<rect x="-1.5" y="-9.5" width="3" height="4" fill="#9AA3B2" transform="rotate('+i*60+')"/>').join('')+'</g>'; break;
+  /* ---- ferme ---- */
+  case 'net': s=B('#6B7A3A')+'<rect x="9" y="8" width="'+(W-18)+'" height="'+(H-17)+'" rx="3" fill="#3E4A20"/>'+[...Array(6)].map((_,i)=>'<path d="M'+(13+i*10)+' 11 l6 '+(H-24)+'" stroke="#A3B565" stroke-width="1.4"/>').join('')+'<g class="fab-shake">'+[...Array(9)].map((_,i)=>'<circle cx="'+(14+i*7)+'" cy="'+(13+(i%3)*4)+'" r="1.3" fill="#E5C46B"/>').join('')+'</g>'; break;
+  case 'mou': s=B('#8A7A5A')+'<circle cx="'+cx+'" cy="'+(cy-2)+'" r="22" fill="#5E5238"/><g class="fab-spin"><circle cx="'+cx+'" cy="'+(cy-2)+'" r="18" fill="#B9AE96"/>'+[...Array(12)].map((_,i)=>'<rect x="'+(cx-1)+'" y="'+(cy-20)+'" width="2" height="7" fill="#7A6E55" transform="rotate('+i*30+' '+cx+' '+(cy-2)+')"/>').join('')+'<circle cx="'+cx+'" cy="'+(cy-2)+'" r="5" fill="#5E5238"/></g>'; break;
+  case 'ens': s=B('#7A6A4A')+[0,1,2].map(i=>'<g transform="translate('+(12+i*20)+' 9)"><path d="M0 4 Q8 0 16 4 V'+(H-24)+' H0Z" fill="#E9DFC6"/><rect x="3" y="8" width="10" height="5" fill="#C4661F" opacity=".8"/></g>').join('')+fabLed(W-10,10,'#6EE7A0',1); break;
+  case 'past': s=B('#9AA3B2')+'<rect x="8" y="9" width="'+(W-16)+'" height="'+(H-18)+'" rx="8" fill="url(#'+u+'st)"/>'+[...Array(5)].map((_,i)=>'<rect x="'+(13+i*12)+'" y="9" width="3" height="'+(H-18)+'" fill="#6A7382" opacity=".6"/>').join('')+'<circle cx="'+(W-14)+'" cy="'+cy+'" r="5" fill="#E8EDF4" stroke="#4C5461"/><path d="M'+(W-14)+' '+cy+' l3 -3" stroke="#D9534F" stroke-width="1.2"/>'; break;
+  case 'cav': s=B('#5A4632')+'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-17)+'" rx="3" fill="#2E2318"/>'+[0,1,2].map(r=>[0,1,2,3].map(c=>'<circle cx="'+(16+c*16)+'" cy="'+(18+r*18)+'" r="6.5" fill="#E8C76A" stroke="#B8902E" stroke-width="1.2"/><circle cx="'+(16+c*16)+'" cy="'+(18+r*18)+'" r="2" fill="#F5DE95"/>').join('')).join(''); break;
+  case 'pres': s=B('#6A3A4A')+'<circle cx="'+cx+'" cy="'+cy+'" r="24" fill="#3E2028"/><circle cx="'+cx+'" cy="'+cy+'" r="20" fill="#7A2E4A"/>'+[...Array(10)].map((_,i)=>'<circle cx="'+(cx+Math.cos(i*.63)*12)+'" cy="'+(cy+Math.sin(i*.63)*12)+'" r="3.4" fill="#9E3E68"/>').join('')+'<g class="fab-pst"><circle cx="'+cx+'" cy="'+cy+'" r="8" fill="url(#'+u+'st)"/></g>'; break;
+  case 'cuv': s=B('#7E8794')+[0,1,2].map(i=>'<g transform="translate('+(20+i*36)+' '+cy+')"><circle r="15" fill="url(#'+u+'st)" stroke="#4C5461"/><circle r="10" fill="none" stroke="#C9CED6"/><circle r="3" fill="#4C5461"/>'+fabLed(10,-10,'#6EE7A0',1)+'</g>').join(''); break;
+  case 'emb': s=B('#3A5A4A')+[...Array(7)].map((_,i)=>'<g transform="translate('+(11+i*9)+' 10)"><rect width="6" height="'+(H-26)+'" rx="2.5" fill="#3E6B3A"/><rect x="1.5" y="-2" width="3" height="4" fill="#8A2E3A"/><rect y="'+(H-36)+'" width="6" height="5" fill="#F2EEDF"/></g>').join(''); break;
+  /* ---- textile ---- */
+  case 'carde': s=B('#6B5A8A')+'<rect x="7" y="8" width="'+(W-14)+'" height="'+(H-17)+'" rx="3" fill="#3E3352"/>'+[0,1,2].map(i=>'<g class="fab-spin"><circle cx="'+cx+'" cy="'+(20+i*22)+'" r="9" fill="#C9C2DA"/>'+[...Array(8)].map((_,j)=>'<rect x="'+(cx-.6)+'" y="'+(10+i*22)+'" width="1.2" height="4" fill="#6B5A8A" transform="rotate('+j*45+' '+cx+' '+(20+i*22)+')"/>').join('')+'</g>').join('')+'<path d="M8 '+(H-11)+' q6 -4 12 0 t12 0" stroke="#F4F1FA" stroke-width="3" fill="none"/>'; break;
+  case 'fil': s=B('#5A4F7A')+[...Array(7)].map((_,i)=>'<g transform="translate('+(11+i*9)+' '+cy+')"><ellipse rx="3.6" ry="'+(H/2-9)+'" fill="#E9E3F5"/><path d="M-3 -6 L3 -3 M-3 0 L3 3 M-3 6 L3 9" stroke="#B9AED6" stroke-width=".9"/><circle class="fab-led" cy="'+(-H/2+8)+'" r="1.2" fill="#F2C230"/></g>').join(''); break;
+  case 'tis': s=B('#5B3FA0')+'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-17)+'" rx="3" fill="#2E2152"/>'+[...Array(14)].map((_,i)=>'<path d="M'+(12+i*4.5)+' 11 V'+(H-14)+'" stroke="#C9C2DA" stroke-width="1"/>').join('')+'<rect class="fab-shuttle" x="10" y="'+(cy-4)+'" width="14" height="8" rx="4" fill="#E8B84A"/>'+'<rect x="10" y="'+(H-26)+'" width="'+(W-20)+'" height="10" fill="#D7C9F2"/>'+[...Array(6)].map((_,i)=>'<path d="M10 '+(H-25+i*1.6)+' H'+(W-10)+'" stroke="#9E8BCB" stroke-width=".6"/>').join(''); break;
+  case 'tei': s=B('#2F6B8A')+[0,1,2].map(i=>'<g transform="translate('+(16+i*24)+' '+cy+')"><circle r="10" fill="#1B3F52"/><circle r="8" fill="'+['#C8352A','#2B5BB5','#E8B84A'][i]+'" class="fab-led"/><path d="M-6 -2 Q0 -6 6 -2" stroke="#fff" stroke-opacity=".5" fill="none"/></g>').join(''); break;
+  case 'coupe': s=B('#5A6472')+'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-17)+'" rx="2" fill="#E9EEF3"/>'+[...Array(5)].map((_,i)=>'<path d="M'+(10+i*13)+' 10 l10 '+(H-20)+'" stroke="#9AA3B2" stroke-dasharray="2 2" stroke-width=".8"/>').join('')+'<path d="M14 12 h18 v10 h-18z M38 12 h20 v10 h-20z" fill="#B9AED6" opacity=".8"/><rect class="fab-shuttle" x="12" y="9" width="3" height="'+(H-19)+'" fill="#D9534F"/>'; break;
+  case 'conf': s=B('#6B4FB0')+[0,1].map(r=>[0,1,2].map(c=>'<g transform="translate('+(9+c*22)+' '+(10+r*30)+')"><rect width="18" height="22" rx="2" fill="#3E2A73"/><rect x="2" y="3" width="10" height="8" fill="#C9CED6"/><path d="M5 11 v6" stroke="#E8EDF4" stroke-width="1.6"/><circle cx="14" cy="16" r="3" fill="#E8B84A"/><circle class="fab-led" cx="15" cy="4" r="1.2" fill="#6EE7A0"/></g>').join('')).join(''); break;
+  /* ---- électronique ---- */
+  case 'lith': s=B('#D9DEE6')+'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-17)+'" rx="4" fill="#1B2430"/><circle cx="'+cx+'" cy="'+cy+'" r="22" fill="#2A3A4C"/><circle cx="'+cx+'" cy="'+cy+'" r="19" fill="#8FB7D8"/>'+
+    [...Array(25)].map((_,i)=>{ const x=cx-14+(i%5)*6, y=cy-14+Math.floor(i/5)*6; return '<rect x="'+x+'" y="'+y+'" width="4.6" height="4.6" fill="'+(i%3?'#C9DDF0':'#E8B84A')+'" opacity=".9"/>'; }).join('')+'<rect class="fab-scan" x="'+(cx-20)+'" y="'+(cy-20)+'" width="40" height="2" fill="#B98CFF"/>'; break;
+  case 'grav': s=B('#B9C2CE')+[0,1].map(i=>'<g transform="translate('+(18+i*34)+' '+cy+')"><circle r="12" fill="#2A3A4C"/><circle r="9" fill="#7B4FD0" class="fab-led"/><circle r="4" fill="#E0CCFF"/></g>').join('')+fabLed(W-9,9,'#B98CFF',1); break;
+  case 'dep': s=B('#A9B3C0')+'<rect x="8" y="9" width="'+(W-16)+'" height="'+(H-18)+'" rx="3" fill="#24303E"/>'+[0,1,2,3].map(i=>'<rect x="'+(12+i*15)+'" y="12" width="11" height="'+(H-24)+'" rx="1.5" fill="'+['#E8B84A','#7FB3E0','#C9CED6','#9E8BCB'][i]+'" opacity=".85"/>').join(''); break;
+  case 'lamv': s=B('#7FA3BF')+'<rect x="8" y="9" width="'+(W-16)+'" height="'+(H-18)+'" rx="2" fill="url(#'+u+'gl)"/>'+[0,1,2].map(i=>'<rect x="'+(14+i*20)+'" y="11" width="14" height="'+(H-22)+'" rx="1" fill="#0E1A24" stroke="#9FC5E0" stroke-width=".8"/>').join('')+'<rect class="fab-scan" x="9" y="10" width="'+(W-18)+'" height="1.6" fill="#fff" opacity=".7"/>'; break;
+  case 'elec': s=B('#4A5A6A')+'<rect x="8" y="'+(cy-7)+'" width="'+(W-16)+'" height="14" fill="#1E242C"/><path class="fab-belt" d="M8 '+cy+' H'+(W-8)+'" stroke="#B87333" stroke-width="7" stroke-dasharray="6 3"/>'+[0,1].map(i=>'<circle cx="'+(12+i*(W-24))+'" cy="'+cy+'" r="8" fill="#9AA3B2" stroke="#4C5461"/>').join(''); break;
+  case 'cell': s=B('#3A6B4A')+[...Array(8)].map((_,i)=>'<g transform="translate('+(10+i*8)+' 10)"><rect width="6" height="'+(H-26)+'" rx="2" fill="#2E3A44"/><rect y="'+(H-34)+'" width="6" height="'+(i%2?6:9)+'" fill="#6EE7A0"/><rect x="1.5" y="-2" width="3" height="3" fill="#C9CED6"/></g>').join(''); break;
+  case 'usin': s=B('#5A6A7A')+'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-17)+'" rx="3" fill="url(#'+u+'gl)"/><g class="fab-spin"><circle cx="'+(cx-8)+'" cy="'+cy+'" r="7" fill="#C9CED6"/><path d="M'+(cx-8)+' '+(cy-7)+' V'+(cy+7)+' M'+(cx-15)+' '+cy+' H'+(cx-1)+'" stroke="#4C5461" stroke-width="1.6"/></g><rect x="'+(cx+6)+'" y="'+(cy-5)+'" width="14" height="10" fill="#8A929C"/><circle class="fab-spark" cx="'+(cx-1)+'" cy="'+cy+'" r="1.6" fill="#FFF3B0"/>'; break;
+  case 'asmp': s=B('#4A5568')+'<rect x="8" y="'+(cy-6)+'" width="'+(W-16)+'" height="12" fill="#2B313B"/>'+[0,1,2].map(i=>'<g transform="translate('+(16+i*22)+' '+cy+')"><circle r="6" fill="#B87333"/><circle r="2.5" fill="#E8C49A"/>'+[...Array(6)].map((_,j)=>'<rect x="-1" y="-8" width="2" height="3" fill="#B87333" transform="rotate('+j*60+')"/>').join('')+'</g>').join(''); break;
+  case 'test': s=B('#2E3A4A')+'<rect x="7" y="7" width="'+(W-14)+'" height="'+(H-16)+'" rx="3" fill="#0B141C"/><path d="M9 '+(cy+2)+' l4 0 l2 -6 l3 10 l2 -5 l3 0 l2 -3 l3 3 l4 0" stroke="#6EE7A0" stroke-width="1.4" fill="none" class="fab-led"/>'; break;
+  /* ---- aciérie ---- */
+  case 'hf': s=B('#5A3A2E',{hz:1})+'<circle cx="'+cx+'" cy="'+(cy-6)+'" r="28" fill="#2E1E18"/><circle cx="'+cx+'" cy="'+(cy-6)+'" r="22" fill="url(#'+u+'hot)" class="fab-glow"/><circle cx="'+cx+'" cy="'+(cy-6)+'" r="10" fill="#FFF4B0" opacity=".85"/>'+
+    [...Array(8)].map((_,i)=>'<rect x="'+(cx-2)+'" y="'+(cy-36)+'" width="4" height="8" fill="#7A4A3A" transform="rotate('+i*45+' '+cx+' '+(cy-6)+')"/>').join('')+'<path d="M'+cx+' '+(cy+22)+' V'+(H-14)+'" stroke="#FF9A2E" stroke-width="4" class="fab-glow"/>'; break;
+  case 'cvt': s=B('#6A4A3A')+'<ellipse cx="'+cx+'" cy="'+cy+'" rx="24" ry="26" fill="#3A2A22"/><ellipse cx="'+cx+'" cy="'+cy+'" rx="16" ry="18" fill="url(#'+u+'hot)" class="fab-glow"/><rect x="4" y="'+(cy-4)+'" width="10" height="8" fill="#9AA3B2"/><rect x="'+(W-14)+'" y="'+(cy-4)+'" width="10" height="8" fill="#9AA3B2"/>'; break;
+  case 'cc': s=B('#5A5F6A')+'<rect x="8" y="'+(cy-6)+'" width="'+(W-16)+'" height="12" fill="#2B2F36"/><rect class="fab-belt2" x="10" y="'+(cy-4)+'" width="'+(W-20)+'" height="8" fill="url(#'+u+'hot)"/>'+[...Array(10)].map((_,i)=>'<circle cx="'+(14+i*10)+'" cy="'+(cy+8)+'" r="2.4" fill="#9AA3B2"/><circle cx="'+(14+i*10)+'" cy="'+(cy-8)+'" r="2.4" fill="#9AA3B2"/>').join(''); break;
+  case 'four': s=B('#7A3A2A')+'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-17)+'" rx="4" fill="#2E1A14"/>'+[0,1,2].map(i=>'<rect x="12" y="'+(13+i*18)+'" width="'+(W-24)+'" height="12" rx="2" fill="url(#'+u+'hot)" class="fab-glow" style="animation-delay:'+(i*.4)+'s"/>').join(''); break;
+  case 'lam': s=B('#4C5461')+[0,1,2,3].map(i=>'<g transform="translate('+(18+i*28)+' '+cy+')"><rect x="-8" y="-14" width="16" height="28" rx="3" fill="#2B313B"/><g class="fab-spin"><circle r="9" fill="url(#'+u+'st)"/><path d="M-9 0 H9" stroke="#4C5461"/></g></g>').join('')+'<rect x="6" y="'+(cy-2)+'" width="'+(W-12)+'" height="4" fill="#FF9A2E" opacity=".75"/>'; break;
+  case 'bob': s=B('#5A6472')+'<g class="fab-spin"><circle cx="'+(W-22)+'" cy="'+cy+'" r="13" fill="url(#'+u+'st)"/>'+[4,7,10].map(r=>'<circle cx="'+(W-22)+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#7E8794" stroke-width=".8"/>').join('')+'</g><rect x="8" y="'+(cy-3)+'" width="'+(W-38)+'" height="6" fill="#C9CED6"/>'; break;
+  /* ---- agroalimentaire ---- */
+  case 'lav': s=B('#3A7A8A')+'<rect x="8" y="9" width="'+(W-16)+'" height="'+(H-18)+'" rx="3" fill="#7FC6D6" opacity=".55"/>'+[...Array(8)].map((_,i)=>'<circle class="fab-bob" style="animation-delay:'+(i*.15)+'s" cx="'+(13+i*7.5)+'" cy="'+(cy+(i%2?2:-2))+'" r="3" fill="'+['#D9534F','#6EBF4A','#F2A33A'][i%3]+'"/>').join(''); break;
+  case 'cui': s=B('#8A8F99')+[0,1].map(r=>[0,1].map(c=>'<g transform="translate('+(20+c*40)+' '+(20+r*38)+')"><circle r="14" fill="#2B2F36"/><circle r="11" fill="#C4661F"/><circle r="8" fill="#E89A4A" class="fab-glow"/><path d="M-5 -16 q3 -4 0 -8 M3 -16 q3 -4 0 -8" stroke="#E8EDF4" stroke-opacity=".6" fill="none" class="fab-steam"/></g>').join('')).join(''); break;
+  case 'cond': s=B('#4A6A5A')+[...Array(4)].map((_,i)=>'<g transform="translate('+(11+i*16)+' 10)"><rect width="13" height="'+(H-26)+'" fill="#C99A62"/><path d="M0 4 H13 M6.5 0 V4" stroke="#8E6232" stroke-width="1.2"/><rect x="2" y="8" width="9" height="4" fill="#F2EEDF"/></g>').join(''); break;
+  case 'jus': s=B('#6A8A3A')+[0,1].map(i=>'<g transform="translate('+(20+i*34)+' '+cy+')"><circle r="12" fill="#3E5220"/><g class="fab-spin"><circle r="9" fill="#F2A33A"/>'+[...Array(8)].map((_,j)=>'<path d="M0 0 L0 -9" stroke="#FFD58A" stroke-width="1" transform="rotate('+j*45+')"/>').join('')+'</g></g>').join(''); break;
+  case 'pst': s=B('#7E8794')+'<rect x="8" y="9" width="'+(W-16)+'" height="'+(H-18)+'" rx="8" fill="url(#'+u+'st)"/>'+[...Array(9)].map((_,i)=>'<rect class="fab-bob" style="animation-delay:'+(i*.1)+'s" x="'+(13+i*10)+'" y="'+(cy-5)+'" width="6" height="10" rx="2" fill="#E8B84A" opacity=".9"/>').join('')+'<path d="M10 '+(cy-8)+' H'+(W-10)+'" stroke="#D9534F" stroke-width="1" stroke-dasharray="3 3" class="fab-belt"/>'; break;
+  /* ---- mobilier ---- */
+  case 'sci': s=B('#6A6F7A')+'<rect x="8" y="9" width="'+(W-16)+'" height="'+(H-18)+'" rx="2" fill="url(#'+u+'wd)"/>'+[...Array(6)].map((_,i)=>'<path d="M8 '+(12+i*3.5)+' H'+(W-8)+'" stroke="#8E6232" stroke-width=".5" opacity=".7"/>').join('')+'<g class="fab-spin"><circle cx="'+cx+'" cy="'+cy+'" r="9" fill="#C9CED6"/>'+[...Array(12)].map((_,i)=>'<path d="M'+cx+' '+(cy-9)+' l1.5 -2.5 l1 2.5z" fill="#C9CED6" transform="rotate('+i*30+' '+cx+' '+cy+')"/>').join('')+'<circle cx="'+cx+'" cy="'+cy+'" r="2" fill="#4C5461"/></g>'; break;
+  case 'cnc': s=B('#4C6A8A')+'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-17)+'" rx="3" fill="url(#'+u+'wd)"/><path d="M14 18 Q'+cx+' 6 '+(W-14)+' 18 T'+(W-14)+' '+(H-20)+' Q'+cx+' '+(H-8)+' 14 '+(H-20)+'Z" fill="none" stroke="#5E3E1E" stroke-width="1.4" stroke-dasharray="3 2"/><rect x="8" y="'+(cy-3)+'" width="'+(W-16)+'" height="6" fill="#2B313B"/><g class="fab-shuttle"><rect x="10" y="'+(cy-8)+'" width="12" height="16" rx="2" fill="#E8B84A"/><circle cx="16" cy="'+cy+'" r="2" fill="#2B313B"/></g>'; break;
+  case 'tap': s=B('#7A4A5A')+[0,1,2].map(i=>'<g transform="translate('+(11+i*21)+' 9)"><rect width="17" height="'+(H-25)+'" rx="4" fill="#B0344A"/><path d="M3 5 H14 M3 9 H14" stroke="#7A1E30" stroke-width=".8"/><circle cx="8.5" cy="'+((H-25)/2)+'" r="1.4" fill="#F2C230"/></g>').join(''); break;
+  case 'ver': s=B('#3A4A5A')+'<rect x="8" y="9" width="'+(W-16)+'" height="'+(H-18)+'" rx="3" fill="#1E2A36"/><rect x="12" y="12" width="'+(W-24)+'" height="'+(H-24)+'" fill="url(#'+u+'wd)"/><rect x="10" y="10" width="'+(W-20)+'" height="'+(H-20)+'" fill="#CFEAF8" opacity=".3" class="fab-mist"/>'; break;
+  case 'mon': s=B('#5A5F6A')+'<rect x="8" y="9" width="'+(W-16)+'" height="'+(H-18)+'" fill="#3A3F48"/><g transform="translate(14 12)"><rect width="18" height="12" fill="url(#'+u+'wd)"/><rect x="2" y="12" width="2" height="6" fill="#8E6232"/><rect x="14" y="12" width="2" height="6" fill="#8E6232"/></g><g transform="translate('+(W-34)+' 11)"><rect width="20" height="16" fill="#C99A62"/><path d="M0 0 L20 16 M20 0 L0 16" stroke="#8E6232" stroke-width=".8"/></g>'; break;
+  /* ---- automobile ---- */
+  case 'pre': s=B('#5B6472',{hz:1})+'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-20)+'" rx="4" fill="#3B424E"/><g transform="translate('+cx+' '+(cy-3)+')"><circle r="24" fill="#2B313B" stroke="#1B1F26" stroke-width="3"/><g class="fab-pst"><circle r="16" fill="url(#'+u+'st)"/></g><circle r="5" fill="#2B313B"/>'+[...Array(6)].map((_,i)=>'<circle cx="'+(Math.cos(i*1.047)*20)+'" cy="'+(Math.sin(i*1.047)*20)+'" r="1.8" fill="#9AA3B2"/>').join('')+'</g>'; break;
+  case 'sou': s=B('#3A3F48',{nb:1})+'<circle cx="'+cx+'" cy="'+(H-20)+'" r="13" fill="#E8A33D" stroke="#8A5A12" stroke-width="2"/><circle cx="'+cx+'" cy="'+(H-20)+'" r="6" fill="#C98A2A"/><g transform="translate('+cx+' '+(H-20)+')"><g class="fab-arm"><rect x="-4" y="-38" width="8" height="38" rx="4" fill="#F5C451" stroke="#8A5A12"/><rect x="-3" y="-52" width="6" height="16" rx="3" fill="#F5C451" stroke="#8A5A12"/><circle cy="-38" r="3.5" fill="#8A5A12"/><circle class="fab-spark" cy="-54" r="4" fill="#FFF7C2"/></g></g>'; break;
+  case 'pei': s=B('#1F4D63')+'<rect x="7" y="7" width="'+(W-14)+'" height="'+(H-16)+'" rx="3" fill="#123444"/><rect x="10" y="10" width="'+(W-20)+'" height="'+(H-22)+'" rx="2" fill="#6FB6D6" opacity=".5" class="fab-mist"/>'+[0,1,2].map(i=>'<g transform="translate('+(22+i*38)+' '+cy+')"><circle r="4.5" fill="#E0F2FE"/><path d="M0 4 L-6 12 M0 4 L6 12 M0 4 V13" stroke="#E0F2FE" stroke-opacity=".7"/></g>').join(''); break;
+  case 'ass': s=B('#3D4A5C')+'<rect x="7" y="'+(cy-9)+'" width="'+(W-14)+'" height="18" fill="#2B313B"/>'+[0,1,2].map(i=>'<g transform="translate('+(20+i*48)+' '+(cy-8)+')"><path d="M0 8 C0 2 5 0 12 0 H22 C30 0 34 3 34 8 C34 13 30 16 22 16 H12 C5 16 0 14 0 8Z" fill="#C0392B"/><rect x="11" y="2.5" width="12" height="11" rx="2.5" fill="#6FB6D6" opacity=".85"/><rect x="2" y="3" width="3" height="10" rx="1" fill="#1D1F23"/><rect x="29" y="3" width="3" height="10" rx="1" fill="#1D1F23"/></g>').join('')+fabLed(W-9,9,'#F2C230',1); break;
+  /* ---- chantier naval ---- */
+  case 'dec': s=B('#4C5A6A')+'<rect x="8" y="9" width="'+(W-16)+'" height="'+(H-18)+'" fill="url(#'+u+'st)"/><path d="M12 '+(cy-4)+' L'+(W-20)+' '+(cy-4)+' L'+(W-14)+' '+(cy+4)+' L12 '+(cy+4)+'Z" fill="none" stroke="#4C5461" stroke-dasharray="2 2"/><g class="fab-shuttle"><rect x="10" y="10" width="4" height="'+(H-20)+'" fill="#2B313B"/><circle class="fab-spark" cx="12" cy="'+cy+'" r="3" fill="#B0E0FF"/></g>'; break;
+  case 'blo': s=B('#3A4A5C')+[0,1].map(r=>[0,1].map(c=>'<g transform="translate('+(10+c*32)+' '+(10+r*32)+')"><rect width="28" height="26" fill="#7E8794"/><path d="M0 9 H28 M0 18 H28 M9 0 V26 M19 0 V26" stroke="#4C5461"/><rect width="28" height="26" fill="none" stroke="#C9CED6"/></g>').join('')).join('')+'<circle class="fab-spark" cx="'+cx+'" cy="'+cy+'" r="2.5" fill="#FFF3B0"/>'; break;
+  case 'cal': s=B('#2E3E50')+'<rect x="7" y="7" width="'+(W-14)+'" height="'+(H-16)+'" fill="#1E5A7A" opacity=".55"/><path d="M14 '+(cy-14)+' H'+(W-30)+' L'+(W-12)+' '+cy+' L'+(W-30)+' '+(cy+14)+' H14 Q8 '+cy+' 14 '+(cy-14)+'Z" fill="#C9CED6" stroke="#7E8794"/><path d="M14 '+cy+' H'+(W-14)+'" stroke="#9AA3B2"/>'+[...Array(5)].map((_,i)=>'<rect x="'+(24+i*22)+'" y="'+(cy-9)+'" width="14" height="18" fill="#C0392B" opacity=".85"/>').join('')+'<g class="fab-swing" style="transform-origin:'+(W-24)+'px 10px"><path d="M'+(W-24)+' 10 V'+(cy-16)+'" stroke="#F2C230" stroke-width="1.5"/><rect x="'+(W-30)+'" y="'+(cy-18)+'" width="12" height="6" fill="#F2C230"/></g>'; break;
+  case 'arm': s=B('#2F5A7A')+'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-17)+'" fill="#1E5A7A" opacity=".6"/><path d="M14 18 H'+(W-14)+' V'+(H-22)+' H14Z" fill="#E8EDF4"/><rect x="'+(cx-8)+'" y="24" width="16" height="12" fill="#2B313B"/><rect x="'+(cx-3)+'" y="14" width="6" height="10" fill="#C0392B"/>'+[0,1,2,3].map(i=>'<rect x="'+(16+i*12)+'" y="'+(H-32)+'" width="8" height="6" fill="#6FB6D6"/>').join(''); break;
+  /* ---- aéronautique ---- */
+  case 'fus': s=B('#3B4F7A')+'<rect x="8" y="8" width="'+(W-16)+'" height="'+(H-17)+'" fill="#24324F"/>'+[0,1].map(i=>'<g transform="translate('+(14+i*30)+' 14)"><rect width="24" height="'+(H-30)+'" rx="12" fill="url(#'+u+'st)"/>'+[...Array(5)].map((_,j)=>'<circle cx="12" cy="'+(8+j*10)+'" r="1.8" fill="#2B313B"/>').join('')+'</g>').join('')+'<circle class="fab-spark" cx="'+(cx+2)+'" cy="'+cy+'" r="2.5" fill="#B0E0FF"/>'; break;
+  case 'ail': s=B('#34466E')+'<path d="M10 '+(H-14)+' L'+(W-10)+' 14 L'+(W-10)+' 26 L22 '+(H-14)+'Z" fill="url(#'+u+'st)"/><path d="M20 '+(H-18)+' L'+(W-14)+' 20" stroke="#7E8794"/>'+[0,1,2].map(i=>'<circle cx="'+(26+i*14)+'" cy="'+(H-24-i*12)+'" r="1.6" fill="#4C5461"/>').join('')+'<g class="fab-swing" style="transform-origin:'+(cx)+'px 8px"><path d="M'+cx+' 8 V'+(cy-6)+'" stroke="#F2C230"/><rect x="'+(cx-5)+'" y="'+(cy-8)+'" width="10" height="4" fill="#F2C230"/></g>'; break;
+  case 'fin': s=B('#2B3A5C')+'<rect x="7" y="7" width="'+(W-14)+'" height="'+(H-16)+'" fill="#1E2A44"/><g transform="translate('+cx+' '+cy+')"><path d="M-62 0 C-62 -6 -56 -8 -46 -8 H46 C56 -8 64 -4 66 0 C64 4 56 8 46 8 H-46 C-56 8 -62 6 -62 0Z" fill="url(#'+u+'st)"/><path d="M-4 -8 L-18 -34 H-8 L14 -8Z M-4 8 L-18 34 H-8 L14 8Z" fill="#C9CED6" stroke="#7E8794"/><path d="M-54 -8 L-60 -20 H-54 L-46 -8Z" fill="#C0392B"/>'+[...Array(10)].map((_,i)=>'<circle cx="'+(-36+i*8)+'" cy="-3" r="1.1" fill="#2B313B"/>').join('')+'<path d="M52 -4 Q58 0 52 4" fill="#2B313B"/></g>'+fabLed(12,12,'#F2C230',1)+fabLed(W-12,12,'#F2C230',1); break;
+  case 'cab': s=B('#4A5A7A')+'<rect x="8" y="9" width="'+(W-16)+'" height="'+(H-18)+'" rx="8" fill="#E8EDF4"/>'+[...Array(6)].map((_,i)=>'<rect x="'+(12+i*10)+'" y="12" width="7" height="'+(H-24)+'" rx="2" fill="#2B5BB5"/><rect x="'+(12+i*10)+'" y="12" width="7" height="3" rx="1" fill="#6FB6D6"/>').join(''); break;
+  case 'ess': s=B('#2E3A4A')+'<rect x="8" y="9" width="'+(W-16)+'" height="'+(H-18)+'" rx="3" fill="#0B141C"/><g transform="translate(22 '+cy+')"><circle r="10" fill="#4C5461"/><g class="fab-spin"><circle r="8" fill="#9AA3B2"/>'+[...Array(10)].map((_,i)=>'<path d="M0 0 L0 -8" stroke="#4C5461" stroke-width="1.2" transform="rotate('+i*36+')"/>').join('')+'</g></g><path d="M38 '+(cy+2)+' l4 0 l2 -6 l3 10 l2 -5 l6 0" stroke="#6EE7A0" stroke-width="1.3" fill="none" class="fab-led"/>'; break;
+  default: s=B('#5A6472');
+  }
+  if(lab&&m&&!m.aux&&H>=40) s+='<rect x="5" y="'+(H-17)+'" width="'+(W-10)+'" height="10" rx="2" fill="#000" opacity=".55"/>'+fabTxt(W/2,H-9.5,lab,'#F2F3F7',6.2);
+  return s; }
+
+/* ---------- icône d'un produit (48 × 48) ---------- */
+function fabProdSvg(p,sz){ sz=sz||44; let s='';
+  const g=(c1,c2,id)=>'<linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient>';
+  const u='fp'+p+(++FAB_N);
+  const car=(col,body)=>'<defs>'+g(fabSh(col,.35),fabSh(col,-.3),u)+'</defs><ellipse cx="24" cy="38" rx="20" ry="2.5" fill="#000" opacity=".3"/><path d="'+body+'" fill="url(#'+u+')" stroke="'+fabSh(col,-.5)+'" stroke-width=".6"/>'+'<circle cx="13" cy="35" r="4.2" fill="#1D1F23"/><circle cx="13" cy="35" r="2.2" fill="#C9CED6"/><circle cx="35" cy="35" r="4.2" fill="#1D1F23"/><circle cx="35" cy="35" r="2.2" fill="#C9CED6"/><rect x="40" y="27" width="3.5" height="2.2" rx="1" fill="#FFF3C0"/><rect x="4" y="27" width="2.5" height="2" rx="1" fill="#D22D2D"/>';
+  const plane=(len,eng)=>'<defs>'+g('#F4F6F9','#AEB6C2',u)+'</defs><g transform="rotate(-18 24 24)"><path d="M'+(24-len)+' 24 C'+(24-len)+' 21 '+(26-len)+' 20 '+(30-len)+' 20 H'+(20+len)+' C'+(23+len)+' 20 '+(26+len)+' 22 '+(26+len)+' 24 C'+(26+len)+' 26 '+(23+len)+' 28 '+(20+len)+' 28 H'+(30-len)+' C'+(26-len)+' 28 '+(24-len)+' 27 '+(24-len)+' 24Z" fill="url(#'+u+')" stroke="#7E8794" stroke-width=".6"/><path d="M22 20 L14 6 H18 L30 20Z M22 28 L14 42 H18 L30 28Z" fill="#D8DDE4" stroke="#7E8794" stroke-width=".6"/><path d="M'+(27-len)+' 20 L'+(24-len)+' 13 H'+(27-len)+' L'+(32-len)+' 20Z" fill="#C0392B"/>'+[...Array(eng)].map((_,i)=>'<rect x="'+(19-i*4)+'" y="'+(i%2?31:14)+'" width="6" height="3" rx="1.5" fill="#4C5461"/>').join('')+[...Array(Math.round(len/2))].map((_,i)=>'<circle cx="'+(30-len+i*4)+'" cy="23" r=".9" fill="#2B5BB5"/>').join('')+'</g>';
+  switch(p){
+  case 'cer': s='<defs>'+g('#F5D77A','#C9962E',u)+'</defs>'+[14,22,30].map((x,i)=>'<path d="M'+x+' 44 Q'+(x+1)+' 26 '+(x+2)+' 14" stroke="#B8902E" stroke-width="1.4" fill="none"/>'+[...Array(6)].map((_,j)=>'<ellipse cx="'+(x+1.5+(j%2?2.4:-2.4)+j*.1)+'" cy="'+(16+j*3.4)+'" rx="2.2" ry="3.6" fill="url(#'+u+')" transform="rotate('+(j%2?25:-25)+' '+(x+1.5)+' '+(16+j*3.4)+')"/>').join('')).join(''); break;
+  case 'leg': s='<path d="M8 30 H40 L36 44 H12Z" fill="#8A6A43"/><path d="M8 30 H40" stroke="#B48B57" stroke-width="2"/><circle cx="17" cy="26" r="7" fill="#D9342B"/><circle cx="15" cy="24" r="2" fill="#F28B82" opacity=".7"/><path d="M17 19 q2 -3 4 -2" stroke="#3E7A2A" stroke-width="1.6" fill="none"/><path d="M26 30 Q24 16 30 10 Q34 18 32 30Z" fill="#F28C28"/><path d="M30 10 l-3 -5 M30 10 l2 -6 M30 10 l5 -3" stroke="#4E8A2E" stroke-width="1.6"/><circle cx="37" cy="27" r="5" fill="#6EBF4A"/>'; break;
+  case 'lai': s='<defs>'+g('#FFFFFF','#DCE3EA',u)+'</defs><path d="M16 12 H32 V8 H16Z" fill="#2B5BB5"/><path d="M16 12 L13 18 V42 Q13 44 15 44 H33 Q35 44 35 42 V18 L32 12Z" fill="url(#'+u+')" stroke="#9AA3B2" stroke-width=".8"/><rect x="13" y="24" width="22" height="12" fill="#2B5BB5"/><path d="M16 30 q4 -3 8 0 t8 0" stroke="#fff" stroke-width="1.4" fill="none"/>'; break;
+  case 'oeu': s='<path d="M6 30 H42 L38 42 H10Z" fill="#C9A25E"/>'+[[14,26],[24,24],[34,26],[19,32],[29,32]].map(([x,y])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="5.2" ry="6.4" fill="#F3E1C2" stroke="#C9A97A" stroke-width=".6"/><ellipse cx="'+(x-1.5)+'" cy="'+(y-2)+'" rx="1.4" ry="2" fill="#fff" opacity=".7"/>').join(''); break;
+  case 'rai': s='<path d="M24 6 q2 4 0 8" stroke="#6B4A2A" stroke-width="1.8" fill="none"/><path d="M26 9 Q36 4 40 12 Q32 14 26 9Z" fill="#5B8C2A"/>'+[[19,16],[25,16],[31,17],[16,22],[22,22],[28,22],[34,23],[19,28],[25,28],[31,29],[22,34],[28,34],[25,40]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="3.6" fill="#5E2A6E"/><circle cx="'+(x-1)+'" cy="'+(y-1.2)+'" r="1" fill="#B98CD0" opacity=".8"/>').join(''); break;
+  case 'far': s='<defs>'+g('#F4EBD6','#CDBB93',u)+'</defs><path d="M12 14 Q24 8 36 14 L38 42 Q24 46 10 42Z" fill="url(#'+u+')" stroke="#A8936A" stroke-width=".8"/><path d="M12 14 Q16 10 20 13 Q24 9 28 13 Q32 10 36 14" stroke="#A8936A" fill="none"/><rect x="16" y="24" width="16" height="10" rx="2" fill="#C4661F" opacity=".85"/><path d="M24 26 v6 M21 28 l3 -2 l3 2" stroke="#F4EBD6" stroke-width="1"/>'; break;
+  case 'fro': s='<path d="M6 34 L24 16 L42 30 V38 L24 44 L6 40Z" fill="#E8B84A"/><path d="M6 34 L24 16 L42 30 L24 36Z" fill="#F5D27A"/><path d="M24 36 V44" stroke="#C9962E"/>'+[[16,30,2.2],[28,26,1.8],[33,33,2],[20,39,1.6],[30,40,1.4]].map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#C9962E"/>').join(''); break;
+  case 'vin': s='<defs>'+g('#3E6B3A','#1E3A1E',u)+'</defs><path d="M21 4 H27 V14 Q32 18 32 24 V42 Q32 44 30 44 H18 Q16 44 16 42 V24 Q16 18 21 14Z" fill="url(#'+u+')"/><rect x="21" y="3" width="6" height="5" fill="#8A2E3A"/><rect x="16" y="26" width="16" height="10" fill="#F2EEDF"/><path d="M19 31 h10" stroke="#8A2E3A" stroke-width="1.6"/><path d="M18 20 Q19 17 22 16" stroke="#fff" stroke-opacity=".35" stroke-width="1.4" fill="none"/>'; break;
+  case 'cot': case 'lan': case 'soi': { const c={cot:'#F2EEE6',lan:'#C9A27A',soi:'#C8352A'}[p]; s='<defs>'+g(fabSh(c,.25),fabSh(c,-.25),u)+'</defs><rect x="8" y="14" width="30" height="22" rx="2" fill="url(#'+u+')"/>'+[...Array(5)].map((_,i)=>'<path d="M8 '+(17+i*4)+' H38" stroke="'+fabSh(c,-.3)+'" stroke-width=".5"/>').join('')+'<ellipse cx="38" cy="25" rx="5" ry="11" fill="'+fabSh(c,-.15)+'"/><ellipse cx="38" cy="25" rx="2" ry="4.4" fill="'+fabSh(c,-.45)+'"/><path d="M8 36 Q4 40 10 44 H24" stroke="'+fabSh(c,-.1)+'" stroke-width="3" fill="none"/>'+(p==='soi'?'<path d="M12 18 Q20 24 30 18" stroke="#fff" stroke-opacity=".5" fill="none"/>':''); break; }
+  case 'pap': s='<defs>'+g('#2B5BB5','#1A3A7A',u)+'</defs><path d="M16 6 L10 10 L4 16 L9 22 L12 19 V42 H36 V19 L39 22 L44 16 L38 10 L32 6 Q24 12 16 6Z" fill="url(#'+u+')" stroke="#12285A" stroke-width=".8"/><path d="M16 6 Q24 14 32 6" stroke="#fff" stroke-opacity=".6" fill="none"/><path d="M24 12 V42" stroke="#12285A" stroke-width=".6"/>'+[18,24,30].map(y=>'<circle cx="24" cy="'+y+'" r="1" fill="#E8EDF4"/>').join(''); break;
+  case 'puc': s='<rect x="10" y="10" width="28" height="28" rx="3" fill="#1E2A36"/><rect x="15" y="15" width="18" height="18" rx="1" fill="#C9A23A"/>'+[...Array(4)].map((_,i)=>'<rect x="'+(13+i*6)+'" y="4" width="2.5" height="6" fill="#C9CED6"/><rect x="'+(13+i*6)+'" y="38" width="2.5" height="6" fill="#C9CED6"/><rect x="4" y="'+(13+i*6)+'" width="6" height="2.5" fill="#C9CED6"/><rect x="38" y="'+(13+i*6)+'" width="6" height="2.5" fill="#C9CED6"/>').join('')+'<path d="M18 20 H30 M18 24 H30 M18 28 H26" stroke="#8A6A1A" stroke-width=".8"/>'; break;
+  case 'ecr': s='<defs>'+g('#3A6EA5','#0E1A2A',u)+'</defs><rect x="6" y="9" width="36" height="24" rx="2" fill="#1E242C"/><rect x="8" y="11" width="32" height="20" fill="url(#'+u+')"/><path d="M10 13 L20 13 L14 22Z" fill="#fff" opacity=".18"/><rect x="20" y="33" width="8" height="5" fill="#4C5461"/><rect x="14" y="38" width="20" height="3" rx="1.5" fill="#4C5461"/>'; break;
+  case 'bat': s='<defs>'+g('#3DDC8C','#0F7A44',u)+'</defs><rect x="12" y="10" width="24" height="32" rx="4" fill="#2B313B"/><rect x="19" y="6" width="10" height="5" rx="1" fill="#9AA3B2"/><rect x="15" y="22" width="18" height="17" rx="1.5" fill="url(#'+u+')"/><path d="M26 13 L20 22 H25 L22 30 L29 20 H24Z" fill="#F2C230"/>'; break;
+  case 'pau': s='<g transform="translate(24 24)"><circle r="16" fill="#7E8794"/>'+[...Array(10)].map((_,i)=>'<rect x="-3" y="-20" width="6" height="6" rx="1" fill="#7E8794" transform="rotate('+i*36+')"/>').join('')+'<circle r="10" fill="#AEB6C2"/><circle r="4.5" fill="#4C5461"/>'+[...Array(5)].map((_,i)=>'<circle cx="'+(Math.cos(i*1.257)*7)+'" cy="'+(Math.sin(i*1.257)*7)+'" r="1.4" fill="#4C5461"/>').join('')+'</g>'; break;
+  case 'aci': s='<defs>'+g('#C9CED6','#6A7382',u)+'</defs>'+[[6,28],[14,20],[22,28]].map(([x,y])=>'<path d="M'+x+' '+(y+6)+' L'+(x+6)+' '+y+' H'+(x+26)+' L'+(x+20)+' '+(y+6)+'Z" fill="#E4E8EE"/><rect x="'+x+'" y="'+(y+6)+'" width="20" height="8" fill="url(#'+u+')"/><path d="M'+(x+20)+' '+(y+6)+' L'+(x+26)+' '+y+' V'+(y+8)+' L'+(x+20)+' '+(y+14)+'Z" fill="#59616E"/>').join(''); break;
+  case 'tol': s='<defs>'+g('#E4E8EE','#7E8794',u)+'</defs><circle cx="20" cy="26" r="15" fill="url(#'+u+')"/>'+[4,7,10,13].map(r=>'<circle cx="20" cy="26" r="'+r+'" fill="none" stroke="#59616E" stroke-width=".6"/>').join('')+'<circle cx="20" cy="26" r="3.5" fill="#2B313B"/><path d="M20 11 H44 V17 H20" fill="#C9CED6" stroke="#7E8794" stroke-width=".6"/>'; break;
+  case 'pla': s='<ellipse cx="24" cy="32" rx="20" ry="9" fill="#E8EDF4"/><ellipse cx="24" cy="30" rx="16" ry="6.5" fill="#F7F9FB"/><path d="M12 29 Q16 22 22 26 Q26 20 32 25 Q36 23 37 29 Q24 34 12 29Z" fill="#C4661F"/><circle cx="18" cy="27" r="2" fill="#6EBF4A"/><circle cx="29" cy="26" r="2.2" fill="#D9342B"/><path d="M18 18 q2 -4 0 -8 M24 17 q2 -4 0 -8 M30 18 q2 -4 0 -8" stroke="#C9CED6" stroke-width="1.4" fill="none"/>'; break;
+  case 'bsn': s='<defs>'+g('#F2A33A','#C4661F',u)+'</defs><path d="M15 12 H33 L30 44 H18Z" fill="#E8EDF4" stroke="#9AA3B2" stroke-width=".7"/><path d="M16 20 H32 L30 42 H18Z" fill="url(#'+u+')"/><path d="M28 4 L24 30" stroke="#D9342B" stroke-width="2.2"/><circle cx="33" cy="13" r="5" fill="#F2C230"/><path d="M33 8 V18 M28 13 H38" stroke="#E8A33D"/><circle cx="21" cy="30" r="1.4" fill="#fff" opacity=".6"/><circle cx="25" cy="36" r="1" fill="#fff" opacity=".6"/>'; break;
+  case 'meu': s='<defs>'+g('#C99A62','#8E6232',u)+'</defs><rect x="8" y="22" width="32" height="10" rx="3" fill="#B0344A"/><rect x="8" y="12" width="32" height="12" rx="4" fill="#C8455A"/><rect x="5" y="18" width="7" height="16" rx="3" fill="#9E2E42"/><rect x="36" y="18" width="7" height="16" rx="3" fill="#9E2E42"/><rect x="8" y="34" width="3" height="8" fill="url(#'+u+')"/><rect x="37" y="34" width="3" height="8" fill="url(#'+u+')"/><path d="M14 16 H34" stroke="#7A1E30" stroke-width=".7"/>'; break;
+  case 'mbu': s='<defs>'+g('#C99A62','#8E6232',u)+'</defs><rect x="4" y="16" width="40" height="5" rx="1" fill="url(#'+u+')"/><rect x="6" y="21" width="3" height="20" fill="#59616E"/><rect x="39" y="21" width="3" height="20" fill="#59616E"/><rect x="26" y="21" width="12" height="14" fill="#8E6232"/><rect x="28" y="24" width="8" height="3" fill="#C99A62"/><rect x="28" y="29" width="8" height="3" fill="#C99A62"/><rect x="10" y="6" width="14" height="10" rx="1" fill="#1E242C"/><rect x="11" y="7" width="12" height="8" fill="#3A6EA5"/>'; break;
+  case 'voi': s=car('#2B8AC4','M6 32 C6 26 9 24 14 23 L18 17 C19 15.5 21 15 23 15 H31 C34 15 36 17 38 20 L41 23 C43 24 44 26 44 29 V33 H6Z')+'<path d="M19 17.5 H26 V23 H16Z M28 17.5 H31 C33 17.5 34.5 19 36 22.5 V23 H28Z" fill="#CFEAF8"/>'; break;
+  case 'ber': s=car('#C0392B','M3 32 C3 28 5 26 9 25.5 L16 24.5 L21 18.5 C22.5 17 24 16.5 26 16.5 H32 C34.5 16.5 36 17.5 38 20 L41 24 C44 24.5 46 26 46 29 V33 H3Z')+'<path d="M22.5 19 H28.5 V24 H18Z M30.5 19 H32 C34 19 35 20 37 23.5 V24 H30.5Z" fill="#CFEAF8"/>'; break;
+  case 'suv': s=car('#2E3A44','M4 32 V26 C4 23.5 6 22.5 9 22 L14 14.5 C15 13 16.5 12.5 18 12.5 H34 C36 12.5 37.5 13.5 38.5 15.5 L42 22 C44 22.5 45 24 45 26 V33 H4Z')+'<path d="M16 15 H25 V21.5 H11.5Z M27 15 H34 C35.5 15 36.5 16 37.5 18 L39 21.5 H27Z" fill="#CFEAF8"/><rect x="15" y="10.5" width="20" height="1.6" rx=".8" fill="#1D1F23"/>'; break;
+  case 'utl': s=car('#E9EBEE','M3 33 V14 C3 11.5 4.5 10 7 10 H33 C35 10 36 11 37 13 L41 21 C44 21.5 46 23 46 26 V33Z')+'<path d="M34 13 H35.5 L39.5 21 H34Z" fill="#CFEAF8"/><path d="M8 13 H30 V28 H8Z" fill="none" stroke="#9AA3B2" stroke-width=".7"/><rect x="10" y="17" width="14" height="5" fill="#C8352A"/>'; break;
+  case 'yac': s='<defs>'+g('#FFFFFF','#C9D2DC',u)+'</defs><path d="M2 36 Q24 44 46 32 L43 28 H6Z" fill="#1E5A7A" opacity=".35"/><path d="M4 30 H44 L38 36 H10Z" fill="url(#'+u+')" stroke="#7E8794" stroke-width=".6"/><path d="M12 30 V24 H32 L38 30Z" fill="#F4F6F9" stroke="#9AA3B2" stroke-width=".6"/><path d="M16 24 V19 H28 L31 24Z" fill="#F4F6F9" stroke="#9AA3B2" stroke-width=".6"/><path d="M14 27 H34 M18 22 H28" stroke="#1E242C" stroke-width="1.8"/><path d="M4 30 H44" stroke="#2B5BB5" stroke-width="1.4"/>'; break;
+  case 'fer': s='<path d="M3 30 H45 L41 38 H8Z" fill="#E8EDF4" stroke="#7E8794" stroke-width=".6"/><path d="M3 30 H45" stroke="#C8352A" stroke-width="2"/><rect x="8" y="21" width="32" height="9" fill="#F4F6F9" stroke="#9AA3B2" stroke-width=".6"/><rect x="12" y="15" width="22" height="6" fill="#F4F6F9" stroke="#9AA3B2" stroke-width=".6"/>'+[...Array(8)].map((_,i)=>'<rect x="'+(10+i*3.8)+'" y="24" width="2.4" height="2.4" fill="#2B5BB5"/>').join('')+'<rect x="30" y="9" width="5" height="6" fill="#C8352A"/><path d="M2 41 Q12 38 24 41 T46 41" stroke="#7FB3E0" fill="none"/>'; break;
+  case 'pcn': s='<path d="M2 30 H46 L42 38 H6Z" fill="#2B313B"/><path d="M2 30 H46" stroke="#C8352A" stroke-width="1.6"/>'+[...Array(5)].map((_,i)=>[0,1].map(j=>'<rect x="'+(8+i*6)+'" y="'+(24-j*5)+'" width="5.5" height="4.6" fill="'+['#C0392B','#2B5BB5','#E8B84A','#2E8A5A','#7A3FA0'][(i+j)%5]+'"/>').join('')).join('')+'<rect x="38" y="17" width="6" height="13" fill="#E8EDF4"/><rect x="39" y="19" width="4" height="2" fill="#2B5BB5"/><path d="M2 41 Q12 38 24 41 T46 41" stroke="#7FB3E0" fill="none"/>'; break;
+  case 'a1': s=plane(14,2); break;
+  case 'a2': s=plane(18,2); break;
+  case 'a3': s=plane(21,4); break;
+  case 'fib': s='<path d="M8 36 Q12 20 24 18 Q36 20 40 36Z" fill="#F2EEE6" stroke="#C9C2B0"/><path d="M12 30 Q24 22 36 30 M14 26 Q24 20 34 26" stroke="#D9D2C0" fill="none"/>'; break;
+  case 'sil': s='<path d="M24 6 L38 16 V32 L24 42 L10 32 V16Z" fill="#5A6472"/><path d="M24 6 L38 16 L24 24 L10 16Z" fill="#8E97A6"/><path d="M24 24 V42" stroke="#3B424E"/>'; break;
+  case 'min': s='<path d="M6 38 L14 22 L22 26 L30 14 L42 30 L40 40 H8Z" fill="#7A4A3A"/><path d="M14 22 L22 26 L18 34Z M30 14 L36 26 L28 28Z" fill="#A0604A"/><circle cx="22" cy="32" r="2" fill="#C9CED6"/>'; break;
+  case 'bois': s='<defs>'+g('#C99A62','#8E6232',u)+'</defs>'+[[8,30],[18,22],[28,30]].map(([x,y])=>'<rect x="'+x+'" y="'+y+'" width="16" height="8" rx="4" fill="url(#'+u+')"/><circle cx="'+(x+16)+'" cy="'+(y+4)+'" r="4" fill="#E8C49A" stroke="#8E6232"/><circle cx="'+(x+16)+'" cy="'+(y+4)+'" r="1.5" fill="none" stroke="#8E6232" stroke-width=".6"/>').join(''); break;
+  default: s='<circle cx="24" cy="24" r="16" fill="#5A6472"/>';
+  }
+  return '<svg class="fab-pic" viewBox="0 0 48 48" width="'+sz+'" height="'+sz+'" aria-hidden="true">'+s+'</svg>'; }
+let FAB_N=0;
+
+/* ---------- icône d'un type d'usine (bâtiment détaillé, 64 × 52) ---------- */
+function fabTypeSvg(t,sz){ sz=sz||56; const T=FAB_T[t], c=T.col, u='ft'+t+(++FAB_N);
+  let s='<defs><linearGradient id="'+u+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+fabSh(c,.35)+'"/><stop offset="1" stop-color="'+fabSh(c,-.3)+'"/></linearGradient><linearGradient id="'+u+'s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A3A55"/><stop offset="1" stop-color="#5A7AA8"/></linearGradient></defs>'+
+    '<rect width="64" height="52" rx="10" fill="url(#'+u+'s)"/><rect y="42" width="64" height="10" fill="#3B424E"/><path d="M0 42 H64" stroke="#6A7382"/>';
+  const saw='<path d="M8 42 V26 L18 20 V26 L28 20 V26 L38 20 V26 L48 20 V42Z" fill="url(#'+u+')"/><path d="M18 20 V26 M28 20 V26 M38 20 V26" stroke="'+fabSh(c,-.5)+'"/>'+[12,22,32,42].map(x=>'<rect x="'+x+'" y="30" width="5" height="5" fill="#FFE7A3" opacity=".85"/>').join('');
+  const smoke=x=>'<g class="fab-steam"><circle cx="'+x+'" cy="8" r="3" fill="#C9CED6" opacity=".7"/><circle cx="'+(x+4)+'" cy="4" r="2.4" fill="#C9CED6" opacity=".5"/></g>';
+  switch(t){
+  case 'farm': s+='<path d="M0 42 Q16 36 32 40 T64 38 V52 H0Z" fill="#5B8C2A"/>'+[...Array(6)].map((_,i)=>'<path d="M'+(36+i*5)+' 44 V36" stroke="#E5C46B" stroke-width="1.6"/>').join('')+'<path d="M8 42 V24 L18 16 L28 24 V42Z" fill="#B3402E"/><path d="M6 25 L18 14 L30 25" stroke="#7A2A1E" stroke-width="2" fill="none"/><rect x="14" y="30" width="8" height="12" fill="#F2EEDF"/><path d="M14 30 L22 42 M22 30 L14 42" stroke="#B3402E"/><rect x="32" y="20" width="7" height="22" rx="3.5" fill="#C9CED6"/><path d="M32 22 Q35.5 17 39 22" fill="#9AA3B2"/><circle cx="54" cy="12" r="5" fill="#F2C230"/>'; break;
+  case 'textile': s+=saw+'<rect x="50" y="10" width="5" height="32" fill="#7A4A3A"/>'+smoke(52)+'<path d="M10 46 h44" stroke="#D7C9F2" stroke-width="2" stroke-dasharray="4 3"/>'; break;
+  case 'agro': s+=saw+'<rect x="50" y="18" width="10" height="24" rx="5" fill="#E8EDF4"/><rect x="50" y="26" width="10" height="3" fill="#C4661F"/>'+smoke(30); break;
+  case 'meuble': s+=saw+[0,1,2].map(i=>'<rect x="'+(48+i*0)+'" y="'+(34-i*4)+'" width="14" height="4" rx="2" fill="'+['#C99A62','#B07F48','#8E6232'][i]+'"/>').join(''); break;
+  case 'electronics': s+='<rect x="6" y="16" width="44" height="26" fill="#E8EDF4"/><rect x="6" y="16" width="44" height="4" fill="'+c+'"/>'+[...Array(4)].map((_,i)=>'<rect x="'+(9+i*10)+'" y="24" width="8" height="10" fill="#8FB7D8"/>').join('')+'<rect x="52" y="22" width="8" height="20" fill="#C9CED6"/><g class="fab-led"><circle cx="56" cy="18" r="2" fill="#6EE7A0"/></g>'; break;
+  case 'acier': s+='<path d="M4 42 V22 H30 V42Z" fill="url(#'+u+')"/><rect x="34" y="8" width="7" height="34" fill="#5A3A2E"/><rect x="45" y="14" width="7" height="28" fill="#5A3A2E"/>'+smoke(37)+smoke(48)+'<rect x="8" y="28" width="18" height="6" fill="#FF9A2E" class="fab-glow"/>'; break;
+  case 'auto': s+=saw+'<g transform="translate(46 34)"><path d="M0 6 C0 3 2 2 4 2 L6 -1 H12 L14 2 C16 2 16 4 16 6Z" fill="#FFFFFF"/><circle cx="4" cy="7" r="1.8" fill="#1D1F23"/><circle cx="12" cy="7" r="1.8" fill="#1D1F23"/></g>'; break;
+  case 'naval': s+='<rect y="36" width="64" height="16" fill="#1E5A7A"/><path d="M0 40 Q8 38 16 40 T32 40 T48 40 T64 40" stroke="#7FB3E0" fill="none"/><path d="M10 36 H46 L42 30 H14Z" fill="#C9CED6"/><rect x="18" y="22" width="14" height="8" fill="#E8EDF4"/><path d="M52 36 V8 H38 M50 8 V20" stroke="#F2C230" stroke-width="2.4" fill="none"/><rect x="47" y="20" width="6" height="4" fill="#F2C230"/>'; break;
+  case 'aero': s+='<path d="M4 42 V26 Q32 10 60 26 V42Z" fill="url(#'+u+')"/><path d="M14 42 V32 H50 V42" fill="#1E242C"/><g transform="translate(32 18) rotate(-12)"><path d="M-14 0 H12 Q16 0 16 2 Q16 4 12 4 H-14Z" fill="#F4F6F9"/><path d="M-2 0 L-8 -7 H-5 L4 0Z M-2 4 L-8 11 H-5 L4 4Z" fill="#D8DDE4"/><path d="M-13 0 L-15 -5 H-12 L-9 0Z" fill="#C0392B"/></g>'; break;
+  }
+  return '<svg class="fab-ico" viewBox="0 0 64 52" width="'+sz+'" height="'+Math.round(sz*52/64)+'" aria-hidden="true">'+s+'</svg>'; }
+/* ============================================================
+   V2.8.1 : USINES (2/3) · MOTEUR
+   État : S.fab = {sites:[site], n, day}
+   site = {id, t, city, dist, blds:[id], name, halls, lines:[ligne], parc:{culture:n}, st:{produit:unités}, qm:{produit:prime},
+           mode:'sell'|'store', buy:1|0, d:{jour}}
+   ligne = {id, p, g:[[machine,x,y,rot]], on, v}
+   Production d'une ligne : la cadence de son étape la plus lente (machines raccordées au convoyeur principal, dans
+   l'ordre des étapes) × longueur et virages du convoyeur × stocks tampons × pannes, en exemplaires par jour.
+   Matières : d'abord vos stocks (vos autres usines, avec transport), sinon achetées au marché.
+   Débouchés : vos sociétés (réserve gardée), puis le marché de gros (ou stockage).
+   ============================================================ */
+function fabInit(){ if(!S.fab) S.fab={sites:[], n:1}; if(typeof gpInit==='function'){ const G=gpInit(); Object.keys(D.GOODS).forEach(g=>{ if(!G[g]) G[g]={i:1,h:[1]}; }); } return S.fab; }
+const fabSites = () => fabInit().sites;
+const fabSite = id => fabSites().find(s=>s.id===+id);
+const fabProdDef = p => D.PRODS[p]||FAB_RAW[p];
+const fabPrice = p => { const P=fabProdDef(p); return P.v*(typeof gIdx==='function'&&S.gp&&S.gp[P.g]? gIdx(P.g) : 1); };
+const FAB_NRJ={France:1, Espagne:1.05, Croatie:1.1, 'États-Unis':.8, 'Brésil':.9, Chine:.85};
+const fabWage = cid => { const C=D.CITIES[cid]; return .4+.15*((C&&C.idx&&C.idx.wage)||3); };
+const fabNrj = cid => FAB_NRJ[(D.CITIES[cid]||{}).country]||1;
+const fabCityN = cid => (D.CITIES[cid]||{}).n||cid;
+/* cadence médiane des machines d'un type (sert aux machines annexes) */
+function fabMedC(t){ const L=[]; fabProdsOf(t).forEach(p=>D.PRODS[p].st.forEach(k=>L.push(FAB_M[k].c))); L.sort((a,b)=>a-b); return L.length? L[Math.floor(L.length/2)] : 1; }
+const FAB_AUXF={cv:.006, in:.08, out:.08, buf:.12, qc:.3, mnt:.35};
+function fabMCost(t,k){ const m=FAB_M[k], V=FAB_T[t].vRef; if(m.aux) return Math.round(10*fabMedC(t)*V*FAB_AUXF[k]); return Math.round(10*m.c*V); }
+/* frais d'exploitation par jour d'une machine posée (ouvriers + énergie) */
+function fabMOpex(t,k,cid){ const m=FAB_M[k], V=FAB_T[t].vRef, base= m.aux? fabMedC(t)*V*({cv:0,in:.02,out:.02,buf:.02,qc:.1,mnt:.15}[k]) : m.c*V;
+  return {lab: base*.04*fabWage(cid), nrj: base*.02*fabNrj(cid)}; }
+const fabWorkers = (t,k,cid) => Math.max(m0(k), Math.round(fabMOpex(t,k,cid).lab/(150*fabWage(cid))));
+const m0 = k => FAB_M[k].aux? 0 : 1;
+const fabSetupCost = t => 2*fabMCost(t,FAB_SETUP_K[t]);
+const FAB_SETUP_K={farm:'mou', textile:'tis', agro:'cui', meuble:'cnc', electronics:'lith', acier:'hf', auto:'pre', naval:'cal', aero:'fin'};
+const fabHallCost = s => Math.round(fabSetupCost(s.t)*1.5*Math.pow(1.3,s.halls||0));
+function fabSlots(s){ let n=0; (s.blds||[]).forEach(id=>{ const bd=bldById(id); n+=Math.max(1,Math.floor(((bd&&bd.surf)||0)/FAB_T[s.t].area)); }); return Math.max(1,n)+2*(s.halls||0); }
+const fabLineKinds = p => ['cv','in','out'].concat(D.PRODS[p].st.filter((k,i,a)=>a.indexOf(k)===i)).concat(['buf','qc','mnt']);
+const fabDim = it => { const m=FAB_M[it[0]]; return it[3]? [m.h,m.w] : [m.w,m.h]; };
+
+/* ---------- analyse d'une ligne (mise en cache par version) ---------- */
+const FAB_CACHE=new Map();
+function fabAnalyze(s,l){ const key=s.id+':'+l.id+':'+(l.v||0)+':'+l.p; const c=FAB_CACHE.get(key); if(c) return c;
+  const W=FAB_W, H=FAB_H, P=D.PRODS[l.p], occ=new Array(W*H).fill(-1);
+  l.g.forEach((it,i)=>{ const [w,h]=fabDim(it); for(let y=it[2];y<it[2]+h;y++) for(let x=it[1];x<it[1]+w;x++) if(x>=0&&y>=0&&x<W&&y<H) occ[y*W+x]=i; });
+  const isCv = (x,y) => x>=0&&y>=0&&x<W&&y<H&&occ[y*W+x]>=0&&l.g[occ[y*W+x]][0]==='cv';
+  const nb4 = (x,y) => [[x+1,y],[x-1,y],[x,y+1],[x,y-1]];
+  const cellsOf = it => { const [w,h]=fabDim(it), r=[]; for(let y=it[2];y<it[2]+h;y++) for(let x=it[1];x<it[1]+w;x++) r.push([x,y]); return r; };
+  const touch = (it,pred) => cellsOf(it).some(([x,y])=>nb4(x,y).some(([a,b])=>pred(a,b)));
+  const docks=k=>l.g.filter(it=>it[0]===k);
+  const ins=docks('in'), outs=docks('out');
+  /* départs : convoyeurs touchant un quai d'arrivée ; arrivées : touchant un quai d'expédition */
+  const startSet=[], goal=new Set();
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){ if(!isCv(x,y)) continue;
+    if(ins.some(it=>cellsOf(it).some(([a,b])=>Math.abs(a-x)+Math.abs(b-y)===1))) startSet.push([x,y]);
+    if(outs.some(it=>cellsOf(it).some(([a,b])=>Math.abs(a-x)+Math.abs(b-y)===1))) goal.add(y*W+x); }
+  let path=null;
+  if(startSet.length&&goal.size){ const prev=new Map(), q=[]; startSet.forEach(([x,y])=>{ prev.set(y*W+x,-1); q.push(y*W+x); });
+    let end=-1; while(q.length){ const v=q.shift(); if(goal.has(v)){ end=v; break; } const x=v%W, y=Math.floor(v/W);
+      nb4(x,y).forEach(([a,b])=>{ if(isCv(a,b)&&!prev.has(b*W+a)){ prev.set(b*W+a,v); q.push(b*W+a); } }); }
+    if(end>=0){ path=[]; for(let v=end;v!==-1;v=prev.get(v)) path.unshift(v); } }
+  const pos=new Map(); if(path) path.forEach((v,i)=>pos.set(v,i));
+  const posOf = it => { let best=null; cellsOf(it).forEach(([x,y])=>nb4(x,y).forEach(([a,b])=>{ if(a<0||b<0||a>=W||b>=H) return; const p=pos.get(b*W+a); if(p!==undefined&&(best===null||p<best)) best=p; })); return best; };
+  const A={ok:!!path, path:path||[], L:path?path.length:0, turns:0, stages:[], mach:[], buf:0, qc:false, mnt:false, occ, msg:''};
+  if(path) for(let i=2;i<path.length;i++){ const a=path[i-2], b=path[i-1], c2=path[i]; if((b-a)!==(c2-b)) A.turns++; }
+  l.g.forEach((it,i)=>{ A.mach[i]={pos: (it[0]==='cv'||it[0]==='in'||it[0]==='out')? null : (path? posOf(it) : null), st:'aux'}; });
+  let start=0, missing=null;
+  P.st.forEach((k,si)=>{ const idx=l.g.map((it,i)=>i).filter(i=>l.g[i][0]===k);
+    const valid=idx.filter(i=>A.mach[i].pos!==null&&A.mach[i].pos>=start);
+    idx.forEach(i=>{ A.mach[i].st= A.mach[i].pos===null? 'off' : valid.includes(i)? 'ok' : 'order'; });
+    const cap=valid.length*FAB_M[k].c*P.k, mp= valid.length? Math.min(...valid.map(i=>A.mach[i].pos)) : start;
+    A.stages.push({k, n:valid.length, tot:idx.length, cap}); if(!valid.length&&!missing) missing=k; start=mp; });
+  l.g.forEach((it,i)=>{ const k=it[0], p=A.mach[i].pos;
+    if(k==='buf'&&p!==null) A.buf++; if(k==='qc'&&p!==null&&p>=start) A.qc=true; if(k==='mnt'&&p!==null) A.mnt=true;
+    if(['buf','qc','mnt'].includes(k)) A.mach[i].st= p===null? 'off' : (k==='qc'&&p<start)? 'order' : 'ok'; });
+  A.buf=Math.min(2,A.buf);
+  A.fBelt=clamp(1-.004*Math.max(0,A.L-10)-.008*Math.max(0,A.turns-4),.7,1); A.fStop=.88+.06*A.buf;
+  const caps=A.stages.map(x=>x.cap); A.raw= (path&&!missing)? Math.min(...caps) : 0;
+  A.bott= A.raw>0? caps.indexOf(A.raw) : (missing? P.st.indexOf(missing) : -1);
+  A.rate=A.raw*A.fBelt*A.fStop;
+  const rest=caps.filter((x,i)=>i!==A.bott); A.next= A.raw>0&&rest.length? Math.min(...rest)*A.fBelt*A.fStop : A.rate;
+  A.max=Math.max(...caps,0)*A.fBelt*A.fStop;
+  A.eff= A.max>0? A.rate/A.max : 0;
+  A.msg= !ins.length? 'Placez un quai d’arrivée' : !outs.length? 'Placez un quai d’expédition' : !path? 'Le convoyeur ne relie pas les deux quais' : missing? 'Il manque : '+FAB_M[missing].n.toLowerCase() : '';
+  if(FAB_CACHE.size>400) FAB_CACHE.clear(); FAB_CACHE.set(key,A); return A; }
+/* coût d'exploitation d'une ligne par jour */
+function fabLineOpex(s,l){ let lab=0, nrj=0, wk=0; l.g.forEach(it=>{ const o=fabMOpex(s.t,it[0],s.city); lab+=o.lab; nrj+=o.nrj; wk+=fabWorkers(s.t,it[0],s.city); }); return {lab,nrj,wk}; }
+const fabLineValue = (s,l) => l.g.reduce((a,it)=>a+fabMCost(s.t,it[0]),0);
+/* marge estimée d'une ligne (prix de gros du jour, matières au marché) */
+function fabLineEco(s,l){ const A=fabAnalyze(s,l), P=D.PRODS[l.p], o=fabLineOpex(s,l), u=A.rate;
+  const rev=u*fabPrice(l.p)*(A.qc?1.08:1), mat=Object.keys(P.in||{}).reduce((a,q)=>a+u*P.in[q]*fabPrice(q),0);
+  return {u, rev, mat, opex:o.lab+o.nrj, net:rev-mat-o.lab-o.nrj, wk:o.wk}; }
+
+/* ---------- stocks : prendre une matière dans vos usines ---------- */
+function fabTake(q,want,to){ let got=0, tr=0; const L=fabSites().filter(x=>(x.st[q]||0)>1e-9).sort((a,b)=>(a===to?-1:b===to?1:0)||((typeof route==='function'? route(a.city,to.city).rate : 0)-(typeof route==='function'? route(b.city,to.city).rate : 0)));
+  for(const x of L){ if(want-got<=1e-9) break; const u=Math.min(x.st[q],want-got); x.st[q]-=u; got+=u; if(x!==to&&typeof route==='function') tr+=u*fabPrice(q)*route(x.city,to.city).rate; }
+  return {got, tr}; }
+const fabStock = p => fabSites().reduce((a,x)=>a+(x.st[p]||0),0);
+
+/* ---------- une journée de production ---------- */
+function fabStep(){ const F=fabInit(); if(!F.sites.length){ F.day=null; return; }
+  const day={rev:0, own:0, cost:0, mat:0, u:{}}, need={};
+  F.sites.slice().sort((a,b)=>FAB_ORDER.indexOf(a.t)-FAB_ORDER.indexOf(b.t)).forEach(s=>{ s.st=s.st||{}; s.qm=s.qm||{}; const d=s.d={u:{}, cost:0, mat:0, sold:0, own:0, br:0};
+    /* ferme : parcelles */
+    if(s.t==='farm') Object.keys(s.parc||{}).forEach(c=>{ const n=s.parc[c]||0, C=FAB_CROP[c]; if(!n||!C) return;
+      const u=n*C.y*(.92+.16*rnd()); s.st[C.p]=(s.st[C.p]||0)+u; d.u[C.p]=(d.u[C.p]||0)+u; d.cost+=n*(FAB_PARCEL*.0025+100*fabWage(s.city)); });
+    s.lines.forEach(l=>{ if(l.on===0) return; const A=fabAnalyze(s,l), P=D.PRODS[l.p], o=fabLineOpex(s,l); d.cost+=o.lab+o.nrj; l.br=0;
+      let u=A.rate; if(u<=0) return;
+      if(rnd()<(A.mnt?.006:.02)){ u*=.5; l.br=S.day; d.br++; }
+      /* matières */
+      /* matières : sans achats au marché (s.buy=0), la ligne ne produit que ce que vos stocks permettent */
+      const IN=P.in||{}; let lim=1;
+      if(s.buy===0) Object.keys(IN).forEach(q=>{ if(!FAB_RAW[q]) lim=Math.min(lim,fabStock(q)/Math.max(1e-9,u*IN[q])); });
+      u*=lim; if(u<=0) return;
+      Object.keys(IN).forEach(q=>{ const want=u*IN[q]; need[q]=(need[q]||0)+want;
+        if(FAB_RAW[q]){ d.mat+=want*fabPrice(q)*1.06; return; }
+        const r=fabTake(q,want,s); d.mat+=r.tr+(want-r.got)*fabPrice(q)*1.06; }); const qm=A.qc?1.08:1, old=s.st[l.p]||0; s.st[l.p]=old+u; s.qm[l.p]=(old*(s.qm[l.p]||1)+u*qm)/Math.max(1e-9,old+u); d.u[l.p]=(d.u[l.p]||0)+u; });
+    day.cost+=d.cost; day.mat+=d.mat;
+    Object.keys(d.u).forEach(p=>day.u[p]=(day.u[p]||0)+d.u[p]); });
+  if(day.cost>0) pay('fab','Ouvriers et énergie de vos usines',-day.cost,'corp');
+  if(day.mat>0) pay('fab','Matières premières et transport',-day.mat,'corp');
+  /* réserve : besoins de vos lignes et de vos sociétés pour un jour et demi, le reste part au marché de gros */
+  const own={}; if(typeof SUP_NEED!=='undefined') S.biz.forEach(b=>{ const N=SUP_NEED[b.def]; if(!N||b.status!=='active'||!b.last||supSrc(b)==='mkt') return; Object.keys(N).forEach(p=>{ own[p]=(own[p]||0)+Math.max(0,b.last.rev||0)*N[p]/Math.max(1e-9,fabPrice(p)); }); });
+  const keep={}; Object.keys(D.PRODS).forEach(p=>keep[p]=((need[p]||0)+(own[p]||0))*1.5);
+  F.sites.forEach(s=>{ if(s.mode==='store') return; Object.keys(s.st).forEach(p=>{ if(!D.PRODS[p]) return; const tot=fabStock(p), free=Math.max(0,tot-keep[p]); if(free<=1e-9) return;
+      const share= tot>0? s.st[p]/tot : 0, u=Math.min(s.st[p],free*share); if(u<=0) return; const v=u*fabPrice(p)*(s.qm[p]||1); s.st[p]-=u; s.d.sold+=v; day.rev+=v; }); });
+  if(day.rev>0) pay('fab','Ventes de vos usines au marché de gros',day.rev,'corp');
+  F.day=Object.assign(day,{d:S.day, net:day.rev+(F.ownRev||0)-day.cost-day.mat}); F.ownRev=0;
+}
+
+/* ---------- approvisionnement de vos sociétés (remplace l'ancien) ---------- */
+Object.assign(SUP_NEED,{
+  resto:{cer:.03, leg:.08, lai:.05, oeu:.03, vin:.06, fro:.04, pla:.04}, hotel:{leg:.03, lai:.02, oeu:.02, vin:.02, meu:.03, pla:.02, bsn:.02},
+  park:{cer:.02, leg:.02, lai:.01, oeu:.01, pla:.04, bsn:.05}, fastfood:{far:.06, pla:.05, bsn:.05}, super:{far:.04, lai:.03, pla:.06, bsn:.06},
+  office:{mbu:.03}, dealer:{pau:.04, voi:.14, ber:.12, suv:.10, utl:.04}, airline:{a1:.03, a2:.04, a3:.03}, shipping:{fer:.03, pcn:.06},
+  build:{tol:.05}, promo:{tol:.03}});
+Object.assign(SUP_QB,{fastfood:.05, super:.04, office:.03, airline:.04, shipping:.04, build:.03, promo:.03});
+supStep=function(){ const F=fabInit(); let ownRev=0;
+  S.biz.forEach(b=>{ if(SUP_NEED[b.def]){ b.supSave=0; b.supIn=0; b.supQ=0; b.supMiss=0; b.supP={}; } });
+  const tot={};
+  Object.keys(D.PRODS).forEach(p=>{ const C=S.biz.filter(x=>SUP_NEED[x.def]&&SUP_NEED[x.def][p]&&x.status==='active'&&supSrc(x)!=='mkt'); if(!C.length) return;
+    const need=C.map(c=>supNeedP(c,p)), totNeed=need.reduce((a,x)=>a+x,0); if(totNeed<=0) return;
+    const pr=fabPrice(p), avail=fabStock(p)*pr, ratio=Math.min(1,avail/totNeed);
+    C.forEach((c,i)=>{ let want=need[i]*ratio; const own=supSrc(c)==='own', disc=own? SUP_OWN : SUP_DISC; let got=0, qs=0;
+      F.sites.filter(s=>(s.st[p]||0)>1e-9).sort((a,b)=>route(a.city,c.city).rate-route(b.city,c.city).rate).forEach(s=>{ if(want<=1e-6) return; const R=route(s.city,c.city), q=s.qm[p]||1;
+        const u=Math.min(s.st[p],want/pr); if(u<=0) return; s.st[p]-=u; const v=u*pr; want-=v; got+=v; qs+=v*(q>1?2:0); ownRev+=v*q; s.d=s.d||{}; s.d.own=(s.d.own||0)+v*q; c.supSave+=v*Math.max(0,disc-R.rate); });
+      c.supIn+=got; c.supP[p]=[need[i],got,got? qs/got : 0]; if(got>0) c.supDay=S.day;
+      const T=tot[c.id]||(tot[c.id]={need:0,got:0,qs:0,c}); T.need+=need[i]; T.got+=got; T.qs+=qs; }); });
+  Object.values(tot).forEach(T=>{ const c=T.c; c.supQ= T.need>0? T.qs/T.need : 0; c.supMiss= supSrc(c)==='own'&&T.need>0? Math.max(0,1-T.got/T.need) : 0; });
+  if(ownRev>0){ pay('fab','Livraisons à vos sociétés',ownRev,'corp'); F.ownRev=(F.ownRev||0)+ownRev; }
+};
+/* le directeur des achats : vos usines d'abord dès qu'un site fabrique ce qu'une société achète */
+achStep=function(){ if(!mgrOn('ach')) return; S.biz.forEach(b=>{ const N=SUP_NEED[b.def]; if(!N||b.srcMan) return; const has=Object.keys(N).some(p=>fabSites().some(s=>s.lines.some(l=>l.p===p)||(s.t==='farm'&&Object.keys(s.parc||{}).some(c=>FAB_CROP[c].p===p&&s.parc[c]>0))));
+  b.src= has? 'mix' : 'mkt'; }); };
+{ const _is=indStep; indStep=function(){ _is(); try{ fabStep(); }catch(e){ console.error(e); } }; }
+{ const _sn=srcName; srcName=function(src){ return src==='fab'? 'Usines' : _sn(src); }; }
+synBonus=function(d){ if(!d.syn) return 1; const w=d.syn.with, on=S.biz.some(x=>x.def===w&&x.status==='active')||fabSites().some(s=>s.t===w); return on? 1+d.syn.b : 1; };
+
+/* ---------- valeur nette : machines (70 %), parcelles (80 %), stocks (90 %) ---------- */
+function fabNW(){ let v=0; fabSites().forEach(s=>{ s.lines.forEach(l=>v+=fabLineValue(s,l)*.7); v+=Object.values(s.parc||{}).reduce((a,n)=>a+n,0)*FAB_PARCEL*.8;
+  v+=(s.halls||0)*fabSetupCost(s.t)*1.2; Object.keys(s.st||{}).forEach(p=>v+=(s.st[p]||0)*fabPrice(p)*.9); }); return v; }
+goodsNW=(function(_g){ return function(){ return _g()+fabNW(); }; })(goodsNW);
+
+/* ---------- actions ---------- */
+const FAB_PLOT_T=['land','depot'];
+const fabPlotOk = bd => FAB_PLOT_T.includes(bd.t)&&!bldHeld(bd.id)&&!(typeof rivShopAt==='function'&&rivShopAt(bd.id));
+function fabBuild(t,bid){ const T=FAB_T[t], bd=bldById(bid); if(!T||!bd) return err('Terrain inconnu.');
+  if(!unlocked(T.tier)) return err('Palier '+D.TIERS[T.tier].n+' requis.');
+  if(!fabPlotOk(bd)) return err('Ce terrain n’est pas libre pour une usine.');
+  if(bd.surf<T.area*.6) return err('Terrain trop petit : '+fmtN(Math.ceil(T.area*.6))+' m² au moins.');
+  const set=fabSetupCost(t), dep=cityOwned(bd.city)? 0 : bldRent(bd)*30; if(S.cash<set+dep) return err('Il faut '+eur(set+dep,0)+' (installation et dépôt de garantie).');
+  payCap('fab','Installation : '+T.n,-set); if(dep) payCap('c:'+bd.city,'Dépôt de garantie : '+bd.addr,-dep); settleAccounts();
+  if(!S.bld) S.bld={}; const F=fabInit(), id=F.n++;
+  S.bld[bid]={st:'rent',dep,biz:null,fab:id,since:S.day};
+  const s={id, t, city:bd.city, dist:bd.dist||(bid.split('.')[1]), blds:[bid], name:T.n+' · '+fabCityN(bd.city), halls:0, lines:[], parc:{}, st:{}, qm:{}, mode:'sell', buy:1, since:S.day};
+  F.sites.push(s); log('good','Nouveau site : '+s.name+' ('+bd.addr+').'); return ok(s.id); }
+function fabHall(sid){ const s=fabSite(sid); if(!s) return err('Site inconnu.'); const c=fabHallCost(s); if(S.cash<c) return err('Il faut '+eur(c,0)+'.');
+  payCap('fab','Nouveau hall : '+s.name,-c); s.halls=(s.halls||0)+1; return ok(); }
+function fabLineNew(sid,p){ const s=fabSite(sid), P=D.PRODS[p]; if(!s||!P||P.fac!==s.t||P.raw) return err('Produit impossible ici.');
+  if(s.lines.length>=fabSlots(s)) return err('Plus de place : construisez un hall.');
+  const lid=(s.lines.reduce((a,l)=>Math.max(a,l.id),0)||0)+1;
+  s.lines.push({id:lid, p, g:[['in',0,0,0],['out',FAB_W-2,FAB_H-1,0]], on:1, v:1}); return ok(lid); }
+function fabLineDel(sid,lid){ const s=fabSite(sid); if(!s) return err('Site inconnu.'); const l=s.lines.find(x=>x.id===+lid); if(!l) return err('Ligne inconnue.');
+  const v=fabLineValue(s,l)*.6; payCap('fab','Démontage : ligne '+D.PRODS[l.p].n,v); s.lines=s.lines.filter(x=>x!==l); return ok(); }
+function fabFits(l,k,x,y,rot,skip){ const m=FAB_M[k], w=rot?m.h:m.w, h=rot?m.w:m.h; if(x<0||y<0||x+w>FAB_W||y+h>FAB_H) return false;
+  return !l.g.some((it,i)=>{ if(i===skip) return false; const [a,b]=fabDim(it); return x<it[1]+a&&it[1]<x+w&&y<it[2]+b&&it[2]<y+h; }); }
+function fabPlace(sid,lid,k,x,y,rot){ const s=fabSite(sid), l=s&&s.lines.find(z=>z.id===+lid); if(!l) return err('Ligne inconnue.');
+  if(!fabLineKinds(l.p).includes(k)) return err('Cette machine ne sert pas à ce produit.');
+  rot= rot&&FAB_M[k].w!==FAB_M[k].h? 1 : 0;
+  if(!fabFits(l,k,x,y,rot)) return err('Pas assez de place à cet endroit.');
+  const c=fabMCost(s.t,k); if(S.cash<c) return err('Il faut '+eur(c,0)+'.');
+  payCap('fab',FAB_M[k].n+' : '+s.name,-c); l.g.push([k,x,y,rot]); l.v=(l.v||0)+1; return ok(); }
+function fabAt(l,x,y){ return l.g.findIndex(it=>{ const [w,h]=fabDim(it); return x>=it[1]&&x<it[1]+w&&y>=it[2]&&y<it[2]+h; }); }
+function fabRemove(sid,lid,x,y){ const s=fabSite(sid), l=s&&s.lines.find(z=>z.id===+lid); if(!l) return err('Ligne inconnue.'); const i=fabAt(l,x,y); if(i<0) return err('Rien à retirer ici.');
+  const k=l.g[i][0]; payCap('fab','Revente : '+FAB_M[k].n,fabMCost(s.t,k)*.6); l.g.splice(i,1); l.v=(l.v||0)+1; return ok(); }
+function fabMove(sid,lid,i,x,y){ const s=fabSite(sid), l=s&&s.lines.find(z=>z.id===+lid); if(!l||!l.g[i]) return err('Machine inconnue.'); const it=l.g[i];
+  if(!fabFits(l,it[0],x,y,it[3],i)) return err('Pas assez de place à cet endroit.'); it[1]=x; it[2]=y; l.v=(l.v||0)+1; return ok(); }
+function fabRotate(sid,lid,i){ const s=fabSite(sid), l=s&&s.lines.find(z=>z.id===+lid); if(!l||!l.g[i]) return err('Machine inconnue.'); const it=l.g[i], m=FAB_M[it[0]];
+  if(m.w===m.h) return err('Cette machine est carrée.'); if(!fabFits(l,it[0],it[1],it[2],it[3]?0:1,i)) return err('Pas assez de place pour la tourner.'); it[3]=it[3]?0:1; l.v=(l.v||0)+1; return ok(); }
+function fabSetProd(sid,lid,p){ const s=fabSite(sid), l=s&&s.lines.find(z=>z.id===+lid); if(!l||!D.PRODS[p]||D.PRODS[p].fac!==s.t||D.PRODS[p].raw) return err('Produit impossible.'); l.p=p; l.v=(l.v||0)+1; return ok(); }
+/* disposition automatique : convoyeur vertical au centre, machines de part et d'autre, dans l'ordre des étapes */
+function fabAutoPlan(t,p){ const P=D.PRODS[p], X=3, g=[['in',2,0,0],['out',3,FAB_H-1,0]]; for(let y=1;y<FAB_H-1;y++) g.push(['cv',X,y,0]);
+  const caps=P.st.map(k=>FAB_M[k].c), top=Math.max(...caps); let yl=1, yr=1;
+  const want=P.st.map((k,i)=>clamp(Math.round(top/caps[i]),1,3));
+  P.st.forEach((k,i)=>{ const m=FAB_M[k]; for(let n=0;n<want[i];n++){
+      /* à droite : largeur ≤ 4 ; à gauche : ≤ 3 */
+      const fitR= m.w<=4&&yr+m.h<=FAB_H-1, fitL= m.w<=3&&yl+m.h<=FAB_H-1, rotL= m.h<=3&&yl+m.w<=FAB_H-1&&m.h!==m.w;
+      if(fitL&&(yl<=yr||!fitR)){ g.push([k,X-m.w,yl,0]); yl+=m.h; }
+      else if(fitR){ g.push([k,X+1,yr,0]); yr+=m.h; }
+      else if(rotL){ g.push([k,X-m.h,yl,1]); yl+=m.w; }
+      else if(n===0) return; } });
+  return g; }
+function fabAuto(sid,lid){ const s=fabSite(sid), l=s&&s.lines.find(z=>z.id===+lid); if(!l) return err('Ligne inconnue.');
+  if(l.g.some(it=>!['in','out','cv'].includes(it[0]))) return err('Retirez d’abord les machines : la disposition automatique part d’une ligne vide.');
+  const g=fabAutoPlan(s.t,l.p), old=l.g.reduce((a,it)=>a+fabMCost(s.t,it[0]),0), c=g.reduce((a,it)=>a+fabMCost(s.t,it[0]),0)-old;
+  if(S.cash<c) return err('Il faut '+eur(c,0)+'.'); payCap('fab','Équipement : ligne '+D.PRODS[l.p].n,-c); l.g=g; l.v=(l.v||0)+1; return ok(); }
+const fabAutoCost = (s,l) => fabAutoPlan(s.t,l.p).reduce((a,it)=>a+fabMCost(s.t,it[0]),0)-l.g.reduce((a,it)=>a+fabMCost(s.t,it[0]),0);
+function fabParcelBuy(sid,c,n){ const s=fabSite(sid); if(!s||s.t!=='farm'||!FAB_CROP[c]) return err('Culture inconnue.'); n=Math.max(1,n|0); const cost=n*FAB_PARCEL;
+  if(S.cash<cost) return err('Il faut '+eur(cost,0)+'.'); payCap('fab','Parcelles : '+FAB_CROP[c].n,-cost); s.parc[c]=(s.parc[c]||0)+n; return ok(); }
+function fabParcelSell(sid,c,n){ const s=fabSite(sid); if(!s||!s.parc||!(s.parc[c]>0)) return err('Aucune parcelle.'); n=Math.min(s.parc[c],Math.max(1,n|0));
+  payCap('fab','Vente de parcelles : '+FAB_CROP[c].n,n*FAB_PARCEL*.7); s.parc[c]-=n; return ok(); }
+function fabSellStock(sid){ const s=fabSite(sid); if(!s) return err('Site inconnu.'); let v=0; Object.keys(s.st).forEach(p=>{ if(!D.PRODS[p]) return; v+=s.st[p]*fabPrice(p)*(s.qm[p]||1); s.st[p]=0; });
+  if(v<1) return err('Aucun stock à vendre.'); pay('fab','Vente du stock : '+s.name,v,'corp'); return ok('Stock vendu '+eur(v,0)+'.'); }
+function fabSiteSell(sid){ const s=fabSite(sid); if(!s) return err('Site inconnu.'); fabSellStock(sid);
+  let v=s.lines.reduce((a,l)=>a+fabLineValue(s,l)*.6,0)+Object.values(s.parc||{}).reduce((a,n)=>a+n*FAB_PARCEL*.7,0)+(s.halls||0)*fabSetupCost(s.t)*.8;
+  payCap('fab','Cession : '+s.name,v); s.blds.forEach(id=>{ const h=S.bld[id]; if(!h) return; if(h.dep) payCap('c:'+id.split('.')[0],'Restitution du dépôt de garantie',h.dep); delete S.bld[id]; });
+  S.fab.sites=S.fab.sites.filter(x=>x!==s); return ok('Site cédé '+eur(v,0)+'.'); }
+{ const _lb=leaveBuilding; leaveBuilding=function(id){ const h=bldHeld(id); if(h&&h.fab) return err('Une usine occupe ce terrain : cédez le site depuis l’onglet Usines.'); return _lb(id); }; }
+
+/* ---------- conversion des anciennes usines (sociétés) en sites, fusionnées par type et par ville ---------- */
+function fabMigrate(s){ if(!s||!Array.isArray(s.biz)) return; const old=s.biz.filter(b=>FAB_OLD.includes(b.def)); if(!old.length) return;
+  const S0=S; S=s; try{ fabInit(); const groups={};
+    old.forEach(b=>{ const t= b.def==='phones'? 'electronics' : b.def, k=t+'|'+b.city; (groups[k]=groups[k]||{t, city:b.city, L:[]}).L.push(b); });
+    Object.values(groups).forEach(G=>{ const F=S.fab, id=F.n++, t=G.t;
+      let val=0, stock=0; G.L.forEach(b=>{ try{ val+=bizValue(b); }catch(e){} try{ if(b.st) Object.keys(b.st).forEach(p=>{ if(D.PRODS[p]) stock+=(b.st[p]||[]).reduce((a,x)=>a+x,0)*D.PRODS[p].v; }); }catch(e){} });
+      const blds=G.L.map(b=>b.bld).filter(Boolean);
+      const site={id, t, city:G.city, dist:(G.L[0].dist||''), blds, name:FAB_T[t].n+' · '+fabCityN(G.city), halls:0, lines:[], parc:{}, st:{}, qm:{}, mode:'sell', buy:1, since:s.day};
+      blds.forEach(bid=>{ if(s.bld&&s.bld[bid]){ s.bld[bid].biz=null; s.bld[bid].fab=id; } });
+      let left=val;
+      if(t==='farm'){ let n=0; G.L.forEach(b=>{ if(b.m&&Array.isArray(b.m.p)) n+=b.m.p.filter(Boolean).length; }); n=Math.max(n,Math.floor(left*.6/FAB_PARCEL)); n=Math.min(n,Math.floor(left/FAB_PARCEL)); n=Math.max(1,n);
+        site.parc={ble:Math.ceil(n*.4), leg:Math.ceil(n*.3), vaches:Math.max(1,Math.floor(n*.3))}; left-=n*FAB_PARCEL; }
+      const prods=fabProdsOf(t); let i=0;
+      while(left>0&&site.lines.length<Math.max(fabSlots(site),G.L.length)){ const p=prods[i%prods.length], g=fabAutoPlan(t,p), c=g.reduce((a,it)=>a+fabMCost(t,it[0]),0);
+        if(c>left&&site.lines.length) break; site.lines.push({id:site.lines.length+1, p, g, on:1, v:1}); left-=c; i++; }
+      if(site.lines.length>fabSlots(site)) site.halls=Math.ceil((site.lines.length-fabSlots(site))/2);
+      if(left>0) s.cash+=left; if(stock>0) s.cash+=stock*.9;
+      F.sites.push(site);
+      (s.journal=s.journal||[]).push({d:s.day,s:'info',k:'own',m:'Vos usines deviennent des sites industriels : '+site.name+' regroupe '+G.L.length+' ancienne'+(G.L.length>1?'s':'')+' usine'+(G.L.length>1?'s':'')+', avec '+site.lines.length+' ligne'+(site.lines.length>1?'s':'')+(left>0?' (solde remboursé : '+eur(left,0)+')':'')+'.'}); });
+    s.biz=s.biz.filter(b=>!FAB_OLD.includes(b.def));
+    if(s.ind){ s.ind.offers=[]; s.ind.active=[]; }
+  } finally { S=S0; } }
+{ const _mig=migrateState; migrateState=function(st){ const r=_mig(st); try{ fabMigrate(r); }catch(e){ console.error(e); } return r; }; }
+/* ============================================================
+   V2.8.1 : USINES (3/3) · ÉCRANS
+   Onglet Usines (Plus > Usines) : vos sites, la construction d'un site (type, ville, terrain), un site (lignes,
+   stock, parcelles, site), et le plan d'une ligne : grille de 8 × 10 cases où l'on pose machines et convoyeurs.
+   État d'écran : ui.fab = {s: site, l: ligne, tab, tool, rot, sel, mv, pk:{t,c}, np}
+   ============================================================ */
+NF_CSS.push(`
+.fab-top{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.fab-kpi{background:var(--card);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow)}
+.fab-kpi small{display:block;font:700 12px var(--f-body);color:var(--ink-3)}.fab-kpi b{font:900 20px var(--f-body)}
+.fab-site{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--card);border:0;border-radius:20px;padding:12px;margin-bottom:10px;box-shadow:var(--shadow);color:var(--ink);min-height:44px}
+.fab-site .fab-ico{flex:0 0 auto;border-radius:12px}
+.fab-site .m{flex:1;min-width:0}.fab-site b{font:800 15px var(--f-body);display:block}.fab-site small{font:600 12px var(--f-body);color:var(--ink-3)}
+.fab-site .r{text-align:right;font:900 14px var(--f-body)}
+.fab-bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:6px}.fab-bar i{display:block;height:100%;border-radius:3px}
+.fab-hero{display:flex;gap:12px;align-items:center;margin:4px 0 12px}.fab-hero .fab-ico{border-radius:14px}
+.fab-hero .fab-h{margin:0;font:800 21px var(--f-display,var(--f-body));line-height:1.15}.fab-hero small{color:var(--ink-3);font:600 12.5px var(--f-body)}
+.fab-tabs{display:flex;gap:6px;margin:0 0 12px;overflow-x:auto;scrollbar-width:none}.fab-tabs::-webkit-scrollbar{display:none}
+.fab-tabs button{flex:1 0 auto;min-height:40px;border:0;border-radius:12px;background:var(--card);color:var(--ink-3);font:800 13px var(--f-body);padding:0 12px;box-shadow:var(--shadow)}
+.fab-tabs button.on{background:#E8B84A;color:#2A1C00}
+.fab-line{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:var(--card);border:0;border-radius:18px;padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow);color:var(--ink);min-height:44px}
+.fab-line .m{flex:1;min-width:0}.fab-line b{font:800 14px var(--f-body)}.fab-line small{display:block;font:600 12px var(--f-body);color:var(--ink-3)}
+.fab-line .u{text-align:right;font:900 14px var(--f-body)}.fab-line .u small{font-weight:700}
+.fab-warn{color:#E4572E}.fab-ok{color:#2FB36D}.fab-amb{color:#D99A1E}
+.fab-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fab-pc{background:var(--card);border:0;border-radius:18px;padding:12px 10px;text-align:center;box-shadow:var(--shadow);color:var(--ink);min-height:44px}
+.fab-pc b{display:block;font:800 13.5px var(--f-body);margin-top:4px}.fab-pc small{display:block;font:600 11.5px var(--f-body);color:var(--ink-3);margin-top:2px}
+.fab-pc.lock{opacity:.5}
+.fab-ins{display:flex;gap:2px;justify-content:center;margin-top:4px}.fab-ins .fab-pic{width:22px;height:22px}
+.fab-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px}
+.fab-stats div{background:var(--card);border-radius:14px;padding:8px 10px;box-shadow:var(--shadow)}.fab-stats small{display:block;font:700 11px var(--f-body);color:var(--ink-3)}.fab-stats b{font:900 17px var(--f-body)}
+.fab-gridw{background:#0E1013;border-radius:18px;padding:6px;box-shadow:var(--shadow)}
+.fab-grid{display:block;width:100%;height:auto;touch-action:manipulation}
+.fab-msg{border-radius:12px;padding:8px 12px;margin:0 0 8px;font:800 13px var(--f-body);background:#3A1D12;color:#FFB089}
+.fab-pal{display:flex;gap:6px;overflow-x:auto;padding:8px 2px 4px;scrollbar-width:none}.fab-pal::-webkit-scrollbar{display:none}
+.fab-pal button{flex:0 0 74px;min-height:76px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:800 10.5px var(--f-body);padding:4px 2px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px}
+.fab-pal button.on{border-color:#E8B84A;background:#2A2210;color:#F5D58A}
+.fab-pal button svg{width:58px;height:40px}.fab-pal button small{font:700 9.5px var(--f-body);color:var(--ink-3)}
+.fab-stage{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.fab-stage:last-child{border-bottom:0}.fab-stage svg{width:34px;height:26px}.fab-stage b{font:800 13px var(--f-body)}.fab-stage small{display:block;font:600 11.5px var(--f-body);color:var(--ink-3)}
+.fab-stage .c{font:900 13px var(--f-body);text-align:right}
+.fab-sel{background:var(--card);border-radius:16px;padding:10px 12px;margin-top:8px;box-shadow:var(--shadow)}
+.fab-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.fab-acts .btn{min-height:40px}
+.fab-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font:600 13px var(--f-body)}
+.fab-row:last-child{border-bottom:0}.fab-row .l{display:flex;align-items:center;gap:8px;min-width:0}.fab-row .fab-pic{flex:0 0 auto}
+.fab-plot{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);border-radius:16px;padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow)}
+.fab-plot b{font:800 13.5px var(--f-body)}.fab-plot small{display:block;font:600 11.5px var(--f-body);color:var(--ink-3)}
+.fab-cell{fill:transparent;cursor:pointer}.fab-cell:hover{fill:rgba(232,184,74,.12)}
+@keyframes fabBelt{to{stroke-dashoffset:-8}}@keyframes fabSpin{to{transform:rotate(360deg)}}@keyframes fabArm{0%,100%{transform:rotate(-24deg)}50%{transform:rotate(24deg)}}
+@keyframes fabBlink{50%{opacity:.15}}@keyframes fabScan{0%,100%{transform:translateY(0)}50%{transform:translateY(14px)}}@keyframes fabPst{0%,100%{transform:scale(1)}40%{transform:scale(.72)}}
+@keyframes fabShut{0%,100%{transform:translateX(0)}50%{transform:translateX(22px)}}@keyframes fabGlow{50%{opacity:.6}}@keyframes fabMist{50%{opacity:.18}}
+@keyframes fabSteam{0%{transform:translateY(0);opacity:.7}100%{transform:translateY(-6px);opacity:0}}@keyframes fabBob{50%{transform:translateY(-2px)}}
+@keyframes fabSwing{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}@keyframes fabShake{50%{transform:translateX(1.5px)}}@keyframes fabHot{50%{stroke-opacity:.25}}
+.fab-belt{animation:fabBelt .6s linear infinite}.fab-spin{transform-box:fill-box;transform-origin:center;animation:fabSpin 2.4s linear infinite}
+.fab-arm{animation:fabArm 1.8s ease-in-out infinite}.fab-spark,.fab-led{animation:fabBlink .7s steps(2) infinite}
+.fab-scan{animation:fabScan 1.6s ease-in-out infinite}.fab-pst{transform-box:fill-box;transform-origin:center;animation:fabPst 1.1s ease-in infinite}
+.fab-shuttle{animation:fabShut 1.4s ease-in-out infinite}.fab-glow{animation:fabGlow 1.6s ease-in-out infinite}.fab-mist{animation:fabMist 1.6s ease-in-out infinite}
+.fab-steam{animation:fabSteam 2s ease-out infinite}.fab-bob{animation:fabBob 1s ease-in-out infinite}.fab-swing{transform-box:view-box;animation:fabSwing 3s ease-in-out infinite}
+.fab-shake{animation:fabShake .25s linear infinite}.fab-hot{animation:fabHot 1.2s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.fab-grid *,.fab-ico *{animation:none!important}}
+`);
+try{ const e=document.getElementById('nf-css'); if(e) e.textContent+='\n'+NF_CSS[NF_CSS.length-1]; else nfCssOnce(); }catch(e){}
+const fabUI = () => (ui.fab=ui.fab||{});
+const fabU = (n,d) => n>=100? fmtN(Math.round(n)) : n>=10? fmtN(n,1) : n>=1? fmtN(n,2) : fmtN(n,3);
+const fabPerDay = (p,u) => fabU(u)+' '+(D.PRODS[p].u)+' / jour';
+const fabEffCol = e => e>=.85? '#2FB36D' : e>=.65? '#E8B84A' : '#E4572E';
+function fabSiteEco(s){ let u=0, rev=0, eff=0, n=0; s.lines.forEach(l=>{ const E=fabLineEco(s,l), A=fabAnalyze(s,l); rev+=E.rev; if(l.on!==0){ eff+=A.eff; n++; } });
+  if(s.t==='farm') Object.keys(s.parc||{}).forEach(c=>{ const C=FAB_CROP[c]; if(C) rev+=(s.parc[c]||0)*C.y*fabPrice(C.p); });
+  return {rev, eff: n? eff/n : 0}; }
+
+/* ---------- écran principal ---------- */
+function vFab(){ fabInit(); const U=fabUI();
+  if(U.pk) return vFabBuild();
+  if(U.s&&fabSite(U.s)) return U.l&&fabSite(U.s).lines.some(l=>l.id===U.l)? vFabLine() : vFabSite();
+  U.s=null; U.l=null;
+  const L=fabSites(), F=S.fab; let tot=0, eff=0, n=0, lines=0; L.forEach(s=>{ const e=fabSiteEco(s); tot+=e.rev; if(s.lines.length){ eff+=e.eff; n++; } lines+=s.lines.length; });
+  let h=head('Usines','Vos sites industriels : chaque ligne est une grille où vous disposez machines et convoyeurs.');
+  h+='<div class="fab-top"><div class="fab-kpi"><small>Production par jour</small><b>'+eur(tot,0)+'</b></div><div class="fab-kpi"><small>Rendement moyen</small><b style="color:'+fabEffCol(n?eff/n:0)+'">'+(n? Math.round(eff/n*100)+' %' : '—')+'</b></div>'+
+     '<div class="fab-kpi"><small>Sites · lignes</small><b>'+L.length+' · '+lines+'</b></div><div class="fab-kpi"><small>Résultat d’hier</small><b class="'+((F.day&&F.day.net>=0)?'fab-ok':'fab-warn')+'">'+(F.day? (F.day.net>=0?'+':'')+eur(F.day.net,0) : '—')+'</b></div></div>';
+  h+=L.map(s=>{ const e=fabSiteEco(s); return '<button class="fab-site" data-a="fabgo" data-i="'+s.id+'">'+fabTypeSvg(s.t,64)+'<span class="m"><b>'+esc(s.name)+'</b><small>'+
+      (s.t==='farm'? plu(Object.values(s.parc||{}).reduce((a,x)=>a+x,0),'parcelle')+' · ' : '')+plu(s.lines.length,'ligne')+' sur '+fabSlots(s)+'</small><span class="fab-bar"><i style="width:'+Math.round(e.eff*100)+'%;background:'+fabEffCol(e.eff)+'"></i></span></span><span class="r">'+eur(e.rev,0)+'<small style="display:block;color:var(--ink-3);font-weight:700">par jour</small></span></button>'; }).join('');
+  if(!L.length) h+='<div class="notice info">Aucun site pour l’instant. Construisez votre première usine : elle fournira vos sociétés et vendra le reste au marché de gros.</div>';
+  h+='<button class="btn primary" style="width:100%;min-height:48px;margin-top:6px" data-a="fabpk">Construire un site</button>';
+  return h; }
+
+/* ---------- construction : type, ville, terrain ---------- */
+function vFabBuild(){ const U=fabUI(), K=U.pk; let h='';
+  if(!K.t){ h+='<button class="back" data-a="fabback" data-v="pk">‹ Usines</button>'+head('Construire un site','Choisissez le type d’usine.');
+    h+='<div class="fab-pick">'+FAB_ORDER.map(t=>{ const T=FAB_T[t], ok=unlocked(T.tier); return '<button class="fab-pc'+(ok?'':' lock')+'" data-a="fabpkt" data-i="'+t+'"'+(ok?'':' data-dis="1" data-why="Palier '+D.TIERS[T.tier].n+' requis."')+'>'+fabTypeSvg(t,72)+'<b>'+T.n+'</b><small>'+T.d+'</small><small><b style="display:inline;font-size:12px">'+eur(fabSetupCost(t),0)+'</b> d’installation</small></button>'; }).join('')+'</div>';
+    return h; }
+  const T=FAB_T[K.t];
+  if(!K.c){ h+='<button class="back" data-a="fabback" data-v="pkt">‹ Types d’usine</button><div class="fab-hero">'+fabTypeSvg(K.t,64)+'<div><h2 class="fab-h">'+T.n+'</h2><small>Choisissez une ville : terrains et entrepôts d’au moins '+fmtN(Math.ceil(T.area*.6))+' m².</small></div></div>';
+    h+=D.CITY_ORDER.filter(cityUnlocked).map(cid=>{ const n=fabPlots(cid,K.t).length, C=D.CITIES[cid];
+      return '<button class="fab-site" data-a="fabpkc" data-i="'+cid+'"'+(n?'':' data-dis="1" data-why="Aucun terrain assez grand dans cette ville."')+' style="'+(n?'':'opacity:.5')+'"><span class="m"><b>'+esc(C.n)+'</b><small>'+esc(C.country)+' · salaires '+Math.round(fabWage(cid)*100)+' · énergie '+Math.round(fabNrj(cid)*100)+'</small></span><span class="r">'+plu(n,'terrain')+'</span></button>'; }).join('');
+    return h; }
+  h+='<button class="back" data-a="fabback" data-v="pkc">‹ Villes</button>'+head(esc(D.CITIES[K.c].n),'Terrains libres pour une '+T.n.toLowerCase()+'. La surface fixe le nombre de lignes.');
+  const P=fabPlots(K.c,K.t);
+  h+=P.map(bd=>{ const sl=Math.max(1,Math.floor(bd.surf/T.area)), dep=cityOwned(bd.city)? 0 : bldRent(bd)*30, dd=(D.CITIES[K.c].d.find(x=>bd.id.split('.')[1]===x.id)||{}).n||'';
+    return '<div class="fab-plot"><div><b>'+esc(bd.addr)+'</b><small>'+esc(dd)+' · '+fmtN(bd.surf)+' m² · '+plu(sl,'ligne')+' · loyer '+eur(cityOwned(bd.city)?0:bldRent(bd),0)+' / j</small><small>Total : '+eur(fabSetupCost(K.t)+dep,0)+'</small></div><button class="btn primary" data-a="fabmk" data-i="'+bd.id+'">Construire</button></div>'; }).join('')||'<div class="notice info">Plus de terrain libre assez grand dans cette ville.</div>';
+  return h; }
+function fabPlots(cid,t){ const C=D.CITIES[cid], T=FAB_T[t], r=[]; C.d.forEach(dd=>bldList(cid,dd.id).forEach(bd=>{ if(fabPlotOk(bd)&&bd.surf>=T.area*.6) r.push(bd); })); return r.sort((a,b)=>b.surf-a.surf).slice(0,24); }
+
+/* ---------- un site ---------- */
+function vFabSite(){ const U=fabUI(), s=fabSite(U.s), T=FAB_T[s.t], tab=U.tab||'lines'; let h='';
+  h+='<button class="back" data-a="fabback" data-v="s">‹ Usines</button><div class="fab-hero">'+fabTypeSvg(s.t,72)+'<div><h2 class="fab-h">'+esc(s.name)+'</h2><small>'+esc(fabCityN(s.city))+' · '+plu(s.lines.length,'ligne')+' sur '+fabSlots(s)+(s.halls? ' · '+plu(s.halls,'hall')+' ajouté'+(s.halls>1?'s':'') : '')+'</small></div></div>';
+  const tabs=(s.t==='farm'?[['parc','Parcelles']]:[]).concat([['lines','Lignes'],['stock','Stock et débouchés'],['site','Site']]);
+  h+='<div class="fab-tabs">'+tabs.map(([k,n])=>'<button class="'+(tab===k?'on':'')+'" data-a="fabtab" data-i="'+k+'">'+n+'</button>').join('')+'</div>';
+  if(tab==='lines'){
+    if(U.np){ h+='<section class="card"><h2><span>Nouvelle ligne : choisissez le produit</span></h2><div class="fab-pick">'+fabProdsOf(s.t).map(p=>{ const P=D.PRODS[p];
+        return '<button class="fab-pc" data-a="fabnl" data-i="'+p+'">'+fabProdSvg(p,52)+'<b>'+P.n+'</b><small>'+eur(fabPrice(p),fabPrice(p)<100?2:0)+' l’unité</small><span class="fab-ins">'+Object.keys(P.in||{}).map(q=>fabProdSvg(q,22)).join('')+'</span></button>'; }).join('')+'</div><button class="btn" style="margin-top:8px" data-a="fabnp">Annuler</button></section>'; }
+    h+=s.lines.map(l=>{ const A=fabAnalyze(s,l), P=D.PRODS[l.p], E=fabLineEco(s,l);
+      const st= l.on===0? '<span class="fab-amb">En pause</span>' : A.msg? '<span class="fab-warn">'+A.msg+'</span>' : 'Goulot : '+FAB_M[P.st[A.bott]].n.toLowerCase()+' · rendement '+Math.round(A.eff*100)+' %';
+      return '<button class="fab-line" data-a="fabln" data-i="'+l.id+'">'+fabProdSvg(l.p,44)+'<span class="m"><b>Ligne '+l.id+' · '+P.n+'</b><small>'+st+'</small><span class="fab-bar"><i style="width:'+Math.round(A.eff*100)+'%;background:'+fabEffCol(A.eff)+'"></i></span></span><span class="u">'+fabU(A.rate)+'<small>'+P.u+' / j</small><small class="'+(E.net>=0?'fab-ok':'fab-warn')+'">'+(E.net>=0?'+':'')+eur(E.net,0)+'</small></span></button>'; }).join('');
+    if(!s.lines.length&&!U.np) h+='<div class="notice info">Aucune ligne. Ajoutez-en une puis disposez ses machines.</div>';
+    const free=fabSlots(s)-s.lines.length;
+    h+='<div class="fab-acts">'+(free>0&&!U.np? '<button class="btn primary" data-a="fabnp">Nouvelle ligne ('+plu(free,'place')+')</button>' : '')+'<button class="btn" data-a="fabhall">Construire un hall (+2 lignes) · '+eur(fabHallCost(s),0)+'</button></div>'; }
+  if(tab==='parc'){ const tot=Object.values(s.parc||{}).reduce((a,x)=>a+x,0);
+    h+='<section class="card"><h2><span>Parcelles</span><span class="sub">'+plu(tot,'parcelle')+' · '+eur(FAB_PARCEL,0)+' l’une</span></h2>'+Object.keys(FAB_CROP).map(c=>{ const C=FAB_CROP[c], n=(s.parc||{})[c]||0, v=C.y*fabPrice(C.p);
+      return '<div class="fab-row"><span class="l">'+fabProdSvg(C.p,34)+'<span><b>'+C.n+'</b><small style="display:block;color:var(--ink-3)">'+fmtN(C.y)+' '+D.PRODS[C.p].u+' par parcelle et par jour · '+eur(v,0)+'</small></span></span><span style="display:flex;gap:4px;align-items:center"><b style="min-width:26px;text-align:right">'+n+'</b>'+
+        (n?'<button class="btn sm" data-a="fabps" data-i="'+c+'">−1</button>':'')+'<button class="btn sm" data-a="fabpb" data-i="'+c+'" data-v="1">+1</button><button class="btn sm" data-a="fabpb" data-i="'+c+'" data-v="10">+10</button></span></div>'; }).join('')+
+      '<div class="sub" style="margin-top:8px">Les récoltes vont au stock du site : vos lignes de transformation (farine, fromages, vin) et vos sociétés se servent d’abord, le reste est vendu au marché de gros.</div></section>'; }
+  if(tab==='stock'){ const d=s.d||{};
+    h+='<section class="card"><h2><span>Hier</span></h2><div class="fab-row"><span>Vendu au marché de gros</span><b>'+eur(d.sold||0,0)+'</b></div><div class="fab-row"><span>Livré à vos sociétés</span><b>'+eur(d.own||0,0)+'</b></div><div class="fab-row"><span>Ouvriers et énergie</span><b class="fab-warn">−'+eur(d.cost||0,0)+'</b></div><div class="fab-row"><span>Matières et transport</span><b class="fab-warn">−'+eur(d.mat||0,0)+'</b></div>'+(d.br? '<div class="fab-row"><span>Pannes</span><b class="fab-amb">'+plu(d.br,'ligne')+' à mi-régime</b></div>' : '')+'</section>';
+    const ps=Object.keys(s.st||{}).filter(p=>D.PRODS[p]&&(s.st[p]>.01||(d.u||{})[p]));
+    h+='<section class="card"><h2><span>Stock du site</span></h2>'+(ps.map(p=>'<div class="fab-row"><span class="l">'+fabProdSvg(p,34)+'<span><b>'+D.PRODS[p].n+'</b><small style="display:block;color:var(--ink-3)">produit hier : '+fabU((d.u||{})[p]||0)+' '+D.PRODS[p].u+'</small></span></span><span style="text-align:right"><b>'+fabU(s.st[p]||0)+'</b><small style="display:block;color:var(--ink-3)">'+eur((s.st[p]||0)*fabPrice(p)*(s.qm[p]||1),0)+'</small></span></div>').join('')||'<div class="sub">Rien en stock.</div>')+
+      '<div class="fab-tabs" style="margin-top:10px"><button class="'+(s.mode!=='store'?'on':'')+'" data-a="fabmode" data-i="sell">Vendre le surplus</button><button class="'+(s.mode==='store'?'on':'')+'" data-a="fabmode" data-i="store">Stocker</button></div>'+
+      '<div class="fab-tabs"><button class="'+(s.buy!==0?'on':'')+'" data-a="fabbuy" data-i="1">Acheter les matières manquantes</button><button class="'+(s.buy===0?'on':'')+'" data-a="fabbuy" data-i="0">Vos usines seulement</button></div>'+
+      '<div class="sub">Une réserve d’un jour et demi est toujours gardée pour vos lignes et vos sociétés clientes.</div><button class="btn" style="margin-top:8px" data-a="fabsell">Vendre tout le stock</button></section>'; }
+  if(tab==='site'){ const v=s.lines.reduce((a,l)=>a+fabLineValue(s,l),0);
+    h+='<section class="card"><h2><span>Le site</span></h2>'+s.blds.map(id=>{ const bd=bldById(id); return '<div class="fab-row"><span>'+esc(bd?bd.addr:id)+'</span><b>'+(bd?fmtN(bd.surf)+' m²':'')+'</b></div>'; }).join('')+
+      '<div class="fab-row"><span>Places de ligne</span><b>'+fabSlots(s)+'</b></div><div class="fab-row"><span>Halls ajoutés</span><b>'+(s.halls||0)+'</b></div><div class="fab-row"><span>Valeur des machines</span><b>'+eur(v,0)+'</b></div>'+
+      '<div class="fab-row"><span>Ouvriers</span><b>'+fmtN(s.lines.reduce((a,l)=>a+fabLineOpex(s,l).wk,0)+Object.values(s.parc||{}).reduce((a,n)=>a+n,0))+'</b></div>'+
+      '<button class="btn" style="margin-top:10px" data-a="fabdel">Céder le site</button><div class="sub" style="margin-top:4px">Machines rachetées 60 %, parcelles 70 %, stock vendu au prix de gros.</div></section>'; }
+  return h; }
+
+/* ---------- plan d'une ligne ---------- */
+function fabGridSvg(s,l,A,U){ const C=40, W=FAB_W*C, H=FAB_H*C, u='fg'+s.id+'_'+l.id, P=D.PRODS[l.p];
+  let h='<svg class="fab-grid" viewBox="-2 -2 '+(W+4)+' '+(H+4)+'" role="img" aria-label="Plan de la ligne">'+fabDefs(u)+'<rect width="'+W+'" height="'+H+'" fill="url(#'+u+'fl)" rx="6"/>';
+  /* marquages au sol */
+  h+='<rect x="2" y="2" width="'+(W-4)+'" height="'+(H-4)+'" rx="5" fill="none" stroke="#F2C230" stroke-opacity=".25" stroke-dasharray="8 6"/>';
+  /* convoyeurs */
+  const onPath=new Set(A.path); const cvs=l.g.map((it,i)=>[it,i]).filter(([it])=>it[0]==='cv');
+  cvs.forEach(([it,i])=>{ const x=it[1]*C, y=it[2]*C, on=onPath.has(it[2]*FAB_W+it[1]);
+    h+='<rect x="'+(x+3)+'" y="'+(y+3)+'" width="'+(C-6)+'" height="'+(C-6)+'" rx="5" fill="'+(on?'#2B2E35':'#24262B')+'" stroke="#16181C" stroke-width="2"/>'+
+       '<rect x="'+(x+7)+'" y="'+(y+7)+'" width="'+(C-14)+'" height="'+(C-14)+'" rx="3" fill="'+(on?'#4A4E57':'#33363C')+'"/>'; });
+  /* bande du convoyeur principal, animée, avec les rouleaux */
+  if(A.path.length){ const pts=A.path.map(v=>[(v%FAB_W)*C+C/2, Math.floor(v/FAB_W)*C+C/2]), d='M'+pts.map(p=>p.join(' ')).join(' L');
+    h+='<path d="'+d+'" fill="none" stroke="#5E636D" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/><path class="fab-belt" d="'+d+'" fill="none" stroke="#7A808B" stroke-width="12" stroke-dasharray="3 5" stroke-linejoin="round"/>'+
+       '<path d="'+d+'" fill="none" stroke="#E8B84A" stroke-width="1.2" stroke-dasharray="2 14" opacity=".8"/>';
+    for(let i=0;i<5;i++) h+='<g><rect x="-6" y="-5" width="12" height="10" rx="2" fill="#C9CED6" stroke="#4C5461"/><rect x="-4" y="-3" width="8" height="2" fill="'+FAB_T[s.t].col+'"/><animateMotion dur="'+Math.max(4,A.path.length*.7)+'s" repeatCount="indefinite" begin="-'+(i*A.path.length*.14).toFixed(1)+'s" rotate="auto" path="'+d+'"/></g>'; }
+  /* machines */
+  l.g.forEach((it,i)=>{ if(it[0]==='cv') return; const [w,hh]=fabDim(it), x=it[1]*C, y=it[2]*C, M=A.mach[i]||{};
+    const lab=FAB_M[it[0]].n.split(' ')[0].toUpperCase().slice(0,12);
+    const inner= it[3]? '<g transform="translate('+(w*C)+' 0) rotate(90)">'+fabMachineSvg(it[0],hh*C,w*C,u,lab)+'</g>' : fabMachineSvg(it[0],w*C,hh*C,u,lab);
+    h+='<g transform="translate('+x+' '+y+')">'+inner;
+    const bott= A.raw>0&&it[0]===P.st[A.bott]&&M.st==='ok';
+    if(M.st==='off'&&!['in','out'].includes(it[0])) h+='<rect x="2" y="2" width="'+(w*C-4)+'" height="'+(hh*C-4)+'" rx="7" fill="none" stroke="#E8B84A" stroke-width="2.5" stroke-dasharray="6 4"/>';
+    else if(M.st==='order') h+='<rect x="2" y="2" width="'+(w*C-4)+'" height="'+(hh*C-4)+'" rx="7" fill="none" stroke="#E8B84A" stroke-width="2.5"/><circle cx="'+(w*C-10)+'" cy="10" r="7" fill="#E8B84A"/><text x="'+(w*C-10)+'" y="13.5" text-anchor="middle" font-size="10" font-weight="900" fill="#2A1C00">!</text>';
+    else if(bott) h+='<rect class="fab-hot" x="1.5" y="1.5" width="'+(w*C-3)+'" height="'+(hh*C-3)+'" rx="7" fill="none" stroke="#FF5A4F" stroke-width="3"/>';
+    if(U.sel===i) h+='<rect x="0" y="0" width="'+(w*C)+'" height="'+(hh*C)+'" rx="8" fill="none" stroke="#7FD3FF" stroke-width="3"/>';
+    h+='</g>'; });
+  /* cases cliquables */
+  for(let y=0;y<FAB_H;y++) for(let x=0;x<FAB_W;x++) h+='<rect class="fab-cell" fill="transparent" x="'+(x*C)+'" y="'+(y*C)+'" width="'+C+'" height="'+C+'" data-a="fabcell" data-i="'+x+'" data-j="'+y+'"/>';
+  return h+'</svg>'; }
+function vFabLine(){ const U=fabUI(), s=fabSite(U.s), l=s.lines.find(x=>x.id===U.l), P=D.PRODS[l.p], A=fabAnalyze(s,l), E=fabLineEco(s,l); let h='';
+  h+='<button class="back" data-a="fabback" data-v="l">‹ '+esc(s.name)+'</button><div class="fab-hero">'+fabProdSvg(l.p,56)+'<div><h2 class="fab-h">Ligne '+l.id+' · '+P.n+'</h2><small>'+(l.on===0?'En pause · ':'')+eur(fabPrice(l.p),fabPrice(l.p)<100?2:0)+' l’unité · '+plu(E.wk,'ouvrier')+'</small></div></div>';
+  h+='<div class="fab-stats"><div><small>Production</small><b>'+fabU(A.rate)+'</b><small>'+P.u+' / jour</small></div><div><small>Sans le goulot</small><b class="fab-ok">'+fabU(A.next)+'</b><small>'+P.u+' / jour</small></div><div><small>Rendement</small><b style="color:'+fabEffCol(A.eff)+'">'+Math.round(A.eff*100)+' %</b><small>'+(E.net>=0?'+':'')+eur(E.net,0)+' / j</small></div></div>';
+  if(A.msg) h+='<div class="fab-msg">'+A.msg+'</div>';
+  h+='<div class="fab-gridw">'+fabGridSvg(s,l,A,U)+'</div>';
+  /* palette */
+  const tool=U.tool||null;
+  h+='<div class="fab-pal">'+fabLineKinds(l.p).map(k=>{ const m=FAB_M[k], w=Math.min(m.w,3), hh=Math.min(m.h,2), on=tool===k;
+    return '<button class="'+(on?'on':'')+'" data-a="fabtool" data-i="'+k+'"><svg viewBox="0 0 '+(w*40)+' '+(hh*40)+'" preserveAspectRatio="xMidYMid meet">'+(k==='cv'? '<rect x="3" y="3" width="34" height="34" rx="5" fill="#2B2E35"/><rect x="7" y="7" width="26" height="26" rx="3" fill="#4A4E57"/><path d="M10 20 H30 M24 14 L30 20 L24 26" stroke="#E8B84A" stroke-width="3" fill="none"/>' : fabDefs('pl'+k)+fabMachineSvg(k,w*40,hh*40,'pl'+k))+'</svg>'+esc(m.n.length>18? m.n.slice(0,17)+'…' : m.n)+'<small>'+eur(fabMCost(s.t,k),0)+'</small></button>'; }).join('')+
+    '<button class="'+(tool==='del'?'on':'')+'" data-a="fabtool" data-i="del"><svg viewBox="0 0 40 40"><path d="M10 12 H30 L28 34 H12Z" fill="#5A6472"/><path d="M8 12 H32 M16 8 H24" stroke="#C9CED6" stroke-width="3"/><path d="M16 17 V30 M20 17 V30 M24 17 V30" stroke="#2B313B" stroke-width="2"/></svg>Retirer<small>rachat 60 %</small></button></div>';
+  if(tool&&tool!=='del'){ const m=FAB_M[tool]; h+='<div class="sub" style="margin:2px 0 6px">'+esc(m.n)+(m.c? ' · '+fabU(m.c*P.k)+' '+P.u+' / jour' : '')+' · '+(m.d||'Touchez une case libre pour la poser.')+(m.w!==m.h? ' <button class="btn sm" data-a="fabrot">Pivoter ('+(U.rot?'vertical':'horizontal')+')</button>' : '')+'</div>'; }
+  else if(tool==='del') h+='<div class="sub" style="margin:2px 0 6px">Touchez une machine ou un convoyeur pour le retirer.</div>';
+  else h+='<div class="sub" style="margin:2px 0 6px">Choisissez une machine puis touchez une case. Touchez une machine posée pour la déplacer ou la tourner.</div>';
+  /* machine sélectionnée */
+  if(U.sel!=null&&l.g[U.sel]){ const it=l.g[U.sel], m=FAB_M[it[0]], M=A.mach[U.sel]||{}, o=fabMOpex(s.t,it[0],s.city);
+    const st= M.st==='off'? '<span class="fab-amb">Non raccordée au convoyeur principal</span>' : M.st==='order'? '<span class="fab-amb">Placée avant l’étape précédente : elle ne travaille pas</span>' : M.st==='ok'? '<span class="fab-ok">En service</span>' : '';
+    h+='<div class="fab-sel"><b>'+esc(m.n)+'</b><div class="sub">'+(m.c? fabU(m.c*P.k)+' '+P.u+' / jour · ' : '')+eur(o.lab+o.nrj,0)+' / jour (ouvriers et énergie)'+(st?' · '+st:'')+'</div><div class="fab-acts">'+
+      (m.w!==m.h? '<button class="btn" data-a="fabrotm">Tourner</button>' : '')+'<button class="btn'+(U.mv?' primary':'')+'" data-a="fabmv">'+(U.mv?'Touchez la nouvelle place':'Déplacer')+'</button><button class="btn" data-a="fabrm">Retirer</button><button class="btn" data-a="fabunsel">Fermer</button></div></div>'; }
+  /* étapes */
+  const mx=Math.max(...A.stages.map(x=>x.cap),1);
+  h+='<section class="card" style="margin-top:10px"><h2><span>Étapes de fabrication</span><span class="sub">convoyeur : '+A.L+' cases, '+plu(A.turns,'virage')+'</span></h2>'+A.stages.map((x,i)=>{ const b=i===A.bott;
+    return '<div class="fab-stage"><svg viewBox="0 0 80 40">'+fabDefs('st'+x.k)+fabMachineSvg(x.k,80,40,'st'+x.k)+'</svg><div><b>'+(i+1)+'. '+esc(FAB_M[x.k].n)+'</b><small>'+(x.n? plu(x.n,'machine')+' en service' : '<span class="fab-warn">aucune machine en service</span>')+(x.tot>x.n? ' · <span class="fab-amb">'+(x.tot-x.n)+' mal placée'+(x.tot-x.n>1?'s':'')+'</span>' : '')+'</small><span class="fab-bar"><i style="width:'+Math.round(x.cap/mx*100)+'%;background:'+(b?'#E4572E':'#2FB36D')+'"></i></span></div><span class="c'+(b?' fab-warn':'')+'">'+fabU(x.cap)+'<small style="display:block;font-weight:700;color:var(--ink-3)">/ jour</small></span></div>'; }).join('')+
+    '<div class="fab-row"><span>Convoyeur</span><b>× '+fmtN(A.fBelt,2)+'</b></div><div class="fab-row"><span>Stocks tampons ('+A.buf+' / 2)</span><b>× '+fmtN(A.fStop,2)+'</b></div><div class="fab-row"><span>Contrôle qualité</span><b class="'+(A.qc?'fab-ok':'')+'">'+(A.qc?'prix +8 %':'aucun')+'</b></div><div class="fab-row"><span>Maintenance</span><b class="'+(A.mnt?'fab-ok':'')+'">'+(A.mnt?'pannes ÷ 3':'pannes 2 % par jour')+'</b></div></section>';
+  /* économie */
+  h+='<section class="card"><h2><span>Économie de la ligne par jour</span></h2><div class="fab-row"><span>Ventes au prix de gros</span><b>'+eur(E.rev,0)+'</b></div><div class="fab-row"><span>Matières</span><b class="fab-warn">−'+eur(E.mat,0)+'</b></div><div class="fab-row"><span>Ouvriers et énergie ('+esc(fabCityN(s.city))+')</span><b class="fab-warn">−'+eur(E.opex,0)+'</b></div><div class="fab-row"><span>Résultat</span><b class="'+(E.net>=0?'fab-ok':'fab-warn')+'">'+(E.net>=0?'+':'')+eur(E.net,0)+'</b></div>'+
+    '<div class="fab-row"><span>Matières par '+esc(P.u.replace(/s$/,''))+'</span><span class="fab-ins">'+Object.keys(P.in||{}).map(q=>'<span title="'+esc(fabProdDef(q).n)+'" style="display:inline-flex;align-items:center;gap:2px;font:700 11px var(--f-body)">'+fabProdSvg(q,22)+fabU(P.in[q])+'</span>').join(' ')+'</span></div></section>';
+  const onlyBase=!l.g.some(it=>!['in','out','cv'].includes(it[0]));
+  h+='<div class="fab-acts">'+(onlyBase? '<button class="btn primary" data-a="fabauto">Disposition automatique · '+eur(fabAutoCost(s,l),0)+'</button>' : '')+'<button class="btn" data-a="fabpause">'+(l.on===0?'Relancer la ligne':'Mettre en pause')+'</button>'+
+    (fabProdsOf(s.t).length>1? '<button class="btn" data-a="fabchg">Changer de produit</button>' : '')+'<button class="btn" data-a="fablnd">Démonter la ligne</button></div>';
+  if(U.chg) h+='<div class="fab-pick" style="margin-top:8px">'+fabProdsOf(s.t).filter(p=>p!==l.p).map(p=>'<button class="fab-pc" data-a="fabsetp" data-i="'+p+'">'+fabProdSvg(p,44)+'<b>'+D.PRODS[p].n+'</b><small>mêmes étapes : '+(D.PRODS[p].st.join()===P.st.join()?'oui':'non')+'</small></button>').join('')+'</div>';
+  return h; }
+
+/* ---------- actions ---------- */
+function fabAfter(r){ if(r&&!r.ok) res(r); if(S) computeNW(); render(); scheduleSave(); return r; }
+const fabLn = () => { const U=fabUI(), s=fabSite(U.s); return [s, s&&s.lines.find(x=>x.id===U.l)]; };
+Object.assign(ACT,{
+  fabgo:el=>{ const U=fabUI(); U.s=+el.dataset.i; U.l=null; U.tab=null; U.np=0; U.pk=null; window.scrollTo(0,0); render(); },
+  fabpk:()=>{ const U=fabUI(); U.pk={}; window.scrollTo(0,0); render(); },
+  fabpkt:el=>{ fabUI().pk={t:el.dataset.i}; window.scrollTo(0,0); render(); },
+  fabpkc:el=>{ const K=fabUI().pk; K.c=el.dataset.i; window.scrollTo(0,0); render(); },
+  fabmk:el=>{ const U=fabUI(), r=fabBuild(U.pk.t,el.dataset.i); if(r.ok){ U.pk=null; U.s=+r.msg; U.tab=null; U.np=1; window.scrollTo(0,0); } fabAfter(r); },
+  fabback:el=>{ const U=fabUI(), v=el.dataset.v;
+    if(v==='pk') U.pk=null; else if(v==='pkt') U.pk={}; else if(v==='pkc') U.pk={t:U.pk.t};
+    else if(v==='s'){ U.s=null; U.l=null; } else if(v==='l'){ U.l=null; U.tool=null; U.sel=null; U.mv=0; U.chg=0; }
+    window.scrollTo(0,0); render(); },
+  fabtab:el=>{ const U=fabUI(); U.tab=el.dataset.i; U.np=0; render(); },
+  fabnp:()=>{ const U=fabUI(); U.np=U.np?0:1; render(); },
+  fabnl:el=>{ const U=fabUI(), r=fabLineNew(U.s,el.dataset.i); if(r.ok){ U.np=0; U.l=+r.msg; U.tool=null; U.sel=null; window.scrollTo(0,0); } fabAfter(r); },
+  fabln:el=>{ const U=fabUI(); U.l=+el.dataset.i; U.tool=null; U.sel=null; U.mv=0; U.chg=0; window.scrollTo(0,0); render(); },
+  fabhall:()=>fabAfter(fabHall(fabUI().s)),
+  fabpb:el=>fabAfter(fabParcelBuy(fabUI().s,el.dataset.i,+el.dataset.v)),
+  fabps:el=>fabAfter(fabParcelSell(fabUI().s,el.dataset.i,1)),
+  fabmode:el=>{ const s=fabSite(fabUI().s); s.mode=el.dataset.i==='store'?'store':'sell'; fabAfter(); },
+  fabbuy:el=>{ const s=fabSite(fabUI().s); s.buy=+el.dataset.i; fabAfter(); },
+  fabsell:()=>fabAfter(fabSellStock(fabUI().s)),
+  fabdel:()=>{ const U=fabUI(), r=fabSiteSell(U.s); if(r.ok){ U.s=null; U.l=null; toast(r.msg,'good'); } fabAfter(r); },
+  fabtool:el=>{ const U=fabUI(), k=el.dataset.i; U.tool= U.tool===k? null : k; U.sel=null; U.mv=0; render(); },
+  fabrot:()=>{ const U=fabUI(); U.rot=U.rot?0:1; render(); },
+  fabcell:el=>{ const U=fabUI(), [s,l]=fabLn(), x=+el.dataset.i, y=+el.dataset.j; if(!l) return;
+    if(U.mv&&U.sel!=null){ const r=fabMove(s.id,l.id,U.sel,x,y); if(r.ok){ U.mv=0; } return fabAfter(r); }
+    if(U.tool==='del') return fabAfter(fabRemove(s.id,l.id,x,y));
+    const i=fabAt(l,x,y);
+    if(U.tool&&i<0) return fabAfter(fabPlace(s.id,l.id,U.tool,x,y,U.rot));
+    if(i>=0&&l.g[i][0]==='cv'&&U.tool==='cv') return fabAfter(fabRemove(s.id,l.id,x,y));
+    U.sel= i>=0&&U.sel!==i? i : null; U.mv=0; render(); },
+  fabunsel:()=>{ const U=fabUI(); U.sel=null; U.mv=0; render(); },
+  fabmv:()=>{ const U=fabUI(); U.mv=U.mv?0:1; render(); },
+  fabrotm:()=>{ const U=fabUI(), [s,l]=fabLn(); fabAfter(fabRotate(s.id,l.id,U.sel)); },
+  fabrm:()=>{ const U=fabUI(), [s,l]=fabLn(), it=l.g[U.sel]; if(!it) return; const r=fabRemove(s.id,l.id,it[1],it[2]); if(r.ok) U.sel=null; fabAfter(r); },
+  fabauto:()=>{ const [s,l]=fabLn(); fabAfter(fabAuto(s.id,l.id)); },
+  fabpause:()=>{ const [s,l]=fabLn(); l.on= l.on===0? 1 : 0; fabAfter(); },
+  fabchg:()=>{ const U=fabUI(); U.chg=U.chg?0:1; render(); },
+  fabsetp:el=>{ const U=fabUI(), [s,l]=fabLn(), r=fabSetProd(s.id,l.id,el.dataset.i); if(r.ok) U.chg=0; fabAfter(r); },
+  fablnd:()=>{ const U=fabUI(), [s,l]=fabLn(), r=fabLineDel(s.id,l.id); if(r.ok){ U.l=null; U.sel=null; U.tool=null; } fabAfter(r); }
+});
+VIEWS.logi=vFab;
+{ const _tab=ACT.tab; ACT.tab=el=>{ if(el.dataset.i==='logi'){ const U=fabUI(); U.pk=null; } _tab(el); }; }
+/* nom du menu */
+try{ const g=MGROUPS.find(x=>x[1].includes('logi')); if(typeof MENU!=='undefined'){ const m=MENU.find(x=>x[0]==='logi'); if(m) m[1]='Usines'; } }catch(e){}
 </script>
 </body>
 </html>
