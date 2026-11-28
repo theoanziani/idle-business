@@ -1,7 +1,7 @@
 /* ============================================================
    V2.8.2 : RIVAUX · CROISSANCE, ACQUISITIONS ANNONCÉES, USINES
-   - Leur fortune grandit avec la vôtre, mais moins vite : chaque jour, chaque rival gagne 70 à 85 % de votre
-     gain moyen de valeur nette (jamais de vos pertes).
+   - Leur fortune grandit avec leur bénéfice : chaque jour, chaque rival réinvestit 70 à 85 % de son bénéfice
+     quotidien dans sa valeur nette (jamais de pertes).
    - Ils achètent des villes, des clubs, des banques étrangères : l'achat est annoncé 8 à 14 jours avant.
      Achetez avant eux au prix normal ; après, vous pouvez toujours leur racheter, avec 25 % de prime.
    - Ils bâtissent aussi des usines : chaque usine rivale d'une famille baisse de 1,5 % le prix de gros de vos
@@ -25,8 +25,7 @@ function rivTargets(k){ const R=rivHold(), planned=new Set(R.plans.filter(p=>p.k
   return L.filter(id=>!rivMine(k,id)&&!rivHolder(k,id)&&!planned.has(id)); }
 function rivAcqStep(){ const R=rivHold();
   /* croissance */
-  const d=S.nw-(R.lastNW===undefined? S.nw : R.lastNW); R.lastNW=S.nw; R.gain=(R.gain||0)*.85+Math.max(0,d)*.15;
-  rivAlive().forEach(r=>{ const v=R.rv[r.id]; if(!v||v.gone) return; v.xw=(v.xw||0)+R.gain*RIV_RATE(r.id); });
+  rivAlive().forEach(r=>{ const v=R.rv[r.id]; if(!v||v.gone) return; const p=v.ph&&v.ph.length? Math.max(0,v.ph[v.ph.length-1]) : 0; v.xw=(v.xw||0)+p*RIV_RATE(r.id); });
   /* achats annoncés arrivés à échéance */
   R.plans.slice().forEach(p=>{ if(S.day<p.due) return; R.plans=R.plans.filter(x=>x!==p); const v=R.rv[p.rid]; if(!v||v.gone) return;
     if(rivMine(p.k,p.id)||rivHolder(p.k,p.id)) return; const price=rivAssetPrice(p.k,p.id)||p.p;

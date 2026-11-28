@@ -26,7 +26,8 @@ function fmStart(h,a,gh,ga,day,pen,ko){
   fmKickoff(L,0);
   FOOT_LIVE=L; return L;
 }
-const fmDir = (L,s) => ((L.half%2===1)===(s===0))? 1 : -1;
+/* sens d'attaque : les équipes changent de camp à la mi-temps (2) et à la mi-temps de la prolongation (4), pas au début de la prolongation (3) */
+const fmDir = (L,s) => ((L.half===1||L.half===4)===(s===0))? 1 : -1;
 function fmBasePos(L,s,i){ const b=FM_BASE[i]; return fmDir(L,s)>0? [b[0],b[1]] : [105-b[0],68-b[1]]; }
 function fmKickoff(L,s){
   L.pl.forEach(p=>{ const b=fmBasePos(L,p.s,p.i); const d=fmDir(L,p.s); p.x=Math.min(d>0?51:105,Math.max(d>0?0:54,b[0]-d*12)); p.y=b[1]; });

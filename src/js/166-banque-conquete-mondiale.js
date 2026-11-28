@@ -67,7 +67,9 @@ function W(){ const B=S.bank; if(!B.w) B.w={sh:{eur:4.5,nam:3.5,asi:0,lat:0,afr:
 const wOn = () => S.bank.lic&&bStg()>=5;
 const wWorld = () => { const w=W(); return WREG.reduce((a,r)=>a+r.gdp*(w.sh[r.k]||0),0)/WGDP; };
 const wTier = () => { const s=wWorld(); let t=0; WTIERS.forEach((x,i)=>{ if(s>=x[1]) t=i; }); return t+1; };
-const wOpen = r => wTier()>=r.tier;
+/* une région s'ouvre au palier mondial, ou dès que la banque a une implantation dans un de ses pays */
+const CTY_REG={france:'eur',croatie:'eur',espagne:'eur',usa:'nam',bresil:'lat',chine:'asi'};
+const wOpen = r => wTier()>=r.tier || bCty().some(c=>CTY_REG[c]===r.k);
 const wCap = r => (wTier()>=5?45:35)+(S.country&&r.k==='eur'&&['france','croatie','espagne'].includes(S.country.id)?5:0)+(S.country&&r.k==='nam'&&S.country.id==='usa'?5:0)+(S.country&&r.k==='lat'&&S.country.id==='bresil'?5:0)+(S.country&&r.k==='asi'&&S.country.id==='chine'?5:0);
 const wPtCost = r => r.gdp*1e9*.00025*(1+(W().sh[r.k]||0)/10);
 const wBankPrice = b => { const r=WREG.find(x=>x.k===b[3]); return Math.round(b[4]*r.gdp*1e9*.00025*.75*(1+(W().sh[r.k]||0)/12)/1e8)*1e8; };
@@ -115,8 +117,15 @@ function coinLogo(sz){ const u='icl', c=100; let k=''; for(let a=0;a<120;a++){ c
     '<path id="'+u+'p" d="M100,100 m-73,0 a73,73 0 1,1 146,0 a73,73 0 1,1 -146,0" fill="none"/><text font-weight="900" font-size="10.5" letter-spacing="2.6" fill="#F3E8FF" opacity=".9" style="font-family:var(--f-body)"><textPath href="#'+u+'p">IDLECOIN · IDLE BANK · IDLECOIN · IDLE BANK · </textPath></text>'+
     '<g style="filter:drop-shadow(0 1.5px 1px rgba(0,0,0,.45))"><path d="M78 70 V130 M70 70 H86 M70 130 H86" stroke="#fff" stroke-width="9" stroke-linecap="round"/><path d="M134 80 A30 30 0 1 0 134 120" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>'+
     [[40,92,14],[40,108,10],[146,100,14]].map(([x,y,d])=>'<path d="M'+x+' '+y+' h'+d+'" stroke="#E6D2FF" stroke-width="2" opacity=".7"/><circle cx="'+(x+d)+'" cy="'+y+'" r="2.4" fill="#E6D2FF"/>').join('')+'</g></svg>'; }
+/* chaque point du globe est une agence ou un distributeur, réparti sur tout le pays de son implantation */
+const CTY_BOX={france:[42,51,-5,8],croatie:[42.4,46.5,13.5,19.5],espagne:[36,43.8,-9.3,3.3],usa:[26,48,-124,-70],bresil:[-33,5,-74,-35],chine:[20,45,100,122]};
+function wSpot(cid,i,n){ const b=CTY_BOX[cid]||CTY_BOX.france, a=i*2.39996323, r=Math.sqrt((i+.5)/n);
+  return [(b[0]+b[1])/2+(b[1]-b[0])/2*r*Math.sin(a), (b[2]+b[3])/2+(b[3]-b[2])/2*r*Math.cos(a)]; }
+function wBranchPts(){ const B=S.bank, cs=bCty(), tot=(B.br||0)+(B.atm||0), out=[];
+  for(let i=0;i<tot;i++){ const k=i%cs.length, n=Math.ceil((tot-k)/cs.length), p=wSpot(cs[k], Math.floor(i/cs.length), n); out.push([p[0],p[1],0]); }
+  return out; }
 function wGlobe(){ const w=W(), H=[48.86,2.35];
-  const data={zones:WREG.filter(wOpen).map(r=>[r.lat,r.lon,.24+Math.min(.4,(w.sh[r.k]||0)/60),r.rgb,.35+Math.min(.5,(w.sh[r.k]||0)/50)]), pts:[[H[0],H[1],1]].concat(WREG.filter(wOpen).map(r=>[r.hub[0],r.hub[1],0])), routes:WREG.filter(wOpen).map(r=>({p:glbArc(H,r.hub,60).p,c:r.c,h:.12,n:2,sp:7}))};
+  const data={zones:WREG.filter(wOpen).map(r=>[r.lat,r.lon,.24+Math.min(.4,(w.sh[r.k]||0)/60),r.rgb,.35+Math.min(.5,(w.sh[r.k]||0)/50)]), pts:[[H[0],H[1],1]].concat(wBranchPts()), routes:WREG.filter(wOpen).map(r=>({p:glbArc(H,r.hub,60).p,c:r.c,h:.12,n:2,sp:7}))};
   return glbHtml('wbank',data,{l:'Globe de votre banque mondiale'}); }
 function vConquest(){ try{ nfCssOnce(); }catch(e){} const w=W(), t=wTier(), ws=wWorld(), rv=w.rv||{}, rvT=['pay','aum','sta','coin'].reduce((a,k)=>a+(rv[k]||0),0);
   let h='<section class="card wq-hero">'+wGlobe()+'<div class="wq-leg">'+WREG.map(r=>'<span class="'+(wOpen(r)?'':'off')+'"><i style="background:'+r.c+'"></i>'+r.n+' '+(wOpen(r)? fmtN(w.sh[r.k]||0,1)+' %' : '· palier '+r.tier)+'</span>').join('')+'</div>'+

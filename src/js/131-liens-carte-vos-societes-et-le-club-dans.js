@@ -1,9 +1,9 @@
 /* ============================================================
    LIENS : carte « Vos sociétés et le club » dans les finances du club
    ============================================================ */
-{ const _tf=fcTabFin; fcTabFin=function(O){ const h=_tf(O), farm=lkHas('farm'), rn=lkHas('renew'), hc=lkHas('couture'), e=lkPhone();
+{ const _tf=fcTabFin; fcTabFin=function(O){ const h=_tf(O), agro=lkAgro(), rn=lkHas('renew'), hc=lkHas('couture'), e=lkPhone();
   const row=(on,t,d)=>'<div class="rs-d"><div><b>'+t+'</b><small>'+d+'</small></div>'+pill(on?'Actif':'Inactif',on?'good':'info')+'</div>';
-  let c='<div class="ht-t">'+row(!!farm,'Buvettes du stade',farm?'Vos produits de la ferme : recette des buvettes ×1,5.':'Avec une ferme, les buvettes vendent vos produits (recette ×1,5).')+
+  let c='<div class="ht-t">'+row(agro,'Buvettes du stade',agro?'Vos produits de l’usine agroalimentaire : recette des buvettes ×1,5.':'Avec une usine agroalimentaire, les buvettes vendent vos produits (recette ×1,5).')+
     row(!!rn,'Énergie du stade',rn?'Vos centrales alimentent le stade : énergie 40 % moins chère.':'Avec des énergies renouvelables, l’énergie du stade coûte 40 % de moins.')+
     row(!!hc,'Tenues officielles',hc?'Votre maison de couture habille le club : sponsors +10 %, prestige de la maison en hausse.':'Avec une maison de haute couture, sponsors +10 % et prestige pour la maison.')+'</div>';
   return h+card('Vos sociétés et le club',c); }; }

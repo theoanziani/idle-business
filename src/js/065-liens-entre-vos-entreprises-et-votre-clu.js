@@ -10,11 +10,12 @@
    État : O.phSp (sponsor smartphone sur le maillot, 0/1) dans le club du joueur.
    ============================================================ */
 function lkHas(def){ return S.biz.find(x=>x.def===def&&x.status==='active'&&x.m)||null; }
+const lkAgro = () => !!fabInit().sites.some(s=>s.t==='agro');
 function lkPhone(){ const e=S.biz.find(x=>x.def==='electronics'&&x.status==='active'&&x.m&&x.m.ph&&x.m.mod); return e||null; }
 function lkPhoneHit(e){ return !!(e&&e.m.mod&&elScore(e,e.m.mod)>=elRival()); }
 { const _hg=fcHomeGate; fcHomeGate=function(h,a){ _hg(h,a); const O=fcOwn(); if(!O||O.id!==h||!O.lastGate) return;
-    const n=O.lastGate.n, farm=!!lkHas('farm'), cap=fcCap(O);
-    fcPay('food','Club : buvettes'+(farm?' (produits de votre ferme)':''),n*3.5*(farm?1.5:1));
+    const n=O.lastGate.n, agro=lkAgro(), cap=fcCap(O);
+    fcPay('food','Club : buvettes'+(agro?' (produits de votre usine agroalimentaire)':''),n*3.5*(agro?1.5:1));
     fcPay('energy','Club : énergie du stade'+(lkHas('renew')?' (vos centrales)':''),-cap*.35*(lkHas('renew')?.6:1)); }; }
 { const _fd=fcDaily; fcDaily=function(day){ _fd(day); const O=fcOwn(); if(!O||footDate(day).d!==1) return;
     const base=fcClubValue(O.id)*.06/12, hc=lkHas('couture'), e=lkPhone();
